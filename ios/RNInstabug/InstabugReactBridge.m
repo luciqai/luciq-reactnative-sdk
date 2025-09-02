@@ -1,0 +1,548 @@
+//
+//  InstabugReactBridge.m
+//  instabugDemo
+//
+//  Created by Yousef Hamza on 9/29/16.
+
+#import "InstabugReactBridge.h"
+#import <InstabugSDK/InstabugSDK.h>
+#import <InstabugSDK/IBGBugReporting.h>
+#import <InstabugSDK/IBGCrashReporting.h>
+#import <InstabugSDK/IBGLog.h>
+#import <InstabugSDK/IBGAPM.h>
+#import <asl.h>
+#import <os/log.h>
+#import <React/RCTUIManager.h>
+#import "RNInstabug.h"
+#import "Util/IBGNetworkLogger+CP.h"
+
+@interface Instabug (PrivateWillSendAPI)
++ (void)setWillSendReportHandler_private:(void(^)(IBGReport *report, void(^reportCompletionHandler)(IBGReport *)))willSendReportHandler_private;
+@end
+
+@implementation InstabugReactBridge
+
+- (NSArray<NSString *> *)supportedEvents {
+    return @[@"IBGpreSendingHandler" , @"IBGNetworkLoggerHandler"];
+}
+
+RCT_EXPORT_MODULE(Instabug)
+
+- (dispatch_queue_t)methodQueue {
+    return dispatch_get_main_queue();
+}
+
+
+RCT_EXPORT_METHOD(setEnabled:(BOOL)isEnabled) {
+    Instabug.enabled = isEnabled;
+}
+
+RCT_EXPORT_METHOD(init:(NSString *)token
+          invocationEvents:(NSArray *)invocationEventsArray
+          debugLogsLevel:(IBGSDKDebugLogsLevel)sdkDebugLogsLevel
+          useNativeNetworkInterception:(BOOL)useNativeNetworkInterception
+          codePushVersion:(NSString *)codePushVersion
+          appVariant:(NSString *)appVariant
+          options:(nullable NSDictionary *)options
+          overAirVersion :(NSDictionary *)overAirVersion
+          ) {
+
+           if(appVariant != nil){
+                  Instabug.appVariant = appVariant;
+              }
+
+    IBGInvocationEvent invocationEvents = 0;
+
+    for (NSNumber *boxedValue in invocationEventsArray) {
+        invocationEvents |= [boxedValue intValue];
+    }
+
+    [Instabug setCodePushVersion:codePushVersion];
+
+    [Instabug setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+
+    [RNInstabug initWithToken:token
+             invocationEvents:invocationEvents
+               debugLogsLevel:sdkDebugLogsLevel
+ useNativeNetworkInterception:useNativeNetworkInterception];
+}
+
+RCT_EXPORT_METHOD(setCodePushVersion:(NSString *)version) {
+    [Instabug setCodePushVersion:version];
+}
+
+RCT_EXPORT_METHOD(setOverAirVersion:(NSDictionary *)overAirVersion) {
+    [Instabug setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+}
+
+RCT_EXPORT_METHOD(setAppVariant:(NSString *)appVariant) {
+    Instabug.appVariant = appVariant;
+}
+
+RCT_EXPORT_METHOD(setReproStepsConfig:(IBGUserStepsMode)bugMode :(IBGUserStepsMode)crashMode:(IBGUserStepsMode)sessionReplayMode) {
+    [Instabug setReproStepsFor:IBGIssueTypeBug withMode:bugMode];
+    [Instabug setReproStepsFor:IBGIssueTypeAllCrashes withMode:crashMode];
+    [Instabug setReproStepsFor:IBGIssueTypeSessionReplay withMode:sessionReplayMode];
+}
+
+RCT_EXPORT_METHOD(setFileAttachment:(NSString *)fileLocation) {
+    NSURL *url = [NSURL URLWithString:fileLocation];
+    [Instabug addFileAttachmentWithURL:url];
+}
+
+RCT_EXPORT_METHOD(setUserData:(NSString *)userData) {
+    [Instabug setUserData:userData];
+}
+
+RCT_EXPORT_METHOD(setTrackUserSteps:(BOOL)isEnabled) {
+    [Instabug setTrackUserSteps:isEnabled];
+}
+
+IBGReport *currentReport = nil;
+RCT_EXPORT_METHOD(setPreSendingHandler:(RCTResponseSenderBlock)callBack) {
+    if (callBack != nil) {
+        Instabug.willSendReportHandler = ^IBGReport * _Nonnull(IBGReport * _Nonnull report) {
+            NSArray *tagsArray = report.tags;
+            NSArray *instabugLogs= report.instabugLogs;
+            NSArray *consoleLogs= report.consoleLogs;
+            NSDictionary *userAttributes= report.userAttributes;
+            NSArray *fileAttachments= report.fileLocations;
+            NSDictionary *dict = @{ @"tagsArray" : tagsArray, @"instabugLogs" : instabugLogs, @"consoleLogs" : consoleLogs,       @"userAttributes" : userAttributes, @"fileAttachments" : fileAttachments};
+            [self sendEventWithName:@"IBGpreSendingHandler" body:dict];
+
+            currentReport = report;
+            return report;
+        };
+    } else {
+        Instabug.willSendReportHandler = nil;
+    }
+}
+
+RCT_EXPORT_METHOD(appendTagToReport:(NSString*) tag) {
+    if (currentReport != nil) {
+        [currentReport appendTag:tag];
+    }
+}
+
+RCT_EXPORT_METHOD(appendConsoleLogToReport:(NSString*) consoleLog) {
+    if (currentReport != nil) {
+        [currentReport appendToConsoleLogs:consoleLog];
+    }
+}
+
+RCT_EXPORT_METHOD(setUserAttributeToReport:(NSString*) key:(NSString*) value) {
+    if (currentReport != nil) {
+        [currentReport setUserAttribute:value withKey:key];
+    }
+}
+
+RCT_EXPORT_METHOD(logDebugToReport:(NSString*) log) {
+    if (currentReport != nil) {
+        [currentReport logDebug:log];
+    }
+}
+
+RCT_EXPORT_METHOD(logVerboseToReport:(NSString*) log) {
+    if (currentReport != nil) {
+        [currentReport logVerbose:log];
+    }
+}
+
+RCT_EXPORT_METHOD(logWarnToReport:(NSString*) log) {
+    if (currentReport != nil) {
+        [currentReport logWarn:log];
+    }
+}
+
+RCT_EXPORT_METHOD(logErrorToReport:(NSString*) log) {
+    if (currentReport != nil) {
+        [currentReport logError:log];
+    }
+}
+
+RCT_EXPORT_METHOD(logInfoToReport:(NSString*) log) {
+    if (currentReport != nil) {
+        [currentReport logInfo:log];
+    }
+}
+
+RCT_EXPORT_METHOD(addFileAttachmentWithURLToReport:(NSString*) urlString) {
+    if (currentReport != nil) {
+        NSURL *url = [NSURL URLWithString:urlString];
+        [currentReport addFileAttachmentWithURL:url];
+    }
+}
+
+RCT_EXPORT_METHOD(addFileAttachmentWithDataToReport:(NSString*) dataString) {
+    if (currentReport != nil) {
+        NSData* data = [dataString dataUsingEncoding:NSUTF8StringEncoding];
+        [currentReport addFileAttachmentWithData:data];
+    }
+}
+
+RCT_EXPORT_METHOD(setLocale:(IBGLocale)locale) {
+    [Instabug setLocale:locale];
+}
+
+RCT_EXPORT_METHOD(setColorTheme:(IBGColorTheme)colorTheme) {
+        [Instabug setColorTheme:colorTheme];
+}
+
+
+RCT_EXPORT_METHOD(setTheme:(NSDictionary *)themeConfig) {
+    IBGTheme *theme = [[IBGTheme alloc] init];
+
+    NSDictionary *colorMapping = @{
+        @"primaryColor": ^(UIColor *color) { theme.primaryColor = color; },
+        @"backgroundColor": ^(UIColor *color) { theme.backgroundColor = color; },
+        @"titleTextColor": ^(UIColor *color) { theme.titleTextColor = color; },
+        @"subtitleTextColor": ^(UIColor *color) { theme.subtitleTextColor = color; },
+        @"primaryTextColor": ^(UIColor *color) { theme.primaryTextColor = color; },
+        @"secondaryTextColor": ^(UIColor *color) { theme.secondaryTextColor = color; },
+        @"callToActionTextColor": ^(UIColor *color) { theme.callToActionTextColor = color; },
+        @"headerBackgroundColor": ^(UIColor *color) { theme.headerBackgroundColor = color; },
+        @"footerBackgroundColor": ^(UIColor *color) { theme.footerBackgroundColor = color; },
+        @"rowBackgroundColor": ^(UIColor *color) { theme.rowBackgroundColor = color; },
+        @"selectedRowBackgroundColor": ^(UIColor *color) { theme.selectedRowBackgroundColor = color; },
+        @"rowSeparatorColor": ^(UIColor *color) { theme.rowSeparatorColor = color; }
+    };
+
+    for (NSString *key in colorMapping) {
+        if (themeConfig[key]) {
+            NSString *colorString = themeConfig[key];
+            UIColor *color = [self colorFromHexString:colorString];
+            if (color) {
+                void (^setter)(UIColor *) = colorMapping[key];
+                setter(color);
+            }
+        }
+    }
+
+    [self setFontIfPresent:themeConfig[@"primaryFontPath"] forTheme:theme type:@"primary"];
+    [self setFontIfPresent:themeConfig[@"secondaryFontPath"] forTheme:theme type:@"secondary"];
+    [self setFontIfPresent:themeConfig[@"ctaFontPath"] forTheme:theme type:@"cta"];
+
+    Instabug.theme = theme;
+}
+
+- (void)setFontIfPresent:(NSString *)fontPath forTheme:(IBGTheme *)theme type:(NSString *)type {
+    if (fontPath) {
+        NSString *fileName = [fontPath lastPathComponent];
+        NSString *nameWithoutExtension = [fileName stringByDeletingPathExtension];
+        UIFont *font = [UIFont fontWithName:nameWithoutExtension size:17.0];
+        if (font) {
+            if ([type isEqualToString:@"primary"]) {
+                theme.primaryTextFont = font;
+            } else if ([type isEqualToString:@"secondary"]) {
+                theme.secondaryTextFont = font;
+            } else if ([type isEqualToString:@"cta"]) {
+                theme.callToActionTextFont = font;
+            }
+        }
+    }
+}
+
+- (UIColor *)colorFromHexString:(NSString *)hexString {
+    NSString *cleanString = [hexString stringByReplacingOccurrencesOfString:@"#" withString:@""];
+
+    if (cleanString.length == 6) {
+        unsigned int rgbValue = 0;
+        NSScanner *scanner = [NSScanner scannerWithString:cleanString];
+        [scanner scanHexInt:&rgbValue];
+
+        return [UIColor colorWithRed:((rgbValue & 0xFF0000) >> 16) / 255.0
+                               green:((rgbValue & 0xFF00) >> 8) / 255.0
+                                blue:(rgbValue & 0xFF) / 255.0
+                               alpha:1.0];
+    } else if (cleanString.length == 8) {
+        unsigned int rgbaValue = 0;
+        NSScanner *scanner = [NSScanner scannerWithString:cleanString];
+        [scanner scanHexInt:&rgbaValue];
+
+        return [UIColor colorWithRed:((rgbaValue & 0xFF000000) >> 24) / 255.0
+                               green:((rgbaValue & 0xFF0000) >> 16) / 255.0
+                                blue:((rgbaValue & 0xFF00) >> 8) / 255.0
+                               alpha:(rgbaValue & 0xFF) / 255.0];
+    }
+
+    return [UIColor blackColor];
+}
+
+
+
+RCT_EXPORT_METHOD(appendTags:(NSArray *)tags) {
+    [Instabug appendTags:tags];
+}
+
+RCT_EXPORT_METHOD(resetTags) {
+    [Instabug resetTags];
+}
+
+RCT_EXPORT_METHOD(getTags:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+    resolve([Instabug getTags]);
+}
+
+RCT_EXPORT_METHOD(setString:(NSString*)value toKey:(NSString*)key) {
+    [Instabug setValue:value forStringWithKey:key];
+}
+
+RCT_EXPORT_METHOD(addFileAttachment:(NSString *)fileURLString) {
+    [Instabug addFileAttachmentWithURL:[NSURL URLWithString:fileURLString]];
+}
+
+RCT_EXPORT_METHOD(clearFileAttachments) {
+    [Instabug clearFileAttachments];
+}
+
+RCT_EXPORT_METHOD(identifyUser:(NSString *)email name:(NSString *)name userId:(nullable NSString *)userId) {
+    [Instabug identifyUserWithID:userId email:email name:name];
+}
+
+RCT_EXPORT_METHOD(logOut) {
+    [Instabug logOut];
+}
+
+RCT_EXPORT_METHOD(setUserAttribute:(NSString *)key withValue:(NSString *)value) {
+    [Instabug setUserAttribute:value withKey:key];
+}
+
+RCT_EXPORT_METHOD(getUserAttribute:(NSString *)key :(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+    @try {
+        resolve([Instabug userAttributeForKey:key]);
+    } @catch (NSException *exception) {
+        resolve(@"");
+    }
+}
+
+RCT_EXPORT_METHOD(removeUserAttribute:(NSString *)key) {
+    [Instabug removeUserAttributeForKey:key];
+}
+
+RCT_EXPORT_METHOD(getAllUserAttributes:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+    resolve([Instabug userAttributes]);
+}
+
+RCT_EXPORT_METHOD(clearAllUserAttributes) {
+    for (NSString *key in [Instabug userAttributes].allKeys) {
+        [Instabug removeUserAttributeForKey:key];
+    }
+}
+
+RCT_EXPORT_METHOD(logUserEvent:(NSString *)name) {
+    [Instabug logUserEventWithName:name];
+}
+
+RCT_EXPORT_METHOD(setIBGLogPrintsToConsole:(BOOL) printsToConsole) {
+    IBGLog.printsToConsole = printsToConsole;
+}
+
+RCT_EXPORT_METHOD(logVerbose:(NSString *)log) {
+    [IBGLog logVerbose:log];
+}
+
+RCT_EXPORT_METHOD(logDebug:(NSString *)log) {
+    [IBGLog logDebug:log];
+}
+
+RCT_EXPORT_METHOD(logInfo:(NSString *)log) {
+    [IBGLog logInfo:log];
+}
+
+RCT_EXPORT_METHOD(logWarn:(NSString *)log) {
+    [IBGLog logWarn:log];
+}
+
+RCT_EXPORT_METHOD(logError:(NSString *)log) {
+    [IBGLog logError:log];
+}
+
+RCT_EXPORT_METHOD(clearLogs) {
+    [IBGLog clearAllLogs];
+}
+
+RCT_EXPORT_METHOD(setSessionProfilerEnabled:(BOOL)sessionProfilerEnabled) {
+    [Instabug setSessionProfilerEnabled:sessionProfilerEnabled];
+}
+
+RCT_EXPORT_METHOD(showWelcomeMessageWithMode:(IBGWelcomeMessageMode)welcomeMessageMode) {
+    [Instabug showWelcomeMessageWithMode:welcomeMessageMode];
+}
+
+RCT_EXPORT_METHOD(setWelcomeMessageMode:(IBGWelcomeMessageMode)welcomeMessageMode) {
+    [Instabug setWelcomeMessageMode:welcomeMessageMode];
+}
+
+RCT_EXPORT_METHOD(setNetworkLoggingEnabled:(BOOL)isEnabled) {
+    if(isEnabled) {
+        IBGNetworkLogger.enabled = YES;
+    } else {
+        IBGNetworkLogger.enabled = NO;
+    }
+}
+
+RCT_EXPORT_METHOD(networkLogIOS:(NSString * _Nonnull)url
+                         method:(NSString * _Nonnull)method
+                    requestBody:(NSString * _Nonnull)requestBody
+                requestBodySize:(double)requestBodySize
+                   responseBody:(NSString * _Nonnull)responseBody
+               responseBodySize:(double)responseBodySize
+                   responseCode:(double)responseCode
+                 requestHeaders:(NSDictionary * _Nonnull)requestHeaders
+                responseHeaders:(NSDictionary * _Nonnull)responseHeaders
+                    contentType:(NSString * _Nonnull)contentType
+                    errorDomain:(NSString * _Nullable)errorDomain
+                      errorCode:(double)errorCode
+                      startTime:(double)startTime
+                       duration:(double)duration
+                   gqlQueryName:(NSString * _Nullable)gqlQueryName
+             serverErrorMessage:(NSString * _Nullable)serverErrorMessage
+                  w3cExternalTraceAttributes:(NSDictionary * _Nullable)w3cExternalTraceAttributes){
+   NSNumber *isW3cCaught = (w3cExternalTraceAttributes[@"isW3cHeaderFound"] != [NSNull null]) ? w3cExternalTraceAttributes[@"isW3cHeaderFound"] : nil;
+        NSNumber * partialID = (w3cExternalTraceAttributes[@"partialId"] != [NSNull null]) ? w3cExternalTraceAttributes[@"partialId"] : nil;
+        NSNumber * timestamp = (w3cExternalTraceAttributes[@"networkStartTimeInSeconds"] != [NSNull null]) ? w3cExternalTraceAttributes[@"networkStartTimeInSeconds"] : nil;
+        NSString * generatedW3CTraceparent = (w3cExternalTraceAttributes[@"w3cGeneratedHeader"] != [NSNull null]) ? w3cExternalTraceAttributes[@"w3cGeneratedHeader"] : nil;
+        NSString * caughtW3CTraceparent = (w3cExternalTraceAttributes[@"w3cCaughtHeader"] != [NSNull null]) ? w3cExternalTraceAttributes[@"w3cCaughtHeader"] : nil;
+
+    [IBGNetworkLogger addNetworkLogWithUrl:url
+                                    method:method
+                               requestBody:requestBody
+                           requestBodySize:requestBodySize
+                              responseBody:responseBody
+                          responseBodySize:responseBodySize
+                              responseCode:responseCode
+                            requestHeaders:requestHeaders
+                           responseHeaders:responseHeaders
+                               contentType:contentType
+                               errorDomain:errorDomain
+                                 errorCode:errorCode
+                                 startTime:startTime * 1000
+                                  duration:duration * 1000
+                              gqlQueryName:gqlQueryName
+                        serverErrorMessage:serverErrorMessage
+                          isW3cCaughted:isW3cCaught
+                           partialID:partialID
+                            timestamp:timestamp
+                        generatedW3CTraceparent:generatedW3CTraceparent
+                        caughtedW3CTraceparent:caughtW3CTraceparent
+                        ];
+}
+
+RCT_EXPORT_METHOD(addPrivateView: (nonnull NSNumber *)reactTag) {
+    UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
+    view.instabug_privateView = true;
+}
+
+RCT_EXPORT_METHOD(removePrivateView: (nonnull NSNumber *)reactTag) {
+    UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
+    view.instabug_privateView = false;
+}
+
+RCT_EXPORT_METHOD(show) {
+    [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[Instabug class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
+}
+
+RCT_EXPORT_METHOD(reportScreenChange:(NSString *)screenName) {
+    SEL setPrivateApiSEL = NSSelectorFromString(@"logViewDidAppearEvent:");
+    if ([[Instabug class] respondsToSelector:setPrivateApiSEL]) {
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[[Instabug class] methodSignatureForSelector:setPrivateApiSEL]];
+        [inv setSelector:setPrivateApiSEL];
+        [inv setTarget:[Instabug class]];
+        [inv setArgument:&(screenName) atIndex:2];
+        [inv invoke];
+    }
+}
+
+RCT_EXPORT_METHOD(addFeatureFlags:(NSDictionary *)featureFlagsMap) {
+    NSMutableArray<IBGFeatureFlag *> *featureFlags = [NSMutableArray array];
+    for(id key in featureFlagsMap){
+        NSString* variant =[featureFlagsMap objectForKey:key];
+        if ([variant length]==0) {
+            [featureFlags addObject:[[IBGFeatureFlag alloc] initWithName:key]];
+        } else{
+            [featureFlags addObject:[[IBGFeatureFlag alloc] initWithName:key variant:variant]];
+        }
+    }
+
+    [Instabug addFeatureFlags:featureFlags];
+}
+
+RCT_EXPORT_METHOD(removeFeatureFlags:(NSArray *)featureFlags) {
+    NSMutableArray<IBGFeatureFlag *> *features = [NSMutableArray array];
+    for(id item in featureFlags){
+        [features addObject:[[IBGFeatureFlag alloc] initWithName:item]];
+    }
+
+    @try {
+        [Instabug removeFeatureFlags:features];
+    }
+    @catch (NSException *exception) {
+        NSLog(@"%@", exception);
+    }
+}
+
+RCT_EXPORT_METHOD(removeAllFeatureFlags) {
+    [Instabug removeAllFeatureFlags];
+}
+
+RCT_EXPORT_METHOD(willRedirectToStore){
+    [Instabug willRedirectToAppStore];
+}
+
+RCT_EXPORT_METHOD(isW3ExternalTraceIDEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+    resolve(@(IBGNetworkLogger.w3ExternalTraceIDEnabled));
+}
+RCT_EXPORT_METHOD(isW3ExternalGeneratedHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+    resolve(@(IBGNetworkLogger.w3ExternalGeneratedHeaderEnabled));
+}
+RCT_EXPORT_METHOD(isW3CaughtHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+    resolve(@(IBGNetworkLogger.w3CaughtHeaderEnabled));
+}
+
+
+- (NSDictionary *)constantsToExport {
+    return ArgsRegistry.getAll;
+}
+
+- (void) setBaseUrlForDeprecationLogs {
+    SEL setCurrentPlatformSEL = NSSelectorFromString(@"setCurrentPlatform:");
+    if([[Instabug class] respondsToSelector:setCurrentPlatformSEL]) {
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[[Instabug class] methodSignatureForSelector:setCurrentPlatformSEL]];
+        [inv setSelector:setCurrentPlatformSEL];
+        [inv setTarget:[Instabug class]];
+        IBGPlatform platform = IBGPlatformReactNative;
+        [inv setArgument:&(platform) atIndex:2];
+
+        [inv invoke];
+    }
+}
+
++ (BOOL)requiresMainQueueSetup
+{
+    return NO;
+}
+
++ (BOOL)iOSVersionIsLessThan:(NSString *)iOSVersion {
+    return [iOSVersion compare:[UIDevice currentDevice].systemVersion options:NSNumericSearch] == NSOrderedDescending;
+};
+
+RCT_EXPORT_METHOD(enableAutoMasking:(NSArray *)autoMaskingTypes) {
+
+   IBGAutoMaskScreenshotOption autoMaskingOptions = 0;
+
+    for (NSNumber *event in autoMaskingTypes) {
+
+        autoMaskingOptions |= [event intValue];
+    }
+
+    [Instabug setAutoMaskScreenshots: autoMaskingOptions];
+};
+
+RCT_EXPORT_METHOD(getNetworkBodyMaxSize:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+    resolve(@(IBGNetworkLogger.getNetworkBodyMaxSize));
+}
+
+RCT_EXPORT_METHOD(setNetworkLogBodyEnabled:(BOOL)isEnabled) {
+    IBGNetworkLogger.logBodyEnabled = isEnabled;
+}
+
+@end

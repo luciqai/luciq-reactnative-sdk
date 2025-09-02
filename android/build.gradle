@@ -1,0 +1,95 @@
+apply plugin: 'com.android.library'
+
+apply from: './jacoco.gradle'
+apply from: './native.gradle'
+apply from: './sourcemaps.gradle'
+
+String getExtOrDefault(String name) {
+    def defaultPropertyKey = 'InstabugReactNative_' + name
+    if (rootProject.ext.has(name)) {
+        return rootProject.ext.get(name)
+    }
+    return project.properties[defaultPropertyKey]
+}
+
+static boolean supportsNamespace() {
+    def parsed = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION.tokenize('.')
+    def major = parsed[0].toInteger()
+    def minor = parsed[1].toInteger()
+
+    // Namespace support was added in 7.3.0
+    return (major == 7 && minor >= 3) || major >= 8
+}
+
+void updateManifestPackage() {
+    def packageProp = 'package="com.instabug.reactlibrary"'
+    def manifestFile = file("$projectDir/src/main/AndroidManifest.xml")
+    def currentContent = manifestFile.getText()
+    def content = currentContent
+    def hasPackage = currentContent.contains(packageProp)
+
+    if (supportsNamespace()) {
+        content = content.replaceAll(packageProp, '')
+    } else if (!hasPackage) {
+        content = content.replace(
+            '<manifest',
+            "<manifest $packageProp "
+        )
+    }
+
+    def shouldUpdateManifest = content != currentContent
+    if (shouldUpdateManifest) {
+        manifestFile.write(content)
+    }
+}
+
+updateManifestPackage()
+
+android {
+    if (supportsNamespace()) {
+        namespace "com.instabug.reactlibrary"
+    }
+
+    compileSdkVersion getExtOrDefault('compileSdkVersion').toInteger()
+    buildToolsVersion getExtOrDefault('buildToolsVersion')
+
+    defaultConfig {
+        minSdkVersion getExtOrDefault('minSdkVersion').toInteger()
+        targetSdkVersion getExtOrDefault('targetSdkVersion').toInteger()
+        versionCode 1
+        versionName "15.0.1"
+        multiDexEnabled true
+        ndk {
+            abiFilters "armeabi-v7a", "x86"
+        }
+        consumerProguardFiles 'proguard-rules.txt'
+    }
+    lintOptions {
+       warning 'InvalidPackage'
+        abortOnError true
+        // SuppressLint WrongConstant was used to suppress errors when using arrays of ints to represent annotations.
+    }
+}
+
+dependencies {
+    implementation "androidx.multidex:multidex:2.0.1"
+    implementation 'com.facebook.react:react-native:+'
+
+    testImplementation "org.mockito:mockito-inline:3.12.1"
+    testImplementation "org.mockito:mockito-android:3.4.0"
+    testImplementation 'junit:junit:4.13.2'
+}
+
+rootProject.allprojects {
+	repositories {
+		google()
+		jcenter()
+		maven {
+			url "https://mvn.instabug.com/nexus/repository/instabug-internal/"
+			credentials {
+			  username "instabug"
+			  password System.getenv('INSTABUG_REPOSITORY_PASSWORD')
+			}
+		}
+	}
+}

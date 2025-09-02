@@ -1,0 +1,58 @@
+package com.instabug.reactlibrary.utils;
+
+import com.instabug.survey.Survey;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Method;
+import java.util.List;
+
+public class InstabugUtil {
+    public static Method getMethod(Class clazz, String methodName, Class... parameterType) {
+        final Method[] methods = clazz.getDeclaredMethods();
+
+        for (Method method : methods) {
+            if (method.getName().equals(methodName) && method.getParameterTypes().length ==
+                    parameterType.length) {
+                if (parameterType.length == 0) {
+                    method.setAccessible(true);
+                    return method;
+                }
+                for (int i = 0; i < parameterType.length; i++) {
+                    if (method.getParameterTypes()[i] == parameterType[i]) {
+                        if (i == method.getParameterTypes().length - 1) {
+                            method.setAccessible(true);
+                            return method;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Convenience method to convert from a list of Surveys to a JSON array
+     *
+     * @param list
+     *        List of Surveys to be converted to JSON array
+     */
+    public static JSONArray surveyObjectToJson(List<Survey> list) {
+        JSONArray jsonArray = new JSONArray();
+        try{
+            for (Survey obj : list) {
+                JSONObject object = new JSONObject();
+                object.put("title", obj.getTitle());
+                jsonArray.put(object);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return jsonArray;
+    }
+
+}

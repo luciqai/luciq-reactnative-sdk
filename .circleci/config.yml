@@ -1,0 +1,642 @@
+version: 2.1
+
+orbs:
+  android: circleci/android@2.5.0
+  advanced-checkout: vsco/advanced-checkout@1.1.0
+  node: circleci/node@5.2.0
+
+references:
+  release_dependencies: &release_dependencies
+    - danger
+    - lint
+    - test_module
+    - test_android
+    - validate_shell_files
+    - sync_generated_files
+    - test_ios
+  dream11_prepare_config: &dream11_prepare_config
+    prepare_steps:
+      - prepare_dream11
+    requires:
+      - hold_test_dream11
+
+commands:
+  install_node_modules:
+    parameters:
+      app-dir:
+        type: string
+        default: .
+    steps:
+      - node/install:
+          install-yarn: true
+          node-version: 'v20.11.1'
+      - node/install-packages:
+          pkg-manager: yarn
+          # Network concurrency is set to 1 for installation from GitHub to work.
+          override-ci-command: yarn install --frozen-lockfile --network-concurrency 1
+          app-dir: << parameters.app-dir >>
+  install_pods:
+    parameters:
+      working_directory:
+        type: string
+      deployment:
+        type: boolean
+        default: false
+    steps:
+      - run:
+          name: Uninstall Existing CocoaPods
+          command: gem uninstall -x cocoapods
+      - run:
+          name: Install CocoaPods
+          command: gem install cocoapods:1.14.0
+      - restore_cache:
+          name: Restore Pods Cache
+          keys:
+            - v1-pods-{{ checksum "<< parameters.working_directory >>/Podfile.lock" }}
+      - when:
+          condition: << parameters.deployment >>
+          steps:
+            - run:
+                name: Install Pods
+                working_directory: << parameters.working_directory >>
+                command: pod install --deployment
+      - unless:
+          condition: << parameters.deployment >>
+          steps:
+            - run:
+                name: Install Pods
+                working_directory: << parameters.working_directory >>
+                command: pod install
+      - save_cache:
+          name: Save Pods Cache
+          key: v1-pods-{{ checksum "<< parameters.working_directory >>/Podfile.lock" }}
+          paths:
+            - << parameters.working_directory >>/Pods
+  find_and_replace:
+    parameters:
+      files:
+        description: A space-separated list of files to search and replace in.
+        type: string
+      search:
+        type: string
+      replace:
+        type: string
+      working_directory:
+        type: string
+        default: ~/project
+    steps:
+      - run:
+          name: Find and Replace in << parameters.files >>
+          command: node ~/project/scripts/replace.js << parameters.search >> << parameters.replace >> << parameters.files >>
+          working_directory: << parameters.working_directory >>
+
+  prepare_custom_package:
+    parameters:
+      npm_package:
+        type: string
+      android_package:
+        type: string
+      api_endpoint:
+        type: string
+      working_directory:
+        type: string
+        default: ~/project
+    steps:
+      - run:
+          name: Remove README.md file
+          command: rm README.md
+          working_directory: << parameters.working_directory >>
+      - find_and_replace:
+          files: package.json android/sourcemaps.gradle ios/sourcemaps.sh
+          search: instabug-reactnative
+          replace: << parameters.npm_package >>
+          working_directory: << parameters.working_directory >>
+      - find_and_replace:
+          files: cli/upload/uploadSourcemaps.ts cli/upload/uploadSoFiles.ts
+          search: api.instabug.com
+          replace: << parameters.api_endpoint >>
+          working_directory: << parameters.working_directory >>
+      - find_and_replace:
+          files: android/native.gradle
+          search: 'com.instabug.library:instabug:'
+          replace: 'com.instabug.library-<< parameters.android_package >>:instabug:'
+          working_directory: << parameters.working_directory >>
+
+  prepare_dream11:
+    parameters:
+      working_directory:
+        type: string
+        default: ~/project
+    steps:
+      - install_node_modules
+      - prepare_custom_package:
+          npm_package: '@instabug/instabug-reactnative-dream11'
+          android_package: dream11
+          api_endpoint: st001012dream11.instabug.com
+          working_directory: << parameters.working_directory >>
+      - run:
+          name: Give execute permission to Dream11 script
+          command: chmod +x ./scripts/dream-11-delete-unused-features.sh
+          working_directory: << parameters.working_directory >>
+      - run:
+          name: Remove unused features
+          command: ./scripts/dream-11-delete-unused-features.sh
+          working_directory: << parameters.working_directory >>
+      # Remove the NDK package to avoid dependency conflicts on Android.
+      - run:
+          name: Remove the NDK package
+          command: yarn remove instabug-reactnative-ndk
+          working_directory: << parameters.working_directory >>/examples/default
+
+  notify_github:
+    parameters:
+      data:
+        type: string
+        description: The data to be passed to the GitHub API for creating the comment.
+    steps:
+      - run:
+          name: Post comment on GitHub
+          command: ./scripts/notify-github.sh "<< parameters.data >>"
+
+jobs:
+  danger:
+    executor:
+      name: node/default
+    steps:
+      - advanced-checkout/shallow-checkout
+      - install_node_modules
+      - attach_workspace:
+          at: coverage
+      - run:
+          name: Run Danger
+          command: yarn danger ci
+
+  lint:
+    executor:
+      name: node/default
+    steps:
+      - advanced-checkout/shallow-checkout
+      - install_node_modules
+      - run:
+          name: Check Format
+          command: yarn format
+      - run:
+          name: Check Lint
+          command: yarn lint:ci
+
+  test_module:
+    parameters:
+      prepare_steps:
+        type: steps
+        default: []
+      collect_coverage:
+        type: boolean
+        default: false
+    executor:
+      name: node/default
+    steps:
+      - advanced-checkout/shallow-checkout
+      - steps: << parameters.prepare_steps >>
+      - install_node_modules
+      - run:
+          name: Run Tests
+          command: yarn test
+      - when:
+          condition: << parameters.collect_coverage >>
+          steps:
+            - persist_to_workspace:
+                root: coverage
+                paths:
+                  - lcov.info
+
+  test_android:
+    parameters:
+      prepare_steps:
+        type: steps
+        default: []
+      collect_coverage:
+        type: boolean
+        default: false
+    executor:
+      name: android/android-machine
+      tag: '2024.01.1'
+    working_directory: ~/project/examples/default
+    environment:
+      INSTABUG_SOURCEMAPS_UPLOAD_DISABLE: true
+    steps:
+      - advanced-checkout/shallow-checkout
+      - steps: << parameters.prepare_steps >>
+      - install_node_modules
+      - android/run-tests:
+          working-directory: android
+          test-command: ./gradlew test
+      - when:
+          condition: << parameters.collect_coverage >>
+          steps:
+            - persist_to_workspace:
+                root: ~/project/android/build/reports/jacoco/jacocoTestReport
+                paths:
+                  - jacocoTestReport.xml
+
+  validate_shell_files:
+    machine:
+      image: ubuntu-2004:current
+    steps:
+      - advanced-checkout/shallow-checkout
+      - run:
+          name: Validate Scripts
+          command: ls scripts/*.sh | xargs bash -n
+      - run:
+          name: Validate iOS Script
+          command: bash -n ios/sourcemaps.sh
+
+  # Make sure that files like yarn.lock and project.pbxproj
+  # are in sync with the latest changes in package.json and
+  # ios/upload_sourcemap.sh files respectively.
+  sync_generated_files:
+    macos:
+      xcode: 15.4.0
+    resource_class: macos.m1.medium.gen1
+    steps:
+      - advanced-checkout/shallow-checkout
+      - install_node_modules
+      - node/install-packages:
+          pkg-manager: yarn
+          app-dir: examples/default
+      - install_pods:
+          working_directory: examples/default/ios
+          deployment: true
+      - run: git --no-pager diff
+      - run: git diff-index HEAD --exit-code -p -I EXCLUDED_ARCHS # Ignore Arch Changes
+
+  test_ios:
+    parameters:
+      prepare_steps:
+        type: steps
+        default: []
+      collect_coverage:
+        type: boolean
+        default: false
+    macos:
+      xcode: 15.4.0
+    resource_class: macos.m1.medium.gen1
+    working_directory: ~/project/examples/default
+    environment:
+      INSTABUG_SOURCEMAPS_UPLOAD_DISABLE: true
+    steps:
+      - advanced-checkout/shallow-checkout
+      - steps: << parameters.prepare_steps >>
+      - install_node_modules
+      - install_pods:
+          working_directory: ios
+      - run:
+          name: Build and run tests
+          working_directory: ios
+          command: |
+            xcodebuild -allowProvisioningUpdates \
+                -workspace InstabugExample.xcworkspace \
+                -scheme InstabugExample \
+                -resultBundlePath coverage/result.xcresult \
+                -sdk iphonesimulator \
+                -destination 'platform=iOS Simulator,name=iPhone 15 Pro Max,OS=17.5' \
+                test | xcpretty
+      - when:
+          condition: << parameters.collect_coverage >>
+          steps:
+            - run:
+                name: Convert xcresult into JSON report
+                working_directory: ios/coverage
+                command: xcrun xccov view --report --json result.xcresult > xcode.json
+            - persist_to_workspace:
+                root: ios/coverage
+                paths:
+                  - xcode.json
+
+  e2e_ios:
+    parameters:
+      prepare_steps:
+        type: steps
+        default: []
+    macos:
+      xcode: 15.4.0
+    resource_class: macos.m1.medium.gen1
+    environment:
+      INSTABUG_SOURCEMAPS_UPLOAD_DISABLE: true
+    steps:
+      - advanced-checkout/shallow-checkout
+      - steps: << parameters.prepare_steps >>
+      - install_node_modules
+      - node/install-packages:
+          pkg-manager: yarn
+          app-dir: examples/default
+      - install_pods:
+          working_directory: examples/default/ios
+      - run:
+          name: Install Detox CLI
+          command: npm install -g detox-cli
+      - run:
+          name: Install Detox Utils
+          command: brew tap wix/brew && brew install applesimutils
+      - run:
+          name: Rebuild Detox.framework Cache
+          working_directory: examples/default
+          command: detox clean-framework-cache && detox build-framework-cache
+      # This is a workaround until the iOS SDK is updated to prioritize the custom
+      # Instabug.plist over the internal Config.plist.
+      - run:
+          name: Customize API Endpoints
+          command: ./scripts/customize-ios-endpoints.sh
+      - run:
+          name: Detox - Build Release App
+          working_directory: examples/default
+          command: detox build --configuration ios.sim.release --cleanup
+      - run:
+          name: Detox - Run E2E Tests
+          working_directory: examples/default
+          command: detox test --configuration ios.sim.release --cleanup
+
+  e2e_android:
+    parameters:
+      prepare_steps:
+        type: steps
+        default: []
+    executor:
+      name: android/android-machine
+      tag: '2024.01.1'
+      resource-class: large
+    environment:
+      INSTABUG_SOURCEMAPS_UPLOAD_DISABLE: true
+    steps:
+      - advanced-checkout/shallow-checkout
+      - steps: << parameters.prepare_steps >>
+      - install_node_modules
+      - node/install-packages:
+          pkg-manager: yarn
+          app-dir: examples/default
+      - run:
+          name: Install Detox CLI
+          command: npm install -g detox-cli
+      - android/create-avd:
+          avd-name: Nexus_6P_API_27
+          install: true
+          system-image: system-images;android-27;default;x86
+      - android/start-emulator:
+          avd-name: Nexus_6P_API_27
+          no-window: true
+          memory: 2048
+          post-emulator-launch-assemble-command: |
+            rm -rf ~/.gradle/caches
+            cd ~/project/examples/default/android && ./gradlew androidDependencies
+            cd .. && detox build -c android.emu.release
+      - run:
+          name: Detox - Run E2E Tests
+          working_directory: examples/default
+          command: detox test -c android.emu.release
+
+  release_custom_package:
+    parameters:
+      prepare_steps:
+        type: steps
+        default: []
+      api_endpoint:
+        type: string
+      dashboard_token_env:
+        type: env_var_name
+    macos:
+      xcode: 15.4.0
+    resource_class: macos.m1.medium.gen1
+    working_directory: ~/project
+    steps:
+      - advanced-checkout/shallow-checkout
+      - run: git clone -b master2 git@github.com:Instabug/Escape.git
+      - run:
+          working_directory: Escape
+          command: swift build -c release
+      - run:
+          working_directory: Escape/.build/release
+          command: cp -f Escape /usr/local/bin/escape
+      - steps: << parameters.prepare_steps >>
+      - install_node_modules
+      - run:
+          name: Build the SDK
+          command: yarn build
+      - run:
+          name: Publish Custom Package with Escape
+          command: Escape react-native publish-custompackage
+          environment:
+            DASHBOARD_TOKEN: << parameters.dashboard_token_env >>
+            DASHBOARD_API_ENDPOINT: << parameters.api_endpoint >>
+
+  publish:
+    macos:
+      xcode: 15.4.0
+    resource_class: macos.m1.medium.gen1
+    working_directory: '~'
+    steps:
+      - advanced-checkout/shallow-checkout
+      - run: git clone -b master2 git@github.com:Instabug/Escape.git
+      - run:
+          working_directory: Escape
+          command: swift build -c release
+      - run:
+          working_directory: Escape/.build/release
+          command: cp -f Escape /usr/local/bin/escape
+      - install_node_modules:
+          app-dir: project
+      - run:
+          working_directory: project
+          command: yarn build
+      - run:
+          name: Publish Official Package with Escape
+          working_directory: project
+          command: Escape react-native publish
+          environment:
+            DASHBOARD_API_ENDPOINT: api.instabug.com
+  publish_new_namespace:
+    working_directory: ~/project
+    executor:
+      name: node/default
+    steps:
+      - advanced-checkout/shallow-checkout
+      - find_and_replace:
+          files: package.json
+          search: instabug-reactnative
+          replace: '@instabug/react-native'
+      - run: git clone -b master2 git@github.com:Instabug/Escape.git
+      - run:
+          working_directory: Escape
+          command: swift build -c release
+      - run:
+          working_directory: Escape/.build/release
+          command: cp -f Escape /usr/local/bin/escape
+      - install_node_modules:
+          app-dir: project
+      - run:
+          working_directory: project
+          command: yarn build
+      - run:
+          working_directory: project
+          command: Escape react-native publish
+
+  generate_snapshot:
+    executor:
+      name: node/default
+    steps:
+      - advanced-checkout/shallow-checkout
+      - install_node_modules
+      - run: yarn build
+      - run: yarn remove @instabug/danger-plugin-coverage
+      - run:
+          name: Get snapshot version
+          command: |
+            source scripts/snapshot-version.sh
+            echo "export SNAPSHOT_VERSION=$SNAPSHOT_VERSION" >> "$BASH_ENV"
+      - run:
+          name: Authorize with NPM
+          command: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+      - run: npm version $SNAPSHOT_VERSION --no-git-tag-version
+      - run: npm publish --tag snapshot
+      - run:
+          name: Install jq
+          command: sudo apt-get update && sudo apt-get install -y jq
+      - find_and_replace:
+          files: scripts/snapshot-comment.md
+          search: '{VERSION}'
+          replace: $SNAPSHOT_VERSION
+      - notify_github:
+          data: "$(jq -Rcs '{ body: . }' scripts/snapshot-comment.md)"
+
+workflows:
+  publish:
+    jobs:
+      - danger:
+          requires:
+            - test_module
+            - test_android
+            - test_ios
+      - lint
+      - test_module:
+          collect_coverage: true
+      - test_android:
+          collect_coverage: true
+      - test_ios:
+          collect_coverage: true
+      - validate_shell_files
+      - sync_generated_files
+      - e2e_ios
+      - e2e_android
+      - hold_generate_snapshot:
+          type: approval
+          requires: *release_dependencies
+      - generate_snapshot:
+          requires:
+            - hold_generate_snapshot
+      - hold_publish:
+          requires: *release_dependencies
+          type: approval
+          filters:
+            branches:
+              only: master
+      - hold_publish_new_namespace:
+          requires: *release_dependencies
+          type: approval
+          filters:
+            branches:
+              only: master
+      - publish:
+          requires:
+            - hold_publish
+          filters:
+            branches:
+              only: master
+      - publish_new_namespace:
+          requires:
+            - hold_publish_new_namespace
+          filters:
+            branches:
+              only: master
+
+      - hold_release_nn:
+          requires: *release_dependencies
+          type: approval
+          filters:
+            branches:
+              only: master
+      - release_custom_package:
+          name: release_nn
+          requires:
+            - hold_release_nn
+          filters:
+            branches:
+              only: master
+          prepare_steps:
+            - prepare_custom_package:
+                npm_package: '@instabug/react-native-nn'
+                android_package: nn
+                api_endpoint: st001009nn.instabug.com
+          api_endpoint: st001009nn.instabug.com
+          dashboard_token_env: NN_TOKEN
+
+      - hold_release_injazat:
+          requires: *release_dependencies
+          type: approval
+          filters:
+            branches:
+              only: master
+      - release_custom_package:
+          name: release_injazat
+          requires:
+            - hold_release_injazat
+          filters:
+            branches:
+              only: master
+          prepare_steps:
+            - prepare_custom_package:
+                npm_package: '@instabug/react-native-injazat'
+                android_package: injazat
+                api_endpoint: st001013mec1.instabug.com
+          api_endpoint: st001013mec1.instabug.com
+          dashboard_token_env: INJAZAT_TOKEN
+
+      # Dream11 tests
+      - hold_test_dream11:
+          type: approval
+      - test_module:
+          name: test_module_dream11
+          <<: *dream11_prepare_config
+      - test_android:
+          name: test_android_dream11
+          <<: *dream11_prepare_config
+      - test_ios:
+          name: test_ios_dream11
+          <<: *dream11_prepare_config
+      - e2e_android:
+          name: e2e_android_dream11
+          <<: *dream11_prepare_config
+      - e2e_ios:
+          name: e2e_ios_dream11
+          <<: *dream11_prepare_config
+
+      # Dream11 release
+      - hold_release_dream11:
+          requires:
+            - test_module_dream11
+            - test_android_dream11
+            - test_ios_dream11
+            - e2e_android_dream11
+            - e2e_ios_dream11
+          type: approval
+          filters:
+            branches:
+              only: dream11
+      - release_custom_package:
+          name: release_dream11
+          requires:
+            - hold_release_dream11
+          filters:
+            branches:
+              only: dream11
+          prepare_steps:
+            - prepare_dream11
+          api_endpoint: st001012dream11.instabug.com
+          dashboard_token_env: DREAM11_TOKEN
