@@ -1,11 +1,11 @@
-import { NativeInstabug } from '../native/NativeInstabug';
-import { _registerFeatureFlagsChangeListener } from '../modules/Instabug';
+import { NativeLuciq } from '../native/NativeLuciq';
+import { _registerFeatureFlagsChangeListener } from '../modules/Luciq';
 
 export const FeatureFlags = {
-  isW3ExternalTraceID: () => NativeInstabug.isW3ExternalTraceIDEnabled(),
-  isW3ExternalGeneratedHeader: () => NativeInstabug.isW3ExternalGeneratedHeaderEnabled(),
-  isW3CaughtHeader: () => NativeInstabug.isW3CaughtHeaderEnabled(),
-  networkLogLimit: () => NativeInstabug.getNetworkBodyMaxSize(),
+  isW3ExternalTraceID: () => NativeLuciq.isW3ExternalTraceIDEnabled(),
+  isW3ExternalGeneratedHeader: () => NativeLuciq.isW3ExternalGeneratedHeaderEnabled(),
+  isW3CaughtHeader: () => NativeLuciq.isW3CaughtHeaderEnabled(),
+  networkLogLimit: () => NativeLuciq.getNetworkBodyMaxSize(),
 };
 
 export const registerFeatureFlagsListener = () => {

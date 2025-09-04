@@ -1,6 +1,6 @@
-# Complete Font Setup Guide for Instabug React Native
+# Complete Font Setup Guide for Luciq React Native
 
-This guide covers all ways to use fonts with the `setTheme` function in Instabug React Native, including Google Fonts, custom fonts, system fonts, and both Expo and regular React Native projects.
+This guide covers all ways to use fonts with the `setTheme` function in Luciq React Native, including Google Fonts, custom fonts, system fonts, and both Expo and regular React Native projects.
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@ This guide covers all ways to use fonts with the `setTheme` function in Instabug
 
 ## Overview
 
-The Instabug React Native bridge supports font loading from multiple sources:
+The Luciq React Native bridge supports font loading from multiple sources:
 
 - **App Bundle**: Fonts included in your app assets
 - **System Fonts**: Built-in platform fonts
@@ -89,11 +89,11 @@ cp fonts/*.ttf android/app/src/main/assets/fonts/
 #### Step 4: Use with setTheme
 
 ```typescript
-import Instabug from 'instabug-reactnative';
+import Luciq from '@luciq/react-native';
 import { Platform } from 'react-native';
 
 const applyCustomTheme = () => {
-  Instabug.setTheme({
+  Luciq.setTheme({
     // Colors
     primaryColor: '#2196F3',
     backgroundColor: '#FFFFFF',
@@ -106,9 +106,9 @@ const applyCustomTheme = () => {
 
     // Fonts - Android (use font paths)
     ...(Platform.OS === 'android' && {
-      primaryFontPath: '/data/user/0/com.yourapp/files/fonts/Roboto-Regular.ttf',
-      secondaryFontPath: '/data/user/0/com.yourapp/files/fonts/Roboto-Light.ttf',
-      ctaFontPath: '/data/user/0/com.yourapp/files/fonts/Roboto-Bold.ttf',
+      primaryFontPath: '/data/user/0/ai.yourapp/files/fonts/Roboto-Regular.ttf',
+      secondaryFontPath: '/data/user/0/ai.yourapp/files/fonts/Roboto-Light.ttf',
+      ctaFontPath: '/data/user/0/ai.yourapp/files/fonts/Roboto-Bold.ttf',
     }),
 
     // Fonts - iOS (use font paths, not assets)
@@ -124,10 +124,10 @@ const applyCustomTheme = () => {
 ### Method 2: System Fonts Only
 
 ```typescript
-import Instabug from 'instabug-reactnative';
+import Luciq from '@luciq/react-native';
 
 const applySystemTheme = () => {
-  Instabug.setTheme({
+  Luciq.setTheme({
     // Colors only - uses system fonts
     primaryColor: '#2196F3',
     backgroundColor: '#FFFFFF',
@@ -220,11 +220,11 @@ export default function App() {
 #### Step 5: Use with setTheme
 
 ```typescript
-import Instabug from 'instabug-reactnative';
+import Luciq from '@luciq/react-native';
 import { Platform } from 'react-native';
 
 const applyExpoTheme = () => {
-  Instabug.setTheme({
+  Luciq.setTheme({
     // Colors
     primaryColor: '#2196F3',
     backgroundColor: '#FFFFFF',
@@ -308,7 +308,7 @@ module.exports = {
 // Add to project using any method above
 
 const applyRobotoTheme = () => {
-  Instabug.setTheme({
+  Luciq.setTheme({
     primaryColor: '#1976D2',
     backgroundColor: '#FAFAFA',
     primaryTextColor: '#212121',
@@ -335,7 +335,7 @@ const applyRobotoTheme = () => {
 // Add to project using any method above
 
 const applyInterTheme = () => {
-  Instabug.setTheme({
+  Luciq.setTheme({
     primaryColor: '#3B82F6',
     backgroundColor: '#FFFFFF',
     primaryTextColor: '#1F2937',
@@ -359,7 +359,7 @@ const applyInterTheme = () => {
 
 ```typescript
 const applySystemTheme = () => {
-  Instabug.setTheme({
+  Luciq.setTheme({
     primaryColor: '#007AFF',
     backgroundColor: '#F2F2F7',
     primaryTextColor: '#000000',
@@ -378,7 +378,7 @@ const applySystemTheme = () => {
 
 ```typescript
 const applyMixedTheme = () => {
-  Instabug.setTheme({
+  Luciq.setTheme({
     primaryColor: '#FF6B6B',
     backgroundColor: '#FFFFFF',
     primaryTextColor: '#2D3436',
@@ -411,14 +411,14 @@ Use `*FontPath` properties for both platforms to ensure compatibility:
 
 ```typescript
 // ✅ Works on both platforms
-Instabug.setTheme({
+Luciq.setTheme({
   primaryFontPath: 'fonts/Roboto-Regular.ttf',
   secondaryFontPath: 'fonts/Roboto-Light.ttf',
   ctaFontPath: 'fonts/Roboto-Bold.ttf',
 });
 
 // ❌ iOS doesn't support these
-Instabug.setTheme({
+Luciq.setTheme({
   primaryFontAsset: 'fonts/Roboto-Regular.ttf', // iOS ignores this
   secondaryFontAsset: 'fonts/Roboto-Light.ttf', // iOS ignores this
   ctaFontAsset: 'fonts/Roboto-Bold.ttf', // iOS ignores this
@@ -478,7 +478,7 @@ Instabug.setTheme({
 
 ```typescript
 // Add this to debug font loading
-console.log('Available fonts:', Instabug.getAvailableFonts()); // If available
+console.log('Available fonts:', Luciq.getAvailableFonts()); // If available
 ```
 
 2. **Verify File Paths:**
@@ -493,7 +493,7 @@ ls -la ios/YourApp/
 
 ```typescript
 // Test with system fonts to ensure setTheme works
-Instabug.setTheme({
+Luciq.setTheme({
   primaryColor: '#FF0000',
   // No fontFamily = system fonts
 });

@@ -1,7 +1,7 @@
-project.ext.instabug = [
+project.ext.luciq = [
     version: '16.0.0'
 ]
 
 dependencies {
-    api "com.instabug.library:instabug:${project.ext.instabug.version}"
+    api "com.instabug.library:instabug:${project.ext.luciq.version}"
 }

@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 import { NativeAPM } from '../../src/native/NativeAPM';
-import { NativeInstabug } from '../../src/native/NativeInstabug';
+import { NativeLuciq } from '../../src/native/NativeLuciq';
 import * as APM from '../../src/modules/APM';
 
 describe('APM Module', () => {
@@ -23,15 +23,15 @@ describe('APM Module', () => {
     Platform.OS = 'ios';
     APM.setNetworkEnabledIOS(true);
 
-    expect(NativeInstabug.setNetworkLoggingEnabled).toBeCalledTimes(1);
-    expect(NativeInstabug.setNetworkLoggingEnabled).toBeCalledWith(true);
+    expect(NativeLuciq.setNetworkLoggingEnabled).toBeCalledTimes(1);
+    expect(NativeLuciq.setNetworkLoggingEnabled).toBeCalledWith(true);
   });
 
   it('should not call the native method setNetworkEnabledIOS if platform is android', () => {
     Platform.OS = 'android';
     APM.setNetworkEnabledIOS(true);
 
-    expect(NativeInstabug.setNetworkLoggingEnabled).not.toBeCalled();
+    expect(NativeLuciq.setNetworkLoggingEnabled).not.toBeCalled();
   });
 
   it('should call the native method endAppLaunch', () => {
@@ -95,10 +95,10 @@ describe('APM Module', () => {
     expect(NativeAPM.endUITrace).toBeCalledWith();
   });
 
-  it('should call the native method _ibgSleep', () => {
-    APM._ibgSleep();
+  it('should call the native method _lqSleep', () => {
+    APM._lqSleep();
 
-    expect(NativeAPM.ibgSleep).toBeCalledTimes(1);
-    expect(NativeAPM.ibgSleep).toBeCalledWith();
+    expect(NativeAPM.lqSleep).toBeCalledTimes(1);
+    expect(NativeAPM.lqSleep).toBeCalledWith();
   });
 });

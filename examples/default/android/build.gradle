@@ -13,10 +13,10 @@ buildscript {
         google()
         mavenCentral()
         maven {
-            url "https://mvn.instabug.com/nexus/repository/instabug-internal/"
+            url "https://mvn.luciq.ai/nexus/repository/luciq-internal/"
             credentials {
-                username "instabug"
-                password System.getenv("INSTABUG_REPOSITORY_PASSWORD")
+                username "luciq"
+                password System.getenv("LUCIQ_REPOSITORY_PASSWORD")
             }
         }
     }
@@ -24,7 +24,7 @@ buildscript {
         classpath("com.android.tools.build:gradle:8.1.0")
         classpath("com.facebook.react:react-native-gradle-plugin")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-        classpath("com.instabug.library:instabug-plugin:16.0.0")
+//         classpath("com.luciq.library:luciq-plugin:16.0.0")
     }
 }
 
@@ -35,10 +35,10 @@ allprojects {
         }
 
         maven {
-            url "https://mvn.instabug.com/nexus/repository/instabug-internal/"
+            url "https://mvn.luciq.ai/nexus/repository/luciq-internal/"
             credentials {
-                username "instabug"
-                password System.getenv("INSTABUG_REPOSITORY_PASSWORD")
+                username "luciq"
+                password System.getenv("LUCIQ_REPOSITORY_PASSWORD")
             }
         }
         maven {
@@ -46,7 +46,7 @@ allprojects {
                 username System.getenv("DREAM11_MAVEN_USERNAME")
                 password System.getenv("DREAM11_MAVEN_PASSWORD")
             }
-            url "https://mvn.instabug.com/nexus/repository/dream-11"
+            url "https://mvn.luciq.ai/nexus/repository/dream-11"
         }
     }
 }

@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 import { NativeAPM } from '../native/NativeAPM';
-import { NativeInstabug } from '../native/NativeInstabug';
+import { NativeLuciq } from '../native/NativeLuciq';
 
 /**
  * Enables or disables APM
@@ -12,7 +12,7 @@ export const setEnabled = (isEnabled: boolean) => {
 };
 
 /**
- * If APM is enabled, Instabug SDK starts collecting data about the app launch time by default.
+ * If APM is enabled, Luciq SDK starts collecting data about the app launch time by default.
  * This API is used to give user more control over this behavior.
  * @param isEnabled
  */
@@ -35,7 +35,7 @@ export const endAppLaunch = () => {
  */
 export const setNetworkEnabledIOS = (isEnabled: boolean) => {
   if (Platform.OS === 'ios') {
-    NativeInstabug.setNetworkLoggingEnabled(isEnabled);
+    NativeLuciq.setNetworkLoggingEnabled(isEnabled);
   }
 };
 
@@ -56,7 +56,7 @@ export const setAutoUITraceEnabled = (isEnabled: boolean) => {
  *
  * @param name - The name of the AppFlow. It cannot be an empty string or null.
  *               A new AppFlow is started if APM is enabled, the feature is enabled,
- *               and the Instabug SDK is initialized.
+ *               and the Luciq SDK is initialized.
  */
 export const startFlow = (name: string) => {
   NativeAPM.startFlow(name);
@@ -112,6 +112,6 @@ export const endUITrace = () => {
 /**
  * Used for internal testing.
  */
-export const _ibgSleep = () => {
-  NativeAPM.ibgSleep();
+export const _lqSleep = () => {
+  NativeAPM.lqSleep();
 };

@@ -5,7 +5,7 @@ apply from: './native.gradle'
 apply from: './sourcemaps.gradle'
 
 String getExtOrDefault(String name) {
-    def defaultPropertyKey = 'InstabugReactNative_' + name
+    def defaultPropertyKey = 'LuciqReactNative_' + name
     if (rootProject.ext.has(name)) {
         return rootProject.ext.get(name)
     }
@@ -22,7 +22,7 @@ static boolean supportsNamespace() {
 }
 
 void updateManifestPackage() {
-    def packageProp = 'package="com.instabug.reactlibrary"'
+    def packageProp = 'package="ai.luciq.reactlibrary"'
     def manifestFile = file("$projectDir/src/main/AndroidManifest.xml")
     def currentContent = manifestFile.getText()
     def content = currentContent
@@ -47,7 +47,7 @@ updateManifestPackage()
 
 android {
     if (supportsNamespace()) {
-        namespace "com.instabug.reactlibrary"
+        namespace "ai.luciq.reactlibrary"
     }
 
     compileSdkVersion getExtOrDefault('compileSdkVersion').toInteger()
@@ -85,10 +85,10 @@ rootProject.allprojects {
 		google()
 		jcenter()
 		maven {
-			url "https://mvn.instabug.com/nexus/repository/instabug-internal/"
+			url "https://mvn.luciq.ai/nexus/repository/luciq-internal/"
 			credentials {
-			  username "instabug"
-			  password System.getenv('INSTABUG_REPOSITORY_PASSWORD')
+			  username "luciq"
+			  password System.getenv('LUCIQ_REPOSITORY_PASSWORD')
 			}
 		}
 	}

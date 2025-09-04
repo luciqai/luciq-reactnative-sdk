@@ -1,5 +1,5 @@
 {
-  "name": "instabug-reactnative-example",
+  "name": "@luciq/react-native-example",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -19,7 +19,7 @@
     "axios": "^1.7.4",
     "graphql": "^16.8.1",
     "graphql-request": "^6.1.0",
-    "instabug-reactnative": "link:../..",
+    "@luciq/react-native": "link:../..",
     "instabug-reactnative-ndk": "github:https://github.com/Instabug/Instabug-React-Native-NDK",
     "native-base": "^3.4.28",
     "react": "18.3.1",

@@ -1,21 +1,21 @@
 {
-  "name": "instabug-reactnative",
-  "description": "React Native plugin for integrating the Instabug SDK",
-  "version": "16.0.0",
-  "author": "Instabug (https://instabug.com)",
-  "repository": "github:Instabug/Instabug-React-Native",
-  "homepage": "https://www.instabug.com/platforms/react-native",
-  "bugs": "https://github.com/Instabug/Instabug-React-Native/issues",
+  "name": "@luciq/react-native",
+  "description": "React Native plugin for integrating the Luciq SDK",
+  "version": "17.0.0",
+  "author": "Luciq (https://luciq.ai)",
+  "repository": "github:luciqai/luciq-reactnative-sdk",
+  "homepage": "https://www.luciq.ai/platforms/react-native",
+  "bugs": "https://github.com/luciqai/luciq-reactnative-sdk/issues",
   "license": "MIT",
   "main": "dist/index",
   "types": "dist/index.d.ts",
   "react-native": "src/index.ts",
   "bin": {
-    "instabug": "bin/index.js"
+    "luciq": "bin/index.js"
   },
   "keywords": [
     "react-native",
-    "instabug",
+    "luciq",
     "debugging",
     "errors",
     "exceptions",

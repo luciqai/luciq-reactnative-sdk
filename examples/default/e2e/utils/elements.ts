@@ -2,20 +2,20 @@ import { by, device, element } from 'detox';
 
 const elements = {
   floatingButton: {
-    ios: () => element(by.id('IBGFloatingButtonAccessibilityIdentifier')),
+    ios: () => element(by.id('LQFloatingButtonAccessibilityIdentifier')),
     android: () => element(by.type('android.widget.ImageButton')),
   },
   reportBugMenuItem: () => element(by.text('Report a bug')),
   emailField: {
-    ios: () => element(by.id('IBGBugInputViewEmailFieldAccessibilityIdentifier')),
+    ios: () => element(by.id('LQBugInputViewEmailFieldAccessibilityIdentifier')),
     android: () => element(by.type('android.widget.EditText')).atIndex(0),
   },
   commentField: {
-    ios: () => element(by.id('IBGBugInputViewCommentFieldAccessibilityIdentifier')),
+    ios: () => element(by.id('LQBugInputViewCommentFieldAccessibilityIdentifier')),
     android: () => element(by.type('android.widget.EditText')).atIndex(1),
   },
   sendBugButton: {
-    ios: () => element(by.id('IBGBugVCNextButtonAccessibilityIdentifier')),
+    ios: () => element(by.id('LQBugVCNextButtonAccessibilityIdentifier')),
     android: () => element(by.type('androidx.appcompat.widget.ActionMenuView')),
   },
   thanksMessage: {

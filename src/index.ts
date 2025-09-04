@@ -1,5 +1,5 @@
 // Models
-import type { InstabugConfig } from './models/InstabugConfig';
+import type { LuciqConfig } from './models/LuciqConfig';
 import Report from './models/Report';
 import type { ThemeConfig } from './models/ThemeConfig';
 // Modules
@@ -7,7 +7,7 @@ import * as APM from './modules/APM';
 import * as BugReporting from './modules/BugReporting';
 import * as CrashReporting from './modules/CrashReporting';
 import * as FeatureRequests from './modules/FeatureRequests';
-import * as Instabug from './modules/Instabug';
+import * as Luciq from './modules/Luciq';
 import * as NetworkLogger from './modules/NetworkLogger';
 import type { NetworkData, NetworkDataObfuscationHandler } from './modules/NetworkLogger';
 import * as Replies from './modules/Replies';
@@ -29,7 +29,7 @@ export {
   Surveys,
 };
 export type {
-  InstabugConfig,
+  LuciqConfig,
   Survey,
   NetworkData,
   NetworkDataObfuscationHandler,
@@ -37,4 +37,4 @@ export type {
   ThemeConfig,
 };
 
-export default Instabug;
+export default Luciq;

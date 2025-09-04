@@ -1,17 +1,17 @@
 import type { RequestHandler } from '@apollo/client';
 
-import InstabugConstants from '../utils/InstabugConstants';
+import LuciqConstants from '../utils/LuciqConstants';
 import xhr, { NetworkData, ProgressCallback } from '../utils/XhrNetworkInterceptor';
-import { InstabugRNConfig } from '../utils/config';
+import { LuciqRNConfig } from '../utils/config';
 import { Logger } from '../utils/logger';
-import { NativeInstabug } from '../native/NativeInstabug';
+import { NativeLuciq } from '../native/NativeLuciq';
 import {
   isContentTypeNotAllowed,
   registerFilteringAndObfuscationListener,
   registerFilteringListener,
   registerObfuscationListener,
   reportNetworkLog,
-} from '../utils/InstabugUtils';
+} from '../utils/LuciqUtils';
 import {
   NativeNetworkLogger,
   NativeNetworkLoggerEvent,
@@ -47,7 +47,7 @@ export const setEnabled = (isEnabled: boolean) => {
       const predicate = Function('network', 'return ' + _requestFilterExpression);
 
       if (!predicate(network)) {
-        const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeInstabug.getNetworkBodyMaxSize();
+        const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeLuciq.getNetworkBodyMaxSize();
         try {
           if (_networkDataObfuscationHandler) {
             network = await _networkDataObfuscationHandler(network);
@@ -55,29 +55,29 @@ export const setEnabled = (isEnabled: boolean) => {
 
           if (__DEV__) {
             const urlPort = getPortFromUrl(network.url);
-            if (urlPort === InstabugRNConfig.metroDevServerPort) {
+            if (urlPort === LuciqRNConfig.metroDevServerPort) {
               return;
             }
           }
           if (network.requestBodySize > MAX_NETWORK_BODY_SIZE_IN_BYTES) {
-            network.requestBody = `${InstabugConstants.MAX_REQUEST_BODY_SIZE_EXCEEDED_MESSAGE}${
+            network.requestBody = `${LuciqConstants.MAX_REQUEST_BODY_SIZE_EXCEEDED_MESSAGE}${
               MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024
             } Kb`;
             Logger.warn(
-              'IBG-RN:',
-              `${InstabugConstants.MAX_REQUEST_BODY_SIZE_EXCEEDED_MESSAGE}${
+              'LCQ-RN:',
+              `${LuciqConstants.MAX_REQUEST_BODY_SIZE_EXCEEDED_MESSAGE}${
                 MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024
               } Kb`,
             );
           }
 
           if (network.responseBodySize > MAX_NETWORK_BODY_SIZE_IN_BYTES) {
-            network.responseBody = `${InstabugConstants.MAX_RESPONSE_BODY_SIZE_EXCEEDED_MESSAGE}${
+            network.responseBody = `${LuciqConstants.MAX_RESPONSE_BODY_SIZE_EXCEEDED_MESSAGE}${
               MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024
             } Kb`;
             Logger.warn(
-              'IBG-RN:',
-              `${InstabugConstants.MAX_RESPONSE_BODY_SIZE_EXCEEDED_MESSAGE}${
+              'LCQ-RN:',
+              `${LuciqConstants.MAX_RESPONSE_BODY_SIZE_EXCEEDED_MESSAGE}${
                 MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024
               } Kb`,
             );
@@ -86,14 +86,14 @@ export const setEnabled = (isEnabled: boolean) => {
           if (network.requestBody && isContentTypeNotAllowed(network.requestContentType)) {
             network.requestBody = `Body is omitted because content type ${network.requestContentType} isn't supported`;
             Logger.warn(
-              `IBG-RN: The request body for the network request with URL ${network.url} has been omitted because the content type ${network.requestContentType} isn't supported.`,
+              `LCQ-RN: The request body for the network request with URL ${network.url} has been omitted because the content type ${network.requestContentType} isn't supported.`,
             );
           }
 
           if (network.responseBody && isContentTypeNotAllowed(network.contentType)) {
             network.responseBody = `Body is omitted because content type ${network.contentType} isn't supported`;
             Logger.warn(
-              `IBG-RN: The response body for the network request with URL ${network.url} has been omitted because the content type ${network.contentType} isn't supported.`,
+              `LCQ-RN: The response body for the network request with URL ${network.url} has been omitted because the content type ${network.contentType} isn't supported.`,
             );
           }
 
@@ -170,7 +170,7 @@ export const apolloLinkRequestHandler: RequestHandler = (operation, forward) => 
   try {
     operation.setContext((context: Record<string, any>) => {
       const newHeaders: Record<string, any> = context.headers ?? {};
-      newHeaders[InstabugConstants.GRAPHQL_HEADER] = operation.operationName;
+      newHeaders[LuciqConstants.GRAPHQL_HEADER] = operation.operationName;
       return { headers: newHeaders };
     });
   } catch (e) {
@@ -185,7 +185,7 @@ export const apolloLinkRequestHandler: RequestHandler = (operation, forward) => 
  * @param isEnabled
  */
 export const setNetworkLogBodyEnabled = (isEnabled: boolean) => {
-  NativeInstabug.setNetworkLogBodyEnabled(isEnabled);
+  NativeLuciq.setNetworkLogBodyEnabled(isEnabled);
 };
 
 /**
@@ -198,7 +198,7 @@ export const resetNetworkListener = () => {
     NativeNetworkLogger.resetNetworkLogsListener();
   } else {
     Logger.error(
-      `${InstabugConstants.IBG_APM_TAG}: The \`resetNetworkListener()\` method is intended solely for testing purposes.`,
+      `${LuciqConstants.LCQ_APM_TAG}: The \`resetNetworkListener()\` method is intended solely for testing purposes.`,
     );
   }
 };

@@ -11,7 +11,7 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'InstabugExample' do
+target 'LuciqExample' do
   config = use_native_modules!
   rn_maps_path = '../node_modules/react-native-maps'
   pod 'react-native-google-maps', :path => rn_maps_path
@@ -30,7 +30,7 @@ target 'InstabugExample' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  target 'InstabugTests' do
+  target 'LuciqTests' do
     inherit! :complete
     pod 'OCMock'
     end

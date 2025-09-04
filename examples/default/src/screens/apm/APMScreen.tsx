@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { ListTile } from '../../components/ListTile';
 import { Screen } from '../../components/Screen';
 import { StyleSheet, Switch, Text, View } from 'react-native';
-import { APM } from 'instabug-reactnative';
+import { APM } from '@luciq/react-native';
 import { showNotification } from '../../utils/showNotification';
 import CustomGap from '../../components/CustomGap';
 

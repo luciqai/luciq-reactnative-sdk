@@ -133,7 +133,7 @@ describe('Testing BugReporting Module', () => {
     expect(NativeBugReporting.setOnInvokeHandler).toBeCalledWith(callback);
   });
 
-  it('should invoke callback on emitting the event IBGpreInvocationHandler', () => {
+  it('should invoke callback on emitting the event LQpreInvocationHandler', () => {
     const callback = jest.fn();
     BugReporting.onInvokeHandler(callback);
     emitter.emit(NativeEvents.ON_INVOKE_HANDLER);
@@ -150,7 +150,7 @@ describe('Testing BugReporting Module', () => {
     expect(NativeBugReporting.setOnSDKDismissedHandler).toBeCalledWith(callback);
   });
 
-  it('should invoke callback on emitting the event IBGpostInvocationHandler', () => {
+  it('should invoke callback on emitting the event LQpostInvocationHandler', () => {
     const dismissType = 'cancel';
     const reportType = 'bug';
     const callback = jest.fn();

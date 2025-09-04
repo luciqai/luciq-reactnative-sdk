@@ -1,7 +1,7 @@
 import type { ExtendedError } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 
 import { NativeCrashReporting } from '../native/NativeCrashReporting';
-import InstabugUtils from '../utils/InstabugUtils';
+import LuciqUtils from '../utils/LuciqUtils';
 import { Platform } from 'react-native';
 import type { NonFatalOptions } from '../models/NonFatalOptions';
 import { NonFatalErrorLevel } from '../utils/Enums';
@@ -18,7 +18,7 @@ export const setEnabled = (isEnabled: boolean) => {
 
 /**
  * Send handled JS error object
- * @param error Error object to be sent to Instabug's servers
+ * @param error Error object to be sent to Luciq's servers
  * @param nonFatalOptions extra config for the non-fatal error sent with Error Object
  */
 export const reportError = (error: ExtendedError, nonFatalOptions: NonFatalOptions = {}) => {
@@ -27,7 +27,7 @@ export const reportError = (error: ExtendedError, nonFatalOptions: NonFatalOptio
     if (nonFatalOptions.level != null) {
       level = nonFatalOptions.level;
     }
-    return InstabugUtils.sendCrashReport(error, (data) =>
+    return LuciqUtils.sendCrashReport(error, (data) =>
       NativeCrashReporting.sendHandledJSCrash(
         data,
         nonFatalOptions.userAttributes,
@@ -36,9 +36,7 @@ export const reportError = (error: ExtendedError, nonFatalOptions: NonFatalOptio
       ),
     );
   } else {
-    Logger.warn(
-      `IBG-RN: The error ${error} has been omitted because only error type is supported.`,
-    );
+    Logger.warn(`LCQ-RN: The error ${error} has been omitted because only error type is supported.`);
     return;
   }
 };

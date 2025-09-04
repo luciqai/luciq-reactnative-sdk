@@ -2,8 +2,8 @@ import { NativeModules as ReactNativeModules } from 'react-native';
 
 import type { CrashReportingExampleNativeModule } from './NativeCrashReporting';
 
-export interface InstabugExampleNativePackage {
+export interface LuciqExampleNativePackage {
   CrashReportingExampleModule: CrashReportingExampleNativeModule;
 }
 
-export const NativeExampleModules = ReactNativeModules as InstabugExampleNativePackage;
+export const NativeExampleModules = ReactNativeModules as LuciqExampleNativePackage;

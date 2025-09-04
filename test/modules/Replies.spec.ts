@@ -46,7 +46,7 @@ describe('Replies Module', () => {
     expect(NativeReplies.setOnNewReplyReceivedHandler).toBeCalledWith(callback);
   });
 
-  it('should invoke callback on emitting the event IBGOnNewReplyReceivedCallback', () => {
+  it('should invoke callback on emitting the event LQOnNewReplyReceivedCallback', () => {
     const callback = jest.fn();
     Replies.setOnNewReplyReceivedHandler(callback);
     emitter.emit(NativeEvents.ON_REPLY_RECEIVED_HANDLER);

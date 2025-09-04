@@ -6,7 +6,7 @@ import mockData from './utils/mockData';
 beforeEach(async () => {
   await device.launchApp();
   await device.reloadReactNative();
-  await device.setURLBlacklist(['https://api.instabug.com']);
+  await device.setURLBlacklist(['https://api.luciq.ai']);
 });
 
 it('reports a bug', async () => {

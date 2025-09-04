@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, View, Switch } from 'react-native';
 
-import { CrashReporting, NonFatalErrorLevel } from 'instabug-reactnative';
+import { CrashReporting, NonFatalErrorLevel } from '@luciq/react-native';
 
 import { ListTile } from '../components/ListTile';
 import { Screen } from '../components/Screen';
@@ -30,7 +30,7 @@ export const CrashReportingScreen: React.FC = () => {
   function throwHandledException(error: Error) {
     try {
       if (!error.message) {
-        const appName = 'Instabug Test App';
+        const appName = 'Luciq Test App';
         error.message = `Handled ${error.name} From ${appName}`;
       }
       throw error;
@@ -44,17 +44,17 @@ export const CrashReportingScreen: React.FC = () => {
   }
 
   function throwUnhandledException(error: Error, isPromise: boolean = false) {
-    const appName = 'Instabug Test App';
+    const appName = 'Luciq Test App';
     const rejectionType = isPromise ? 'Promise Rejection ' : '';
     const errorMessage = `Unhandled ${rejectionType}${error.name} from ${appName}`;
 
     if (!error.message) {
-      console.log(`IBG-CRSH | Error message: ${error.message}`);
+      console.log(`LCQ-CRSH | Error message: ${error.message}`);
       error.message = errorMessage;
     }
 
     if (isPromise) {
-      console.log('IBG-CRSH | Promise');
+      console.log('LCQ-CRSH | Promise');
       Promise.reject(error).then(() =>
         Alert.alert(`Promise Rejection Crash report for ${error.name} is Sent!`),
       );

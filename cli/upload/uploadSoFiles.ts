@@ -18,7 +18,7 @@ export interface UploadSoFilesOptions {
 }
 
 /**
- * Uploads NDK `.so` files to Instabug.
+ * Uploads NDK `.so` files to Luciq.
  *
  * @param opts Options for the `.so` files upload process.
  * @returns A promise that resolves to a boolean indicating whether the upload was successful.
@@ -71,7 +71,7 @@ export const uploadSoFiles = async (opts: UploadSoFilesOptions): Promise<boolean
     console.log('Uploading So files...');
   }
 
-  const uploadEndpoint = 'https://api.instabug.com/api/web/public/so_files';
+  const uploadEndpoint = 'https://api.luciq.ai/api/web/public/so_files';
   try {
     await axios.post(uploadEndpoint, form, {
       headers: form.getHeaders(),

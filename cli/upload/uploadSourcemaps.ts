@@ -19,7 +19,7 @@ export interface UploadSourcemapsOptions {
 }
 
 /**
- * Uploads JavaScript sourcemaps to Instabug.
+ * Uploads JavaScript sourcemaps to Luciq.
  *
  * @param opts Options for the sourcemaps upload process.
  * @returns A promise that resolves to a boolean indicating whether the upload was successful.
@@ -46,7 +46,7 @@ export const uploadSourcemaps = async (opts: UploadSourcemapsOptions): Promise<b
   }
 
   try {
-    const response = await axios.post('https://api.instabug.com/api/sdk/v3/symbols_files', form, {
+    const response = await axios.post('https://api.luciq.ai/api/sdk/v3/symbols_files', form, {
       headers: form.getHeaders(),
     });
 

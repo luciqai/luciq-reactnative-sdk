@@ -75,15 +75,15 @@ module.exports = {
   apps: {
     'ios.debug': {
       type: 'ios.app',
-      binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/InstabugExample.app',
+      binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/LuciqExample.app',
       build:
-        'xcodebuild -workspace ios/InstabugExample.xcworkspace -scheme InstabugExample -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
+        'xcodebuild -workspace ios/LuciqExample.xcworkspace -scheme LuciqExample -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
     },
     'ios.release': {
       type: 'ios.app',
-      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/InstabugExample.app',
+      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/LuciqExample.app',
       build:
-        'xcodebuild -workspace ios/InstabugExample.xcworkspace -scheme InstabugExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build',
+        'xcodebuild -workspace ios/LuciqExample.xcworkspace -scheme LuciqExample -configuration Release -sdk iphonesimulator -derivedDataPath ios/build',
     },
     'android.debug': {
       type: 'android.apk',

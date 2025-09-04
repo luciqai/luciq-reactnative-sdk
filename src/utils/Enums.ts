@@ -1,9 +1,9 @@
-import { NativeInstabug } from '../native/NativeInstabug';
+import { NativeLuciq } from '../native/NativeLuciq';
 
-const constants = NativeInstabug.getConstants();
+const constants = NativeLuciq.getConstants();
 
 /**
- * Verbosity level of the SDK debug logs. This has nothing to do with `Instabug.log`,
+ * Verbosity level of the SDK debug logs. This has nothing to do with `Luciq.log`,
  * and only affect the logs used to debug the SDK itself.
  */
 export enum LogLevel {
@@ -169,7 +169,7 @@ export enum Locale {
 }
 
 /**
- * Overridable strings in Instabug's UI
+ * Overridable strings in Luciq's UI
  */
 export enum StringKey {
   addAttachmentButtonTitleStringName = constants.addAttachmentButtonTitleStringName,

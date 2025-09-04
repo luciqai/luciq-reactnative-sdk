@@ -25,10 +25,10 @@ export interface RepliesNativeModule extends NativeModule {
   setSystemReplyNotificationSoundEnabled(isEnabled: boolean): void;
 }
 
-export const NativeReplies = NativeModules.IBGReplies;
+export const NativeReplies = NativeModules.LCQReplies;
 
 export enum NativeEvents {
-  ON_REPLY_RECEIVED_HANDLER = 'IBGOnNewReplyReceivedCallback',
+  ON_REPLY_RECEIVED_HANDLER = 'LCQOnNewReplyReceivedCallback',
 }
 
 export const emitter = new NativeEventEmitter(NativeReplies);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { APM } from 'instabug-reactnative';
+import { APM } from '@luciq/react-native';
 import { ScrollView } from 'react-native';
 import { Section } from '../../components/Section';
 import { Screen } from '../../components/Screen';

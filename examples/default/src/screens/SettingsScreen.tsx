@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 
-import Instabug, {
+import Luciq, {
   BugReporting,
   ColorTheme,
   InvocationEvent,
   Locale,
   ReproStepsMode,
-} from 'instabug-reactnative';
+} from '@luciq/react-native';
 import { InputGroup, InputLeftAddon, useToast, VStack, Button } from 'native-base';
 
 import { ListTile } from '../components/ListTile';
@@ -63,7 +63,7 @@ export const SettingsScreen: React.FC = () => {
   });
 
   const clearUserAttributes = () => {
-    Instabug.clearAllUserAttributes();
+    Luciq.clearAllUserAttributes();
     toast.show({
       description: 'User Attributes cleared successfully',
     });
@@ -71,7 +71,7 @@ export const SettingsScreen: React.FC = () => {
 
   const saveUserAttributes = () => {
     if (validateUserAttributeForm()) {
-      Instabug.setUserAttribute(userAttributeKey, userAttributeValue);
+      Luciq.setUserAttribute(userAttributeKey, userAttributeValue);
       toast.show({
         description: 'User Attributes added successfully',
       });
@@ -81,7 +81,7 @@ export const SettingsScreen: React.FC = () => {
   };
   const saveFeatureFlags = () => {
     if (validateFeatureFlagForm()) {
-      Instabug.addFeatureFlag({
+      Luciq.addFeatureFlag({
         name: featureFlagName,
         variant: featureFlagVariant,
       });
@@ -94,7 +94,7 @@ export const SettingsScreen: React.FC = () => {
   };
   const removeFeatureFlags = () => {
     if (validateFeatureFlagForm()) {
-      Instabug.removeFeatureFlag(featureFlagName);
+      Luciq.removeFeatureFlag(featureFlagName);
       toast.show({
         description: 'Feature Flag removed successfully',
       });
@@ -103,7 +103,7 @@ export const SettingsScreen: React.FC = () => {
     }
   };
   const removeAllFeatureFlags = () => {
-    Instabug.removeAllFeatureFlags();
+    Luciq.removeAllFeatureFlags();
     toast.show({
       description: 'Feature Flags removed successfully',
     });
@@ -112,7 +112,7 @@ export const SettingsScreen: React.FC = () => {
   };
 
   const logout = () => {
-    Instabug.logOut();
+    Luciq.logOut();
     toast.show({
       description: 'User logout successfully',
     });
@@ -122,7 +122,7 @@ export const SettingsScreen: React.FC = () => {
   };
 
   const identifyUser = () => {
-    Instabug.identifyUser(userEmail, userName, userID);
+    Luciq.identifyUser(userEmail, userName, userID);
     setUserID('');
     setUserName('');
     setUserEmail('');
@@ -176,7 +176,7 @@ export const SettingsScreen: React.FC = () => {
               onChangeText={(value) => {
                 setColor(value);
                 if (/^[0-9A-F]{6}$/i.test(value)) {
-                  Instabug.setPrimaryColor(`#${value}`);
+                  Luciq.setPrimaryColor(`#${value}`);
                 }
               }}
             />
@@ -196,19 +196,19 @@ export const SettingsScreen: React.FC = () => {
                 value: ColorTheme.dark,
               },
             ]}
-            onValueChange={Instabug.setColorTheme}
+            onValueChange={Luciq.setColorTheme}
           />
         </ListTile>
         <ListTile
           title="Change Locale to Arabic"
           onPress={() => {
-            Instabug.setLocale(Locale.arabic);
+            Luciq.setLocale(Locale.arabic);
           }}
         />
         <ListTile
           title="Disable Repro Steps"
           onPress={() => {
-            Instabug.setReproStepsConfig({
+            Luciq.setReproStepsConfig({
               all: ReproStepsMode.disabled,
             });
           }}

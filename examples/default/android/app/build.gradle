@@ -2,7 +2,7 @@ apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
-apply plugin: 'instabug-apm'
+// apply plugin: 'luciq-apm'
 /**
  * This is the configuration block to customize your React Native Android app.
  * By default you don't need to apply any configuration, just uncomment the lines you need.
@@ -84,9 +84,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace "com.instabug.react.example"
+    namespace "ai.luciq.react.example"
     defaultConfig {
-        applicationId "com.instabug.react.example"
+        applicationId "ai.luciq.react.example"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -124,11 +124,11 @@ android {
     }
 }
 
-instabug {
-    apm {
-        networkEnabled = true
-    }
-}
+// luciq {
+//     apm {
+//         networkEnabled = true
+//     }
+// }
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin

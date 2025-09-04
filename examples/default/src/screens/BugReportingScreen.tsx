@@ -1,12 +1,12 @@
 import React from 'react';
 
-import Instabug, {
+import Luciq, {
   BugReporting,
   InvocationOption,
   ReportType,
   ExtendedBugReportMode,
   WelcomeMessageMode,
-} from 'instabug-reactnative';
+} from '@luciq/react-native';
 
 import { ListTile } from '../components/ListTile';
 import { Screen } from '../components/Screen';
@@ -17,7 +17,7 @@ export const BugReportingScreen: React.FC = () => {
   const toast = useToast();
   return (
     <Screen>
-      <ListTile title="Show" onPress={() => Instabug.show()} />
+      <ListTile title="Show" onPress={() => Luciq.show()} />
       <ListTile title="Send Bug Report" onPress={() => BugReporting.show(ReportType.bug, [])} />
       <ListTile
         title="Send Feedback"
@@ -38,15 +38,15 @@ export const BugReportingScreen: React.FC = () => {
       />
       <ListTile
         title="Disable session profiler"
-        onPress={() => Instabug.setSessionProfilerEnabled(true)}
+        onPress={() => Luciq.setSessionProfilerEnabled(true)}
       />
       <ListTile
         title="Welcome message Beta"
-        onPress={() => Instabug.showWelcomeMessage(WelcomeMessageMode.beta)}
+        onPress={() => Luciq.showWelcomeMessage(WelcomeMessageMode.beta)}
       />
       <ListTile
         title="Welcome message Live"
-        onPress={() => Instabug.showWelcomeMessage(WelcomeMessageMode.live)}
+        onPress={() => Luciq.showWelcomeMessage(WelcomeMessageMode.live)}
       />
 
       <Section title="Handlers">
@@ -54,14 +54,14 @@ export const BugReportingScreen: React.FC = () => {
           title="On invocation add tag"
           onPress={() =>
             BugReporting.onInvokeHandler(function () {
-              Instabug.appendTags(['Invocation Handler tag1']);
+              Luciq.appendTags(['Invocation Handler tag1']);
             })
           }
         />
         <ListTile
           title="On submission show toast message"
           onPress={() =>
-            Instabug.onReportSubmitHandler(() => {
+            Luciq.onReportSubmitHandler(() => {
               toast.show({
                 description: 'Submission succeeded',
               });
@@ -72,7 +72,7 @@ export const BugReportingScreen: React.FC = () => {
           title="On dismissing turn floating to red"
           onPress={() =>
             BugReporting.onSDKDismissedHandler(function () {
-              Instabug.setPrimaryColor('#FF0000');
+              Luciq.setPrimaryColor('#FF0000');
             })
           }
         />

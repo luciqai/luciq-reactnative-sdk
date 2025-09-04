@@ -23,12 +23,12 @@ UploadSoFilesCommand.name('upload-so-files')
   .addOption(new Option('--api_key <value>', 'Your App key').makeOptionMandatory())
   .addOption(
     new Option('-t, --token <value>', 'Your App Token')
-      .env('INSTABUG_APP_TOKEN')
+      .env('LUCIQ_APP_TOKEN')
       .makeOptionMandatory(),
   )
   .addOption(
     new Option('-n, --name <value>', 'The app version name')
-      .env('INSTABUG_APP_VERSION_NAME')
+      .env('LUCIQ_APP_VERSION_NAME')
       .makeOptionMandatory(),
   )
   .action(function (this: Command) {

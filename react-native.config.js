@@ -4,7 +4,7 @@ module.exports = {
       ios: {
         scriptPhases: [
           {
-            name: '[instabug-reactnative] Upload Sourcemap',
+            name: '[@luciq/react-native] Upload Sourcemap',
             path: './ios/sourcemaps.sh',
             execution_position: 'after_compile',
           },

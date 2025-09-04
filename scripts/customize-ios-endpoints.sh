@@ -1,28 +1,28 @@
 #!/bin/bash
 
-# Replaces the internal Config.plist file inside the Instabug iOS SDK with the
-# Instabug.plist file in the example app.
+# Replaces the internal Config.plist file inside the Luciq iOS SDK with the
+# Luciq.plist file in the example app.
 #
 # This is a workaround until the iOS SDK is updated to prioritize the custom
-# Instabug.plist over the internal Config.plist.
+# Luciq.plist over the internal Config.plist.
 
-instabug_plist=examples/default/ios/InstabugExample/Instabug.plist
+luciq_plist=examples/default/ios/LuciqExample/Luciq.plist
 
-if [ ! -f $instabug_plist ]; then
-  echo "Instabug.plist not found"
+if [ ! -f $luciq_plist ]; then
+  echo "Luciq.plist not found"
   exit 1
 fi
 
-for dir in examples/default/ios/Pods/Instabug/InstabugSDK.xcframework/ios-*/
+for dir in examples/default/ios/Pods/Luciq/LuciqSDK.xcframework/ios-*/
 do
   echo "Replacing Config.plist in $dir"
 
-  config_path=$dir/InstabugSDK.framework/InstabugResources.bundle/Config.plist
+  config_path=$dir/LuciqSDK.framework/LuciqResources.bundle/Config.plist
 
   if [ ! -f $config_path ]; then
     echo "Config.plist not found in $dir"
     exit 1
   fi
 
-  cp -f $instabug_plist $config_path
+  cp -f $luciq_plist $config_path
 done

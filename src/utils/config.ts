@@ -1,7 +1,7 @@
-import InstabugConstants from './InstabugConstants';
+import LuciqConstants from './LuciqConstants';
 import { LogLevel } from './Enums';
 
-export const InstabugRNConfig = {
-  metroDevServerPort: InstabugConstants.DEFAULT_METRO_PORT,
+export const LuciqRNConfig = {
+  metroDevServerPort: LuciqConstants.DEFAULT_METRO_PORT,
   debugLogsLevel: LogLevel.error,
 };

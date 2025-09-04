@@ -1,9 +1,9 @@
-import { InstabugRNConfig } from './config';
+import { LuciqRNConfig } from './config';
 import { LogLevel } from './Enums';
 
 export class Logger {
   private static shouldLog(level: LogLevel): boolean {
-    const currentLevel = InstabugRNConfig.debugLogsLevel;
+    const currentLevel = LuciqRNConfig.debugLogsLevel;
 
     // Return true if the current log level is equal to or more verbose than the requested level
     const logLevelHierarchy: Record<LogLevel, number> = {
