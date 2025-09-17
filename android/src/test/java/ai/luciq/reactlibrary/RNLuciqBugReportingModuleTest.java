@@ -7,13 +7,13 @@ import com.facebook.react.bridge.JavaOnlyArray;
 import com.facebook.react.bridge.JavaOnlyMap;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
-import com.instabug.bug.BugReporting;
-import com.instabug.library.Feature;
-import com.instabug.library.OnSdkDismissCallback;
-import com.instabug.library.extendedbugreport.ExtendedBugReport;
-import com.instabug.library.invocation.InstabugInvocationEvent;
-import com.instabug.library.invocation.OnInvokeCallback;
-import com.instabug.library.invocation.util.InstabugVideoRecordingButtonPosition;
+import ai.luciq.bug.BugReporting;
+import ai.luciq.library.Feature;
+import ai.luciq.library.OnSdkDismissCallback;
+import ai.luciq.library.extendedbugreport.ExtendedBugReport;
+import ai.luciq.library.invocation.LuciqInvocationEvent;
+import ai.luciq.library.invocation.OnInvokeCallback;
+import ai.luciq.library.invocation.util.LuciqVideoRecordingButtonPosition;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
@@ -187,7 +187,7 @@ public class RNLuciqBugReportingModuleTest {
     @Test
     public void givenInvocationEvent$setInvocationEvents_whenQuery_thenShouldCallNativeApiWithArgs() {
         // given
-        final Map<String,InstabugInvocationEvent> args = ArgsRegistry.invocationEvents;
+        final Map<String,LuciqInvocationEvent> args = ArgsRegistry.invocationEvents;
         final String[] keysArray = args.keySet().toArray(new String[0]);
         JavaOnlyArray actualArray = new JavaOnlyArray();
         for (String key : keysArray) {
@@ -199,7 +199,7 @@ public class RNLuciqBugReportingModuleTest {
 
         // then
         verify(BugReporting.class,VerificationModeFactory.times(1));
-        BugReporting.setInvocationEvents(args.values().toArray(new InstabugInvocationEvent[0]));
+        BugReporting.setInvocationEvents(args.values().toArray(new LuciqInvocationEvent[0]));
     }
 
     @Test
@@ -290,7 +290,7 @@ public class RNLuciqBugReportingModuleTest {
     @Test
     public void givenString$setVideoRecordingFloatingButtonPosition_whenQuery_thenShouldCallNativeApi() {
         // given
-        final Map<String,InstabugVideoRecordingButtonPosition> args = ArgsRegistry.recordButtonPositions;
+        final Map<String,LuciqVideoRecordingButtonPosition> args = ArgsRegistry.recordButtonPositions;
         final String[] keysArray = args.keySet().toArray(new String[0]);
 
         // when
@@ -298,7 +298,7 @@ public class RNLuciqBugReportingModuleTest {
 
         // then
         verify(BugReporting.class,VerificationModeFactory.times(1));
-       InstabugVideoRecordingButtonPosition position = (InstabugVideoRecordingButtonPosition) args.get(keysArray[0]);
+       LuciqVideoRecordingButtonPosition position = (LuciqVideoRecordingButtonPosition) args.get(keysArray[0]);
         BugReporting.setVideoRecordingFloatingButtonPosition(position);
     }
 

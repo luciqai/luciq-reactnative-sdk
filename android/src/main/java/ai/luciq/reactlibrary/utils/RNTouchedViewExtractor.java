@@ -7,10 +7,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.facebook.react.views.text.ReactTextView;
 import com.facebook.react.views.view.ReactViewGroup;
-import com.instabug.library.core.InstabugCore;
-import com.instabug.library.visualusersteps.TouchedView;
-import com.instabug.library.visualusersteps.TouchedViewExtractor;
-import com.instabug.library.visualusersteps.VisualUserStepsHelper;
+import ai.luciq.library.core.InstabugCore;
+import ai.luciq.library.visualusersteps.TouchedView;
+import ai.luciq.library.visualusersteps.TouchedViewExtractor;
+import ai.luciq.library.visualusersteps.VisualUserStepsHelper;
 
 public class RNTouchedViewExtractor implements TouchedViewExtractor {
 

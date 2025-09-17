@@ -7,11 +7,11 @@ import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
 import com.facebook.react.bridge.ReadableMap;
-import com.instabug.apm.APM;
-import com.instabug.library.Instabug;
-import com.instabug.library.LogLevel;
-import com.instabug.library.Platform;
-import com.instabug.library.invocation.InstabugInvocationEvent;
+import ai.luciq.apm.APM;
+import ai.luciq.library.Luciq;
+import ai.luciq.library.LogLevel;
+import ai.luciq.library.Platform;
+import ai.luciq.library.invocation.LuciqInvocationEvent;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
 
 import java.lang.reflect.Method;
@@ -44,7 +44,7 @@ public class RNLuciq {
      *                         <p>Pick one of the log levels described in {@link LogLevel}.
      *                         default logLevel is {@link LogLevel#ERROR}</p>
      * @param InvocationEvent  The events that trigger the SDK's user interface.
-     *                         Choose from the available events listed in {@link InstabugInvocationEvent}.
+     *                         Choose from the available events listed in {@link LuciqInvocationEvent}.
      * @example <p>Here's an example usage: </p>
      * <blockquote><pre>
      * RNLuciq.getInstance().init(
@@ -63,7 +63,7 @@ public class RNLuciq {
             String codePushVersion,
             String appVariant,
             Boolean ignoreSecureFlag,
-            @NonNull InstabugInvocationEvent... InvocationEvent
+            @NonNull LuciqInvocationEvent... InvocationEvent
 
 
             ) {
@@ -72,7 +72,7 @@ public class RNLuciq {
             setBaseUrlForDeprecationLogs();
             setCurrentPlatform();
 
-           Instabug.Builder builder= new Instabug.Builder(application, applicationToken)
+           Luciq.Builder builder= new Luciq.Builder(application, applicationToken)
                     .setInvocationEvents(InvocationEvent)
                     .setSdkDebugLogsLevel(logLevel);
 
@@ -106,7 +106,7 @@ public class RNLuciq {
      * @param application      The application context.
      * @param applicationToken The app's identifying token, available on your dashboard.
      * @param invocationEvent  The events that trigger the SDK's user interface.
-     *                         Choose from the available events listed in {@link InstabugInvocationEvent}.
+     *                         Choose from the available events listed in {@link LuciqInvocationEvent}.
      * @example <p>Here's an example usage: </p>
      * <blockquote><pre>
      * RNLuciq.getInstance().init(
@@ -122,7 +122,7 @@ public class RNLuciq {
             @NonNull String applicationToken,
             String codePushVersion,
             String appVariant,
-            @NonNull InstabugInvocationEvent... invocationEvent
+            @NonNull LuciqInvocationEvent... invocationEvent
     ) {
         init(application, applicationToken, LogLevel.ERROR,codePushVersion,appVariant, null,invocationEvent);
     }
@@ -130,7 +130,7 @@ public class RNLuciq {
     @VisibleForTesting
     public void setCurrentPlatform() {
         try {
-            Method method = LuciqUtil.getMethod(Class.forName("com.instabug.library.Instabug"), "setCurrentPlatform", int.class);
+            Method method = LuciqUtil.getMethod(Class.forName("ai.luciq.library.Luciq"), "setCurrentPlatform", int.class);
             if (method != null) {
                 Log.i("LCQ-CP-Bridge", "invoking setCurrentPlatform with platform: " + Platform.RN);
                 method.invoke(null, Platform.RN);
@@ -145,7 +145,7 @@ public class RNLuciq {
     @VisibleForTesting
     public void setBaseUrlForDeprecationLogs() {
         try {
-            Method method = LuciqUtil.getMethod(Class.forName("com.instabug.library.util.InstabugDeprecationLogger"), "setBaseUrl", String.class);
+            Method method = LuciqUtil.getMethod(Class.forName("ai.luciq.library.util.InstabugDeprecationLogger"), "setBaseUrl", String.class);
             if (method != null) {
                 method.invoke(null, "https://docs.luciq.ai/docs/react-native-sdk-migration-guide");
             }
@@ -184,7 +184,7 @@ public class RNLuciq {
         /**
          * The events that trigger the SDK's user interface.
          */
-        private InstabugInvocationEvent[] invocationEvents;
+        private LuciqInvocationEvent[] invocationEvents;
         /**
          * The App variant name to be used for all reports.
          */
@@ -210,9 +210,9 @@ public class RNLuciq {
          * @param application      Application object for initialization of library
          * @param applicationToken The app's identifying token, available on your dashboard.
          * @param invocationEvents The events that trigger the SDK's user interface.
-         *                         <p>Choose from the available events listed in {@link InstabugInvocationEvent}.</p>
+         *                         <p>Choose from the available events listed in {@link LuciqInvocationEvent}.</p>
          */
-        public Builder(Application application, String applicationToken, InstabugInvocationEvent... invocationEvents) {
+        public Builder(Application application, String applicationToken, LuciqInvocationEvent... invocationEvents) {
             this.application = application;
             this.applicationToken = applicationToken;
             this.invocationEvents = invocationEvents;
@@ -265,9 +265,9 @@ public class RNLuciq {
          * Sets the invocation triggering events for the SDK's user interface
          *
          * @param invocationEvents The events that trigger the SDK's user interface.
-         *                         Choose from the available events listed in {@link InstabugInvocationEvent}.
+         *                         Choose from the available events listed in {@link LuciqInvocationEvent}.
          */
-        public Builder setInvocationEvents(InstabugInvocationEvent... invocationEvents) {
+        public Builder setInvocationEvents(LuciqInvocationEvent... invocationEvents) {
             this.invocationEvents = invocationEvents;
             return this;
         }
@@ -290,7 +290,7 @@ public class RNLuciq {
                 RNLuciq.getInstance().setBaseUrlForDeprecationLogs();
                 RNLuciq.getInstance().setCurrentPlatform();
 
-                Instabug.Builder luciqBuilder = new Instabug.Builder(application, applicationToken)
+                Luciq.Builder luciqBuilder = new Luciq.Builder(application, applicationToken)
                         .setInvocationEvents(invocationEvents)
                         .setSdkDebugLogsLevel(logLevel);
 

@@ -67,7 +67,7 @@ describe('Surveys Module', () => {
     expect(NativeSurveys.setOnShowHandler).toBeCalledWith(callback);
   });
 
-  it('should invoke callback on emitting the event LQWillShowSurvey', () => {
+  it('should invoke callback on emitting the event LCQWillShowSurvey', () => {
     const callback = jest.fn();
     Surveys.setOnShowHandler(callback);
     emitter.emit(NativeEvents.WILL_SHOW_SURVEY_HANDLER);
@@ -84,7 +84,7 @@ describe('Surveys Module', () => {
     expect(NativeSurveys.setOnDismissHandler).toBeCalledWith(callback);
   });
 
-  it('should invoke callback on emitting the event LQDidDismissSurvey', () => {
+  it('should invoke callback on emitting the event LCQDidDismissSurvey', () => {
     const callback = jest.fn();
     Surveys.setOnDismissHandler(callback);
     emitter.emit(NativeEvents.DID_DISMISS_SURVEY_HANDLER);

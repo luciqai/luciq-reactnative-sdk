@@ -11,9 +11,9 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
-import com.instabug.apm.APM;
-import com.instabug.apm.networking.APMNetworkLogger;
-import com.instabug.apm.networkinterception.cp.APMCPNetworkLog;
+import ai.luciq.apm.APM;
+import ai.luciq.apm.networking.APMNetworkLogger;
+import ai.luciq.apm.networkinterception.cp.APMCPNetworkLog;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
@@ -357,7 +357,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                             w3cAttributes.getString("w3cCaughtHeader")
                     );
             try {
-                Method method = getMethod(Class.forName("com.instabug.apm.networking.APMNetworkLogger"), "log", long.class, long.class, String.class, String.class, long.class, String.class, String.class, String.class, String.class, String.class, long.class, int.class, String.class, String.class, String.class, String.class, APMCPNetworkLog.W3CExternalTraceAttributes.class);
+                Method method = getMethod(Class.forName("ai.luciq.apm.networking.APMNetworkLogger"), "log", long.class, long.class, String.class, String.class, long.class, String.class, String.class, String.class, String.class, String.class, long.class, int.class, String.class, String.class, String.class, String.class, APMCPNetworkLog.W3CExternalTraceAttributes.class);
                 if (method != null) {
                         method.invoke(
                                 networkLogger,

@@ -2,7 +2,7 @@ package ai.luciq.reactlibrary;
 import android.os.Looper;
 
 import com.facebook.react.bridge.Promise;
-import com.instabug.apm.APM;
+import ai.luciq.apm.APM;
 
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 

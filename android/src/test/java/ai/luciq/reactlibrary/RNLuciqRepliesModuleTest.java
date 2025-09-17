@@ -8,8 +8,8 @@ import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.JavaOnlyMap;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.WritableMap;
-import com.instabug.chat.Replies;
-import com.instabug.library.Feature;
+import ai.luciq.chat.Replies;
+import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
 import ai.luciq.reactlibrary.utils.MapUtil;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
@@ -184,7 +184,7 @@ public class RNLuciqRepliesModuleTest {
                         });
 
         Map<String, String> map = new HashMap<>();
-        when(Replies.isInstabugNotification(map))
+        when(Replies.isLuciqNotification(map))
                 .thenAnswer(
                         new Answer<Object>() {
                             @Override

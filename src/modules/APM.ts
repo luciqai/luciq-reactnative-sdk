@@ -112,6 +112,6 @@ export const endUITrace = () => {
 /**
  * Used for internal testing.
  */
-export const _lqSleep = () => {
-  NativeAPM.lqSleep();
+export const _lcqSleep = () => {
+  NativeAPM.lcqSleep();
 };

@@ -9,8 +9,8 @@
 #import <XCTest/XCTest.h>
 #import "OCMock/OCMock.h"
 #import "LuciqBugReportingBridge.h"
-#import <InstabugSDK/IBGTypes.h>
-#import "InstabugSDK/InstabugSDK.h"
+#import <LuciqSDK/LCQTypes.h>
+#import "LuciqSDK/LuciqSDK.h"
 #import "LCQConstants.h"
 
 @interface LuciqBugReportingTests : XCTestCase
@@ -33,28 +33,28 @@
 - (void) testgivenBoolean$setBugReportingEnabled_whenQuery_thenShouldCallNativeApi {
   BOOL enabled = true;
   [self.luciqBridge setEnabled:enabled];
-  XCTAssertTrue(IBGBugReporting.enabled);
+  XCTAssertTrue(LCQBugReporting.enabled);
 }
 
 - (void) testgivenInvocationEvent$setInvocationEvents_whenQuery_thenShouldCallNativeApiWithArgs {
   NSArray *invocationEventsArr;
-  invocationEventsArr = [NSArray arrayWithObjects:  @(IBGInvocationEventScreenshot), nil];
+  invocationEventsArr = [NSArray arrayWithObjects:  @(LCQInvocationEventScreenshot), nil];
 
   [self.luciqBridge setInvocationEvents:invocationEventsArr];
-  IBGInvocationEvent invocationEvents = 0;
+  LCQInvocationEvent invocationEvents = 0;
   for (NSNumber *boxedValue in invocationEventsArr) {
     invocationEvents |= [boxedValue intValue];
   }
-  XCTAssertEqual(IBGBugReporting.invocationEvents, invocationEvents);
+  XCTAssertEqual(LCQBugReporting.invocationEvents, invocationEvents);
 }
 
 - (void) testgivenHandler$setOnInvokeHandler_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
   RCTResponseSenderBlock callback = ^(NSArray *response) {};
   [partialMock setOnInvokeHandler:callback];
-  XCTAssertNotNil(IBGBugReporting.willInvokeHandler);
+  XCTAssertNotNil(LCQBugReporting.willInvokeHandler);
   OCMStub([partialMock sendEventWithName:@"LCQpreInvocationHandler" body:nil]);
-  IBGBugReporting.willInvokeHandler();
+  LCQBugReporting.willInvokeHandler();
   OCMVerify([partialMock sendEventWithName:@"LCQpreInvocationHandler" body:nil]);
 }
 
@@ -63,11 +63,11 @@
   id partialMock = OCMPartialMock(self.luciqBridge);
   RCTResponseSenderBlock callback = ^(NSArray *response) {};
   [partialMock setOnSDKDismissedHandler:callback];
-  XCTAssertNotNil(IBGBugReporting.didDismissHandler);
+  XCTAssertNotNil(LCQBugReporting.didDismissHandler);
   NSDictionary *result = @{ @"dismissType": @"CANCEL",
                             @"reportType": @"bug"};
   OCMStub([partialMock sendEventWithName:@"LCQpostInvocationHandler" body:result]);
-  IBGBugReporting.didDismissHandler(IBGDismissTypeCancel,IBGReportTypeBug);
+  LCQBugReporting.didDismissHandler(LCQDismissTypeCancel,LCQReportCategoryBug);
   OCMVerify([partialMock sendEventWithName:@"LCQpostInvocationHandler" body:result]);
 }
 
@@ -75,12 +75,12 @@
   id partialMock = OCMPartialMock(self.luciqBridge);
   RCTResponseSenderBlock callback = ^(NSArray *response) {};
   [partialMock setOnSDKDismissedHandler:callback];
-  XCTAssertNotNil(IBGBugReporting.didDismissHandler);
+  XCTAssertNotNil(LCQBugReporting.didDismissHandler);
 
   NSDictionary *result = @{ @"dismissType": @"SUBMIT",
                             @"reportType": @"feedback"};
   OCMStub([partialMock sendEventWithName:@"LCQpostInvocationHandler" body:result]);
-  IBGBugReporting.didDismissHandler(IBGDismissTypeSubmit,IBGReportTypeFeedback);
+  LCQBugReporting.didDismissHandler(LCQDismissTypeSubmit,LCQReportCategoryFeedback);
   OCMVerify([partialMock sendEventWithName:@"LCQpostInvocationHandler" body:result]);
 }
 
@@ -88,36 +88,36 @@
   id partialMock = OCMPartialMock(self.luciqBridge);
   RCTResponseSenderBlock callback = ^(NSArray *response) {};
   [partialMock setOnSDKDismissedHandler:callback];
-  XCTAssertNotNil(IBGBugReporting.didDismissHandler);
+  XCTAssertNotNil(LCQBugReporting.didDismissHandler);
   NSDictionary *result = @{ @"dismissType": @"ADD_ATTACHMENT",
                             @"reportType": @"feedback"};
   OCMStub([partialMock sendEventWithName:@"LCQpostInvocationHandler" body:result]);
-  IBGBugReporting.didDismissHandler(IBGDismissTypeAddAttachment,IBGReportTypeFeedback);
+  LCQBugReporting.didDismissHandler(LCQDismissTypeAddAttachment,LCQReportCategoryFeedback);
   OCMVerify([partialMock sendEventWithName:@"LCQpostInvocationHandler" body:result]);
 }
 
 - (void) skip_testgivenDouble$setShakingThresholdForiPhone_whenQuery_thenShouldCallNativeApi {
   double threshold = 12;
   [self.luciqBridge setShakingThresholdForiPhone:threshold];
-  XCTAssertEqual(IBGBugReporting.shakingThresholdForiPhone, threshold);
+  XCTAssertEqual(LCQBugReporting.shakingThresholdForiPhone, threshold);
 }
 
 - (void) skip_testgivenDouble$setShakingThresholdForiPad_whenQuery_thenShouldCallNativeApi {
   double threshold = 12;
   [self.luciqBridge setShakingThresholdForiPad:threshold];
-  XCTAssertEqual(IBGBugReporting.shakingThresholdForiPad, threshold);
+  XCTAssertEqual(LCQBugReporting.shakingThresholdForiPad, threshold);
 }
 
 - (void) testgivenExtendedBugReportMode$setExtendedBugReportMode_whenQuery_thenShouldCallNativeApi {
-  IBGExtendedBugReportMode extendedBugReportMode = IBGExtendedBugReportModeEnabledWithOptionalFields;
+  LCQExtendedBugReportMode extendedBugReportMode = LCQExtendedBugReportModeEnabledWithOptionalFields;
   [self.luciqBridge setExtendedBugReportMode:extendedBugReportMode];
-  XCTAssertEqual(IBGBugReporting.extendedBugReportMode, extendedBugReportMode);
+  XCTAssertEqual(LCQBugReporting.extendedBugReportMode, extendedBugReportMode);
 }
 
 - (void) testgivenArray$setReportTypes_whenQuery_thenShouldCallNativeApi {
-  id mock = OCMClassMock([IBGBugReporting class]);
-  NSArray *reportTypesArr = [NSArray arrayWithObjects:  @(IBGReportTypeBug), nil];
-  IBGBugReportingReportType reportTypes = 0;
+  id mock = OCMClassMock([LCQBugReporting class]);
+  NSArray *reportTypesArr = [NSArray arrayWithObjects:  @(LCQReportCategoryBug), nil];
+  LCQBugReportingReportType reportTypes = 0;
   for (NSNumber *boxedValue in reportTypesArr) {
     reportTypes |= [boxedValue intValue];
   }
@@ -128,10 +128,10 @@
 
 
 - (void) testgivenArgs$showBugReportingWithReportTypeAndOptions_whenQuery_thenShouldCallNativeApi {
-  id mock = OCMClassMock([IBGBugReporting class]);
-  IBGBugReportingReportType reportType = IBGBugReportingReportTypeBug;
-  NSArray *options = [NSArray arrayWithObjects:  @(IBGBugReportingOptionEmailFieldOptional), nil];
-  IBGBugReportingOption parsedOptions = 0;
+  id mock = OCMClassMock([LCQBugReporting class]);
+  LCQBugReportingReportType reportType = LCQBugReportingReportTypeBug;
+  NSArray *options = [NSArray arrayWithObjects:  @(LCQBugReportingOptionEmailFieldOptional), nil];
+  LCQBugReportingOption parsedOptions = 0;
   for (NSNumber *boxedValue in options) {
     parsedOptions |= [boxedValue intValue];
   }
@@ -151,23 +151,23 @@
 - (void) testgivenBoolean$setAutoScreenRecordingEnabled_whenQuery_thenShouldCallNativeApi {
   BOOL enabled = true;
   [self.luciqBridge setAutoScreenRecordingEnabled:enabled];
-  XCTAssertTrue(IBGBugReporting.autoScreenRecordingEnabled);
+  XCTAssertTrue(LCQBugReporting.autoScreenRecordingEnabled);
 }
 
 - (void) testgivenArgs$setAutoScreenRecordingDuration_whenQuery_thenShouldCallNativeApi {
   CGFloat duration = 12.3;
   [self.luciqBridge setAutoScreenRecordingDuration:duration];
-  XCTAssertEqual(IBGBugReporting.autoScreenRecordingDuration, duration);
+  XCTAssertEqual(LCQBugReporting.autoScreenRecordingDuration, duration);
 }
 
 - (void) testgivenBoolean$setViewHierarchyEnabled_whenQuery_thenShouldCallNativeApi {
   BOOL enabled = true;
   [self.luciqBridge setViewHierarchyEnabled:enabled];
-  XCTAssertTrue(IBGBugReporting.shouldCaptureViewHierarchy);
+  XCTAssertTrue(LCQBugReporting.shouldCaptureViewHierarchy);
 }
 
 - (void) testSetDisclaimerText {
-  id mock = OCMClassMock([IBGBugReporting class]);
+  id mock = OCMClassMock([LCQBugReporting class]);
   NSString *text = @"This is a disclaimer text!";
 
   OCMStub([mock setDisclaimerText:text]);
@@ -176,14 +176,14 @@
 }
 
 - (void)testAddUserConsentWithKey {
-  id mock = OCMClassMock([IBGBugReporting class]);
+  id mock = OCMClassMock([LCQBugReporting class]);
 
   NSString *key = @"testKey";
   NSString *description = @"Consent description";
   BOOL mandatory = YES;
   BOOL checked = NO;
   NSNumber *actionType = @2;
-  IBGActionType mappedActionType = (IBGActionType)[actionType integerValue];
+  LCQConsentAction mappedActionType = (LCQConsentAction)[actionType integerValue];
 
   [self.luciqBridge addUserConsent:key
                                   description:description

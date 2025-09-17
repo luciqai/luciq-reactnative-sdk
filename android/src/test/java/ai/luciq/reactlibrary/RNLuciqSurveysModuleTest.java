@@ -7,13 +7,13 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.JavaOnlyArray;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.instabug.library.Feature;
+import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
-import com.instabug.survey.Survey;
-import com.instabug.survey.Surveys;
+import ai.luciq.survey.Survey;
+import ai.luciq.survey.Surveys;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
-import com.instabug.survey.callbacks.OnDismissCallback;
-import com.instabug.survey.callbacks.OnShowCallback;
+import ai.luciq.survey.callbacks.OnDismissCallback;
+import ai.luciq.survey.callbacks.OnShowCallback;
 
 
 import org.json.JSONArray;

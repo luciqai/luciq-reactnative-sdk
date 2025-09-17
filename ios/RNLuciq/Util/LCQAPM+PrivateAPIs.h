@@ -7,7 +7,7 @@
 
 //#import "LQAPM.h"
 
-@interface IBGAPM (PrivateAPIs)
+@interface LCQAPM (PrivateAPIs)
 
 @property (class, atomic, assign) BOOL networkEnabled;
 

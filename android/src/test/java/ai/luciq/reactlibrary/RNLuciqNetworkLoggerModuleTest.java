@@ -1,7 +1,7 @@
 package ai.luciq.reactlibrary;
 
-import static com.instabug.apm.configuration.cp.APMFeature.APM_NETWORK_PLUGIN_INSTALLED;
-import static com.instabug.apm.configuration.cp.APMFeature.CP_NATIVE_INTERCEPTION_ENABLED;
+import static ai.luciq.apm.configuration.cp.APMFeature.APM_NETWORK_PLUGIN_INSTALLED;
+import static ai.luciq.apm.configuration.cp.APMFeature.CP_NATIVE_INTERCEPTION_ENABLED;
 import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
@@ -18,7 +18,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 
-import com.instabug.apm.InternalAPM;
+import ai.luciq.apm.InternalAPM;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 public class RNLuciqNetworkLoggerModuleTest {

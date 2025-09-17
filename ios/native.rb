@@ -1,12 +1,12 @@
-$instabug = { :version => '16.0.2' }
+$luciq= { :version => '16.0.3' }
 
-def use_instabug! (spec = nil)
-  version = $instabug[:version]
+def use_luciq! (spec = nil)
+  version = $luciq[:version]
   if (!spec)
-    pod 'Instabug', version
+    pod 'Luciq', version
   else
-    spec.dependency 'Instabug', version
+    spec.dependency 'Luciq', version
   end
 
-  $instabug
+  $luciq
 end

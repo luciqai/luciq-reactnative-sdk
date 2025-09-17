@@ -1,7 +1,7 @@
 #import <XCTest/XCTest.h>
 #import "OCMock/OCMock.h"
-#import "InstabugSDK/InstabugSDK.h"
-#import <InstabugSDK/IBGTypes.h>
+#import "LuciqSDK/LuciqSDK.h"
+#import <LuciqSDK/LCQTypes.h>
 #import "RNLuciq.h"
 #import "RNLuciq/Luciq+CP.h"
 #import "RNLuciq/LCQNetworkLogger+CP.h"
@@ -22,46 +22,46 @@
 @implementation RNLuciqTests
 
 - (void)setUp {
-  self.mLuciq = OCMClassMock([Instabug class]);
-  self.mLCQNetworkLogger = OCMClassMock([IBGNetworkLogger class]);
+  self.mLuciq = OCMClassMock([Luciq class]);
+  self.mLCQNetworkLogger = OCMClassMock([LCQNetworkLogger class]);
 
   [RNLuciq reset];
 }
 
 - (void)testInitWithoutLogsLevel {
   NSString *token = @"app-token";
-  IBGInvocationEvent invocationEvents = IBGInvocationEventFloatingButton | IBGInvocationEventShake;
+  LCQInvocationEvent invocationEvents = LCQInvocationEventFloatingButton | LCQInvocationEventShake;
 
   [RNLuciq initWithToken:token invocationEvents:invocationEvents];
 
   OCMVerify([self.mLuciq startWithToken:token invocationEvents:invocationEvents]);
-  OCMVerify([self.mLuciq setCurrentPlatform:IBGPlatformReactNative]);
+  OCMVerify([self.mLuciq setCurrentPlatform:LCQPlatformReactNative]);
   OCMVerify([self.mLCQNetworkLogger disableAutomaticCapturingOfNetworkLogs]);
   OCMVerify([self.mLCQNetworkLogger setEnabled:YES]);
 }
 
 - (void)testInitWithNativeNetworkInterception {
   NSString *token = @"app-token";
-  IBGInvocationEvent invocationEvents = IBGInvocationEventFloatingButton | IBGInvocationEventShake;
+  LCQInvocationEvent invocationEvents = LCQInvocationEventFloatingButton | LCQInvocationEventShake;
   BOOL useNativeNetworkInterception = YES;
 
   [RNLuciq initWithToken:token invocationEvents:invocationEvents useNativeNetworkInterception:useNativeNetworkInterception];
 
   OCMVerify([self.mLuciq startWithToken:token invocationEvents:invocationEvents]);
-  OCMVerify([self.mLuciq setCurrentPlatform:IBGPlatformReactNative]);
+  OCMVerify([self.mLuciq setCurrentPlatform:LCQPlatformReactNative]);
   OCMVerify(never(), [self.mLCQNetworkLogger disableAutomaticCapturingOfNetworkLogs]);
   OCMVerify([self.mLCQNetworkLogger setEnabled:YES]);
 }
 
 - (void)testInitWithLogsLevel {
   NSString *token = @"app-token";
-  IBGInvocationEvent invocationEvents = IBGInvocationEventFloatingButton | IBGInvocationEventShake;
-  IBGSDKDebugLogsLevel debugLogsLevel = IBGSDKDebugLogsLevelDebug;
+  LCQInvocationEvent invocationEvents = LCQInvocationEventFloatingButton | LCQInvocationEventShake;
+  LCQSDKDebugLogsLevel debugLogsLevel = LCQSDKDebugLogsLevelDebug;
 
   [RNLuciq initWithToken:token invocationEvents:invocationEvents debugLogsLevel:debugLogsLevel];
 
   OCMVerify([self.mLuciq startWithToken:token invocationEvents:invocationEvents]);
-  OCMVerify([self.mLuciq setCurrentPlatform:IBGPlatformReactNative]);
+  OCMVerify([self.mLuciq setCurrentPlatform:LCQPlatformReactNative]);
   OCMVerify([self.mLCQNetworkLogger disableAutomaticCapturingOfNetworkLogs]);
   OCMVerify([self.mLCQNetworkLogger setEnabled:YES]);
 }
@@ -75,7 +75,7 @@
 
 - (void)testSetOverAirVersionExpo {
   NSDictionary *overAirVersion = @{
-    @"service":@(IBGOverAirTypeExpo),
+    @"service":@(LCQOverAirTypeExpo),
     @"version":@"D0A12345-6789-4B3C-A123-4567ABCDEF01"
   };
 
@@ -86,7 +86,7 @@
 
 - (void)testSetOverAirVersionCodepush {
   NSDictionary *overAirVersion = @{
-    @"service":@(IBGOverAirTypeCodePush),
+    @"service":@(LCQOverAirTypeCodePush),
     @"version":@"2.0.0"
   };
 

@@ -9,8 +9,8 @@
 #import <XCTest/XCTest.h>
 #import "OCMock/OCMock.h"
 #import "LuciqRepliesBridge.h"
-#import <InstabugSDK/IBGTypes.h>
-#import "InstabugSDK/InstabugSDK.h"
+#import <LuciqSDK/LCQTypes.h>
+#import "LuciqSDK/LuciqSDK.h"
 #import "LCQConstants.h"
 
 @interface LuciqRepliesTests : XCTestCase
@@ -34,22 +34,22 @@
 - (void) testgivenBoolean$setEnabled_whenQuery_thenShouldCallNativeApi {
   BOOL enabled = false;
   [self.luciqBridge setEnabled:enabled];
-  XCTAssertFalse(IBGReplies.enabled);
+  XCTAssertFalse(LCQReplies.enabled);
 }
 
-// Since there is no way to check the invocation of the block 'callback' inside the block, 'IBGReplies.enabled' is set to false
+// Since there is no way to check the invocation of the block 'callback' inside the block, 'LCQReplies.enabled' is set to false
 // and the value is checked after callback execution to verify.
 - (void) testgivenCallback$hasChats_whenQuery_thenShouldCallNativeApi {
-  IBGReplies.enabled = true;
-  RCTPromiseResolveBlock resolve = ^(id result) { IBGReplies.enabled = false; };
+  LCQReplies.enabled = true;
+  RCTPromiseResolveBlock resolve = ^(id result) { LCQReplies.enabled = false; };
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
   [self.luciqBridge hasChats:resolve :reject];
-  XCTAssertFalse(IBGReplies.enabled);
+  XCTAssertFalse(LCQReplies.enabled);
 }
 
 
 - (void) testgiven$show_whenQuery_thenShouldCallNativeApi {
-  id mock = OCMClassMock([IBGReplies class]);
+  id mock = OCMClassMock([LCQReplies class]);
   OCMStub([mock show]);
   [self.luciqBridge show];
   XCTestExpectation *expectation = [self expectationWithDescription:@"Test ME PLX"];
@@ -66,29 +66,29 @@
   id partialMock = OCMPartialMock(self.luciqBridge);
   RCTResponseSenderBlock callback = ^(NSArray *response) {};
   [partialMock setOnNewReplyReceivedHandler:callback];
-  XCTAssertNotNil(IBGReplies.didReceiveReplyHandler);
+  XCTAssertNotNil(LCQReplies.didReceiveReplyHandler);
 
   OCMStub([partialMock sendEventWithName:@"LCQOnNewReplyReceivedCallback" body:nil]);
-  IBGReplies.didReceiveReplyHandler();
+  LCQReplies.didReceiveReplyHandler();
   OCMVerify([partialMock sendEventWithName:@"LCQOnNewReplyReceivedCallback" body:nil]);
 }
 
 - (void) testgivenCallback$getUnreadRepliesCount_whenQuery_thenShouldCallNativeApi {
-  IBGReplies.enabled = true;
-  RCTPromiseResolveBlock resolve = ^(id result) { IBGReplies.enabled = false; };
+  LCQReplies.enabled = true;
+  RCTPromiseResolveBlock resolve = ^(id result) { LCQReplies.enabled = false; };
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
   [self.luciqBridge getUnreadRepliesCount:resolve :reject];
-  XCTAssertFalse(IBGReplies.enabled);
+  XCTAssertFalse(LCQReplies.enabled);
 }
 
 - (void) testgivenBoolean$setInAppNotificationEnabled_whenQuery_thenShouldCallNativeApi {
   BOOL enabled = false;
   [self.luciqBridge setInAppNotificationEnabled:enabled];
-  XCTAssertFalse(IBGReplies.inAppNotificationsEnabled);
+  XCTAssertFalse(LCQReplies.inAppNotificationsEnabled);
 }
 
 - (void)testSetPushNotificationsEnabled {
-  id mock = OCMClassMock([IBGReplies class]);
+  id mock = OCMClassMock([LCQReplies class]);
   BOOL isPushNotificationEnabled = true;
 
   OCMStub([mock setPushNotificationsEnabled:isPushNotificationEnabled]);

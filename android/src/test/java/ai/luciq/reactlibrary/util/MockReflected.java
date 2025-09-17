@@ -1,6 +1,6 @@
 package ai.luciq.reactlibrary.util;
 
-import com.instabug.crash.models.IBGNonFatalException;
+import ai.luciq.crash.models.LuciqNonFatalException;
 
 import org.json.JSONObject;
 
@@ -25,6 +25,6 @@ public class MockReflected {
     /**
      * CrashReporting.reportException
      */
-    public static void reportException(JSONObject exception, boolean isHandled, Map userAttributes, JSONObject fingerPrint, IBGNonFatalException.Level level) {}
+    public static void reportException(JSONObject exception, boolean isHandled, Map userAttributes, JSONObject fingerPrint, LuciqNonFatalException.Level level) {}
 
 }

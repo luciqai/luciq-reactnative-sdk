@@ -23,7 +23,7 @@
 RCT_EXPORT_MODULE(LCQCrashReporting)
 
 RCT_EXPORT_METHOD(setEnabled: (BOOL) isEnabled) {
-    IBGCrashReporting.enabled = isEnabled;
+    LCQCrashReporting.enabled = isEnabled;
 }
 
 RCT_EXPORT_METHOD(sendJSCrash:(NSDictionary *)stackTrace
@@ -32,13 +32,13 @@ RCT_EXPORT_METHOD(sendJSCrash:(NSDictionary *)stackTrace
 
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0ul);
     dispatch_async(queue, ^{
-        [IBGCrashReporting cp_reportFatalCrashWithStackTrace:stackTrace];
+        [LCQCrashReporting cp_reportFatalCrashWithStackTrace:stackTrace];
         resolve([NSNull null]);
     });
 }
 
 RCT_EXPORT_METHOD(sendHandledJSCrash: (NSDictionary *)stackTrace
-                  userAttributes:(nullable NSDictionary *)userAttributes fingerprint:(nullable NSString *)fingerprint nonFatalExceptionLevel:(IBGNonFatalLevel)nonFatalExceptionLevel
+                  userAttributes:(nullable NSDictionary *)userAttributes fingerprint:(nullable NSString *)fingerprint nonFatalExceptionLevel:(LCQNonFatalLevel)nonFatalExceptionLevel
                   resolver:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
 
@@ -51,7 +51,7 @@ RCT_EXPORT_METHOD(sendHandledJSCrash: (NSDictionary *)stackTrace
     }
     dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_HIGH, 0ul);
     dispatch_async(queue, ^{
-        [IBGCrashReporting cp_reportNonFatalCrashWithStackTrace:stackTrace level:nonFatalExceptionLevel groupingString:fingerprint userAttributes:userAttributes];
+        [LCQCrashReporting cp_reportNonFatalCrashWithStackTrace:stackTrace level:nonFatalExceptionLevel groupingString:fingerprint userAttributes:userAttributes];
 
         resolve([NSNull null]);
     });

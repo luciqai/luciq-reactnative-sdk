@@ -1,5 +1,5 @@
 #import <XCTest/XCTest.h>
-#import "InstabugSDK/InstabugSDK.h"
+#import "LuciqSDK/LuciqSDK.h"
 #import "LuciqCrashReportingBridge.h"
 #import "OCMock/OCMock.h"
 #import "Util/LCQCrashReporting+CP.h"
@@ -14,17 +14,17 @@
 
 - (void)setUp {
   self.bridge = [[LuciqCrashReportingBridge alloc] init];
-  self.mCrashReporting = OCMClassMock([IBGCrashReporting class]);
+  self.mCrashReporting = OCMClassMock([LCQCrashReporting class]);
 
 }
 
 - (void)testSetEnabled {
 
   [self.bridge setEnabled:NO];
-  XCTAssertFalse(IBGCrashReporting.enabled);
+  XCTAssertFalse(LCQCrashReporting.enabled);
 
   [self.bridge setEnabled:YES];
-  XCTAssertTrue(IBGCrashReporting.enabled);
+  XCTAssertTrue(LCQCrashReporting.enabled);
 
 }
 
@@ -50,13 +50,13 @@
   RCTPromiseResolveBlock resolve = ^(id result) {};
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
   NSDictionary *userAttributes = @{ @"key" : @"value",  };
-  IBGNonFatalLevel LCQNonFatalLevel = IBGNonFatalLevelInfo;
+  LCQNonFatalLevel LCQNonFatalLevel = LCQNonFatalLevelInfo;
 
 
   [self.bridge sendHandledJSCrash:jsonCrash userAttributes:userAttributes  fingerprint:fingerPrint nonFatalExceptionLevel:LCQNonFatalLevel resolver:resolve rejecter:reject];
 
     OCMVerify([self.mCrashReporting cp_reportNonFatalCrashWithStackTrace:jsonCrash
-           level:IBGNonFatalLevelInfo
+           level:LCQNonFatalLevelInfo
          groupingString:fingerPrint
         userAttributes:userAttributes
               ]);

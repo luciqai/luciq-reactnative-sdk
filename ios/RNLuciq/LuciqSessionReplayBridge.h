@@ -1,8 +1,8 @@
 #import <Foundation/Foundation.h>
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
-#import <InstabugSDK/IBGTypes.h>
-#import <InstabugSDK/IBGSessionReplay.h>
+#import <LuciqSDK/LCQTypes.h>
+#import <LuciqSDK/LCQSessionReplay.h>
 
 @interface LuciqSessionReplayBridge : RCTEventEmitter <RCTBridgeModule>
 /*

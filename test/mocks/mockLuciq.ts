@@ -17,7 +17,7 @@ const mockLuciq: LuciqNativeModule = {
   setOverAirVersion: jest.fn(),
   setUserData: jest.fn(),
   setTrackUserSteps: jest.fn(),
-  setLQLogPrintsToConsole: jest.fn(),
+  setLCQLogPrintsToConsole: jest.fn(),
   setSessionProfilerEnabled: jest.fn(),
   setLocale: jest.fn(),
   setColorTheme: jest.fn(),

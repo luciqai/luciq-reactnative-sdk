@@ -1,8 +1,8 @@
 #import <XCTest/XCTest.h>
 #import "OCMock/OCMock.h"
 #import "LuciqSessionReplayBridge.h"
-#import <InstabugSDK/IBGTypes.h>
-#import "InstabugSDK/InstabugSDK.h"
+#import <LuciqSDK/LCQTypes.h>
+#import "LuciqSDK/LuciqSDK.h"
 #import "LCQConstants.h"
 
 @interface LuciqSessionReplayTests : XCTestCase
@@ -16,7 +16,7 @@
 
 
 - (void)setUp {
-  self.mSessionReplay = OCMClassMock([IBGSessionReplay class]);
+  self.mSessionReplay = OCMClassMock([LCQSessionReplay class]);
   self.bridge = [[LuciqSessionReplayBridge alloc] init];
 }
 
@@ -33,7 +33,7 @@
 
   [self.bridge setLuciqLogsEnabled:enabled];
 
-  OCMVerify([self.mSessionReplay setIBGLogsEnabled:enabled]);
+  OCMVerify([self.mSessionReplay setLCQLogsEnabled:enabled]);
 }
 
 - (void)testSetNetworkLogsEnabled {
@@ -70,8 +70,8 @@
 }
 
 - (void)testSetSyncCallback {
-    id mockMetadata = OCMClassMock([IBGSessionMetadata class]);
-    id mockNetworkLog = OCMClassMock([IBGSessionMetadataNetworkLogs class]);
+    id mockMetadata = OCMClassMock([LCQSessionMetadata class]);
+    id mockNetworkLog = OCMClassMock([LCQSessionMetadataNetworkLogs class]);
     id partialMock = OCMPartialMock(self.bridge);
 
     XCTestExpectation *completionExpectation = [self expectationWithDescription:@"Completion block should be called with the expected value"];
@@ -99,7 +99,7 @@
         [completionExpectation fulfill];
     };
 
-  OCMStub([self.mSessionReplay setSyncCallbackWithHandler:[OCMArg checkWithBlock: ^BOOL(void(^handler)(IBGSessionMetadata *metadataObject, SessionEvaluationCompletion completion)) {
+  OCMStub([self.mSessionReplay setSyncCallbackWithHandler:[OCMArg checkWithBlock: ^BOOL(void(^handler)(LCQSessionMetadata *metadataObject, SessionEvaluationCompletion completion)) {
       handler(mockMetadata, sessionEvaluationCompletion);
       return YES;
   }]]);

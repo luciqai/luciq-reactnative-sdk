@@ -9,8 +9,8 @@
 #import <Foundation/Foundation.h>
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
-#import <InstabugSDK/IBGTypes.h>
-#import <InstabugSDK/IBGBugReporting.h>
+#import <LuciqSDK/LCQTypes.h>
+#import <LuciqSDK/LCQBugReporting.h>
 
 @interface LuciqBugReportingBridge : RCTEventEmitter <RCTBridgeModule>
 /*
@@ -35,11 +35,11 @@
 
 - (void)setShakingThresholdForiPad:(double)iPadShakingThreshold;
 
-- (void)setExtendedBugReportMode:(IBGExtendedBugReportMode)extendedBugReportMode;
+- (void)setExtendedBugReportMode:(LCQExtendedBugReportMode)extendedBugReportMode;
 
 - (void)setReportTypes:(NSArray *)types;
 
-- (void)show:(IBGBugReportingReportType)type options:(NSArray *)options;
+- (void)show:(LCQBugReportingReportType)type options:(NSArray *)options;
 
 - (void)setAutoScreenRecordingEnabled:(BOOL)enabled;
 

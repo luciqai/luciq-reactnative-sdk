@@ -50,8 +50,6 @@ export const App: React.FC = () => {
         invocationEvents: [InvocationEvent.floatingButton],
         debugLogsLevel: LogLevel.verbose,
         networkInterceptionMode: NetworkInterceptionMode.javascript,
-        appVariant: 'App variant',
-        overAirVersion: { service: OverAirUpdateServices.codePush, version: '1.0.0' },
       });
 
       CrashReporting.setNDKCrashesEnabled(true);

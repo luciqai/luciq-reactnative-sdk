@@ -2,23 +2,23 @@ package ai.luciq.reactlibrary;
 
 import androidx.annotation.NonNull;
 
-import com.instabug.bug.BugReporting;
-import com.instabug.bug.invocation.Option;
-import com.instabug.crash.models.IBGNonFatalException;
-import com.instabug.featuresrequest.ActionType;
-import com.instabug.library.InstabugColorTheme;
-import com.instabug.library.InstabugCustomTextPlaceHolder.Key;
-import com.instabug.library.OnSdkDismissCallback.DismissType;
-import com.instabug.library.ReproMode;
-import com.instabug.library.extendedbugreport.ExtendedBugReport;
-import com.instabug.library.internal.module.InstabugLocale;
-import com.instabug.library.invocation.InstabugInvocationEvent;
-import com.instabug.library.invocation.util.InstabugFloatingButtonEdge;
-import com.instabug.library.invocation.util.InstabugVideoRecordingButtonPosition;
-import com.instabug.library.sessionreplay.model.SessionMetadata;
-import com.instabug.library.ui.onboarding.WelcomeMessage;
-import com.instabug.library.util.overairversion.OverAirVersionType;
-import com.instabug.library.MaskingType;
+import ai.luciq.bug.BugReporting;
+import ai.luciq.bug.invocation.Option;
+import ai.luciq.crash.models.LuciqNonFatalException;
+import ai.luciq.featuresrequest.ActionType;
+import ai.luciq.library.LuciqColorTheme;
+import ai.luciq.library.LuciqCustomTextPlaceHolder.Key;
+import ai.luciq.library.OnSdkDismissCallback.DismissType;
+import ai.luciq.library.ReproMode;
+import ai.luciq.library.extendedbugreport.ExtendedBugReport;
+import ai.luciq.library.internal.module.LuciqLocale;
+import ai.luciq.library.invocation.LuciqInvocationEvent;
+import ai.luciq.library.invocation.util.LuciqFloatingButtonEdge;
+import ai.luciq.library.invocation.util.LuciqVideoRecordingButtonPosition;
+import ai.luciq.library.sessionreplay.model.SessionMetadata;
+import ai.luciq.library.ui.onboarding.WelcomeMessage;
+import ai.luciq.library.util.overairversion.OverAirVersionType;
+import ai.luciq.library.MaskingType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,19 +68,19 @@ final class ArgsRegistry {
         }};
     }
 
-    public static ArgsMap<IBGNonFatalException.Level> nonFatalExceptionLevel = new ArgsMap<IBGNonFatalException.Level>() {{
-        put("nonFatalErrorLevelCritical", IBGNonFatalException.Level.CRITICAL);
-        put("nonFatalErrorLevelError", IBGNonFatalException.Level.ERROR);
-        put("nonFatalErrorLevelWarning", IBGNonFatalException.Level.WARNING);
-        put("nonFatalErrorLevelInfo", IBGNonFatalException.Level.INFO);
+    public static ArgsMap<LuciqNonFatalException.Level> nonFatalExceptionLevel = new ArgsMap<LuciqNonFatalException.Level>() {{
+        put("nonFatalErrorLevelCritical", LuciqNonFatalException.Level.CRITICAL);
+        put("nonFatalErrorLevelError", LuciqNonFatalException.Level.ERROR);
+        put("nonFatalErrorLevelWarning", LuciqNonFatalException.Level.WARNING);
+        put("nonFatalErrorLevelInfo", LuciqNonFatalException.Level.INFO);
     }};
 
-    static ArgsMap<InstabugInvocationEvent> invocationEvents = new ArgsMap<InstabugInvocationEvent>() {{
-        put("invocationEventNone", InstabugInvocationEvent.NONE);
-        put("invocationEventShake", InstabugInvocationEvent.SHAKE);
-        put("invocationEventFloatingButton", InstabugInvocationEvent.FLOATING_BUTTON);
-        put("invocationEventScreenshot", InstabugInvocationEvent.SCREENSHOT);
-        put("invocationEventTwoFingersSwipeLeft", InstabugInvocationEvent.TWO_FINGER_SWIPE_LEFT);
+    static ArgsMap<LuciqInvocationEvent> invocationEvents = new ArgsMap<LuciqInvocationEvent>() {{
+        put("invocationEventNone", LuciqInvocationEvent.NONE);
+        put("invocationEventShake", LuciqInvocationEvent.SHAKE);
+        put("invocationEventFloatingButton", LuciqInvocationEvent.FLOATING_BUTTON);
+        put("invocationEventScreenshot", LuciqInvocationEvent.SCREENSHOT);
+        put("invocationEventTwoFingersSwipeLeft", LuciqInvocationEvent.TWO_FINGER_SWIPE_LEFT);
     }};
 
     static final ArgsMap<Integer> invocationOptions = new ArgsMap<Integer>() {{
@@ -90,25 +90,25 @@ final class ArgsRegistry {
         put("optionDisablePostSendingDialog", Option.DISABLE_POST_SENDING_DIALOG);
     }};
 
-    static final ArgsMap<InstabugColorTheme> colorThemes = new ArgsMap<InstabugColorTheme>() {{
-        put("colorThemeLight", InstabugColorTheme.InstabugColorThemeLight);
-        put("colorThemeDark", InstabugColorTheme.InstabugColorThemeDark);
+    static final ArgsMap<LuciqColorTheme> colorThemes = new ArgsMap<LuciqColorTheme>() {{
+        put("colorThemeLight", LuciqColorTheme.LuciqColorThemeLight);
+        put("colorThemeDark", LuciqColorTheme.LuciqColorThemeDark);
     }};
 
-    static final ArgsMap<InstabugFloatingButtonEdge> floatingButtonEdges = new ArgsMap<InstabugFloatingButtonEdge>() {{
-        put("left", InstabugFloatingButtonEdge.LEFT);
-        put("right", InstabugFloatingButtonEdge.RIGHT);
-        put("floatingButtonEdgeLeft", InstabugFloatingButtonEdge.LEFT);
-        put("floatingButtonEdgeRight", InstabugFloatingButtonEdge.RIGHT);
-        put("rectMinXEdge", InstabugFloatingButtonEdge.LEFT);
-        put("rectMaxXEdge", InstabugFloatingButtonEdge.RIGHT);
+    static final ArgsMap<LuciqFloatingButtonEdge> floatingButtonEdges = new ArgsMap<LuciqFloatingButtonEdge>() {{
+        put("left", LuciqFloatingButtonEdge.LEFT);
+        put("right", LuciqFloatingButtonEdge.RIGHT);
+        put("floatingButtonEdgeLeft", LuciqFloatingButtonEdge.LEFT);
+        put("floatingButtonEdgeRight", LuciqFloatingButtonEdge.RIGHT);
+        put("rectMinXEdge", LuciqFloatingButtonEdge.LEFT);
+        put("rectMaxXEdge", LuciqFloatingButtonEdge.RIGHT);
     }};
 
-    static ArgsMap<InstabugVideoRecordingButtonPosition> recordButtonPositions = new ArgsMap<InstabugVideoRecordingButtonPosition>() {{
-        put("topLeft", InstabugVideoRecordingButtonPosition.TOP_LEFT);
-        put("topRight", InstabugVideoRecordingButtonPosition.TOP_RIGHT);
-        put("bottomLeft", InstabugVideoRecordingButtonPosition.BOTTOM_LEFT);
-        put("bottomRight", InstabugVideoRecordingButtonPosition.BOTTOM_RIGHT);
+    static ArgsMap<LuciqVideoRecordingButtonPosition> recordButtonPositions = new ArgsMap<LuciqVideoRecordingButtonPosition>() {{
+        put("topLeft", LuciqVideoRecordingButtonPosition.TOP_LEFT);
+        put("topRight", LuciqVideoRecordingButtonPosition.TOP_RIGHT);
+        put("bottomLeft", LuciqVideoRecordingButtonPosition.BOTTOM_LEFT);
+        put("bottomRight", LuciqVideoRecordingButtonPosition.BOTTOM_RIGHT);
     }};
 
     static ArgsMap<WelcomeMessage.State> welcomeMessageStates = new ArgsMap<WelcomeMessage.State>() {{
@@ -148,43 +148,43 @@ final class ArgsRegistry {
     }};
 
     static final ArgsMap<String> userConsentActionType = new ArgsMap<String>() {{
-        put("dropAutoCapturedMedia",  com.instabug.bug.userConsent.ActionType.DROP_AUTO_CAPTURED_MEDIA);
-        put("dropLogs",  com.instabug.bug.userConsent.ActionType.DROP_LOGS);
-        put("noChat",  com.instabug.bug.userConsent.ActionType.NO_CHAT);
+        put("dropAutoCapturedMedia",  ai.luciq.bug.userConsent.ActionType.DROP_AUTO_CAPTURED_MEDIA);
+        put("dropLogs",  ai.luciq.bug.userConsent.ActionType.DROP_LOGS);
+        put("noChat",  ai.luciq.bug.userConsent.ActionType.NO_CHAT);
     }};
 
     static final ArgsMap<Integer> sdkLogLevels = new ArgsMap<Integer>() {{
-        put("sdkDebugLogsLevelNone", com.instabug.library.LogLevel.NONE);
-        put("sdkDebugLogsLevelError", com.instabug.library.LogLevel.ERROR);
-        put("sdkDebugLogsLevelDebug", com.instabug.library.LogLevel.DEBUG);
-        put("sdkDebugLogsLevelVerbose", com.instabug.library.LogLevel.VERBOSE);
+        put("sdkDebugLogsLevelNone", ai.luciq.library.LogLevel.NONE);
+        put("sdkDebugLogsLevelError", ai.luciq.library.LogLevel.ERROR);
+        put("sdkDebugLogsLevelDebug", ai.luciq.library.LogLevel.DEBUG);
+        put("sdkDebugLogsLevelVerbose", ai.luciq.library.LogLevel.VERBOSE);
     }};
 
-    static final ArgsMap<InstabugLocale> locales = new ArgsMap<InstabugLocale>() {{
-        put("localeArabic", InstabugLocale.ARABIC);
-        put("localeAzerbaijani", InstabugLocale.AZERBAIJANI);
-        put("localeChineseSimplified", InstabugLocale.SIMPLIFIED_CHINESE);
-        put("localeChineseTraditional", InstabugLocale.TRADITIONAL_CHINESE);
-        put("localeCzech", InstabugLocale.CZECH);
-        put("localeDanish", InstabugLocale.DANISH);
-        put("localeDutch", InstabugLocale.NETHERLANDS);
-        put("localeEnglish", InstabugLocale.ENGLISH);
-        put("localeFrench", InstabugLocale.FRENCH);
-        put("localeGerman", InstabugLocale.GERMAN);
-        put("localeIndonesian", InstabugLocale.INDONESIAN);
-        put("localeItalian", InstabugLocale.ITALIAN);
-        put("localeJapanese", InstabugLocale.JAPANESE);
-        put("localeKorean", InstabugLocale.KOREAN);
-        put("localeNorwegian", InstabugLocale.NORWEGIAN);
-        put("localePolish", InstabugLocale.POLISH);
-        put("localePortugueseBrazil", InstabugLocale.PORTUGUESE_BRAZIL);
-        put("localePortuguesePortugal", InstabugLocale.PORTUGUESE_PORTUGAL);
-        put("localeRomanian", InstabugLocale.ROMANIAN);
-        put("localeRussian", InstabugLocale.RUSSIAN);
-        put("localeSpanish", InstabugLocale.SPANISH);
-        put("localeSlovak", InstabugLocale.SLOVAK);
-        put("localeSwedish", InstabugLocale.SWEDISH);
-        put("localeTurkish", InstabugLocale.TURKISH);
+    static final ArgsMap<LuciqLocale> locales = new ArgsMap<LuciqLocale>() {{
+        put("localeArabic", LuciqLocale.ARABIC);
+        put("localeAzerbaijani", LuciqLocale.AZERBAIJANI);
+        put("localeChineseSimplified", LuciqLocale.SIMPLIFIED_CHINESE);
+        put("localeChineseTraditional", LuciqLocale.TRADITIONAL_CHINESE);
+        put("localeCzech", LuciqLocale.CZECH);
+        put("localeDanish", LuciqLocale.DANISH);
+        put("localeDutch", LuciqLocale.NETHERLANDS);
+        put("localeEnglish", LuciqLocale.ENGLISH);
+        put("localeFrench", LuciqLocale.FRENCH);
+        put("localeGerman", LuciqLocale.GERMAN);
+        put("localeIndonesian", LuciqLocale.INDONESIAN);
+        put("localeItalian", LuciqLocale.ITALIAN);
+        put("localeJapanese", LuciqLocale.JAPANESE);
+        put("localeKorean", LuciqLocale.KOREAN);
+        put("localeNorwegian", LuciqLocale.NORWEGIAN);
+        put("localePolish", LuciqLocale.POLISH);
+        put("localePortugueseBrazil", LuciqLocale.PORTUGUESE_BRAZIL);
+        put("localePortuguesePortugal", LuciqLocale.PORTUGUESE_PORTUGAL);
+        put("localeRomanian", LuciqLocale.ROMANIAN);
+        put("localeRussian", LuciqLocale.RUSSIAN);
+        put("localeSpanish", LuciqLocale.SPANISH);
+        put("localeSlovak", LuciqLocale.SLOVAK);
+        put("localeSwedish", LuciqLocale.SWEDISH);
+        put("localeTurkish", LuciqLocale.TURKISH);
     }};
 
     static final ArgsMap<Key> placeholders = new ArgsMap<Key>() {{

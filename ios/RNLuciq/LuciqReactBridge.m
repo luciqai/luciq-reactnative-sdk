@@ -5,19 +5,19 @@
 //  Created by Yousef Hamza on 9/29/16.
 
 #import "LuciqReactBridge.h"
-#import <InstabugSDK/InstabugSDK.h>
-#import <InstabugSDK/IBGBugReporting.h>
-#import <InstabugSDK/IBGCrashReporting.h>
-#import <InstabugSDK/IBGLog.h>
-#import <InstabugSDK/IBGAPM.h>
+#import <LuciqSDK/LuciqSDK.h>
+#import <LuciqSDK/LCQBugReporting.h>
+#import <LuciqSDK/LCQCrashReporting.h>
+#import <LuciqSDK/LCQLog.h>
+#import <LuciqSDK/LCQAPM.h>
 #import <asl.h>
 #import <os/log.h>
 #import <React/RCTUIManager.h>
 #import "RNLuciq.h"
 #import "Util/LCQNetworkLogger+CP.h"
 
-@interface Instabug (PrivateWillSendAPI)
-+ (void)setWillSendReportHandler_private:(void(^)(IBGReport *report, void(^reportCompletionHandler)(IBGReport *)))willSendReportHandler_private;
+@interface Luciq (PrivateWillSendAPI)
++ (void)setWillSendReportHandler_private:(void(^)(LCQReport *report, void(^reportCompletionHandler)(LCQReport *)))willSendReportHandler_private;
 @end
 
 @implementation LuciqReactBridge
@@ -34,12 +34,12 @@ RCT_EXPORT_MODULE(Luciq)
 
 
 RCT_EXPORT_METHOD(setEnabled:(BOOL)isEnabled) {
-    Instabug.enabled = isEnabled;
+    Luciq.enabled = isEnabled;
 }
 
 RCT_EXPORT_METHOD(init:(NSString *)token
           invocationEvents:(NSArray *)invocationEventsArray
-          debugLogsLevel:(IBGSDKDebugLogsLevel)sdkDebugLogsLevel
+          debugLogsLevel:(LCQSDKDebugLogsLevel)sdkDebugLogsLevel
           useNativeNetworkInterception:(BOOL)useNativeNetworkInterception
           codePushVersion:(NSString *)codePushVersion
           appVariant:(NSString *)appVariant
@@ -48,18 +48,18 @@ RCT_EXPORT_METHOD(init:(NSString *)token
           ) {
 
            if(appVariant != nil){
-                  Instabug.appVariant = appVariant;
+                  Luciq.appVariant = appVariant;
               }
 
-    IBGInvocationEvent invocationEvents = 0;
+    LCQInvocationEvent invocationEvents = 0;
 
     for (NSNumber *boxedValue in invocationEventsArray) {
         invocationEvents |= [boxedValue intValue];
     }
 
-    [Instabug setCodePushVersion:codePushVersion];
+    [Luciq setCodePushVersion:codePushVersion];
 
-    [Instabug setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
 
     [RNLuciq initWithToken:token
              invocationEvents:invocationEvents
@@ -68,42 +68,42 @@ RCT_EXPORT_METHOD(init:(NSString *)token
 }
 
 RCT_EXPORT_METHOD(setCodePushVersion:(NSString *)version) {
-    [Instabug setCodePushVersion:version];
+    [Luciq setCodePushVersion:version];
 }
 
 RCT_EXPORT_METHOD(setOverAirVersion:(NSDictionary *)overAirVersion) {
-    [Instabug setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
 }
 
 RCT_EXPORT_METHOD(setAppVariant:(NSString *)appVariant) {
-    Instabug.appVariant = appVariant;
+    Luciq.appVariant = appVariant;
 }
 
-RCT_EXPORT_METHOD(setReproStepsConfig:(IBGUserStepsMode)bugMode :(IBGUserStepsMode)crashMode:(IBGUserStepsMode)sessionReplayMode) {
-    [Instabug setReproStepsFor:IBGIssueTypeBug withMode:bugMode];
-    [Instabug setReproStepsFor:IBGIssueTypeAllCrashes withMode:crashMode];
-    [Instabug setReproStepsFor:IBGIssueTypeSessionReplay withMode:sessionReplayMode];
+RCT_EXPORT_METHOD(setReproStepsConfig:(LCQUserStepsMode)bugMode :(LCQUserStepsMode)crashMode:(LCQUserStepsMode)sessionReplayMode) {
+    [Luciq setReproStepsFor:LCQIssueTypeBug withMode:bugMode];
+    [Luciq setReproStepsFor:LCQIssueTypeAllCrashes withMode:crashMode];
+    [Luciq setReproStepsFor:LCQIssueTypeSessionReplay withMode:sessionReplayMode];
 }
 
 RCT_EXPORT_METHOD(setFileAttachment:(NSString *)fileLocation) {
     NSURL *url = [NSURL URLWithString:fileLocation];
-    [Instabug addFileAttachmentWithURL:url];
+    [Luciq addFileAttachmentWithURL:url];
 }
 
 RCT_EXPORT_METHOD(setUserData:(NSString *)userData) {
-    [Instabug setUserData:userData];
+    [Luciq setUserData:userData];
 }
 
 RCT_EXPORT_METHOD(setTrackUserSteps:(BOOL)isEnabled) {
-    [Instabug setTrackUserSteps:isEnabled];
+    [Luciq setTrackUserSteps:isEnabled];
 }
 
-IBGReport *currentReport = nil;
+LCQReport *currentReport = nil;
 RCT_EXPORT_METHOD(setPreSendingHandler:(RCTResponseSenderBlock)callBack) {
     if (callBack != nil) {
-        Instabug.willSendReportHandler = ^IBGReport * _Nonnull(IBGReport * _Nonnull report) {
+        Luciq.willSendReportHandler = ^LCQReport * _Nonnull(LCQReport * _Nonnull report) {
             NSArray *tagsArray = report.tags;
-            NSArray *luciqLogs= report.instabugLogs;
+            NSArray *luciqLogs= report.luciqLogs;
             NSArray *consoleLogs= report.consoleLogs;
             NSDictionary *userAttributes= report.userAttributes;
             NSArray *fileAttachments= report.fileLocations;
@@ -114,7 +114,7 @@ RCT_EXPORT_METHOD(setPreSendingHandler:(RCTResponseSenderBlock)callBack) {
             return report;
         };
     } else {
-        Instabug.willSendReportHandler = nil;
+        Luciq.willSendReportHandler = nil;
     }
 }
 
@@ -180,17 +180,17 @@ RCT_EXPORT_METHOD(addFileAttachmentWithDataToReport:(NSString*) dataString) {
     }
 }
 
-RCT_EXPORT_METHOD(setLocale:(IBGLocale)locale) {
-    [Instabug setLocale:locale];
+RCT_EXPORT_METHOD(setLocale:(LCQLocale)locale) {
+    [Luciq setLocale:locale];
 }
 
-RCT_EXPORT_METHOD(setColorTheme:(IBGColorTheme)colorTheme) {
-        [Instabug setColorTheme:colorTheme];
+RCT_EXPORT_METHOD(setColorTheme:(LCQColorTheme)colorTheme) {
+        [Luciq setColorTheme:colorTheme];
 }
 
 
 RCT_EXPORT_METHOD(setTheme:(NSDictionary *)themeConfig) {
-    IBGTheme *theme = [[IBGTheme alloc] init];
+    LCQTheme *theme = [[LCQTheme alloc] init];
 
     NSDictionary *colorMapping = @{
         @"primaryColor": ^(UIColor *color) { theme.primaryColor = color; },
@@ -222,10 +222,10 @@ RCT_EXPORT_METHOD(setTheme:(NSDictionary *)themeConfig) {
     [self setFontIfPresent:themeConfig[@"secondaryFontPath"] forTheme:theme type:@"secondary"];
     [self setFontIfPresent:themeConfig[@"ctaFontPath"] forTheme:theme type:@"cta"];
 
-    Instabug.theme = theme;
+    Luciq.theme = theme;
 }
 
-- (void)setFontIfPresent:(NSString *)fontPath forTheme:(IBGTheme *)theme type:(NSString *)type {
+- (void)setFontIfPresent:(NSString *)fontPath forTheme:(LCQTheme *)theme type:(NSString *)type {
     if (fontPath) {
         NSString *fileName = [fontPath lastPathComponent];
         NSString *nameWithoutExtension = [fileName stringByDeletingPathExtension];
@@ -271,112 +271,112 @@ RCT_EXPORT_METHOD(setTheme:(NSDictionary *)themeConfig) {
 
 
 RCT_EXPORT_METHOD(appendTags:(NSArray *)tags) {
-    [Instabug appendTags:tags];
+    [Luciq appendTags:tags];
 }
 
 RCT_EXPORT_METHOD(resetTags) {
-    [Instabug resetTags];
+    [Luciq resetTags];
 }
 
 RCT_EXPORT_METHOD(getTags:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve([Instabug getTags]);
+    resolve([Luciq getTags]);
 }
 
 RCT_EXPORT_METHOD(setString:(NSString*)value toKey:(NSString*)key) {
-    [Instabug setValue:value forStringWithKey:key];
+    [Luciq setValue:value forStringWithKey:key];
 }
 
 RCT_EXPORT_METHOD(addFileAttachment:(NSString *)fileURLString) {
-    [Instabug addFileAttachmentWithURL:[NSURL URLWithString:fileURLString]];
+    [Luciq addFileAttachmentWithURL:[NSURL URLWithString:fileURLString]];
 }
 
 RCT_EXPORT_METHOD(clearFileAttachments) {
-    [Instabug clearFileAttachments];
+    [Luciq clearFileAttachments];
 }
 
 RCT_EXPORT_METHOD(identifyUser:(NSString *)email name:(NSString *)name userId:(nullable NSString *)userId) {
-    [Instabug identifyUserWithID:userId email:email name:name];
+    [Luciq identifyUserWithID:userId email:email name:name];
 }
 
 RCT_EXPORT_METHOD(logOut) {
-    [Instabug logOut];
+    [Luciq logOut];
 }
 
 RCT_EXPORT_METHOD(setUserAttribute:(NSString *)key withValue:(NSString *)value) {
-    [Instabug setUserAttribute:value withKey:key];
+    [Luciq setUserAttribute:value withKey:key];
 }
 
 RCT_EXPORT_METHOD(getUserAttribute:(NSString *)key :(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
     @try {
-        resolve([Instabug userAttributeForKey:key]);
+        resolve([Luciq userAttributeForKey:key]);
     } @catch (NSException *exception) {
         resolve(@"");
     }
 }
 
 RCT_EXPORT_METHOD(removeUserAttribute:(NSString *)key) {
-    [Instabug removeUserAttributeForKey:key];
+    [Luciq removeUserAttributeForKey:key];
 }
 
 RCT_EXPORT_METHOD(getAllUserAttributes:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve([Instabug userAttributes]);
+    resolve([Luciq userAttributes]);
 }
 
 RCT_EXPORT_METHOD(clearAllUserAttributes) {
-    for (NSString *key in [Instabug userAttributes].allKeys) {
-        [Instabug removeUserAttributeForKey:key];
+    for (NSString *key in [Luciq userAttributes].allKeys) {
+        [Luciq removeUserAttributeForKey:key];
     }
 }
 
 RCT_EXPORT_METHOD(logUserEvent:(NSString *)name) {
-    [Instabug logUserEventWithName:name];
+    [Luciq logUserEventWithName:name];
 }
 
-RCT_EXPORT_METHOD(setIBGLogPrintsToConsole:(BOOL) printsToConsole) {
-    IBGLog.printsToConsole = printsToConsole;
+RCT_EXPORT_METHOD(setLCQLogPrintsToConsole:(BOOL) printsToConsole) {
+    LCQLog.printsToConsole = printsToConsole;
 }
 
 RCT_EXPORT_METHOD(logVerbose:(NSString *)log) {
-    [IBGLog logVerbose:log];
+    [LCQLog logVerbose:log];
 }
 
 RCT_EXPORT_METHOD(logDebug:(NSString *)log) {
-    [IBGLog logDebug:log];
+    [LCQLog logDebug:log];
 }
 
 RCT_EXPORT_METHOD(logInfo:(NSString *)log) {
-    [IBGLog logInfo:log];
+    [LCQLog logInfo:log];
 }
 
 RCT_EXPORT_METHOD(logWarn:(NSString *)log) {
-    [IBGLog logWarn:log];
+    [LCQLog logWarn:log];
 }
 
 RCT_EXPORT_METHOD(logError:(NSString *)log) {
-    [IBGLog logError:log];
+    [LCQLog logError:log];
 }
 
 RCT_EXPORT_METHOD(clearLogs) {
-    [IBGLog clearAllLogs];
+    [LCQLog clearAllLogs];
 }
 
 RCT_EXPORT_METHOD(setSessionProfilerEnabled:(BOOL)sessionProfilerEnabled) {
-    [Instabug setSessionProfilerEnabled:sessionProfilerEnabled];
+    [Luciq setSessionProfilerEnabled:sessionProfilerEnabled];
 }
 
-RCT_EXPORT_METHOD(showWelcomeMessageWithMode:(IBGWelcomeMessageMode)welcomeMessageMode) {
-    [Instabug showWelcomeMessageWithMode:welcomeMessageMode];
+RCT_EXPORT_METHOD(showWelcomeMessageWithMode:(LCQWelcomeMessageMode)welcomeMessageMode) {
+    [Luciq showWelcomeMessageWithMode:welcomeMessageMode];
 }
 
-RCT_EXPORT_METHOD(setWelcomeMessageMode:(IBGWelcomeMessageMode)welcomeMessageMode) {
-    [Instabug setWelcomeMessageMode:welcomeMessageMode];
+RCT_EXPORT_METHOD(setWelcomeMessageMode:(LCQWelcomeMessageMode)welcomeMessageMode) {
+    [Luciq setWelcomeMessageMode:welcomeMessageMode];
 }
 
 RCT_EXPORT_METHOD(setNetworkLoggingEnabled:(BOOL)isEnabled) {
     if(isEnabled) {
-        IBGNetworkLogger.enabled = YES;
+        LCQNetworkLogger.enabled = YES;
     } else {
-        IBGNetworkLogger.enabled = NO;
+        LCQNetworkLogger.enabled = NO;
     }
 }
 
@@ -403,7 +403,7 @@ RCT_EXPORT_METHOD(networkLogIOS:(NSString * _Nonnull)url
         NSString * generatedW3CTraceparent = (w3cExternalTraceAttributes[@"w3cGeneratedHeader"] != [NSNull null]) ? w3cExternalTraceAttributes[@"w3cGeneratedHeader"] : nil;
         NSString * caughtW3CTraceparent = (w3cExternalTraceAttributes[@"w3cCaughtHeader"] != [NSNull null]) ? w3cExternalTraceAttributes[@"w3cCaughtHeader"] : nil;
 
-    [IBGNetworkLogger addNetworkLogWithUrl:url
+    [LCQNetworkLogger addNetworkLogWithUrl:url
                                     method:method
                                requestBody:requestBody
                            requestBodySize:requestBodySize
@@ -429,51 +429,51 @@ RCT_EXPORT_METHOD(networkLogIOS:(NSString * _Nonnull)url
 
 RCT_EXPORT_METHOD(addPrivateView: (nonnull NSNumber *)reactTag) {
     UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
-    view.instabug_privateView = true;
+    view.Luciq_privateView = true;
 }
 
 RCT_EXPORT_METHOD(removePrivateView: (nonnull NSNumber *)reactTag) {
     UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
-    view.instabug_privateView = false;
+    view.Luciq_privateView = false;
 }
 
 RCT_EXPORT_METHOD(show) {
-    [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[Instabug class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
+    [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[Luciq class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
 }
 
 RCT_EXPORT_METHOD(reportScreenChange:(NSString *)screenName) {
     SEL setPrivateApiSEL = NSSelectorFromString(@"logViewDidAppearEvent:");
-    if ([[Instabug class] respondsToSelector:setPrivateApiSEL]) {
-        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[[Instabug class] methodSignatureForSelector:setPrivateApiSEL]];
+    if ([[Luciq class] respondsToSelector:setPrivateApiSEL]) {
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[[Luciq class] methodSignatureForSelector:setPrivateApiSEL]];
         [inv setSelector:setPrivateApiSEL];
-        [inv setTarget:[Instabug class]];
+        [inv setTarget:[Luciq class]];
         [inv setArgument:&(screenName) atIndex:2];
         [inv invoke];
     }
 }
 
 RCT_EXPORT_METHOD(addFeatureFlags:(NSDictionary *)featureFlagsMap) {
-    NSMutableArray<IBGFeatureFlag *> *featureFlags = [NSMutableArray array];
+    NSMutableArray<LCQFeatureFlag *> *featureFlags = [NSMutableArray array];
     for(id key in featureFlagsMap){
         NSString* variant =[featureFlagsMap objectForKey:key];
         if ([variant length]==0) {
-            [featureFlags addObject:[[IBGFeatureFlag alloc] initWithName:key]];
+            [featureFlags addObject:[[LCQFeatureFlag alloc] initWithName:key]];
         } else{
-            [featureFlags addObject:[[IBGFeatureFlag alloc] initWithName:key variant:variant]];
+            [featureFlags addObject:[[LCQFeatureFlag alloc] initWithName:key variant:variant]];
         }
     }
 
-    [Instabug addFeatureFlags:featureFlags];
+    [Luciq addFeatureFlags:featureFlags];
 }
 
 RCT_EXPORT_METHOD(removeFeatureFlags:(NSArray *)featureFlags) {
-    NSMutableArray<IBGFeatureFlag *> *features = [NSMutableArray array];
+    NSMutableArray<LCQFeatureFlag *> *features = [NSMutableArray array];
     for(id item in featureFlags){
-        [features addObject:[[IBGFeatureFlag alloc] initWithName:item]];
+        [features addObject:[[LCQFeatureFlag alloc] initWithName:item]];
     }
 
     @try {
-        [Instabug removeFeatureFlags:features];
+        [Luciq removeFeatureFlags:features];
     }
     @catch (NSException *exception) {
         NSLog(@"%@", exception);
@@ -481,21 +481,21 @@ RCT_EXPORT_METHOD(removeFeatureFlags:(NSArray *)featureFlags) {
 }
 
 RCT_EXPORT_METHOD(removeAllFeatureFlags) {
-    [Instabug removeAllFeatureFlags];
+    [Luciq removeAllFeatureFlags];
 }
 
 RCT_EXPORT_METHOD(willRedirectToStore){
-    [Instabug willRedirectToAppStore];
+    [Luciq willRedirectToAppStore];
 }
 
 RCT_EXPORT_METHOD(isW3ExternalTraceIDEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve(@(IBGNetworkLogger.w3ExternalTraceIDEnabled));
+    resolve(@(LCQNetworkLogger.w3ExternalTraceIDEnabled));
 }
 RCT_EXPORT_METHOD(isW3ExternalGeneratedHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve(@(IBGNetworkLogger.w3ExternalGeneratedHeaderEnabled));
+    resolve(@(LCQNetworkLogger.w3ExternalGeneratedHeaderEnabled));
 }
 RCT_EXPORT_METHOD(isW3CaughtHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve(@(IBGNetworkLogger.w3CaughtHeaderEnabled));
+    resolve(@(LCQNetworkLogger.w3CaughtHeaderEnabled));
 }
 
 
@@ -505,11 +505,11 @@ RCT_EXPORT_METHOD(isW3CaughtHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTP
 
 - (void) setBaseUrlForDeprecationLogs {
     SEL setCurrentPlatformSEL = NSSelectorFromString(@"setCurrentPlatform:");
-    if([[Instabug class] respondsToSelector:setCurrentPlatformSEL]) {
-        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[[Instabug class] methodSignatureForSelector:setCurrentPlatformSEL]];
+    if([[Luciq class] respondsToSelector:setCurrentPlatformSEL]) {
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[[Luciq class] methodSignatureForSelector:setCurrentPlatformSEL]];
         [inv setSelector:setCurrentPlatformSEL];
-        [inv setTarget:[Instabug class]];
-        IBGPlatform platform = IBGPlatformReactNative;
+        [inv setTarget:[Luciq class]];
+        LCQPlatform platform = LCQPlatformReactNative;
         [inv setArgument:&(platform) atIndex:2];
 
         [inv invoke];
@@ -527,22 +527,22 @@ RCT_EXPORT_METHOD(isW3CaughtHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTP
 
 RCT_EXPORT_METHOD(enableAutoMasking:(NSArray *)autoMaskingTypes) {
 
-   IBGAutoMaskScreenshotOption autoMaskingOptions = 0;
+   LCQAutoMaskScreenshotOption autoMaskingOptions = 0;
 
     for (NSNumber *event in autoMaskingTypes) {
 
         autoMaskingOptions |= [event intValue];
     }
 
-    [Instabug setAutoMaskScreenshots: autoMaskingOptions];
+    [Luciq setAutoMaskScreenshots: autoMaskingOptions];
 };
 
 RCT_EXPORT_METHOD(getNetworkBodyMaxSize:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve(@(IBGNetworkLogger.getNetworkBodyMaxSize));
+    resolve(@(LCQNetworkLogger.getNetworkBodyMaxSize));
 }
 
 RCT_EXPORT_METHOD(setNetworkLogBodyEnabled:(BOOL)isEnabled) {
-    IBGNetworkLogger.logBodyEnabled = isEnabled;
+    LCQNetworkLogger.logBodyEnabled = isEnabled;
 }
 
 @end

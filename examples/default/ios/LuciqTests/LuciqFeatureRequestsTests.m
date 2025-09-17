@@ -9,8 +9,8 @@
 #import <XCTest/XCTest.h>
 #import "OCMock/OCMock.h"
 #import "LuciqFeatureRequestsBridge.h"
-#import <InstabugSDK/IBGTypes.h>
-#import "InstabugSDK/InstabugSDK.h"
+#import <LuciqSDK/LCQTypes.h>
+#import "LuciqSDK/LuciqSDK.h"
 #import "LCQConstants.h"
 
 @interface LuciqFeatureRequestsTests : XCTestCase
@@ -31,10 +31,10 @@
  */
 
 - (void) testgivenArgs$setEmailFieldRequiredForFeatureRequests_whenQuery_thenShouldCallNativeApi {
-  id mock = OCMClassMock([IBGFeatureRequests class]);
+  id mock = OCMClassMock([LCQFeatureRequests class]);
   BOOL required = true;
-  NSArray *actionTypesArray = [NSArray arrayWithObjects:  @(IBGActionReportBug), nil];
-  IBGAction actionTypes = 0;
+  NSArray *actionTypesArray = [NSArray arrayWithObjects:  @(LCQActionReportBug), nil];
+  LCQAction actionTypes = 0;
   for (NSNumber *boxedValue in actionTypesArray) {
     actionTypes |= [boxedValue intValue];
   }
@@ -44,7 +44,7 @@
 }
 
 - (void) testgive$show_whenQuery_thenShouldCallNativeApi {
-  id mock = OCMClassMock([IBGFeatureRequests class]);
+  id mock = OCMClassMock([LCQFeatureRequests class]);
   OCMStub([mock show]);
   [self.luciqBridge show];
   XCTestExpectation *expectation = [self expectationWithDescription:@"Test ME PLX"];
@@ -60,7 +60,7 @@
 - (void) testgivenBoolean$setEnabled_whenQuery_thenShouldCallNativeApi {
   BOOL enabled = false;
   [self.luciqBridge setEnabled:enabled];
-  XCTAssertFalse(IBGFeatureRequests.enabled);
+  XCTAssertFalse(LCQFeatureRequests.enabled);
 }
 
 

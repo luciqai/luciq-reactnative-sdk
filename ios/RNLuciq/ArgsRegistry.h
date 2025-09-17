@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
-#import <InstabugSDK/IBGTypes.h>
-#import <InstabugSDK/InstabugSDK.h>
+#import <LuciqSDK/LCQTypes.h>
+#import <LuciqSDK/LuciqSDK.h>
 
 typedef NSDictionary<NSString*, NSNumber*> ArgsDictionary;
 

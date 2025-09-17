@@ -1,6 +1,6 @@
 package ai.luciq.reactlibrary.utils;
 
-import com.instabug.survey.Survey;
+import ai.luciq.survey.Survey;
 
 import org.json.JSONArray;
 import org.json.JSONException;

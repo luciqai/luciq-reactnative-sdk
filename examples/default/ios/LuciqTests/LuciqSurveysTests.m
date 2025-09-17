@@ -9,8 +9,8 @@
 #import <XCTest/XCTest.h>
 #import "OCMock/OCMock.h"
 #import "LuciqSurveysBridge.h"
-#import <InstabugSDK/IBGTypes.h>
-#import "InstabugSDK/InstabugSDK.h"
+#import <LuciqSDK/LCQTypes.h>
+#import "LuciqSDK/LuciqSDK.h"
 #import "LCQConstants.h"
 
 @interface LuciqSurveysTests : XCTestCase
@@ -27,7 +27,7 @@
 
 @end
 
-// typedef void (^AvailableSurveysWithCompletionBlock)(NSArray<IBGSurveys *> *availableSurveys);
+// typedef void (^AvailableSurveysWithCompletionBlock)(NSArray<LCQSurveys *> *availableSurveys);
 
 @implementation LuciqSurveysTests
 
@@ -43,7 +43,7 @@
  */
 
 - (void)testShowingSurvey {
-  id mock = OCMClassMock([IBGSurveys class]);
+  id mock = OCMClassMock([LCQSurveys class]);
   NSString *token = @"token";
 
   OCMStub([mock showSurveyWithToken:token]);
@@ -53,7 +53,7 @@
 
 
 - (void) testShowSurveyIfAvailable {
-  id mock = OCMClassMock([IBGSurveys class]);
+  id mock = OCMClassMock([LCQSurveys class]);
 
   OCMStub([mock showSurveyIfAvailable]);
   [self.luciqBridge showSurveysIfAvailable];
@@ -61,7 +61,7 @@
 }
 
 - (void) testAutoShowingSurveysEnabled {
-  id mock = OCMClassMock([IBGSurveys class]);
+  id mock = OCMClassMock([LCQSurveys class]);
   BOOL isEnabled = YES;
 
   OCMStub([mock setAutoShowingEnabled:isEnabled]);
@@ -70,7 +70,7 @@
 }
 
 - (void) testSetShouldShowSurveysWelcomeScreen {
-  id mock = OCMClassMock([IBGSurveys class]);
+  id mock = OCMClassMock([LCQSurveys class]);
   BOOL isEnabled = YES;
 
   OCMStub([mock setShouldShowWelcomeScreen:isEnabled]);
@@ -82,11 +82,11 @@
   BOOL isEnabled = YES;
 
   [self.luciqBridge setEnabled:isEnabled];
-  XCTAssertTrue(IBGSurveys.enabled);
+  XCTAssertTrue(LCQSurveys.enabled);
 }
 
 - (void) testHasRespondedToSurveyWithToken {
-  id mock = OCMClassMock([IBGSurveys class]);
+  id mock = OCMClassMock([LCQSurveys class]);
   NSString *surveyToken = @"survey_token";
   XCTestExpectation *expectation = [self expectationWithDescription:@"Testing hasRespondedToSurveyWithToken callback"];
   RCTPromiseResolveBlock resolve = ^(id result) {
@@ -103,10 +103,10 @@
 }
 
 // - (void) testGetAvailableSurveys {
-//   id mock = OCMClassMock([IBGSurveys class]);
+//   id mock = OCMClassMock([LCQSurveys class]);
 //   RCTPromiseResolveBlock resolve = ^(id result) {};
 //   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
-//   AvailableSurveysWithCompletionBlock deeperCallback = ^(NSArray<IBGSurveys *> *availableSurveys) {};
+//   AvailableSurveysWithCompletionBlock deeperCallback = ^(NSArray<LCQSurveys *> *availableSurveys) {};
 
 //   OCMStub([mock availableSurveysWithCompletionHandler:deeperCallback]);
 //   [self.luciqBridge getAvailableSurveys:resolve :reject];
@@ -117,9 +117,9 @@
   id partialMock = OCMPartialMock(self.luciqBridge);
   RCTResponseSenderBlock callback = ^(NSArray *response) {};
   [partialMock setOnShowHandler:callback];
-  XCTAssertNotNil(IBGSurveys.willShowSurveyHandler);
+  XCTAssertNotNil(LCQSurveys.willShowSurveyHandler);
   OCMStub([partialMock sendEventWithName:OCMOCK_ANY body:nil]);
-  IBGSurveys.willShowSurveyHandler();
+  LCQSurveys.willShowSurveyHandler();
   OCMVerify([partialMock sendEventWithName:@"LCQWillShowSurvey" body:nil]);
 }
 
@@ -127,9 +127,9 @@
   id partialMock = OCMPartialMock(self.luciqBridge);
   RCTResponseSenderBlock callback = ^(NSArray *response) {};
   [partialMock setOnDismissHandler:callback];
-  XCTAssertNotNil(IBGSurveys.didDismissSurveyHandler);
+  XCTAssertNotNil(LCQSurveys.didDismissSurveyHandler);
   OCMStub([partialMock sendEventWithName:OCMOCK_ANY body:nil]);
-  IBGSurveys.didDismissSurveyHandler();
+  LCQSurveys.didDismissSurveyHandler();
   OCMVerify([partialMock sendEventWithName:@"LCQDidDismissSurvey" body:nil]);
 }
 
@@ -138,7 +138,7 @@
   NSString *appStoreURL = @"http://test";
 
   [self.luciqBridge setAppStoreURL:appStoreURL];
-  XCTAssertEqual(IBGSurveys.appStoreURL, appStoreURL);
+  XCTAssertEqual(LCQSurveys.appStoreURL, appStoreURL);
 }
 
 

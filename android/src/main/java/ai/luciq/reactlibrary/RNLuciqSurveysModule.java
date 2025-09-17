@@ -6,14 +6,14 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableArray;
-import com.instabug.library.Feature;
+import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
-import com.instabug.survey.callbacks.*;
-import com.instabug.survey.Surveys;
-import com.instabug.survey.Survey;
+import ai.luciq.survey.callbacks.*;
+import ai.luciq.survey.Surveys;
+import ai.luciq.survey.Survey;
 
 import org.json.JSONArray;
 

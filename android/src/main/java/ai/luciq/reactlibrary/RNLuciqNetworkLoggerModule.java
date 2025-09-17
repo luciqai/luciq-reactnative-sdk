@@ -1,8 +1,8 @@
 package ai.luciq.reactlibrary;
 
 
-import static com.instabug.apm.configuration.cp.APMFeature.APM_NETWORK_PLUGIN_INSTALLED;
-import static com.instabug.apm.configuration.cp.APMFeature.CP_NATIVE_INTERCEPTION_ENABLED;
+import static ai.luciq.apm.configuration.cp.APMFeature.APM_NETWORK_PLUGIN_INSTALLED;
+import static ai.luciq.apm.configuration.cp.APMFeature.CP_NATIVE_INTERCEPTION_ENABLED;
 
 import android.util.Log;
 
@@ -16,9 +16,9 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
-import com.instabug.apm.InternalAPM;
-import com.instabug.apm.sanitization.OnCompleteCallback;
-import com.instabug.library.logging.listeners.networklogs.NetworkLogSnapshot;
+import ai.luciq.apm.InternalAPM;
+import ai.luciq.apm.sanitization.OnCompleteCallback;
+import ai.luciq.library.logging.listeners.networklogs.NetworkLogSnapshot;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 

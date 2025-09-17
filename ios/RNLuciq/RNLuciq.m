@@ -1,4 +1,4 @@
-#import <InstabugSDK/InstabugSDK.h>
+#import <LuciqSDK/LuciqSDK.h>
 #import <React/RCTLog.h>
 #import "RNLuciq.h"
 #import "Util/LCQNetworkLogger+CP.h"
@@ -14,20 +14,20 @@ static BOOL didInit = NO;
 }
 
 + (void)initWithToken:(NSString *)token
-     invocationEvents:(IBGInvocationEvent)invocationEvents
+     invocationEvents:(LCQInvocationEvent)invocationEvents
 useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
 
     didInit = YES;
 
-    [Instabug setCurrentPlatform:IBGPlatformReactNative];
+    [Luciq setCurrentPlatform:LCQPlatformReactNative];
 
     if (!useNativeNetworkInterception) {
         // Disable automatic network logging in the iOS SDK to avoid duplicate network logs coming
         // from both the iOS and React Native SDKs
-        [IBGNetworkLogger disableAutomaticCapturingOfNetworkLogs];
+        [LCQNetworkLogger disableAutomaticCapturingOfNetworkLogs];
     }
 
-    [Instabug startWithToken:token invocationEvents:invocationEvents];
+    [Luciq startWithToken:token invocationEvents:invocationEvents];
 
     // Setup automatic capturing of JavaScript console logs
     RCTAddLogFunction(LuciqReactLogFunction);
@@ -35,43 +35,43 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
 
     // Even though automatic network logging is disabled in the iOS SDK, the network logger itself
     // is still needed since network logs captured by the React Native SDK need to be logged through it
-    IBGNetworkLogger.enabled = YES;
+    LCQNetworkLogger.enabled = YES;
 
     // Temporarily disabling APM hot launches
-    IBGAPM.hotAppLaunchEnabled = NO;
+    LCQAPM.hotAppLaunchEnabled = NO;
 }
 
-+ (void)initWithToken:(NSString *)token invocationEvents:(IBGInvocationEvent)invocationEvents {
++ (void)initWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents {
     [self initWithToken:token invocationEvents:invocationEvents useNativeNetworkInterception:NO];
 }
 
-+ (void)initWithToken:(NSString *)token invocationEvents:(IBGInvocationEvent)invocationEvents debugLogsLevel:(IBGSDKDebugLogsLevel)debugLogsLevel useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
-    [Instabug setSdkDebugLogsLevel:debugLogsLevel];
++ (void)initWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents debugLogsLevel:(LCQSDKDebugLogsLevel)debugLogsLevel useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
+    [Luciq setSdkDebugLogsLevel:debugLogsLevel];
     [self initWithToken:token invocationEvents:invocationEvents useNativeNetworkInterception:useNativeNetworkInterception];
 }
 
 + (void)initWithToken:(NSString *)token
-     invocationEvents:(IBGInvocationEvent)invocationEvents
-       debugLogsLevel:(IBGSDKDebugLogsLevel)debugLogsLevel {
-    [Instabug setSdkDebugLogsLevel:debugLogsLevel];
+     invocationEvents:(LCQInvocationEvent)invocationEvents
+       debugLogsLevel:(LCQSDKDebugLogsLevel)debugLogsLevel {
+    [Luciq setSdkDebugLogsLevel:debugLogsLevel];
     [self initWithToken:token invocationEvents:invocationEvents];
 }
 
 + (void)setCodePushVersion:(NSString *)codePushVersion {
-    [Instabug setCodePushVersion:codePushVersion];
+    [Luciq setCodePushVersion:codePushVersion];
 }
 
 + (void)setOverAirVersion:(NSDictionary *)overAirVersion {
-    [Instabug setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
 }
 
 
-// Note: This function is used to bridge IBGNSLog with RCTLogFunction.
+// Note: This function is used to bridge LCQNSLog with RCTLogFunction.
 // This log function should not be used externally and is only an implementation detail.
-void RNIBGLog(IBGLogLevel logLevel, NSString *format,  ...) {
+void RNLCQLog(LCQLogLevel logLevel, NSString *format,  ...) {
     va_list arg_list;
     va_start(arg_list, format);
-    IBGNSLogWithLevel(format, arg_list, logLevel);
+    LCQNSLogWithLevel(format, arg_list, logLevel);
     va_end(arg_list);
 }
 
@@ -86,19 +86,19 @@ RCTLogFunction LuciqReactLogFunction = ^(RCTLogLevel level,
 
     switch(level) {
         case RCTLogLevelTrace:
-            RNIBGLog(IBGLogLevelVerbose, formatString, log);
+            RNLCQLog(LCQLogLevelVerbose, formatString, log);
             break;
         case RCTLogLevelInfo:
-            RNIBGLog(IBGLogLevelInfo, formatString, log);
+            RNLCQLog(LCQLogLevelInfo, formatString, log);
             break;
         case RCTLogLevelWarning:
-            RNIBGLog(IBGLogLevelWarning, formatString, log);
+            RNLCQLog(LCQLogLevelWarning, formatString, log);
             break;
         case RCTLogLevelError:
-            RNIBGLog(IBGLogLevelError, formatString, log);
+            RNLCQLog(LCQLogLevelError, formatString, log);
             break;
         case RCTLogLevelFatal:
-            RNIBGLog(IBGLogLevelError, formatString, log);
+            RNLCQLog(LCQLogLevelError, formatString, log);
             break;
     }
 };

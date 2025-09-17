@@ -4,6 +4,7 @@ import nodeResolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 import cleanup from 'rollup-plugin-cleanup';
 import shebang from 'rollup-plugin-preserve-shebang';
+import copy from 'rollup-plugin-copy';
 
 const commonPlugins = [
   shebang(),
@@ -21,7 +22,13 @@ export default [
       dir: 'bin',
       format: 'cjs',
     },
-    plugins: [...commonPlugins, typescript({ tsconfig: './tsconfig.cli.json' })],
+    plugins: [
+      ...commonPlugins,
+      typescript({ tsconfig: './tsconfig.cli.json' }),
+      copy({
+        targets: [{ src: 'cli/config/**/*', dest: 'bin/config' }],
+      }),
+    ],
   },
   {
     input: ['plugin/src/index.ts'],

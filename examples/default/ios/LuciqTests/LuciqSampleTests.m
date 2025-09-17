@@ -7,9 +7,9 @@
 
 #import <XCTest/XCTest.h>
 #import "OCMock/OCMock.h"
-#import "InstabugSDK/InstabugSDK.h"
+#import "LuciqSDK/LuciqSDK.h"
 #import "LuciqReactBridge.h"
-#import <InstabugSDK/IBGTypes.h>
+#import <LuciqSDK/LCQTypes.h>
 #import "LCQConstants.h"
 #import "RNLuciq.h"
 #import <RNLuciq/LCQNetworkLogger+CP.h>
@@ -20,8 +20,8 @@
  * when their method name matches another method in a different
  * module that differs in method signature.
  */
-- (void)startWithToken:(NSString *)token invocationEvents:(IBGInvocationEvent)invocationEvents;
-- (void)setLocale:(IBGLocale)locale;
+- (void)startWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents;
+- (void)setLocale:(LCQLocale)locale;
 
 @end
 
@@ -56,7 +56,7 @@
  */
 
 - (void)testSetEnabled {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   BOOL isEnabled = true;
 
   OCMStub([mock setEnabled:isEnabled]);
@@ -65,8 +65,8 @@
 }
 
 - (void)testInit {
-  id mock = OCMClassMock([Instabug class]);
-  IBGInvocationEvent floatingButtonInvocationEvent = IBGInvocationEventFloatingButton;
+  id mock = OCMClassMock([Luciq class]);
+  LCQInvocationEvent floatingButtonInvocationEvent = LCQInvocationEventFloatingButton;
   NSString *appToken = @"app_token";
   NSString *codePushVersion = @"1.0.0(1)";
   NSString *appVariant = @"variant 1";
@@ -77,8 +77,8 @@
     @"version":@"D0A12345-6789-4B3C-A123-4567ABCDEF01"
   };
   BOOL useNativeNetworkInterception = YES;
-  IBGSDKDebugLogsLevel sdkDebugLogsLevel = IBGSDKDebugLogsLevelDebug;
-  IBGOverAirType service = [ArgsRegistry.overAirServices[overAirVersion[@"service"]] intValue];
+  LCQSDKDebugLogsLevel sdkDebugLogsLevel = LCQSDKDebugLogsLevelDebug;
+  LCQOverAirType service = [ArgsRegistry.overAirServices[overAirVersion[@"service"]] intValue];
 
   OCMStub([mock setCodePushVersion:codePushVersion]);
   OCMStub([mock setOverAirVersion:overAirVersion[@"version"] withType:service]);
@@ -89,13 +89,13 @@
   OCMVerify([mock setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]]);
 
 
-  XCTAssertEqual(Instabug.appVariant, appVariant);
+  XCTAssertEqual(Luciq.appVariant, appVariant);
 
   OCMVerify([self.mRNLuciq initWithToken:appToken invocationEvents:floatingButtonInvocationEvent debugLogsLevel:sdkDebugLogsLevel useNativeNetworkInterception:useNativeNetworkInterception]);
 }
 
 - (void)test {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *codePushVersion = @"123";
 
   [self.luciqBridge setCodePushVersion:codePushVersion];
@@ -104,7 +104,7 @@
 }
 
 - (void)testSetOverAirVersion {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSDictionary *overAirVersion = @{
     @"service":@"expo",
     @"version":@"D0A12345-6789-4B3C-A123-4567ABCDEF01"
@@ -112,13 +112,13 @@
 
   [self.luciqBridge setOverAirVersion:overAirVersion];
 
-  IBGOverAirType service = [ArgsRegistry.overAirServices[overAirVersion[@"service"]] intValue];
+  LCQOverAirType service = [ArgsRegistry.overAirServices[overAirVersion[@"service"]] intValue];
 
   OCMVerify([mock setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]]);
 }
 
 - (void)testSetUserData {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *userData = @"user_data";
 
   OCMStub([mock setUserData:userData]);
@@ -127,15 +127,15 @@
 }
 
 - (void)testSetAppVariant {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *appVariant = @"appVariant";
 
   [self.luciqBridge setAppVariant: appVariant];
-  XCTAssertEqual(Instabug.appVariant, appVariant);
+  XCTAssertEqual(Luciq.appVariant, appVariant);
 }
 
 - (void)testSetTrackUserSteps {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   BOOL isEnabled = true;
 
   OCMStub([mock setTrackUserSteps:isEnabled]);
@@ -144,7 +144,7 @@
 }
 
 - (void)testSetSessionProfilerEnabled {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   BOOL sessionProfilerEnabled = true;
 
   OCMStub([mock setSessionProfilerEnabled:sessionProfilerEnabled]);
@@ -153,16 +153,16 @@
 }
 
 - (void)testSetLocale {
-  id<LuciqCPTestProtocol> mock = OCMClassMock([Instabug class]);
+  id<LuciqCPTestProtocol> mock = OCMClassMock([Luciq class]);
 
-  OCMStub([mock setLocale:IBGLocaleCzech]);
-  [self.luciqBridge setLocale:IBGLocaleCzech];
-  OCMVerify([mock setLocale:IBGLocaleCzech]);
+  OCMStub([mock setLocale:LCQLocaleCzech]);
+  [self.luciqBridge setLocale:LCQLocaleCzech];
+  OCMVerify([mock setLocale:LCQLocaleCzech]);
 }
 
 - (void)testSetColorTheme {
-  id mock = OCMClassMock([Instabug class]);
-  IBGColorTheme colorTheme = IBGColorThemeLight;
+  id mock = OCMClassMock([Luciq class]);
+  LCQColorTheme colorTheme = LCQColorThemeLight;
   XCTestExpectation *expectation = [self expectationWithDescription:@"Testing [Luciq setColorTheme]"];
 
   OCMStub([mock setColorTheme:colorTheme]);
@@ -177,7 +177,7 @@
 }
 
 - (void)testAppendTags {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSArray *tags = @[@"tag1", @"tag2"];
 
   OCMStub([mock appendTags:tags]);
@@ -186,7 +186,7 @@
 }
 
 - (void)testResetTags {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
 
   OCMStub([mock resetTags]);
   [self.luciqBridge resetTags];
@@ -194,7 +194,7 @@
 }
 
 - (void)testGetTags {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   RCTPromiseResolveBlock resolve = ^(id result) {};
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
   NSDictionary *dictionary = @{ @"someKey" : @"someValue" };
@@ -205,7 +205,7 @@
 }
 
 - (void)testSetString {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *value = @"string_value";
   NSString *key = @"KEY";
 
@@ -215,7 +215,7 @@
 }
 
 - (void)testIdentifyUser {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *email = @"em@il.com";
   NSString *name = @"this is my name";
 
@@ -225,7 +225,7 @@
 }
 
 - (void)testIdentifyUserWithID {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *email = @"em@il.com";
   NSString *name = @"this is my name";
   NSString *userId = @"this is my id";
@@ -236,7 +236,7 @@
 }
 
 - (void)testLogOut {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
 
   OCMStub([mock logOut]);
   [self.luciqBridge logOut];
@@ -244,7 +244,7 @@
 }
 
 - (void)testLogUserEvent {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *name = @"event name";
 
   OCMStub([mock logUserEventWithName:name]);
@@ -253,20 +253,20 @@
 }
 
 - (void)testSetReproStepsConfig {
-  id mock = OCMClassMock([Instabug class]);
-  IBGUserStepsMode bugMode = IBGUserStepsModeDisable;
-  IBGUserStepsMode crashMode = IBGUserStepsModeEnable;
-  IBGUserStepsMode sessionReplayMode = IBGUserStepsModeEnabledWithNoScreenshots;
+  id mock = OCMClassMock([Luciq class]);
+  LCQUserStepsMode bugMode = LCQUserStepsModeDisable;
+  LCQUserStepsMode crashMode = LCQUserStepsModeEnable;
+  LCQUserStepsMode sessionReplayMode = LCQUserStepsModeEnabledWithNoScreenshots;
 
   [self.luciqBridge setReproStepsConfig:bugMode :crashMode :sessionReplayMode];
 
-  OCMVerify([mock setReproStepsFor:IBGIssueTypeBug withMode:bugMode]);
-  OCMVerify([mock setReproStepsFor:IBGIssueTypeAllCrashes withMode:crashMode]);
- OCMVerify([mock setReproStepsFor:IBGIssueTypeSessionReplay withMode:sessionReplayMode]);
+  OCMVerify([mock setReproStepsFor:LCQIssueTypeBug withMode:bugMode]);
+  OCMVerify([mock setReproStepsFor:LCQIssueTypeAllCrashes withMode:crashMode]);
+ OCMVerify([mock setReproStepsFor:LCQIssueTypeSessionReplay withMode:sessionReplayMode]);
 }
 
 - (void)testSetUserAttribute {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *key = @"key";
   NSString *value = @"value";
 
@@ -276,7 +276,7 @@
 }
 
 - (void)testGetUserAttribute {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *key = @"someKey";
   RCTPromiseResolveBlock resolve = ^(id result) {};
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
@@ -287,7 +287,7 @@
 }
 
 - (void)testRemoveUserAttribute {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *key = @"someKey";
 
   OCMStub([mock removeUserAttributeForKey:key]);
@@ -296,7 +296,7 @@
 }
 
 - (void)testGetAllUserAttributes {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   RCTPromiseResolveBlock resolve = ^(id result) {};
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
   NSDictionary *dictionary = @{ @"someKey" : @"someValue" };
@@ -307,7 +307,7 @@
 }
 
 - (void)testClearAllUserAttributes {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *key = @"someKey";
   NSDictionary *dictionary = @{ @"someKey" : @"someValue" };
 
@@ -318,8 +318,8 @@
 }
 
 - (void)testShowWelcomeMessageWithMode {
-  id mock = OCMClassMock([Instabug class]);
-  IBGWelcomeMessageMode welcomeMessageMode = IBGWelcomeMessageModeBeta;
+  id mock = OCMClassMock([Luciq class]);
+  LCQWelcomeMessageMode welcomeMessageMode = LCQWelcomeMessageModeBeta;
 
   OCMStub([mock showWelcomeMessageWithMode:welcomeMessageMode]);
   [self.luciqBridge showWelcomeMessageWithMode:welcomeMessageMode];
@@ -327,8 +327,8 @@
 }
 
 - (void)testSetWelcomeMessageMode {
-  id mock = OCMClassMock([Instabug class]);
-  IBGWelcomeMessageMode welcomeMessageMode = IBGWelcomeMessageModeBeta;
+  id mock = OCMClassMock([Luciq class]);
+  LCQWelcomeMessageMode welcomeMessageMode = LCQWelcomeMessageModeBeta;
 
   OCMStub([mock setWelcomeMessageMode:welcomeMessageMode]);
   [self.luciqBridge setWelcomeMessageMode:welcomeMessageMode];
@@ -336,7 +336,7 @@
 }
 
 - (void)testNetworkLogIOS {
-  id mLCQNetworkLogger = OCMClassMock([IBGNetworkLogger class]);
+  id mLCQNetworkLogger = OCMClassMock([LCQNetworkLogger class]);
 
   NSString *url = @"https://api.luciq.ai";
   NSString *method = @"GET";
@@ -405,7 +405,7 @@
 }
 
 - (void)testSetFileAttachment {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSString *fileLocation = @"test";
   NSURL *url = [NSURL URLWithString:fileLocation];
 
@@ -415,7 +415,7 @@
 }
 
 - (void)testShow {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
 
   OCMStub([mock show]);
   [self.luciqBridge show];
@@ -433,7 +433,7 @@
 
 - (void)testWillRedirectToStore {
 
-    id mock = OCMClassMock([Instabug class]);
+    id mock = OCMClassMock([Luciq class]);
 
     [self.luciqBridge willRedirectToStore];
 
@@ -452,11 +452,11 @@
 
 - (void)testSetLCQLogPrintsToConsole {
   [self.luciqBridge setLQLogPrintsToConsole:YES];
-  XCTAssertTrue(IBGLog.printsToConsole);
+  XCTAssertTrue(LCQLog.printsToConsole);
 }
 
 - (void)testLogVerbose {
-  id mock = OCMClassMock([IBGLog class]);
+  id mock = OCMClassMock([LCQLog class]);
   NSString *log = @"some log";
 
   OCMStub([mock logVerbose:log]);
@@ -465,7 +465,7 @@
 }
 
 - (void)testLogDebug {
-  id mock = OCMClassMock([IBGLog class]);
+  id mock = OCMClassMock([LCQLog class]);
   NSString *log = @"some log";
 
   OCMStub([mock logDebug:log]);
@@ -474,7 +474,7 @@
 }
 
 - (void)testLogInfo {
-  id mock = OCMClassMock([IBGLog class]);
+  id mock = OCMClassMock([LCQLog class]);
   NSString *log = @"some log";
 
   OCMStub([mock logInfo:log]);
@@ -483,7 +483,7 @@
 }
 
 - (void)testLogWarn {
-  id mock = OCMClassMock([IBGLog class]);
+  id mock = OCMClassMock([LCQLog class]);
   NSString *log = @"some log";
 
   OCMStub([mock logWarn:log]);
@@ -492,7 +492,7 @@
 }
 
 - (void)testLogError {
-  id mock = OCMClassMock([IBGLog class]);
+  id mock = OCMClassMock([LCQLog class]);
   NSString *log = @"some log";
 
   OCMStub([mock logError:log]);
@@ -501,7 +501,7 @@
 }
 
 - (void)testClearLogs {
-  id mock = OCMClassMock([IBGLog class]);
+  id mock = OCMClassMock([LCQLog class]);
 
   OCMStub([mock clearAllLogs]);
   [self.luciqBridge clearLogs];
@@ -510,13 +510,13 @@
 
 
 - (void)testAddFeatureFlags {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSDictionary *featureFlagsMap = @{ @"key13" : @"value1", @"key2" : @"value2"};
 
   OCMStub([mock addFeatureFlags :[OCMArg any]]);
   [self.luciqBridge addFeatureFlags:featureFlagsMap];
   OCMVerify([mock addFeatureFlags: [OCMArg checkWithBlock:^(id value) {
-    NSArray<IBGFeatureFlag *> *featureFlags = value;
+    NSArray<LCQFeatureFlag *> *featureFlags = value;
     NSString* firstFeatureFlagName = [featureFlags objectAtIndex:0 ].name;
     NSString* firstFeatureFlagKey = [[featureFlagsMap allKeys] objectAtIndex:0] ;
     if([ firstFeatureFlagKey isEqualToString: firstFeatureFlagName]){
@@ -527,11 +527,11 @@
 }
 
 - (void)testRemoveFeatureFlags {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   NSArray *featureFlags = @[@"exp1", @"exp2"];
   [self.luciqBridge removeFeatureFlags:featureFlags];
      OCMVerify([mock removeFeatureFlags: [OCMArg checkWithBlock:^(id value) {
-        NSArray<IBGFeatureFlag *> *featureFlagsObJ = value;
+        NSArray<LCQFeatureFlag *> *featureFlagsObJ = value;
         NSString* firstFeatureFlagName = [featureFlagsObJ objectAtIndex:0 ].name;
         NSString* firstFeatureFlagKey = [featureFlags firstObject] ;
         if([ firstFeatureFlagKey isEqualToString: firstFeatureFlagName]){
@@ -542,7 +542,7 @@
 }
 
 - (void)testRemoveAllFeatureFlags {
-  id mock = OCMClassMock([Instabug class]);
+  id mock = OCMClassMock([Luciq class]);
   OCMStub([mock removeAllFeatureFlags]);
   [self.luciqBridge removeAllFeatureFlags];
   OCMVerify([mock removeAllFeatureFlags]);
@@ -550,7 +550,7 @@
 
 
 - (void) testIsW3ExternalTraceIDEnabled {
-    id mock = OCMClassMock([IBGNetworkLogger class]);
+    id mock = OCMClassMock([LCQNetworkLogger class]);
     NSNumber *expectedValue = @(YES);
 
     OCMStub([mock w3ExternalTraceIDEnabled]).andReturn([expectedValue boolValue]);
@@ -569,7 +569,7 @@
 }
 
 - (void) testIsW3ExternalGeneratedHeaderEnabled {
-    id mock = OCMClassMock([IBGNetworkLogger class]);
+    id mock = OCMClassMock([LCQNetworkLogger class]);
     NSNumber *expectedValue = @(YES);
 
     OCMStub([mock w3ExternalGeneratedHeaderEnabled]).andReturn([expectedValue boolValue]);
@@ -588,7 +588,7 @@
 }
 
 - (void) testIsW3CaughtHeaderEnabled {
-    id mock = OCMClassMock([IBGNetworkLogger class]);
+    id mock = OCMClassMock([LCQNetworkLogger class]);
     NSNumber *expectedValue = @(YES);
 
     OCMStub([mock w3CaughtHeaderEnabled]).andReturn([expectedValue boolValue]);
@@ -607,24 +607,24 @@
 }
 
 - (void)testEnableAutoMasking {
-    id mock = OCMClassMock([Instabug class]);
+    id mock = OCMClassMock([Luciq class]);
 
     NSArray *autoMaskingTypes = [NSArray arrayWithObjects:
-         [NSNumber numberWithInteger:IBGAutoMaskScreenshotOptionLabels],
-         [NSNumber numberWithInteger:IBGAutoMaskScreenshotOptionTextInputs],
-         [NSNumber numberWithInteger:IBGAutoMaskScreenshotOptionMedia],
-         [NSNumber numberWithInteger:IBGAutoMaskScreenshotOptionMaskNothing],
+         [NSNumber numberWithInteger:LCQAutoMaskScreenshotOptionLabels],
+         [NSNumber numberWithInteger:LCQAutoMaskScreenshotOptionTextInputs],
+         [NSNumber numberWithInteger:LCQAutoMaskScreenshotOptionMedia],
+         [NSNumber numberWithInteger:LCQAutoMaskScreenshotOptionMaskNothing],
          nil];
 
-     OCMStub([mock setAutoMaskScreenshots:IBGAutoMaskScreenshotOptionLabels | IBGAutoMaskScreenshotOptionTextInputs | IBGAutoMaskScreenshotOptionMedia | IBGAutoMaskScreenshotOptionMaskNothing]);
+     OCMStub([mock setAutoMaskScreenshots:LCQAutoMaskScreenshotOptionLabels | LCQAutoMaskScreenshotOptionTextInputs | LCQAutoMaskScreenshotOptionMedia | LCQAutoMaskScreenshotOptionMaskNothing]);
 
      [self.luciqBridge enableAutoMasking:autoMaskingTypes];
 
-     OCMVerify([mock setAutoMaskScreenshots:IBGAutoMaskScreenshotOptionLabels | IBGAutoMaskScreenshotOptionTextInputs | IBGAutoMaskScreenshotOptionMedia | IBGAutoMaskScreenshotOptionMaskNothing]);
+     OCMVerify([mock setAutoMaskScreenshots:LCQAutoMaskScreenshotOptionLabels | LCQAutoMaskScreenshotOptionTextInputs | LCQAutoMaskScreenshotOptionMedia | LCQAutoMaskScreenshotOptionMaskNothing]);
 }
 
 - (void)testSetNetworkLogBodyEnabled {
-    id mock = OCMClassMock([IBGNetworkLogger class]);
+    id mock = OCMClassMock([LCQNetworkLogger class]);
     BOOL isEnabled = YES;
 
     OCMStub([mock setLogBodyEnabled:isEnabled]);
@@ -633,7 +633,7 @@
 }
 
 - (void)testGetNetworkBodyMaxSize {
-    id mock = OCMClassMock([IBGNetworkLogger class]);
+    id mock = OCMClassMock([LCQNetworkLogger class]);
     double expectedValue = 10240.0;
 
     OCMStub([mock getNetworkBodyMaxSize]).andReturn(expectedValue);
@@ -650,8 +650,8 @@
     OCMVerify(ClassMethod([mock getNetworkBodyMaxSize]));
 }
 - (void)testSetTheme {
-    id mock = OCMClassMock([Instabug class]);
-    id mockTheme = OCMClassMock([IBGTheme class]);
+    id mock = OCMClassMock([Luciq class]);
+    id mockTheme = OCMClassMock([LCQTheme class]);
 
     // Create theme configuration dictionary
     NSDictionary *themeConfig = @{

@@ -1,21 +1,21 @@
 #ifndef RNLuciq_h
 #define RNLuciq_h
 
-#import <InstabugSDK/InstabugSDK.h>
+#import <LuciqSDK/LuciqSDK.h>
 #import "ArgsRegistry.h"
 
 @interface RNLuciq : NSObject
 
-+ (void)initWithToken:(NSString *)token invocationEvents:(IBGInvocationEvent)invocationEvents debugLogsLevel:(IBGSDKDebugLogsLevel)debugLogsLevel;
++ (void)initWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents debugLogsLevel:(LCQSDKDebugLogsLevel)debugLogsLevel;
 
-+ (void)initWithToken:(NSString *)token invocationEvents:(IBGInvocationEvent)invocationEvents debugLogsLevel:(IBGSDKDebugLogsLevel)debugLogsLevel
++ (void)initWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents debugLogsLevel:(LCQSDKDebugLogsLevel)debugLogsLevel
 useNativeNetworkInterception:(BOOL)useNativeNetworkInterception;
 
 + (void)initWithToken:(NSString *)token
-     invocationEvents:(IBGInvocationEvent)invocationEvents
+     invocationEvents:(LCQInvocationEvent)invocationEvents
 useNativeNetworkInterception:(BOOL)useNativeNetworkInterception;
 
-+ (void)initWithToken:(NSString *)token invocationEvents:(IBGInvocationEvent)invocationEvents;
++ (void)initWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents;
 
 /**
  @brief Set codePush version before starting the SDK.

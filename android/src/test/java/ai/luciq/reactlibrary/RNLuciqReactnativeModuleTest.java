@@ -11,22 +11,22 @@ import com.facebook.react.bridge.JavaOnlyMap;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.instabug.library.Feature;
-import com.instabug.library.Instabug;
-import com.instabug.library.InstabugColorTheme;
-import com.instabug.library.InstabugCustomTextPlaceHolder;
-import com.instabug.library.IssueType;
-import com.instabug.library.ReproConfigurations;
-import com.instabug.library.ReproMode;
-import com.instabug.library.internal.crossplatform.CoreFeature;
-import com.instabug.library.internal.crossplatform.InternalCore;
-import com.instabug.library.featuresflags.model.IBGFeatureFlag;
-import com.instabug.library.featuresflags.model.IBGFeatureFlag;
-import com.instabug.library.internal.module.InstabugLocale;
-import com.instabug.library.ui.onboarding.WelcomeMessage;
-import com.instabug.library.util.overairversion.OverAirVersionType;
+import ai.luciq.library.Feature;
+import ai.luciq.library.Luciq;
+import ai.luciq.library.LuciqColorTheme;
+import ai.luciq.library.LuciqCustomTextPlaceHolder;
+import ai.luciq.library.IssueType;
+import ai.luciq.library.ReproConfigurations;
+import ai.luciq.library.ReproMode;
+import ai.luciq.library.internal.crossplatform.CoreFeature;
+import ai.luciq.library.internal.crossplatform.InternalCore;
+import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
+import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
+import ai.luciq.library.internal.module.LuciqLocale;
+import ai.luciq.library.ui.onboarding.WelcomeMessage;
+import ai.luciq.library.util.overairversion.OverAirVersionType;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
-import com.instabug.library.MaskingType;
+import ai.luciq.library.MaskingType;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -70,12 +70,12 @@ public class RNLuciqReactnativeModuleTest {
     // Mock Objects
     private MockedStatic<Looper> mockLooper;
     private MockedStatic <MainThreadHandler> mockMainThreadHandler;
-    private MockedStatic <Instabug> mockLuciq;
+    private MockedStatic <Luciq> mockLuciq;
 
     @Before
     public void mockMainThreadHandler() throws Exception {
         // Mock static functions
-        mockLuciq = mockStatic(Instabug.class);
+        mockLuciq = mockStatic(Luciq.class);
         mockLooper = mockStatic(Looper.class);
         mockMainThreadHandler = mockStatic(MainThreadHandler.class);
 
@@ -112,8 +112,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.setEnabled(true);
         // then
-        verify(Instabug.class, times(1));
-        Instabug.enable();
+        verify(Luciq.class, times(1));
+        Luciq.enable();
     }
 
     @Test
@@ -123,8 +123,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.setEnabled(false);
         // then
-        verify(Instabug.class, times(1));
-        Instabug.disable();
+        verify(Luciq.class, times(1));
+        Luciq.disable();
     }
 
     @Test
@@ -136,8 +136,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.setUserAttribute(key, value);
         // then
-        verify(Instabug.class,times(1));
-        Instabug.setUserAttribute(key, value);
+        verify(Luciq.class,times(1));
+        Luciq.setUserAttribute(key, value);
     }
 
     @Test
@@ -148,8 +148,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.removeUserAttribute(key);
         // then
-        verify(Instabug.class,times(1));
-        Instabug.removeUserAttribute(key);
+        verify(Luciq.class,times(1));
+        Luciq.removeUserAttribute(key);
     }
 
     @Test
@@ -159,14 +159,14 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.clearAllUserAttributes();
         // then
-        verify(Instabug.class,times(1));
-        Instabug.clearAllUserAttributes();
+        verify(Luciq.class,times(1));
+        Luciq.clearAllUserAttributes();
     }
 
     @Test
     public void givenStringTheme$setColorTheme_whenQuery_thenShouldCallNativeApiWithTheme() {
         // given
-        Map<String, InstabugColorTheme> themesArgs = ArgsRegistry.colorThemes;
+        Map<String, LuciqColorTheme> themesArgs = ArgsRegistry.colorThemes;
         final String[] keysArray = themesArgs.keySet().toArray(new String[0]);
 
         // when
@@ -175,10 +175,10 @@ public class RNLuciqReactnativeModuleTest {
         }
 
         // then
-        verify(Instabug.class,times(1));
+        verify(Luciq.class,times(1));
         for (String key : keysArray) {
-            InstabugColorTheme theme = themesArgs.get(key);
-            Instabug.setColorTheme(theme);
+            LuciqColorTheme theme = themesArgs.get(key);
+            Luciq.setColorTheme(theme);
         }
     }
 
@@ -190,8 +190,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.setUserData(data);
         // then
-        verify(Instabug.class,times(1));
-        Instabug.setUserData(data);
+        verify(Luciq.class,times(1));
+        Luciq.setUserData(data);
     }
 
     @Test
@@ -200,7 +200,7 @@ public class RNLuciqReactnativeModuleTest {
 
         rnModule.setCodePushVersion(codePushVersion);
 
-        mockLuciq.verify(() -> Instabug.setCodePushVersion(codePushVersion));
+        mockLuciq.verify(() -> Luciq.setCodePushVersion(codePushVersion));
     }
 
     @Test
@@ -214,7 +214,7 @@ public class RNLuciqReactnativeModuleTest {
 
         rnModule.setOverAirVersion(mockMap);
 
-        mockLuciq.verify(() -> Instabug.setOverAirVersion(
+        mockLuciq.verify(() -> Luciq.setOverAirVersion(
                 version, OverAirVersionType.EXPO));
     }
 
@@ -228,7 +228,7 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.identifyUser(email, userName, id);
         // then
-        mockLuciq.verify(() -> Instabug.identifyUser(userName, email, id));
+        mockLuciq.verify(() -> Luciq.identifyUser(userName, email, id));
     }
 
     @Test
@@ -241,7 +241,7 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.identifyUser(email, userName, id);
         // then
-        mockLuciq.verify(() -> Instabug.identifyUser(userName, email, id));
+        mockLuciq.verify(() -> Luciq.identifyUser(userName, email, id));
     }
 
     @Test
@@ -251,8 +251,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.resetTags();
         // then
-        verify(Instabug.class,times(1));
-        Instabug.resetTags();
+        verify(Luciq.class,times(1));
+        Luciq.resetTags();
     }
 
     @Test
@@ -262,8 +262,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.logOut();
         // then
-        verify(Instabug.class,times(1));
-        Instabug.logoutUser();
+        verify(Luciq.class,times(1));
+        Luciq.logoutUser();
     }
 
     @Test
@@ -274,8 +274,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.logUserEvent(eventName);
         // then
-        verify(Instabug.class,times(1));
-        Instabug.logUserEvent(eventName);
+        verify(Luciq.class,times(1));
+        Luciq.logUserEvent(eventName);
     }
 
     @Test
@@ -285,8 +285,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.clearFileAttachment();
         // then
-        verify(Instabug.class,times(1));
-        Instabug.clearFileAttachment();
+        verify(Luciq.class,times(1));
+        Luciq.clearFileAttachment();
     }
 
     @Test
@@ -310,7 +310,7 @@ public class RNLuciqReactnativeModuleTest {
         verify(builder).setIssueMode(IssueType.SessionReplay, ReproMode.EnableWithScreenshots);
         verify(builder).build();
 
-        mockLuciq.verify(() -> Instabug.setReproConfigurations(config));
+        mockLuciq.verify(() -> Luciq.setReproConfigurations(config));
 
         mReproConfigurationsBuilder.close();
     }
@@ -327,10 +327,10 @@ public class RNLuciqReactnativeModuleTest {
         }
 
         // then
-        verify(Instabug.class,times(1));
+        verify(Luciq.class,times(1));
         for (String key : keysArray) {
             WelcomeMessage.State state = (WelcomeMessage.State) args.get(key);
-            Instabug.showWelcomeMessage(state);
+            Luciq.showWelcomeMessage(state);
         }
     }
 
@@ -346,10 +346,10 @@ public class RNLuciqReactnativeModuleTest {
         }
 
         // then
-        verify(Instabug.class,times(1));
+        verify(Luciq.class,times(1));
         for (String key : keysArray) {
             WelcomeMessage.State state = args.get(key);
-            Instabug.setWelcomeMessageState(state);
+            Luciq.setWelcomeMessageState(state);
         }
     }
 
@@ -360,8 +360,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.show();
         // then
-        verify(Instabug.class,times(1));
-        Instabug.show();
+        verify(Luciq.class,times(1));
+        Luciq.show();
     }
 
     @Test
@@ -371,8 +371,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.setSessionProfilerEnabled(true);
         // then
-        verify(Instabug.class,times(1));
-        Instabug.setSessionProfilerState(Feature.State.ENABLED);
+        verify(Luciq.class,times(1));
+        Luciq.setSessionProfilerState(Feature.State.ENABLED);
     }
 
     @Test
@@ -382,8 +382,8 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.setSessionProfilerEnabled(false);
         // then
-        verify(Instabug.class,times(1));
-        Instabug.setSessionProfilerState(Feature.State.DISABLED);
+        verify(Luciq.class,times(1));
+        Luciq.setSessionProfilerState(Feature.State.DISABLED);
     }
 
     @Test
@@ -396,9 +396,9 @@ public class RNLuciqReactnativeModuleTest {
         // when
         rnModule.appendTags(array);
         // then
-        verify(Instabug.class,times(1));
+        verify(Luciq.class,times(1));
         String [] expectedArray = {"tag1", "tag2"};
-        Instabug.addTags(expectedArray);
+        Luciq.addTags(expectedArray);
     }
 
     @Test
@@ -411,12 +411,12 @@ public class RNLuciqReactnativeModuleTest {
         ArrayList<String> tags = new ArrayList<>();
         tags.add("tag1");
         tags.add("tag2");
-        when(Instabug.getTags()).thenReturn(tags);
+        when(Luciq.getTags()).thenReturn(tags);
         when(Arguments.createArray()).thenReturn(new JavaOnlyArray());
         rnModule.getTags(promise);
         // then
-        verify(Instabug.class,times(1));
-        Instabug.getTags();
+        verify(Luciq.class,times(1));
+        Luciq.getTags();
         WritableArray expectedArray = new JavaOnlyArray();
         expectedArray.pushString("tag1");
         expectedArray.pushString("tag2");
@@ -433,11 +433,11 @@ public class RNLuciqReactnativeModuleTest {
         // when
         String key = "company";
         String value = "Luciq";
-        when(Instabug.getUserAttribute(key)).thenReturn(value);
+        when(Luciq.getUserAttribute(key)).thenReturn(value);
         rnModule.getUserAttribute(key, promise);
         // then
-        verify(Instabug.class,times(1));
-        Instabug.getUserAttribute(key);
+        verify(Luciq.class,times(1));
+        Luciq.getUserAttribute(key);
         verify(promise).resolve(value);
     }
 
@@ -450,11 +450,11 @@ public class RNLuciqReactnativeModuleTest {
         HashMap<String, String> userAttributes = new HashMap<>();
         userAttributes.put("email", "sali@luciq.ai");
         when(Arguments.createMap()).thenReturn(new JavaOnlyMap());
-        when(Instabug.getAllUserAttributes()).thenReturn(userAttributes);
+        when(Luciq.getAllUserAttributes()).thenReturn(userAttributes);
         rnModule.getAllUserAttributes(promise);
         // then
-        verify(Instabug.class,times(1));
-        Instabug.getAllUserAttributes();
+        verify(Luciq.class,times(1));
+        Luciq.getAllUserAttributes();
         WritableMap expectedMap = new JavaOnlyMap();
         expectedMap.putString("email", "sali@luciq.ai");
         verify(promise).resolve(expectedMap);
@@ -464,7 +464,7 @@ public class RNLuciqReactnativeModuleTest {
     @Test
     public void givenArg$setLocale_whenQuery_thenShouldCallNativeApiWithLocale() {
         // given
-        Map<String, InstabugLocale> args = ArgsRegistry.locales;
+        Map<String, LuciqLocale> args = ArgsRegistry.locales;
         String[] keysArray = args.keySet().toArray(new String[0]);
 
         // when
@@ -473,40 +473,40 @@ public class RNLuciqReactnativeModuleTest {
         }
 
         // then
-        verify(Instabug.class,times(1));
+        verify(Luciq.class,times(1));
         for (String key : keysArray) {
-            final InstabugLocale luciqLocale = args.get(key);
+            final LuciqLocale luciqLocale = args.get(key);
             final Locale locale = new Locale(luciqLocale.getCode(), luciqLocale.getCountry());
-            Instabug.setLocale(locale);
+            Luciq.setLocale(locale);
         }
     }
 
     @Test
     public void givenString$setString_whenQuery_thenShouldCallNativeApiWithEnum() {
         // given
-        Map<String, InstabugCustomTextPlaceHolder.Key> args = ArgsRegistry.placeholders;
+        Map<String, LuciqCustomTextPlaceHolder.Key> args = ArgsRegistry.placeholders;
         Set<String> keys = args.keySet();
 
         // when
-        InstabugCustomTextPlaceHolder expectedPlaceHolders = new InstabugCustomTextPlaceHolder();
+        LuciqCustomTextPlaceHolder expectedPlaceHolders = new LuciqCustomTextPlaceHolder();
         for (String key : keys) {
-            InstabugCustomTextPlaceHolder.Key placeHolder = args.get(key);
+            LuciqCustomTextPlaceHolder.Key placeHolder = args.get(key);
             expectedPlaceHolders.set(placeHolder, key);
             rnModule.setString(key, key);
         }
 
         // then
-        verify(Instabug.class ,VerificationModeFactory.atLeastOnce());
-        Instabug.setCustomTextPlaceHolders(Matchers.any(InstabugCustomTextPlaceHolder.class));
+        verify(Luciq.class ,VerificationModeFactory.atLeastOnce());
+        Luciq.setCustomTextPlaceHolders(Matchers.any(LuciqCustomTextPlaceHolder.class));
 
         // access placeHolders field by reflection
         try {
             Field privateStringField = RNLuciqReactnativeModule.class.
                     getDeclaredField("placeHolders");
             privateStringField.setAccessible(true);
-            InstabugCustomTextPlaceHolder placeHolders = (InstabugCustomTextPlaceHolder) privateStringField.get(rnModule);
+            LuciqCustomTextPlaceHolder placeHolders = (LuciqCustomTextPlaceHolder) privateStringField.get(rnModule);
         for (String key : keys) {
-            InstabugCustomTextPlaceHolder.Key placeHolder = args.get(key);
+            LuciqCustomTextPlaceHolder.Key placeHolder = args.get(key);
             Assert.assertEquals(placeHolders.get(placeHolder), key);
         }
         } catch (NoSuchFieldException | IllegalAccessException nsfe) {
@@ -518,11 +518,11 @@ public class RNLuciqReactnativeModuleTest {
     public void givenString$reportCurrentViewChange_whenQuery_thenShouldCallNativeApiWithString() throws Exception {
         // when
         rnModule.reportCurrentViewChange("screen");
-        Method privateStringMethod = getMethod(Class.forName("com.instabug.library.Instabug"), "reportCurrentViewChange", String.class);
+        Method privateStringMethod = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportCurrentViewChange", String.class);
         privateStringMethod.setAccessible(true);
 
         // then
-        verify(Instabug.class, VerificationModeFactory.times(1));
+        verify(Luciq.class, VerificationModeFactory.times(1));
         privateStringMethod.invoke("reportCurrentViewChange","screen");
     }
 
@@ -530,11 +530,11 @@ public class RNLuciqReactnativeModuleTest {
     public void givenString$reportScreenChange_whenQuery_thenShouldCallNativeApiWithString() throws Exception {
         // when
         rnModule.reportScreenChange("screen");
-        Method privateStringMethod = getMethod(Class.forName("com.instabug.library.Instabug"), "reportScreenChange", Bitmap.class, String.class);
+        Method privateStringMethod = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class);
         privateStringMethod.setAccessible(true);
 
         // then
-        verify(Instabug.class, VerificationModeFactory.times(1));
+        verify(Luciq.class, VerificationModeFactory.times(1));
         privateStringMethod.invoke("reportScreenChange", null,"screen");
 
     }
@@ -552,13 +552,13 @@ public class RNLuciqReactnativeModuleTest {
 
         // then
         Iterator<Map.Entry<String, Object>> iterator = map.getEntryIterator();
-        ArrayList<IBGFeatureFlag> featureFlags = new ArrayList<>();
+        ArrayList<LuciqFeatureFlag> featureFlags = new ArrayList<>();
         while (iterator.hasNext()) {
             Map.Entry<String, Object> item = iterator.next();
-            featureFlags.add(new IBGFeatureFlag(item.getKey(), (String) item.getValue()));
+            featureFlags.add(new LuciqFeatureFlag(item.getKey(), (String) item.getValue()));
         }
 
-        mockLuciq.verify(() -> Instabug.addFeatureFlags(featureFlags));
+        mockLuciq.verify(() -> Luciq.addFeatureFlags(featureFlags));
 
     }
 
@@ -577,7 +577,7 @@ public class RNLuciqReactnativeModuleTest {
         for (Object o : array.toArrayList()) {
             expectedList.add((String) o);
         }
-        mockLuciq.verify(() -> Instabug.removeFeatureFlag(expectedList));
+        mockLuciq.verify(() -> Luciq.removeFeatureFlag(expectedList));
 
     }
 
@@ -587,7 +587,7 @@ public class RNLuciqReactnativeModuleTest {
         rnModule.removeAllFeatureFlags();
 
         // then
-        mockLuciq.verify(() -> Instabug.removeAllFeatureFlags());
+        mockLuciq.verify(() -> Luciq.removeAllFeatureFlags());
     }
 
       @Test
@@ -597,7 +597,7 @@ public class RNLuciqReactnativeModuleTest {
             rnModule.setAppVariant(appVariant);
 
             // then
-            mockLuciq.verify(() -> Instabug.setAppVariant(appVariant));
+            mockLuciq.verify(() -> Luciq.setAppVariant(appVariant));
         }
 
     @Test
@@ -606,7 +606,7 @@ public class RNLuciqReactnativeModuleTest {
         rnModule.willRedirectToStore();
 
         // then
-        mockLuciq.verify(() -> Instabug.willRedirectToStore());
+        mockLuciq.verify(() -> Luciq.willRedirectToStore());
     }
     @Test
     public void testW3CExternalTraceIDFlag(){
@@ -638,14 +638,14 @@ public class RNLuciqReactnativeModuleTest {
     public void testSetNetworkLogBodyEnabled() {
         rnModule.setNetworkLogBodyEnabled(true);
 
-        mockLuciq.verify(() -> Instabug.setNetworkLogBodyEnabled(true));
+        mockLuciq.verify(() -> Luciq.setNetworkLogBodyEnabled(true));
     }
 
     @Test
     public void testSetNetworkLogBodyDisabled() {
         rnModule.setNetworkLogBodyEnabled(false);
 
-        mockLuciq.verify(() -> Instabug.setNetworkLogBodyEnabled(false));
+        mockLuciq.verify(() -> Luciq.setNetworkLogBodyEnabled(false));
     }
 
     @Test
@@ -658,7 +658,7 @@ public class RNLuciqReactnativeModuleTest {
 
             rnModule.enableAutoMasking(JavaOnlyArray.of(maskLabel, maskMedia, maskTextInputs,maskNone));
 
-            mockLuciq.verify(() -> Instabug.setAutoMaskScreenshotsTypes(MaskingType.LABELS,MaskingType.MEDIA,MaskingType.TEXT_INPUTS,MaskingType.MASK_NOTHING));
+            mockLuciq.verify(() -> Luciq.setAutoMaskScreenshotsTypes(MaskingType.LABELS,MaskingType.MEDIA,MaskingType.TEXT_INPUTS,MaskingType.MASK_NOTHING));
     }
 
     @Test
@@ -681,8 +681,8 @@ public class RNLuciqReactnativeModuleTest {
         rnModule.setFullscreen(isEnabled);
 
         // then
-        verify(Instabug.class, times(1));
-        Instabug.setFullscreen(isEnabled);
+        verify(Luciq.class, times(1));
+        Luciq.setFullscreen(isEnabled);
     }
 
     @Test
@@ -694,8 +694,8 @@ public class RNLuciqReactnativeModuleTest {
         rnModule.setFullscreen(isEnabled);
 
         // then
-        verify(Instabug.class, times(1));
-        Instabug.setFullscreen(isEnabled);
+        verify(Luciq.class, times(1));
+        Luciq.setFullscreen(isEnabled);
     }
 
     @Test
@@ -711,12 +711,12 @@ public class RNLuciqReactnativeModuleTest {
         themeConfig.putString("secondaryTextStyle", "italic");
         themeConfig.putString("ctaTextStyle", "bold");
 
-        // Mock IBGTheme.Builder
-        com.instabug.library.model.IBGTheme.Builder mockBuilder = mock(com.instabug.library.model.IBGTheme.Builder.class);
-        com.instabug.library.model.IBGTheme mockTheme = mock(com.instabug.library.model.IBGTheme.class);
+        // Mock LuciqTheme.Builder
+        ai.luciq.library.model.LuciqTheme.Builder mockBuilder = mock(ai.luciq.library.model.LuciqTheme.Builder.class);
+        ai.luciq.library.model.LuciqTheme mockTheme = mock(ai.luciq.library.model.LuciqTheme.class);
 
-        try (MockedConstruction<com.instabug.library.model.IBGTheme.Builder> mockedBuilder = mockConstruction(
-                com.instabug.library.model.IBGTheme.Builder.class,
+        try (MockedConstruction<ai.luciq.library.model.LuciqTheme.Builder> mockedBuilder = mockConstruction(
+                ai.luciq.library.model.LuciqTheme.Builder.class,
                 (mock, context) -> {
                     when(mock.setPrimaryColor(anyInt())).thenReturn(mock);
                     when(mock.setPrimaryTextColor(anyInt())).thenReturn(mock);
@@ -736,8 +736,8 @@ public class RNLuciqReactnativeModuleTest {
             rnModule.setTheme(themeConfig);
 
             // then
-            verify(Instabug.class, times(1));
-            Instabug.setTheme(mockTheme);
+            verify(Luciq.class, times(1));
+            Luciq.setTheme(mockTheme);
         }
     }
 

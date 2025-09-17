@@ -15,10 +15,10 @@ import static org.mockito.Mockito.when;
 
 import android.app.Application;
 
-import com.instabug.library.Instabug;
-import com.instabug.library.LogLevel;
-import com.instabug.library.Platform;
-import com.instabug.library.invocation.InstabugInvocationEvent;
+import ai.luciq.library.Luciq;
+import ai.luciq.library.LogLevel;
+import ai.luciq.library.Platform;
+import ai.luciq.library.invocation.LuciqInvocationEvent;
 import ai.luciq.reactlibrary.util.GlobalMocks;
 import ai.luciq.reactlibrary.util.MockReflected;
 
@@ -32,7 +32,7 @@ import org.mockito.MockedStatic;
 public class RNLuciqTest {
     private final Application mContext = mock(Application.class);
 
-    private MockedStatic<Instabug> mLuciq;
+    private MockedStatic<Luciq> mLuciq;
 
     private RNLuciq sut;
 
@@ -40,7 +40,7 @@ public class RNLuciqTest {
     @Before
     public void setUp() throws Exception {
         sut = spy(RNLuciq.getInstance());
-        mLuciq = mockStatic(Instabug.class);
+        mLuciq = mockStatic(Luciq.class);
 
         GlobalMocks.setUp();
     }
@@ -53,12 +53,12 @@ public class RNLuciqTest {
 
     @Test
     public void testInitWithLogLevel() {
-        final InstabugInvocationEvent[] invocationEvents = new InstabugInvocationEvent[]{InstabugInvocationEvent.FLOATING_BUTTON};
+        final LuciqInvocationEvent[] invocationEvents = new LuciqInvocationEvent[]{LuciqInvocationEvent.FLOATING_BUTTON};
         final String token = "fde....";
         final int logLevel = LogLevel.VERBOSE;
 
-        MockedConstruction<Instabug.Builder> mInstabugBuilder = mockConstruction(
-                Instabug.Builder.class, (mock, context) -> {
+        MockedConstruction<Luciq.Builder> mLuciqBuilder = mockConstruction(
+                Luciq.Builder.class, (mock, context) -> {
                     String actualToken = (String) context.arguments().get(1);
                     // Initializes Luciq with the correct token
                     assertEquals(token, actualToken);
@@ -69,7 +69,7 @@ public class RNLuciqTest {
 
         sut.init(mContext, token, logLevel, null, null,true, invocationEvents);
 
-        Instabug.Builder builder = mInstabugBuilder.constructed().get(0);
+        Luciq.Builder builder = mLuciqBuilder.constructed().get(0);
 
         // Here we check that it has changed to verbose value of the `logLevel` property
         verify(builder).setSdkDebugLogsLevel(LogLevel.VERBOSE);
@@ -81,18 +81,18 @@ public class RNLuciqTest {
 
         verify(sut).setBaseUrlForDeprecationLogs();
         verify(sut).setCurrentPlatform();
-        mInstabugBuilder.close();
+        mLuciqBuilder.close();
     }
 
     @Test
     public void testInitWithoutLogLevel() {
-        final InstabugInvocationEvent[] invocationEvents = new InstabugInvocationEvent[]{InstabugInvocationEvent.FLOATING_BUTTON};
+        final LuciqInvocationEvent[] invocationEvents = new LuciqInvocationEvent[]{LuciqInvocationEvent.FLOATING_BUTTON};
         final String token = "fde....";
         final int defaultLogLevel = LogLevel.ERROR;
         final String appVariant = "app-variant";
 
-        MockedConstruction<Instabug.Builder> mInstabugBuilder = mockConstruction(
-                Instabug.Builder.class, (mock, context) -> {
+        MockedConstruction<Luciq.Builder> mLuciqBuilder = mockConstruction(
+                Luciq.Builder.class, (mock, context) -> {
                     when(mock.setSdkDebugLogsLevel(anyInt())).thenReturn(mock);
                     when(mock.setInvocationEvents(any())).thenReturn(mock);
                     when(mock.setAppVariant(any())).thenReturn(mock);
@@ -102,7 +102,7 @@ public class RNLuciqTest {
         sut.init(mContext, token, null, appVariant, invocationEvents);
 
         verify(sut).init(mContext, token, defaultLogLevel, null, appVariant, null,invocationEvents);
-        mInstabugBuilder.close();
+        mLuciqBuilder.close();
     }
 
     @Test

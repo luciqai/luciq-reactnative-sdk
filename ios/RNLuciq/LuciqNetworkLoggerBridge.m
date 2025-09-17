@@ -70,7 +70,7 @@ bool lcq_hasListeners = NO;
 }
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isNativeInterceptionEnabled) {
-    return @(IBGNetworkLogger.isNativeNetworkInterceptionFeatureEnabled);
+    return @(LCQNetworkLogger.isNativeNetworkInterceptionFeatureEnabled);
 }
 
 
@@ -128,7 +128,7 @@ RCT_EXPORT_METHOD(updateNetworkLogSnapshot:(NSString * _Nonnull)url
     }
 
     // Ensure callbackID is valid and the completion handler exists
-    IBGURLRequestAsyncObfuscationCompletedHandler completionHandler = self.requestObfuscationCompletionDictionary[callbackID];
+    LCQURLRequestAsyncObfuscationCompletedHandler completionHandler = self.requestObfuscationCompletionDictionary[callbackID];
     if (callbackID && [callbackID isKindOfClass:[NSString class]] && completionHandler) {
         // Call the completion handler with the constructed request
         completionHandler(request);
@@ -141,7 +141,7 @@ RCT_EXPORT_METHOD(setNetworkLoggingRequestFilterPredicateIOS: (NSString * _Nonnu
 
     if (self.requestFilteringCompletionDictionary[callbackID] != nil) {
         // ⬇️ YES == Request will be saved, NO == will be ignored
-        ((IBGURLRequestResponseAsyncFilteringCompletedHandler)self.requestFilteringCompletionDictionary[callbackID])(value);
+        ((LCQURLRequestResponseAsyncFilteringCompletedHandler)self.requestFilteringCompletionDictionary[callbackID])(value);
     } else {
         NSLog(@"Not Available Completion");
     }
@@ -152,7 +152,7 @@ RCT_EXPORT_METHOD(setNetworkLoggingRequestFilterPredicateIOS: (NSString * _Nonnu
 
 // Set up the filtering handler
 - (void)setupRequestFilteringHandler {
-    [IBGNetworkLogger setCPRequestFilteringHandler:^(NSURLRequest * _Nonnull request, void (^ _Nonnull completion)(BOOL)) {
+    [LCQNetworkLogger setCPRequestFilteringHandler:^(NSURLRequest * _Nonnull request, void (^ _Nonnull completion)(BOOL)) {
         NSString *callbackID = [[[NSUUID alloc] init] UUIDString];
         self.requestFilteringCompletionDictionary[callbackID] = completion;
 
@@ -166,7 +166,7 @@ RCT_EXPORT_METHOD(setNetworkLoggingRequestFilterPredicateIOS: (NSString * _Nonnu
 
 // Set up the obfuscation handler
 - (void)setupRequestObfuscationHandler {
-    [IBGNetworkLogger setCPRequestAsyncObfuscationHandler:^(NSURLRequest * _Nonnull request, void (^ _Nonnull completion)(NSURLRequest * _Nonnull)) {
+    [LCQNetworkLogger setCPRequestAsyncObfuscationHandler:^(NSURLRequest * _Nonnull request, void (^ _Nonnull completion)(NSURLRequest * _Nonnull)) {
         NSString *callbackID = [[[NSUUID alloc] init] UUIDString];
         self.requestObfuscationCompletionDictionary[callbackID] = completion;
 
@@ -194,11 +194,11 @@ RCT_EXPORT_METHOD(setNetworkLoggingRequestFilterPredicateIOS: (NSString * _Nonnu
 }
 
 RCT_EXPORT_METHOD(forceStartNetworkLoggingIOS) {
-    [IBGNetworkLogger forceStartNetworkLogging];
+    [LCQNetworkLogger forceStartNetworkLogging];
 }
 
 RCT_EXPORT_METHOD(forceStopNetworkLoggingIOS) {
-    [IBGNetworkLogger forceStopNetworkLogging];
+    [LCQNetworkLogger forceStopNetworkLogging];
 }
 
 

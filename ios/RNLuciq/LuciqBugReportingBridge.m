@@ -7,7 +7,7 @@
 //
 
 #import "LuciqBugReportingBridge.h"
-#import <InstabugSDK/IBGBugReporting.h>
+#import <LuciqSDK/LCQBugReporting.h>
 #import <asl.h>
 #import <React/RCTLog.h>
 #import <os/log.h>
@@ -35,46 +35,46 @@
 RCT_EXPORT_MODULE(LCQBugReporting)
 
 RCT_EXPORT_METHOD(setEnabled:(BOOL) isEnabled) {
-    IBGBugReporting.enabled = isEnabled;
+    LCQBugReporting.enabled = isEnabled;
 }
 
 RCT_EXPORT_METHOD(setAutoScreenRecordingEnabled:(BOOL)enabled) {
-    IBGBugReporting.autoScreenRecordingEnabled = enabled;
+    LCQBugReporting.autoScreenRecordingEnabled = enabled;
 }
 
 RCT_EXPORT_METHOD(setAutoScreenRecordingDuration:(CGFloat)duration) {
-    IBGBugReporting.autoScreenRecordingDuration = duration;
+    LCQBugReporting.autoScreenRecordingDuration = duration;
 }
 
 RCT_EXPORT_METHOD(setOnInvokeHandler:(RCTResponseSenderBlock)callBack) {
     if (callBack != nil) {
-        IBGBugReporting.willInvokeHandler = ^{
+        LCQBugReporting.willInvokeHandler = ^{
             [self sendEventWithName:@"LCQpreInvocationHandler" body:nil];
         };
     } else {
-        IBGBugReporting.willInvokeHandler = nil;
+        LCQBugReporting.willInvokeHandler = nil;
     }
 }
 
 RCT_EXPORT_METHOD(setOnSDKDismissedHandler:(RCTResponseSenderBlock)callBack) {
     if (callBack != nil) {
-        IBGBugReporting.didDismissHandler = ^(IBGDismissType dismissType, IBGReportType reportType) {
+        LCQBugReporting.didDismissHandler = ^(LCQDismissType dismissType, LCQReportCategory reportType) {
 
             //parse dismiss type enum
             NSString* dismissTypeString;
-            if (dismissType == IBGDismissTypeCancel) {
+            if (dismissType == LCQDismissTypeCancel) {
                 dismissTypeString = @"CANCEL";
-            } else if (dismissType == IBGDismissTypeSubmit) {
+            } else if (dismissType == LCQDismissTypeSubmit) {
                 dismissTypeString = @"SUBMIT";
-            } else if (dismissType == IBGDismissTypeAddAttachment) {
+            } else if (dismissType == LCQDismissTypeAddAttachment) {
                 dismissTypeString = @"ADD_ATTACHMENT";
             }
 
             //parse report type enum
             NSString* reportTypeString;
-            if (reportType == IBGReportTypeBug) {
+            if (reportType == LCQReportCategoryBug) {
                 reportTypeString = @"bug";
-            } else if (reportType == IBGReportTypeFeedback) {
+            } else if (reportType == LCQReportCategoryFeedback) {
                 reportTypeString = @"feedback";
             } else {
                 reportTypeString = @"other";
@@ -84,21 +84,21 @@ RCT_EXPORT_METHOD(setOnSDKDismissedHandler:(RCTResponseSenderBlock)callBack) {
             [self sendEventWithName:@"LCQpostInvocationHandler" body: result];
         };
     } else {
-        IBGBugReporting.didDismissHandler = nil;
+        LCQBugReporting.didDismissHandler = nil;
     }
 }
 
 RCT_EXPORT_METHOD(setDidSelectPromptOptionHandler:(RCTResponseSenderBlock)callBack) {
     if (callBack != nil) {
 
-        IBGBugReporting.didSelectPromptOptionHandler = ^(IBGPromptOption promptOption) {
+        LCQBugReporting.didSelectPromptOptionHandler = ^(LCQPromptOption promptOption) {
 
             NSString *promptOptionString;
-            if (promptOption == IBGPromptOptionBug) {
+            if (promptOption == LCQPromptOptionBug) {
                 promptOptionString = @"bug";
-            } else if (promptOption == IBGReportTypeFeedback) {
+            } else if (promptOption == LCQBugReportingTypeFeedback) {
                 promptOptionString = @"feedback";
-            } else if (promptOption == IBGPromptOptionChat) {
+            } else if (promptOption == LCQPromptOptionChat) {
                 promptOptionString = @"chat";
             } else {
                 promptOptionString = @"none";
@@ -109,76 +109,76 @@ RCT_EXPORT_METHOD(setDidSelectPromptOptionHandler:(RCTResponseSenderBlock)callBa
                                                                               }];
         };
     } else {
-        IBGBugReporting.didSelectPromptOptionHandler = nil;
+        LCQBugReporting.didSelectPromptOptionHandler = nil;
     }
 }
 
 RCT_EXPORT_METHOD(setInvocationEvents:(NSArray*)invocationEventsArray) {
-    IBGInvocationEvent invocationEvents = 0;
+    LCQInvocationEvent invocationEvents = 0;
     for (NSNumber *boxedValue in invocationEventsArray) {
         invocationEvents |= [boxedValue intValue];
     }
-    IBGBugReporting.invocationEvents = invocationEvents;
+    LCQBugReporting.invocationEvents = invocationEvents;
 }
 
 RCT_EXPORT_METHOD(setOptions:(NSArray*)invocationOptionsArray) {
-    IBGBugReportingOption invocationOptions = 0;
+    LCQBugReportingOption invocationOptions = 0;
 
     for (NSNumber *boxedValue in invocationOptionsArray) {
         invocationOptions |= [boxedValue intValue];
     }
 
-    IBGBugReporting.bugReportingOptions = invocationOptions;
+    LCQBugReporting.bugReportingOptions = invocationOptions;
 }
 
 RCT_EXPORT_METHOD(setFloatingButtonEdge:(CGRectEdge)floatingButtonEdge withTopOffset:(double)floatingButtonOffsetFromTop) {
-    IBGBugReporting.floatingButtonEdge = floatingButtonEdge;
-    IBGBugReporting.floatingButtonTopOffset = floatingButtonOffsetFromTop;
+    LCQBugReporting.floatingButtonEdge = floatingButtonEdge;
+    LCQBugReporting.floatingButtonTopOffset = floatingButtonOffsetFromTop;
 }
 
-RCT_EXPORT_METHOD(setExtendedBugReportMode:(IBGExtendedBugReportMode)extendedBugReportMode) {
-    IBGBugReporting.extendedBugReportMode = extendedBugReportMode;
+RCT_EXPORT_METHOD(setExtendedBugReportMode:(LCQExtendedBugReportMode)extendedBugReportMode) {
+    LCQBugReporting.extendedBugReportMode = extendedBugReportMode;
 }
 
 RCT_EXPORT_METHOD(setEnabledAttachmentTypes:(BOOL)screenShot
                   extraScreenShot:(BOOL)extraScreenShot
                   galleryImage:(BOOL)galleryImage
                   screenRecording:(BOOL)screenRecording) {
-    IBGAttachmentType attachmentTypes = 0;
+    LCQAttachmentType attachmentTypes = 0;
     if(screenShot) {
-        attachmentTypes = IBGAttachmentTypeScreenShot;
+        attachmentTypes = LCQAttachmentTypeScreenShot;
     }
     if(extraScreenShot) {
-        attachmentTypes |= IBGAttachmentTypeExtraScreenShot;
+        attachmentTypes |= LCQAttachmentTypeExtraScreenShot;
     }
     if(galleryImage) {
-        attachmentTypes |= IBGAttachmentTypeGalleryImage;
+        attachmentTypes |= LCQAttachmentTypeGalleryImage;
     }
     if(screenRecording) {
-        attachmentTypes |= IBGAttachmentTypeScreenRecording;
+        attachmentTypes |= LCQAttachmentTypeScreenRecording;
     }
 
-    IBGBugReporting.enabledAttachmentTypes = attachmentTypes;
+    LCQBugReporting.enabledAttachmentTypes = attachmentTypes;
 }
 
 RCT_EXPORT_METHOD(setViewHierarchyEnabled:(BOOL)viewHirearchyEnabled) {
-    IBGBugReporting.shouldCaptureViewHierarchy = viewHirearchyEnabled;
+    LCQBugReporting.shouldCaptureViewHierarchy = viewHirearchyEnabled;
 }
 
-RCT_EXPORT_METHOD(setVideoRecordingFloatingButtonPosition:(IBGPosition)position) {
-    IBGBugReporting.videoRecordingFloatingButtonPosition = position;
+RCT_EXPORT_METHOD(setVideoRecordingFloatingButtonPosition:(LCQPosition)position) {
+    LCQBugReporting.videoRecordingFloatingButtonPosition = position;
 }
 
 RCT_EXPORT_METHOD(setReportTypes:(NSArray*) types ) {
-    IBGBugReportingReportType reportTypes = 0;
+    LCQBugReportingReportType reportTypes = 0;
     for (NSNumber *boxedValue in types) {
         reportTypes |= [boxedValue intValue];
     }
-    [IBGBugReporting setPromptOptionsEnabledReportTypes: reportTypes];
+    [LCQBugReporting setPromptOptionsEnabledReportTypes: reportTypes];
 }
 
-RCT_EXPORT_METHOD(show:(IBGBugReportingReportType)type options:(NSArray*) options) {
-    IBGBugReportingOption parsedOptions = 0;
+RCT_EXPORT_METHOD(show:(LCQBugReportingReportType)type options:(NSArray*) options) {
+    LCQBugReportingOption parsedOptions = 0;
     for (NSNumber *boxedValue in options) {
         parsedOptions |= [boxedValue intValue];
     }
@@ -187,34 +187,34 @@ RCT_EXPORT_METHOD(show:(IBGBugReportingReportType)type options:(NSArray*) option
 }
 
 - (void) showBugReportingWithReportTypeAndOptionsHelper:(NSArray*)args {
-    IBGBugReportingReportType parsedreportType = [args[0] intValue];
-    IBGBugReportingOption parsedOptions = [args[1] intValue];
-    [IBGBugReporting showWithReportType:parsedreportType options:parsedOptions];
+    LCQBugReportingReportType parsedreportType = [args[0] intValue];
+    LCQBugReportingOption parsedOptions = [args[1] intValue];
+    [LCQBugReporting showWithReportType:parsedreportType options:parsedOptions];
 }
 
 RCT_EXPORT_METHOD(setShakingThresholdForiPhone:(double)iPhoneShakingThreshold) {
-    IBGBugReporting.shakingThresholdForiPhone = iPhoneShakingThreshold;
+    LCQBugReporting.shakingThresholdForiPhone = iPhoneShakingThreshold;
 }
 
 RCT_EXPORT_METHOD(setShakingThresholdForiPad:(double)iPadShakingThreshold) {
-    IBGBugReporting.shakingThresholdForiPad = iPadShakingThreshold;
+    LCQBugReporting.shakingThresholdForiPad = iPadShakingThreshold;
 }
 
 RCT_EXPORT_METHOD(setDisclaimerText:(NSString*)text) {
-   [IBGBugReporting setDisclaimerText:text];
+   [LCQBugReporting setDisclaimerText:text];
 }
 
 RCT_EXPORT_METHOD(setCommentMinimumCharacterCount:(nonnull NSNumber *)limit reportTypes:(NSArray *)reportTypes) {
-    IBGBugReportingType parsedReportTypes = 0;
+    LCQBugReportingType parsedReportTypes = 0;
     if (![reportTypes count]) {
-        parsedReportTypes = @(IBGBugReportingTypeBug).integerValue | @(IBGBugReportingTypeFeedback).integerValue | @(IBGBugReportingTypeQuestion).integerValue;
+        parsedReportTypes = @(LCQBugReportingTypeBug).integerValue | @(LCQBugReportingTypeFeedback).integerValue | @(LCQBugReportingTypeQuestion).integerValue;
     }
     else {
         for (NSNumber *reportType in reportTypes) {
             parsedReportTypes |= [reportType intValue];
         }
     }
-   [IBGBugReporting setCommentMinimumCharacterCount:[limit integerValue] forBugReportType:parsedReportTypes];
+   [LCQBugReporting setCommentMinimumCharacterCount:[limit integerValue] forBugReportType:parsedReportTypes];
 }
 
 RCT_EXPORT_METHOD(addUserConsent:(NSString *)key
@@ -222,9 +222,9 @@ RCT_EXPORT_METHOD(addUserConsent:(NSString *)key
                   mandatory:(BOOL)mandatory
                   checked:(BOOL)checked
                   actionType:(id)actionType) {
-    IBGActionType mappedActionType = (IBGActionType)[actionType integerValue];
+    LCQConsentAction mappedActionType = (LCQConsentAction)[actionType integerValue];
 
-    [IBGBugReporting addUserConsentWithKey:key
+    [LCQBugReporting addUserConsentWithKey:key
                                description:description
                                  mandatory:mandatory
                                    checked:checked

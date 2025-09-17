@@ -60,7 +60,7 @@ describe('Luciq Module', () => {
   it('componentDidAppearListener should call the native method reportScreenChange', () => {
     const screenName = 'some-screen';
 
-    luciq.aiponentDidAppearListener({
+    Luciq.componentDidAppearListener({
       componentId: '1',
       componentName: screenName,
       componentType: 'Component',
@@ -76,7 +76,7 @@ describe('Luciq Module', () => {
       invocationEvents: [InvocationEvent.none],
     });
 
-    luciq.aiponentDidAppearListener({
+    Luciq.componentDidAppearListener({
       componentId: '1',
       componentName: 'screen',
       componentType: 'Component',
@@ -96,7 +96,7 @@ describe('Luciq Module', () => {
     });
 
     Array(5).forEach(() => {
-      luciq.aiponentDidAppearListener({
+      Luciq.componentDidAppearListener({
         componentId: '1',
         componentName: 'screen',
         componentType: 'Component',
@@ -450,19 +450,19 @@ describe('Luciq Module', () => {
     expect(NativeLuciq.setTrackUserSteps).not.toBeCalled();
   });
 
-  it('should call the native method setLQLogPrintsToConsole', () => {
+  it('should call the native method setLCQLogPrintsToConsole', () => {
     Platform.OS = 'ios';
-    Luciq.setLQLogPrintsToConsole(true);
+    Luciq.setLCQLogPrintsToConsole(true);
 
-    expect(NativeLuciq.setLQLogPrintsToConsole).toBeCalledTimes(1);
-    expect(NativeLuciq.setLQLogPrintsToConsole).toBeCalledWith(true);
+    expect(NativeLuciq.setLCQLogPrintsToConsole).toBeCalledTimes(1);
+    expect(NativeLuciq.setLCQLogPrintsToConsole).toBeCalledWith(true);
   });
 
-  it('should not call the native method setLQLogPrintsToConsole when platform is android', () => {
+  it('should not call the native method setLCQLogPrintsToConsole when platform is android', () => {
     Platform.OS = 'android';
-    Luciq.setLQLogPrintsToConsole(true);
+    Luciq.setLCQLogPrintsToConsole(true);
 
-    expect(NativeLuciq.setLQLogPrintsToConsole).not.toBeCalled();
+    expect(NativeLuciq.setLCQLogPrintsToConsole).not.toBeCalled();
   });
 
   it('should call the native method setSessionProfilerEnabled', () => {
@@ -834,7 +834,7 @@ describe('Luciq Module', () => {
     expect(NativeLuciq.setPreSendingHandler).toBeCalledWith(callback);
   });
 
-  it('should invoke callback on emitting the event LQpreSendingHandler', (done) => {
+  it('should invoke callback on emitting the event LCQpreSendingHandler', (done) => {
     const report = {
       tags: ['tag1', 'tag2'],
       consoleLogs: ['consoleLog'],
@@ -920,7 +920,7 @@ describe('Luciq Module', () => {
     expect(NativeLuciq.registerFeatureFlagsChangeListener).toBeCalledTimes(1);
   });
 
-  it('should invoke callback on emitting the event LQOnNewFeatureFlagsUpdateReceivedCallback', () => {
+  it('should invoke callback on emitting the event LCQOnNewFeatureFlagsUpdateReceivedCallback', () => {
     const callback = jest.fn();
     Luciq._registerFeatureFlagsChangeListener(callback);
     emitter.emit(NativeEvents.ON_FEATURE_FLAGS_CHANGE);
@@ -1021,7 +1021,7 @@ describe('Luciq iOS initialization tests', () => {
 
     expect(logSpy).toBeCalledTimes(1);
     expect(logSpy).toBeCalledWith(
-      LuciqConstants.LQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
+      LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
     );
   });
 });
@@ -1072,7 +1072,7 @@ describe('Luciq Android initialization tests', () => {
     fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
-        LuciqConstants.LQ_APM_TAG + LuciqConstants.SWITCHED_TO_NATIVE_INTERCEPTION_MESSAGE,
+        LuciqConstants.LCQ_APM_TAG + LuciqConstants.SWITCHED_TO_NATIVE_INTERCEPTION_MESSAGE,
       );
     });
   });
@@ -1089,7 +1089,7 @@ describe('Luciq Android initialization tests', () => {
     fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
-        LuciqConstants.LQ_APM_TAG + LuciqConstants.PLUGIN_NOT_INSTALLED_MESSAGE,
+        LuciqConstants.LCQ_APM_TAG + LuciqConstants.PLUGIN_NOT_INSTALLED_MESSAGE,
       );
     });
   });
@@ -1106,7 +1106,7 @@ describe('Luciq Android initialization tests', () => {
     fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
-        LuciqConstants.LQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
+        LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
       );
     });
   });
@@ -1122,7 +1122,7 @@ describe('Luciq Android initialization tests', () => {
     fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
-        LuciqConstants.LQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
+        LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
       );
     });
   });

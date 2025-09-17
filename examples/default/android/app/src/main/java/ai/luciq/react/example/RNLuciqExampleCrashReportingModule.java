@@ -5,9 +5,9 @@ import android.os.Handler;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.instabug.crash.CrashReporting;
-import com.instabug.crash.models.IBGNonFatalException;
-import com.instabug.library.Instabug;
+import ai.luciq.crash.CrashReporting;
+import ai.luciq.crash.models.LuciqNonFatalException;
+import ai.luciq.library.Luciq;
 import ai.luciq.react.example.nativeLibs.CppNativeLib;
 
 import javax.annotation.Nonnull;
@@ -29,7 +29,7 @@ public class RNLuciqExampleCrashReportingModule extends ReactContextBaseJavaModu
 
     @ReactMethod
     public void sendNativeNonFatal(final String exceptionObject) {
-        final IBGNonFatalException exception = new IBGNonFatalException.Builder(new IllegalStateException("Test exception"))
+        final LuciqNonFatalException exception = new LuciqNonFatalException.Builder(new IllegalStateException("Test exception"))
                 .build();
         CrashReporting.report(exception);
 
@@ -51,7 +51,7 @@ public class RNLuciqExampleCrashReportingModule extends ReactContextBaseJavaModu
     }
 
     private void sendHang(long duration) {
-        Context applicationContext = Instabug.getApplicationContext();
+        Context applicationContext = Luciq.getApplicationContext();
         if (applicationContext == null)
             return;
 

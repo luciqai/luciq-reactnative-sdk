@@ -1,5 +1,5 @@
 //
-//  IBGConstants.h
+//  LCQConstants.h
 //  LuciqSample
 //
 //  Created by Salma Ali on 7/30/19.

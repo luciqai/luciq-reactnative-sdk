@@ -6,9 +6,9 @@ import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.JavaOnlyArray;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableArray;
-import com.instabug.featuresrequest.ActionType;
-import com.instabug.featuresrequest.FeatureRequests;
-import com.instabug.library.Feature;
+import ai.luciq.featuresrequest.ActionType;
+import ai.luciq.featuresrequest.FeatureRequests;
+import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 import org.junit.After;

@@ -10,19 +10,19 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.instabug.bug.BugReporting;
-import com.instabug.bug.invocation.Option;
-import com.instabug.library.Feature;
-import com.instabug.library.OnSdkDismissCallback;
-import com.instabug.library.extendedbugreport.ExtendedBugReport;
-import com.instabug.library.invocation.InstabugInvocationEvent;
-import com.instabug.library.invocation.OnInvokeCallback;
-import com.instabug.library.invocation.util.InstabugFloatingButtonEdge;
-import com.instabug.library.invocation.util.InstabugVideoRecordingButtonPosition;
+import ai.luciq.bug.BugReporting;
+import ai.luciq.bug.invocation.Option;
+import ai.luciq.library.Feature;
+import ai.luciq.library.OnSdkDismissCallback;
+import ai.luciq.library.extendedbugreport.ExtendedBugReport;
+import ai.luciq.library.invocation.LuciqInvocationEvent;
+import ai.luciq.library.invocation.OnInvokeCallback;
+import ai.luciq.library.invocation.util.LuciqFloatingButtonEdge;
+import ai.luciq.library.invocation.util.LuciqVideoRecordingButtonPosition;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
-import com.instabug.bug.userConsent.ActionType;
+import ai.luciq.bug.userConsent.ActionType;
 
 import java.util.ArrayList;
 
@@ -149,7 +149,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    final InstabugVideoRecordingButtonPosition parsedPosition = ArgsRegistry.recordButtonPositions.get(corner);
+                    final LuciqVideoRecordingButtonPosition parsedPosition = ArgsRegistry.recordButtonPositions.get(corner);
                     if (parsedPosition == null) return;
                     BugReporting.setVideoRecordingFloatingButtonPosition(parsedPosition);
                 } catch (Exception e) {
@@ -187,7 +187,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
      * Sets the event used to invoke Luciq SDK
      *
      * @param invocationEventValues the invocation event value
-     * @see InstabugInvocationEvent
+     * @see LuciqInvocationEvent
      */
     @ReactMethod
     public void setInvocationEvents(final ReadableArray invocationEventValues) {
@@ -196,8 +196,8 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             public void run() {
                 try {
                     final ArrayList<String> keys = ArrayUtil.parseReadableArrayOfStrings(invocationEventValues);
-                    final ArrayList<InstabugInvocationEvent> parsedInvocationEvents = ArgsRegistry.invocationEvents.getAll(keys);
-                    BugReporting.setInvocationEvents(parsedInvocationEvents.toArray(new InstabugInvocationEvent[0]));
+                    final ArrayList<LuciqInvocationEvent> parsedInvocationEvents = ArgsRegistry.invocationEvents.getAll(keys);
+                    BugReporting.setInvocationEvents(parsedInvocationEvents.toArray(new LuciqInvocationEvent[0]));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -268,8 +268,8 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                final InstabugFloatingButtonEdge parsedEdge = ArgsRegistry.floatingButtonEdges
-                        .getOrDefault(floatingButtonEdge, InstabugFloatingButtonEdge.RIGHT);
+                final LuciqFloatingButtonEdge parsedEdge = ArgsRegistry.floatingButtonEdges
+                        .getOrDefault(floatingButtonEdge, LuciqFloatingButtonEdge.RIGHT);
                 BugReporting.setFloatingButtonOffset(floatingButtonOffset);
                 BugReporting.setFloatingButtonEdge(parsedEdge);
             }

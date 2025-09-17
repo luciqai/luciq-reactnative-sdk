@@ -12,15 +12,15 @@ import mockNetworkLogger from './mockNetworkLogger';
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
   const mockNativeModules: LuciqNativePackage = {
-    LQNetworkLogger: mockNetworkLogger,
-    LQAPM: mockAPM,
-    LQBugReporting: mockBugReporting,
-    LQCrashReporting: mockCrashReporting,
-    LQFeatureRequests: mockFeatureRequests,
-    LQSessionReplay: mockSessionReplay,
+    LCQNetworkLogger: mockNetworkLogger,
+    LCQAPM: mockAPM,
+    LCQBugReporting: mockBugReporting,
+    LCQCrashReporting: mockCrashReporting,
+    LCQFeatureRequests: mockFeatureRequests,
+    LCQSessionReplay: mockSessionReplay,
     Luciq: mockLuciq,
-    LQReplies: mockReplies,
-    LQSurveys: mockSurveys,
+    LCQReplies: mockReplies,
+    LCQSurveys: mockSurveys,
   };
 
   Object.assign(RN.NativeModules, mockNativeModules);

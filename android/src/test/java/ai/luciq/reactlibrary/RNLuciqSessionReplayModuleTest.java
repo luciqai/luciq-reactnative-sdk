@@ -20,10 +20,10 @@ import com.facebook.react.bridge.JavaOnlyMap;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.WritableMap;
-import com.instabug.library.OnSessionReplayLinkReady;
-import com.instabug.library.SessionSyncListener;
-import com.instabug.library.sessionreplay.SessionReplay;
-import com.instabug.library.sessionreplay.model.SessionMetadata;
+import ai.luciq.library.OnSessionReplayLinkReady;
+import ai.luciq.library.SessionSyncListener;
+import ai.luciq.library.sessionreplay.SessionReplay;
+import ai.luciq.library.sessionreplay.model.SessionMetadata;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 import org.junit.After;

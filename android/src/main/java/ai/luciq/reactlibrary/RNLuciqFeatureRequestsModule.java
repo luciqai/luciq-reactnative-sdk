@@ -6,8 +6,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
-import com.instabug.featuresrequest.FeatureRequests;
-import com.instabug.library.Feature;
+import ai.luciq.featuresrequest.FeatureRequests;
+import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 

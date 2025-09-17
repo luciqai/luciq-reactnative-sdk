@@ -1,6 +1,6 @@
 package ai.luciq.reactlibrary;
 
-import static com.instabug.crash.CrashReporting.getFingerprintObject;
+import static ai.luciq.crash.CrashReporting.getFingerprintObject;
 import static ai.luciq.reactlibrary.util.GlobalMocks.reflected;
 import static org.mockito.AdditionalMatchers.cmpEq;
 import static org.mockito.ArgumentMatchers.any;
@@ -11,9 +11,9 @@ import static org.mockito.Mockito.mockStatic;
 
 import android.os.Looper;
 
-import com.instabug.crash.CrashReporting;
-import com.instabug.crash.models.IBGNonFatalException;
-import com.instabug.library.Feature;
+import ai.luciq.crash.CrashReporting;
+import ai.luciq.crash.models.LuciqNonFatalException;
+import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.util.GlobalMocks;
 import ai.luciq.reactlibrary.util.MockReflected;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
@@ -102,36 +102,9 @@ public class RNLuciqCrashReportingModuleTest {
         String fingerPrint = "test";
         String level = ArgsRegistry.nonFatalExceptionLevel.keySet().iterator().next();
         JSONObject expectedFingerprint = getFingerprintObject(fingerPrint);
-        IBGNonFatalException.Level expectedLevel = ArgsRegistry.nonFatalExceptionLevel.get(level);
+        LuciqNonFatalException.Level expectedLevel = ArgsRegistry.nonFatalExceptionLevel.get(level);
         rnModule.sendHandledJSCrash(jsonCrash, null, fingerPrint, level);
         reflected.verify(() -> MockReflected.reportException(any(JSONObject.class), eq(isHandled), eq(null), eq(expectedFingerprint), eq(expectedLevel)));
     }
 
-    @Test
-    public void givenString$sendHandledJSCrash_whenQuery_thenShouldCallNativeApiWithArgs() throws Exception {
-//        JSONObject json = mock(JSONObject.class);
-//        PowerMockito.whenNew(JSONObject.class).withArguments("exception").thenReturn(json);
-//
-//        // given
-//        PowerMockito.mockStatic(CrashReporting.class);
-//        // when
-//        rnModule.sendHandledJSCrash("exception");
-//        // then
-//        JSONObject jsonObject = new JSONObject("exception");
-//        PowerMockito.verifyPrivate(CrashReporting.class, VerificationModeFactory.times(1)).invoke("reportException", jsonObject, true);
-    }
-
-    @Test
-    public void givenString$sendJSCrash_whenQuery_thenShouldCallNativeApiWithArgs() throws Exception {
-//        JSONObject json = mock(JSONObject.class);
-//        PowerMockito.whenNew(JSONObject.class).withArguments("exception").thenReturn(json);
-//
-//        // given
-//        PowerMockito.mockStatic(CrashReporting.class);
-//        // when
-//        rnModule.sendJSCrash("exception");
-//        // then
-//        JSONObject jsonObject = new JSONObject("exception");
-//        PowerMockito.verifyPrivate(CrashReporting.class, VerificationModeFactory.times(1)).invoke("reportException", jsonObject, false);
-    }
 }

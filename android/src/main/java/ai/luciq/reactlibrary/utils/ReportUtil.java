@@ -8,8 +8,8 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableNativeArray;
-import com.instabug.library.model.Report;
-import com.instabug.library.model.a;
+import ai.luciq.library.model.Report;
+import ai.luciq.library.model.a;
 
 import org.json.JSONException;
 

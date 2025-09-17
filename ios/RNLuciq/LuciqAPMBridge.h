@@ -2,7 +2,7 @@
 #import <Foundation/Foundation.h>
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
-#import <InstabugSDK/IBGTypes.h>
+#import <LuciqSDK/LCQTypes.h>
 
 @interface LuciqAPMBridge : RCTEventEmitter <RCTBridgeModule>
 /*

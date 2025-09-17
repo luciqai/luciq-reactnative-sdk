@@ -9,11 +9,11 @@
 #import <Foundation/Foundation.h>
 #import <React/RCTBridgeModule.h>
 #import <React/RCTEventEmitter.h>
-#import <InstabugSDK/InstabugSDK.h>
-#import <InstabugSDK/IBGBugReporting.h>
-#import <InstabugSDK/IBGCrashReporting.h>
-#import <InstabugSDK/IBGLog.h>
-#import <InstabugSDK/IBGTypes.h>
+#import <LuciqSDK/LuciqSDK.h>
+#import <LuciqSDK/LCQBugReporting.h>
+#import <LuciqSDK/LCQCrashReporting.h>
+#import <LuciqSDK/LCQLog.h>
+#import <LuciqSDK/LCQTypes.h>
 #import "ArgsRegistry.h"
 
 @interface LuciqReactBridge : RCTEventEmitter <RCTBridgeModule>
@@ -26,7 +26,7 @@
 
 - (void)setEnabled:(BOOL)isEnabled;
 
-- (void)init:(NSString *)token invocationEvents:(NSArray *)invocationEventsArray debugLogsLevel:(IBGSDKDebugLogsLevel)sdkDebugLogsLevel useNativeNetworkInterception:(BOOL)useNativeNetworkInterception codePushVersion:(NSString *)codePushVersion appVariant:(NSString *)appVariant options:(nullable NSDictionary *)options  overAirVersion:(NSDictionary *)overAirVersion;
+- (void)init:(NSString *)token invocationEvents:(NSArray *)invocationEventsArray debugLogsLevel:(LCQSDKDebugLogsLevel)sdkDebugLogsLevel useNativeNetworkInterception:(BOOL)useNativeNetworkInterception codePushVersion:(NSString *)codePushVersion appVariant:(NSString *)appVariant options:(nullable NSDictionary *)options  overAirVersion:(NSDictionary *)overAirVersion;
 
 - (void)setCodePushVersion:(NSString *)version;
 
@@ -40,9 +40,9 @@
 
 - (void)setSessionProfilerEnabled:(BOOL)sessionProfilerEnabled;
 
-- (void)setLocale:(IBGLocale)locale;
+- (void)setLocale:(LCQLocale)locale;
 
-- (void)setColorTheme:(IBGColorTheme)colorTheme;
+- (void)setColorTheme:(LCQColorTheme)colorTheme;
 
 - (void)setPrimaryColor:(UIColor *)color;
 
@@ -64,7 +64,7 @@
 
 - (void)logVerbose:(NSString *)log;
 
-- (void)setReproStepsConfig:(IBGUserStepsMode)bugMode:(IBGUserStepsMode)crashMode:(IBGUserStepsMode)sessionReplayMode;
+- (void)setReproStepsConfig:(LCQUserStepsMode)bugMode:(LCQUserStepsMode)crashMode:(LCQUserStepsMode)sessionReplayMode;
 
 - (void)setUserAttribute:(NSString *)key withValue:(NSString *)value;
 
@@ -79,9 +79,9 @@
 
 - (void)clearAllUserAttributes;
 
-- (void)showWelcomeMessageWithMode:(IBGWelcomeMessageMode)welcomeMessageMode;
+- (void)showWelcomeMessageWithMode:(LCQWelcomeMessageMode)welcomeMessageMode;
 
-- (void)setWelcomeMessageMode:(IBGWelcomeMessageMode)welcomeMessageMode;
+- (void)setWelcomeMessageMode:(LCQWelcomeMessageMode)welcomeMessageMode;
 
 - (void)setFileAttachment:(NSString *)fileLocation;
 

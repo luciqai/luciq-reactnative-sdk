@@ -6,11 +6,13 @@
 [![Twitter](https://img.shields.io/badge/twitter-@Luciq-blue.svg)](https://twitter.com/Luciq)
 [![Analytics](https://luciq-ga.appspot.com/UA-41982088-6/github/Luciq/@luciq/react-native?pixel)](https://luciq.ai)
 
-Luciq is an in-app feedback and bug reporting tool for mobile apps. With just a simple shake, your users or beta testers can [report bugs](https://luciq.ai/bug-reporting) or send in-app feedback and the SDK will capture an environment snapshot of your user's device including all console logs, and [server-side network requests](https://luciq.ai/network-logging) compiling all these details in one organised dashboard to help you debug and fix bugs faster.
+Luciq is the Agentic Observability Platform built for Mobile.
 
-Luciq also provides you with a [reliable crash reporter](https://luciq.ai/crash-reporting) that automatically captures a detailed report of the running environment, the different threads’ states, [the steps to reproduce the crash](https://luciq.ai/user-steps), and the network request logs. All the data is captured automatically with no need for breadcrumbs, and you can always [reply back to your users](https://luciq.ai/in-app-chat) and they will receive your messages within the app.
+Our intelligent AI agents help you capture rich, contextual data for every issue, including full session replays, console logs, and detailed network requests, to proactively detect, prioritize, and resolve problems automatically. From traditional bug reporting to proactive resolution, Luciq equips you with the building blocks to your app’s success.
 
-For more info, visit [luciq.ai](https://www.luciq.ai).
+Ship faster, deliver frustration-free user sessions, and focus on building what matters.
+
+For more info, visit Luciq.ai.
 
 ## Installation
 

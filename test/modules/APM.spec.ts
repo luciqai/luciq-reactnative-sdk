@@ -95,10 +95,10 @@ describe('APM Module', () => {
     expect(NativeAPM.endUITrace).toBeCalledWith();
   });
 
-  it('should call the native method _lqSleep', () => {
-    APM._lqSleep();
+  it('should call the native method _lcqSleep', () => {
+    APM._lcqSleep();
 
-    expect(NativeAPM.lqSleep).toBeCalledTimes(1);
-    expect(NativeAPM.lqSleep).toBeCalledWith();
+    expect(NativeAPM.lcqSleep).toBeCalledTimes(1);
+    expect(NativeAPM.lcqSleep).toBeCalledWith();
   });
 });

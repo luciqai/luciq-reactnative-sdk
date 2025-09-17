@@ -9,9 +9,9 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
-import com.instabug.crash.CrashReporting;
-import com.instabug.crash.models.IBGNonFatalException;
-import com.instabug.library.Feature;
+import ai.luciq.crash.CrashReporting;
+import ai.luciq.crash.models.LuciqNonFatalException;
+import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 import org.json.JSONObject;
@@ -97,10 +97,10 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
                 @Override
                 public void run() {
                     try {
-                        Method method = getMethod(Class.forName("com.instabug.crash.CrashReporting"), "reportException", JSONObject.class, boolean.class,
-                                Map.class, JSONObject.class, IBGNonFatalException.Level.class);
+                        Method method = getMethod(Class.forName("ai.luciq.crash.CrashReporting"), "reportException", JSONObject.class, boolean.class,
+                                Map.class, JSONObject.class, LuciqNonFatalException.Level.class);
                         if (method != null) {
-                            IBGNonFatalException.Level nonFatalExceptionLevel = ArgsRegistry.nonFatalExceptionLevel.getOrDefault(level, IBGNonFatalException.Level.ERROR);
+                            LuciqNonFatalException.Level nonFatalExceptionLevel = ArgsRegistry.nonFatalExceptionLevel.getOrDefault(level, LuciqNonFatalException.Level.ERROR);
                             Map<String, Object> userAttributesMap = userAttributes == null ? null : userAttributes.toHashMap();
                             JSONObject fingerprintObj = fingerprint == null ? null : CrashReporting.getFingerprintObject(fingerprint);
 
@@ -124,7 +124,7 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
             @Override
             public void run() {
                 try {
-                    Method method = getMethod(Class.forName("com.instabug.crash.CrashReporting"), "reportException", JSONObject.class, boolean.class);
+                    Method method = getMethod(Class.forName("ai.luciq.crash.CrashReporting"), "reportException", JSONObject.class, boolean.class);
                     if (method != null) {
                         method.invoke(null, exceptionObject, isHandled);
                         RNLuciqReactnativeModule.clearCurrentReport();

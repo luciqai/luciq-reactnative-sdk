@@ -9,9 +9,9 @@
 #import <XCTest/XCTest.h>
 #import "OCMock/OCMock.h"
 #import "LuciqAPMBridge.h"
-#import <InstabugSDK/IBGTypes.h>
-#import <InstabugSDK/IBGAPM.h>
-#import "InstabugSDK/InstabugSDK.h"
+#import <LuciqSDK/LCQTypes.h>
+#import <LuciqSDK/LCQAPM.h>
+#import "LuciqSDK/LuciqSDK.h"
 #import "LCQConstants.h"
 #import "RNLuciq/LCQAPM+PrivateAPIs.h"
 
@@ -52,7 +52,7 @@
 */
 
 - (void) testSetAPMEnabled {
-  id mock = OCMClassMock([IBGAPM class]);
+  id mock = OCMClassMock([LCQAPM class]);
   BOOL isEnabled = YES;
 
   OCMStub([mock setEnabled:isEnabled]);
@@ -61,7 +61,7 @@
 }
 
 - (void) testSetAppLaunchEnabled {
-  id mock = OCMClassMock([IBGAPM class]);
+  id mock = OCMClassMock([LCQAPM class]);
   BOOL isEnabled = YES;
 
   OCMStub([mock setColdAppLaunchEnabled:isEnabled]);
@@ -70,7 +70,7 @@
 }
 
 - (void) testEndAppLaunch {
-  id mock = OCMClassMock([IBGAPM class]);
+  id mock = OCMClassMock([LCQAPM class]);
 
   OCMStub([mock endAppLaunch]);
   [self.luciqBridge endAppLaunch];
@@ -78,7 +78,7 @@
 }
 
 - (void) testSetAutoUITraceEnabled {
-  id mock = OCMClassMock([IBGAPM class]);
+  id mock = OCMClassMock([LCQAPM class]);
   BOOL isEnabled = YES;
 
   OCMStub([mock setAutoUITraceEnabled:isEnabled]);
@@ -88,7 +88,7 @@
 
 
 - (void) testStartFlow {
-  id mock = OCMClassMock([IBGAPM class]);
+  id mock = OCMClassMock([LCQAPM class]);
   NSString* appFlowName = @"APP_Flow_1";
 
   [self.luciqBridge startFlow:appFlowName];
@@ -96,7 +96,7 @@
 }
 
 - (void) testEndFlow {
-  id mock = OCMClassMock([IBGAPM class]);
+  id mock = OCMClassMock([LCQAPM class]);
   NSString* appFlowName = @"APP_Flow_1";
 
   [self.luciqBridge endFlow:appFlowName];
@@ -104,7 +104,7 @@
 }
 
 - (void) testSetFlowAttribute {
-  id mock = OCMClassMock([IBGAPM class]);
+  id mock = OCMClassMock([LCQAPM class]);
   NSString* appFlowName = @"APP_Flow_1";
   NSString* attributeKey = @"Attribute_Key_1";
   NSString* attributeValue = @"Attribute_Value_1";
@@ -114,7 +114,7 @@
 }
 
 - (void) testStartUITrace {
-  id mock = OCMClassMock([IBGAPM class]);
+  id mock = OCMClassMock([LCQAPM class]);
   NSString* traceName = @"UITrace_1";
 
   OCMStub([mock startUITraceWithName:traceName]);
@@ -123,7 +123,7 @@
 }
 
 - (void) testEndUITrace {
-  id mock = OCMClassMock([IBGAPM class]);
+  id mock = OCMClassMock([LCQAPM class]);
 
   OCMStub([mock endUITrace]);
   [self.luciqBridge endUITrace];

@@ -7,35 +7,35 @@
 //
 
 #import "RCTConvert+LuciqEnums.h"
-#import <InstabugSDK/IBGTypes.h>
+#import <LuciqSDK/LCQTypes.h>
 
 @implementation RCTConvert (LuciqEnums)
 
 RCT_ENUM_CONVERTER(
-  IBGSDKDebugLogsLevel,
+  LCQSDKDebugLogsLevel,
   ArgsRegistry.sdkLogLevels,
-  IBGSDKDebugLogsLevelError,
+  LCQSDKDebugLogsLevelError,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGInvocationEvent,
+  LCQInvocationEvent,
   ArgsRegistry.invocationEvents,
-  IBGInvocationEventNone,
+  LCQInvocationEventNone,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGBugReportingOption,
+  LCQBugReportingOption,
   ArgsRegistry.invocationOptions,
-  IBGBugReportingOptionNone,
+  LCQBugReportingOptionNone,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGColorTheme,
+  LCQColorTheme,
   ArgsRegistry.colorThemes,
-  IBGColorThemeLight,
+  LCQColorThemeLight,
   integerValue
 );
 
@@ -47,79 +47,79 @@ RCT_ENUM_CONVERTER(
 );
 
 RCT_ENUM_CONVERTER(
-  IBGPosition,
+  LCQPosition,
   ArgsRegistry.recordButtonPositions,
-  IBGPositionBottomRight,
+  LCQPositionBottomRight,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGWelcomeMessageMode,
+  LCQWelcomeMessageMode,
   ArgsRegistry.welcomeMessageStates,
-  IBGWelcomeMessageModeLive,
+  LCQWelcomeMessageModeLive,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGBugReportingReportType,
+  LCQBugReportingReportType,
   ArgsRegistry.reportTypes,
-  IBGBugReportingReportTypeBug,
+  LCQBugReportingReportTypeBug,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGDismissType,
+  LCQDismissType,
   ArgsRegistry.dismissTypes,
-  IBGDismissTypeSubmit,
+  LCQDismissTypeSubmit,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGAction,
+  LCQAction,
   ArgsRegistry.actionTypes,
-  IBGActionAllActions,
+  LCQActionAllActions,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGExtendedBugReportMode,
+  LCQExtendedBugReportMode,
   ArgsRegistry.extendedBugReportStates,
-  IBGExtendedBugReportModeDisabled,
+  LCQExtendedBugReportModeDisabled,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGUserStepsMode,
+  LCQUserStepsMode,
   ArgsRegistry.reproStates,
-  IBGUserStepsModeEnabledWithNoScreenshots,
+  LCQUserStepsModeEnabledWithNoScreenshots,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGLocale,
+  LCQLocale,
   ArgsRegistry.locales,
-  IBGLocaleEnglish,
+  LCQLocaleEnglish,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGNonFatalLevel,
+  LCQNonFatalLevel,
   ArgsRegistry.nonFatalExceptionLevel,
-  IBGNonFatalLevelError,
+  LCQNonFatalLevelError,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGAutoMaskScreenshotOption,
+  LCQAutoMaskScreenshotOption,
   ArgsRegistry.autoMaskingTypes,
-  IBGAutoMaskScreenshotOptionMaskNothing,
+  LCQAutoMaskScreenshotOptionMaskNothing,
   integerValue
 );
 
 RCT_ENUM_CONVERTER(
-  IBGActionType,
+                   LCQConsentAction,
   ArgsRegistry.userConsentActionTypes,
-  IBGActionTypeNoChat,
+                   LCQConsentActionNoChat,
   integerValue
 );
 

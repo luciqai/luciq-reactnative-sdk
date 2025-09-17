@@ -7,11 +7,11 @@
 //
 
 #import "LuciqSurveysBridge.h"
-#import <InstabugSDK/IBGSurveys.h>
+#import <LuciqSDK/LCQSurveys.h>
 #import <asl.h>
 #import <React/RCTLog.h>
 #import <os/log.h>
-#import <InstabugSDK/IBGTypes.h>
+#import <LuciqSDK/LCQTypes.h>
 #import <React/RCTUIManager.h>
 
 @implementation LuciqSurveysBridge
@@ -35,20 +35,20 @@
 RCT_EXPORT_MODULE(LCQSurveys)
 
 RCT_EXPORT_METHOD(showSurvey:(NSString *)surveyToken) {
-    [IBGSurveys showSurveyWithToken:surveyToken];
+    [LCQSurveys showSurveyWithToken:surveyToken];
 }
 
 RCT_EXPORT_METHOD(hasRespondedToSurvey:(NSString *)surveyToken :(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    [IBGSurveys hasRespondedToSurveyWithToken:surveyToken
+    [LCQSurveys hasRespondedToSurveyWithToken:surveyToken
                             completionHandler:^(BOOL hasResponded) {
         resolve(@(hasResponded));
     }];
 }
 
 RCT_EXPORT_METHOD(getAvailableSurveys:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    [IBGSurveys availableSurveysWithCompletionHandler:^(NSArray<IBGSurvey *> *availableSurveys) {
+    [LCQSurveys availableSurveysWithCompletionHandler:^(NSArray<LCQSurvey *> *availableSurveys) {
         NSMutableArray<NSDictionary*>* mappedSurveys = [[NSMutableArray alloc] init];
-        for (IBGSurvey* survey in availableSurveys) {
+        for (LCQSurvey* survey in availableSurveys) {
             [mappedSurveys addObject:@{@"title": survey.title }];
         }
         resolve(mappedSurveys);
@@ -56,43 +56,43 @@ RCT_EXPORT_METHOD(getAvailableSurveys:(RCTPromiseResolveBlock)resolve :(RCTPromi
 }
 
 RCT_EXPORT_METHOD(setEnabled:(BOOL)surveysEnabled) {
-    IBGSurveys.enabled = surveysEnabled;
+    LCQSurveys.enabled = surveysEnabled;
 }
 
 RCT_EXPORT_METHOD(showSurveysIfAvailable) {
-    [IBGSurveys showSurveyIfAvailable];
+    [LCQSurveys showSurveyIfAvailable];
 }
 
 RCT_EXPORT_METHOD(setOnShowHandler:(RCTResponseSenderBlock)callBack) {
     if (callBack != nil) {
-        IBGSurveys.willShowSurveyHandler = ^{
+        LCQSurveys.willShowSurveyHandler = ^{
             [self sendEventWithName:@"LCQWillShowSurvey" body:nil];
         };
     } else {
-        IBGSurveys.willShowSurveyHandler = ^{};
+        LCQSurveys.willShowSurveyHandler = ^{};
     }
 }
 
 RCT_EXPORT_METHOD(setOnDismissHandler:(RCTResponseSenderBlock)callBack) {
     if (callBack != nil) {
-        IBGSurveys.didDismissSurveyHandler = ^{
+        LCQSurveys.didDismissSurveyHandler = ^{
             [self sendEventWithName:@"LCQDidDismissSurvey" body:nil];
         };
     } else {
-        IBGSurveys.didDismissSurveyHandler = ^{};
+        LCQSurveys.didDismissSurveyHandler = ^{};
     }
 }
 
 RCT_EXPORT_METHOD(setAutoShowingEnabled:(BOOL)autoShowingSurveysEnabled) {
-    IBGSurveys.autoShowingEnabled = autoShowingSurveysEnabled;
+    LCQSurveys.autoShowingEnabled = autoShowingSurveysEnabled;
 }
 
 RCT_EXPORT_METHOD(setShouldShowWelcomeScreen:(BOOL)shouldShowWelcomeScreen) {
-    IBGSurveys.shouldShowWelcomeScreen = shouldShowWelcomeScreen;
+    LCQSurveys.shouldShowWelcomeScreen = shouldShowWelcomeScreen;
 }
 
 RCT_EXPORT_METHOD(setAppStoreURL:(NSString *)appStoreURL) {
-    IBGSurveys.appStoreURL = appStoreURL;
+    LCQSurveys.appStoreURL = appStoreURL;
 }
 
 @synthesize description;

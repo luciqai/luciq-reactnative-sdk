@@ -1,4 +1,4 @@
 {
-  "luciq-domain": "api.luciq.ai",
-  "apm-domain": "api-apm.luciq.ai"
+  "instabug-domain": "api.instabug.com",
+  "apm-domain": "api-apm.instabug.com"
 }

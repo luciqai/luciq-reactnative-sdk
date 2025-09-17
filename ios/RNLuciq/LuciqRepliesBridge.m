@@ -8,11 +8,11 @@
 //
 
 #import "LuciqRepliesBridge.h"
-#import <InstabugSDK/IBGReplies.h>
+#import <LuciqSDK/LCQReplies.h>
 #import <asl.h>
 #import <React/RCTLog.h>
 #import <os/log.h>
-#import <InstabugSDK/IBGTypes.h>
+#import <LuciqSDK/LCQTypes.h>
 #import <React/RCTUIManager.h>
 
 @implementation LuciqRepliesBridge
@@ -33,40 +33,40 @@
 RCT_EXPORT_MODULE(LCQReplies)
 
 RCT_EXPORT_METHOD(setEnabled:(BOOL) isEnabled) {
-    IBGReplies.enabled = isEnabled;
+    LCQReplies.enabled = isEnabled;
 }
 
 RCT_EXPORT_METHOD(hasChats:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    BOOL hasChats = IBGReplies.hasChats;
+    BOOL hasChats = LCQReplies.hasChats;
     resolve(@(hasChats));
 
 }
 
 RCT_EXPORT_METHOD(show) {
-    [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[IBGReplies class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
+    [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[LCQReplies class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
 }
 
 RCT_EXPORT_METHOD(setOnNewReplyReceivedHandler:(RCTResponseSenderBlock) callback) {
     if (callback != nil) {
-        IBGReplies.didReceiveReplyHandler = ^{
+        LCQReplies.didReceiveReplyHandler = ^{
             [self sendEventWithName:@"LCQOnNewReplyReceivedCallback" body:nil];
         };
     } else {
-        IBGReplies.didReceiveReplyHandler = nil;
+        LCQReplies.didReceiveReplyHandler = nil;
     }
 
 }
 
 RCT_EXPORT_METHOD(getUnreadRepliesCount:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve(@(IBGReplies.unreadRepliesCount));
+    resolve(@(LCQReplies.unreadRepliesCount));
 }
 
 RCT_EXPORT_METHOD(setInAppNotificationEnabled:(BOOL)isChatNotificationEnabled) {
-    IBGReplies.inAppNotificationsEnabled = isChatNotificationEnabled;
+    LCQReplies.inAppNotificationsEnabled = isChatNotificationEnabled;
 }
 
 RCT_EXPORT_METHOD(setPushNotificationsEnabled:(BOOL)isPushNotificationEnabled) {
-    [IBGReplies setPushNotificationsEnabled:isPushNotificationEnabled];
+    [LCQReplies setPushNotificationsEnabled:isPushNotificationEnabled];
 }
 
 @synthesize description;

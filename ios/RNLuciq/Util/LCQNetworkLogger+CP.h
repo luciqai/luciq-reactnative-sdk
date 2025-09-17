@@ -1,8 +1,8 @@
-#import <InstabugSDK/InstabugSDK.h>
+#import <LuciqSDK/LuciqSDK.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface IBGNetworkLogger (CP)
+@interface LCQNetworkLogger (CP)
 
 @property (class, atomic, assign) BOOL w3ExternalTraceIDEnabled;
 @property (class, atomic, assign) BOOL w3ExternalGeneratedHeaderEnabled;

@@ -7,11 +7,11 @@
 //
 
 #import "LuciqFeatureRequestsBridge.h"
-#import <InstabugSDK/IBGFeatureRequests.h>
+#import <LuciqSDK/LCQFeatureRequests.h>
 #import <asl.h>
 #import <React/RCTLog.h>
 #import <os/log.h>
-#import <InstabugSDK/IBGTypes.h>
+#import <LuciqSDK/LCQTypes.h>
 #import <React/RCTUIManager.h>
 
 @implementation LuciqFeatureRequestsBridge
@@ -32,22 +32,22 @@
 RCT_EXPORT_MODULE(LCQFeatureRequests)
 
 RCT_EXPORT_METHOD(show) {
-    [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[IBGFeatureRequests class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
+    [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[LCQFeatureRequests class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
 }
 
 RCT_EXPORT_METHOD(setEmailFieldRequiredForFeatureRequests:(BOOL)isEmailFieldRequired
                   forAction:(NSArray *)actionTypesArray) {
-    IBGAction actionTypes = 0;
+    LCQAction actionTypes = 0;
 
     for (NSNumber *boxedValue in actionTypesArray) {
         actionTypes |= [boxedValue intValue];
     }
 
-    [IBGFeatureRequests setEmailFieldRequired:isEmailFieldRequired forAction:actionTypes];
+    [LCQFeatureRequests setEmailFieldRequired:isEmailFieldRequired forAction:actionTypes];
 }
 
 RCT_EXPORT_METHOD(setEnabled: (BOOL) isEnabled) {
-    IBGFeatureRequests.enabled = isEnabled;
+    LCQFeatureRequests.enabled = isEnabled;
 }
 
 @synthesize description;

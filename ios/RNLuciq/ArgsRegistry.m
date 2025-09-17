@@ -31,37 +31,37 @@
 
 + (ArgsDictionary *) sdkLogLevels {
     return @{
-        @"sdkDebugLogsLevelVerbose": @(IBGSDKDebugLogsLevelVerbose),
-        @"sdkDebugLogsLevelDebug": @(IBGSDKDebugLogsLevelDebug),
-        @"sdkDebugLogsLevelError": @(IBGSDKDebugLogsLevelError),
-        @"sdkDebugLogsLevelNone": @(IBGSDKDebugLogsLevelNone),
+        @"sdkDebugLogsLevelVerbose": @(LCQSDKDebugLogsLevelVerbose),
+        @"sdkDebugLogsLevelDebug": @(LCQSDKDebugLogsLevelDebug),
+        @"sdkDebugLogsLevelError": @(LCQSDKDebugLogsLevelError),
+        @"sdkDebugLogsLevelNone": @(LCQSDKDebugLogsLevelNone),
     };
 }
 
 + (ArgsDictionary *) invocationEvents {
     return@{
-        @"invocationEventNone": @(IBGInvocationEventNone),
-        @"invocationEventShake": @(IBGInvocationEventShake),
-        @"invocationEventScreenshot": @(IBGInvocationEventScreenshot),
-        @"invocationEventTwoFingersSwipeLeft": @(IBGInvocationEventTwoFingersSwipeLeft),
-        @"invocationEventRightEdgePan": @(IBGInvocationEventRightEdgePan),
-        @"invocationEventFloatingButton": @(IBGInvocationEventFloatingButton)
+        @"invocationEventNone": @(LCQInvocationEventNone),
+        @"invocationEventShake": @(LCQInvocationEventShake),
+        @"invocationEventScreenshot": @(LCQInvocationEventScreenshot),
+        @"invocationEventTwoFingersSwipeLeft": @(LCQInvocationEventTwoFingersSwipeLeft),
+        @"invocationEventRightEdgePan": @(LCQInvocationEventRightEdgePan),
+        @"invocationEventFloatingButton": @(LCQInvocationEventFloatingButton)
     };
 }
 
 + (ArgsDictionary *) invocationOptions {
     return @{
-        @"optionEmailFieldHidden": @(IBGBugReportingOptionEmailFieldHidden),
-        @"optionEmailFieldOptional": @(IBGBugReportingOptionEmailFieldOptional),
-        @"optionCommentFieldRequired": @(IBGBugReportingOptionCommentFieldRequired),
-        @"optionDisablePostSendingDialog": @(IBGBugReportingOptionDisablePostSendingDialog),
+        @"optionEmailFieldHidden": @(LCQBugReportingOptionEmailFieldHidden),
+        @"optionEmailFieldOptional": @(LCQBugReportingOptionEmailFieldOptional),
+        @"optionCommentFieldRequired": @(LCQBugReportingOptionCommentFieldRequired),
+        @"optionDisablePostSendingDialog": @(LCQBugReportingOptionDisablePostSendingDialog),
     };
 }
 
 + (ArgsDictionary *) colorThemes {
     return @{
-        @"colorThemeLight": @(IBGColorThemeLight),
-        @"colorThemeDark": @(IBGColorThemeDark),
+        @"colorThemeLight": @(LCQColorThemeLight),
+        @"colorThemeDark": @(LCQColorThemeDark),
     };
 }
 
@@ -76,98 +76,98 @@
 
 + (ArgsDictionary *) recordButtonPositions {
     return @{
-        @"topLeft": @(IBGPositionTopLeft),
-        @"topRight": @(IBGPositionTopRight),
-        @"bottomLeft": @(IBGPositionBottomLeft),
-        @"bottomRight": @(IBGPositionBottomRight),
+        @"topLeft": @(LCQPositionTopLeft),
+        @"topRight": @(LCQPositionTopRight),
+        @"bottomLeft": @(LCQPositionBottomLeft),
+        @"bottomRight": @(LCQPositionBottomRight),
     };
 }
 
 + (ArgsDictionary *) welcomeMessageStates {
     return @{
-        @"welcomeMessageModeLive": @(IBGWelcomeMessageModeLive),
-        @"welcomeMessageModeBeta": @(IBGWelcomeMessageModeBeta),
-        @"welcomeMessageModeDisabled": @(IBGWelcomeMessageModeDisabled),
+        @"welcomeMessageModeLive": @(LCQWelcomeMessageModeLive),
+        @"welcomeMessageModeBeta": @(LCQWelcomeMessageModeBeta),
+        @"welcomeMessageModeDisabled": @(LCQWelcomeMessageModeDisabled),
     };
 }
 
 + (ArgsDictionary *) reportTypes {
     return @{
-        @"bugReportingReportTypeBug": @(IBGBugReportingReportTypeBug),
-        @"bugReportingReportTypeFeedback": @(IBGBugReportingReportTypeFeedback),
-        @"bugReportingReportTypeQuestion": @(IBGBugReportingReportTypeQuestion),
+        @"bugReportingReportTypeBug": @(LCQBugReportingReportTypeBug),
+        @"bugReportingReportTypeFeedback": @(LCQBugReportingReportTypeFeedback),
+        @"bugReportingReportTypeQuestion": @(LCQBugReportingReportTypeQuestion),
     };
 }
 
 + (ArgsDictionary *) dismissTypes {
     return @{
-        @"dismissTypeSubmit": @(IBGDismissTypeSubmit),
-        @"dismissTypeCancel": @(IBGDismissTypeCancel),
-        @"dismissTypeAddAttachment": @(IBGDismissTypeAddAttachment),
+        @"dismissTypeSubmit": @(LCQDismissTypeSubmit),
+        @"dismissTypeCancel": @(LCQDismissTypeCancel),
+        @"dismissTypeAddAttachment": @(LCQDismissTypeAddAttachment),
     };
 }
 
 + (ArgsDictionary *) actionTypes {
     return @{
-        @"allActions": @(IBGActionAllActions),
-        @"requestNewFeature": @(IBGActionRequestNewFeature),
-        @"addCommentToFeature": @(IBGActionAddCommentToFeature),
+        @"allActions": @(LCQActionAllActions),
+        @"requestNewFeature": @(LCQActionRequestNewFeature),
+        @"addCommentToFeature": @(LCQActionAddCommentToFeature),
     };
 }
 + (ArgsDictionary *) userConsentActionTypes {
     return @{
-        @"dropAutoCapturedMedia": @(IBGActionTypeDropAutoCapturedMedia),
-        @"dropLogs": @(IBGActionTypeDropLogs),
-        @"noChat": @(IBGActionTypeNoChat)
+        @"dropAutoCapturedMedia": @(LCQConsentActionDropAutoCapturedMedia),
+        @"dropLogs": @(LCQConsentActionDropLogs),
+        @"noChat": @(LCQConsentActionNoChat)
     };
 }
 + (ArgsDictionary *) extendedBugReportStates {
     return @{
-        @"enabledWithRequiredFields": @(IBGExtendedBugReportModeEnabledWithRequiredFields),
-        @"enabledWithOptionalFields": @(IBGExtendedBugReportModeEnabledWithOptionalFields),
-        @"disabled": @(IBGExtendedBugReportModeDisabled),
+        @"enabledWithRequiredFields": @(LCQExtendedBugReportModeEnabledWithRequiredFields),
+        @"enabledWithOptionalFields": @(LCQExtendedBugReportModeEnabledWithOptionalFields),
+        @"disabled": @(LCQExtendedBugReportModeDisabled),
     };
 }
 
 + (ArgsDictionary *) reproStates {
     return @{
-        @"reproStepsEnabled": @(IBGUserStepsModeEnable),
-        @"reproStepsDisabled": @(IBGUserStepsModeDisable),
-        @"reproStepsEnabledWithNoScreenshots": @(IBGUserStepsModeEnabledWithNoScreenshots),
+        @"reproStepsEnabled": @(LCQUserStepsModeEnable),
+        @"reproStepsDisabled": @(LCQUserStepsModeDisable),
+        @"reproStepsEnabledWithNoScreenshots": @(LCQUserStepsModeEnabledWithNoScreenshots),
     };
 }
 
 + (ArgsDictionary *) locales {
     return @{
-        @"localeArabic": @(IBGLocaleArabic),
-        @"localeAzerbaijani": @(IBGLocaleAzerbaijani),
-        @"localeChineseSimplified": @(IBGLocaleChineseSimplified),
-        @"localeChineseTraditional": @(IBGLocaleChineseTraditional),
-        @"localeCzech": @(IBGLocaleCzech),
-        @"localeDanish": @(IBGLocaleDanish),
-        @"localeDutch": @(IBGLocaleDutch),
-        @"localeEnglish": @(IBGLocaleEnglish),
-        @"localeFrench": @(IBGLocaleFrench),
-        @"localeGerman": @(IBGLocaleGerman),
-        @"localeItalian": @(IBGLocaleItalian),
-        @"localeJapanese": @(IBGLocaleJapanese),
-        @"localeKorean": @(IBGLocaleKorean),
-        @"localePolish": @(IBGLocalePolish),
-        @"localePortugueseBrazil": @(IBGLocalePortugueseBrazil),
-        @"localeRomanian": @(IBGLocaleRomanian),
-        @"localeRussian": @(IBGLocaleRussian),
-        @"localeSpanish": @(IBGLocaleSpanish),
-        @"localeSwedish": @(IBGLocaleSwedish),
-        @"localeTurkish": @(IBGLocaleTurkish),
+        @"localeArabic": @(LCQLocaleArabic),
+        @"localeAzerbaijani": @(LCQLocaleAzerbaijani),
+        @"localeChineseSimplified": @(LCQLocaleChineseSimplified),
+        @"localeChineseTraditional": @(LCQLocaleChineseTraditional),
+        @"localeCzech": @(LCQLocaleCzech),
+        @"localeDanish": @(LCQLocaleDanish),
+        @"localeDutch": @(LCQLocaleDutch),
+        @"localeEnglish": @(LCQLocaleEnglish),
+        @"localeFrench": @(LCQLocaleFrench),
+        @"localeGerman": @(LCQLocaleGerman),
+        @"localeItalian": @(LCQLocaleItalian),
+        @"localeJapanese": @(LCQLocaleJapanese),
+        @"localeKorean": @(LCQLocaleKorean),
+        @"localePolish": @(LCQLocalePolish),
+        @"localePortugueseBrazil": @(LCQLocalePortugueseBrazil),
+        @"localeRomanian": @(LCQLocaleRomanian),
+        @"localeRussian": @(LCQLocaleRussian),
+        @"localeSpanish": @(LCQLocaleSpanish),
+        @"localeSwedish": @(LCQLocaleSwedish),
+        @"localeTurkish": @(LCQLocaleTurkish),
     };
 }
 
 + (ArgsDictionary *)nonFatalExceptionLevel {
     return @{
-        @"nonFatalErrorLevelInfo" : @(IBGNonFatalLevelInfo),
-        @"nonFatalErrorLevelError" : @(IBGNonFatalLevelError),
-        @"nonFatalErrorLevelWarning" : @(IBGNonFatalLevelWarning),
-        @"nonFatalErrorLevelCritical" : @(IBGNonFatalLevelCritical)
+        @"nonFatalErrorLevelInfo" : @(LCQNonFatalLevelInfo),
+        @"nonFatalErrorLevelError" : @(LCQNonFatalLevelError),
+        @"nonFatalErrorLevelWarning" : @(LCQNonFatalLevelWarning),
+        @"nonFatalErrorLevelCritical" : @(LCQNonFatalLevelCritical)
 
 
     };
@@ -175,80 +175,80 @@
 
 + (NSDictionary<NSString *, NSString *> *) placeholders {
     return @{
-        @"shakeHint": kIBGShakeStartAlertTextStringName,
-        @"swipeHint": kIBGTwoFingerSwipeStartAlertTextStringName,
-        @"edgeSwipeStartHint": kIBGEdgeSwipeStartAlertTextStringName,
-        @"startAlertText": kIBGStartAlertTextStringName,
-        @"invalidEmailMessage": kIBGInvalidEmailMessageStringName,
-        @"invalidEmailTitle": kIBGInvalidEmailTitleStringName,
+        @"shakeHint": kLCQShakeStartAlertTextStringName,
+        @"swipeHint": kLCQTwoFingerSwipeStartAlertTextStringName,
+        @"edgeSwipeStartHint": kLCQEdgeSwipeStartAlertTextStringName,
+        @"startAlertText": kLCQStartAlertTextStringName,
+        @"invalidEmailMessage": kLCQInvalidEmailMessageStringName,
+        @"invalidEmailTitle": kLCQInvalidEmailTitleStringName,
 
-        @"invocationHeader": kIBGInvocationTitleStringName,
-        @"reportQuestion": kIBGAskAQuestionStringName,
-        @"reportBug": kIBGReportBugStringName,
-        @"reportFeedback": kIBGReportFeedbackStringName,
-        @"emailFieldHint": kIBGEmailFieldPlaceholderStringName,
-        @"commentFieldHintForBugReport": kIBGCommentFieldPlaceholderForBugReportStringName,
-        @"commentFieldHintForFeedback": kIBGCommentFieldPlaceholderForFeedbackStringName,
-        @"commentFieldHintForQuestion": kIBGCommentFieldPlaceholderForQuestionStringName,
-        @"addVideoMessage": kIBGAddScreenRecordingMessageStringName,
-        @"addVoiceMessage": kIBGAddVoiceMessageStringName,
-        @"addImageFromGallery": kIBGAddImageFromGalleryStringName,
-        @"addExtraScreenshot": kIBGAddExtraScreenshotStringName,
-        @"audioRecordingPermissionDeniedTitle": kIBGAudioRecordingPermissionDeniedTitleStringName,
-        @"audioRecordingPermissionDeniedMessage": kIBGAudioRecordingPermissionDeniedMessageStringName,
-        @"microphonePermissionAlertSettingsButtonTitle": kIBGMicrophonePermissionAlertSettingsButtonTitleStringName,
-        @"conversationsHeaderTitle": kIBGChatsTitleStringName,
-        @"chatsHeaderTitle": kIBGChatsTitleStringName,
-        @"team": kIBGTeamStringName,
-        @"recordingMessageToHoldText": kIBGRecordingMessageToHoldTextStringName,
-        @"recordingMessageToReleaseText": kIBGRecordingMessageToReleaseTextStringName,
-        @"messagesNotification": kIBGMessagesNotificationTitleSingleMessageStringName,
-        @"messagesNotificationAndOthers": kIBGMessagesNotificationTitleMultipleMessagesStringName,
-        @"screenshotHeaderTitle": kIBGScreenshotTitleStringName,
-        @"okButtonTitle": kIBGOkButtonTitleStringName,
-        @"cancelButtonTitle": kIBGCancelButtonTitleStringName,
-        @"thankYouText": kIBGThankYouAlertTitleStringName,
-        @"audio": kIBGAudioStringName,
-        @"screenRecording": kIBGScreenRecordingStringName,
-        @"image": kIBGImageStringName,
-        @"surveyEnterYourAnswer": kIBGSurveyEnterYourAnswerTextPlaceholder,
-        @"videoPressRecord": kIBGVideoPressRecordTitle,
-        @"collectingDataText": kIBGCollectingDataText,
-        @"thankYouAlertText": kIBGThankYouAlertMessageStringName,
+        @"invocationHeader": kLCQInvocationTitleStringName,
+        @"reportQuestion": kLCQAskAQuestionStringName,
+        @"reportBug": kLCQReportBugStringName,
+        @"reportFeedback": kLCQReportFeedbackStringName,
+        @"emailFieldHint": kLCQEmailFieldPlaceholderStringName,
+        @"commentFieldHintForBugReport": kLCQCommentFieldPlaceholderForBugReportStringName,
+        @"commentFieldHintForFeedback": kLCQCommentFieldPlaceholderForFeedbackStringName,
+        @"commentFieldHintForQuestion": kLCQCommentFieldPlaceholderForQuestionStringName,
+        @"addVideoMessage": kLCQAddScreenRecordingMessageStringName,
+        @"addVoiceMessage": kLCQAddVoiceMessageStringName,
+        @"addImageFromGallery": kLCQAddImageFromGalleryStringName,
+        @"addExtraScreenshot": kLCQAddExtraScreenshotStringName,
+        @"audioRecordingPermissionDeniedTitle": kLCQAudioRecordingPermissionDeniedTitleStringName,
+        @"audioRecordingPermissionDeniedMessage": kLCQAudioRecordingPermissionDeniedMessageStringName,
+        @"microphonePermissionAlertSettingsButtonTitle": kLCQMicrophonePermissionAlertSettingsButtonTitleStringName,
+        @"conversationsHeaderTitle": kLCQChatsTitleStringName,
+        @"chatsHeaderTitle": kLCQChatsTitleStringName,
+        @"team": kLCQTeamStringName,
+        @"recordingMessageToHoldText": kLCQRecordingMessageToHoldTextStringName,
+        @"recordingMessageToReleaseText": kLCQRecordingMessageToReleaseTextStringName,
+        @"messagesNotification": kLCQMessagesNotificationTitleSingleMessageStringName,
+        @"messagesNotificationAndOthers": kLCQMessagesNotificationTitleMultipleMessagesStringName,
+        @"screenshotHeaderTitle": kLCQScreenshotTitleStringName,
+        @"okButtonTitle": kLCQOkButtonTitleStringName,
+        @"cancelButtonTitle": kLCQCancelButtonTitleStringName,
+        @"thankYouText": kLCQThankYouAlertTitleStringName,
+        @"audio": kLCQAudioStringName,
+        @"screenRecording": kLCQScreenRecordingStringName,
+        @"image": kLCQImageStringName,
+        @"surveyEnterYourAnswer": kLCQSurveyEnterYourAnswerTextPlaceholder,
+        @"videoPressRecord": kLCQVideoPressRecordTitle,
+        @"collectingDataText": kLCQCollectingDataText,
+        @"thankYouAlertText": kLCQThankYouAlertMessageStringName,
 
-        @"welcomeMessageBetaWelcomeStepTitle": kIBGBetaWelcomeMessageWelcomeStepTitle,
-        @"welcomeMessageBetaWelcomeStepContent": kIBGBetaWelcomeMessageWelcomeStepContent,
-        @"welcomeMessageBetaHowToReportStepTitle": kIBGBetaWelcomeMessageHowToReportStepTitle,
-        @"welcomeMessageBetaHowToReportStepContent": kIBGBetaWelcomeMessageHowToReportStepContent,
-        @"welcomeMessageBetaFinishStepTitle": kIBGBetaWelcomeMessageFinishStepTitle,
-        @"welcomeMessageBetaFinishStepContent": kIBGBetaWelcomeMessageFinishStepContent,
-        @"welcomeMessageLiveWelcomeStepTitle": kIBGLiveWelcomeMessageTitle,
-        @"welcomeMessageLiveWelcomeStepContent": kIBGLiveWelcomeMessageContent,
+        @"welcomeMessageBetaWelcomeStepTitle": kLCQBetaWelcomeMessageWelcomeStepTitle,
+        @"welcomeMessageBetaWelcomeStepContent": kLCQBetaWelcomeMessageWelcomeStepContent,
+        @"welcomeMessageBetaHowToReportStepTitle": kLCQBetaWelcomeMessageHowToReportStepTitle,
+        @"welcomeMessageBetaHowToReportStepContent": kLCQBetaWelcomeMessageHowToReportStepContent,
+        @"welcomeMessageBetaFinishStepTitle": kLCQBetaWelcomeMessageFinishStepTitle,
+        @"welcomeMessageBetaFinishStepContent": kLCQBetaWelcomeMessageFinishStepContent,
+        @"welcomeMessageLiveWelcomeStepTitle": kLCQLiveWelcomeMessageTitle,
+        @"welcomeMessageLiveWelcomeStepContent": kLCQLiveWelcomeMessageContent,
 
-        @"surveysStoreRatingThanksTitle": kIBGStoreRatingThankYouTitleText,
-        @"surveysStoreRatingThanksSubtitle": kIBGStoreRatingThankYouDescriptionText,
+        @"surveysStoreRatingThanksTitle": kLCQStoreRatingThankYouTitleText,
+        @"surveysStoreRatingThanksSubtitle": kLCQStoreRatingThankYouDescriptionText,
 
-        @"reportBugDescription": kIBGReportBugDescriptionStringName,
-        @"reportFeedbackDescription": kIBGReportFeedbackDescriptionStringName,
-        @"reportQuestionDescription": kIBGReportQuestionDescriptionStringName,
-        @"requestFeatureDescription": kIBGRequestFeatureDescriptionStringName,
+        @"reportBugDescription": kLCQReportBugDescriptionStringName,
+        @"reportFeedbackDescription": kLCQReportFeedbackDescriptionStringName,
+        @"reportQuestionDescription": kLCQReportQuestionDescriptionStringName,
+        @"requestFeatureDescription": kLCQRequestFeatureDescriptionStringName,
 
-        @"discardAlertTitle": kIBGDiscardAlertTitle,
-        @"discardAlertMessage": kIBGDiscardAlertMessage,
-        @"discardAlertDiscard": kIBGDiscardAlertCancel,
-        @"discardAlertStay": kIBGDiscardAlertAction,
-        @"addAttachmentButtonTitleStringName": kIBGAddAttachmentButtonTitleStringName,
+        @"discardAlertTitle": kLCQDiscardAlertTitle,
+        @"discardAlertMessage": kLCQDiscardAlertMessage,
+        @"discardAlertDiscard": kLCQDiscardAlertCancel,
+        @"discardAlertStay": kLCQDiscardAlertAction,
+        @"addAttachmentButtonTitleStringName": kLCQAddAttachmentButtonTitleStringName,
 
-        @"reportReproStepsDisclaimerBody": kIBGReproStepsDisclaimerBody,
-        @"reportReproStepsDisclaimerLink": kIBGReproStepsDisclaimerLink,
-        @"reproStepsProgressDialogBody": kIBGProgressViewTitle,
-        @"reproStepsListHeader": kIBGReproStepsListTitle,
-        @"reproStepsListDescription": kIBGReproStepsListHeader,
-        @"reproStepsListEmptyStateDescription": kIBGReproStepsListEmptyStateLabel,
-        @"reproStepsListItemNumberingTitle": kIBGReproStepsListItemName,
-        @"conversationTextFieldHint": kIBGChatReplyFieldPlaceholderStringName,
-        @"insufficientContentTitle" : kIBGInsufficientContentTitleStringName,
-        @"insufficientContentMessage" : kIBGInsufficientContentMessageStringName,
+        @"reportReproStepsDisclaimerBody": kLCQReproStepsDisclaimerBody,
+        @"reportReproStepsDisclaimerLink": kLCQReproStepsDisclaimerLink,
+        @"reproStepsProgressDialogBody": kLCQProgressViewTitle,
+        @"reproStepsListHeader": kLCQReproStepsListTitle,
+        @"reproStepsListDescription": kLCQReproStepsListHeader,
+        @"reproStepsListEmptyStateDescription": kLCQReproStepsListEmptyStateLabel,
+        @"reproStepsListItemNumberingTitle": kLCQReproStepsListItemName,
+        @"conversationTextFieldHint": kLCQChatReplyFieldPlaceholderStringName,
+        @"insufficientContentTitle" : kLCQInsufficientContentTitleStringName,
+        @"insufficientContentMessage" : kLCQInsufficientContentMessageStringName,
     };
 }
 
@@ -260,17 +260,17 @@
 }
 + (ArgsDictionary *) overAirServices {
     return @{
-        @"expo":@(IBGOverAirTypeExpo) ,
-        @"codePush":@(IBGOverAirTypeCodePush),
+        @"expo":@(LCQOverAirTypeExpo) ,
+        @"codePush":@(LCQOverAirTypeCodePush),
     };
 }
 
 + (ArgsDictionary *)autoMaskingTypes {
     return @{
-        @"labels" : @(IBGAutoMaskScreenshotOptionLabels),
-        @"textInputs" : @(IBGAutoMaskScreenshotOptionTextInputs),
-        @"media" : @(IBGAutoMaskScreenshotOptionMedia),
-        @"none" : @(IBGAutoMaskScreenshotOptionMaskNothing)
+        @"labels" : @(LCQAutoMaskScreenshotOptionLabels),
+        @"textInputs" : @(LCQAutoMaskScreenshotOptionTextInputs),
+        @"media" : @(LCQAutoMaskScreenshotOptionMedia),
+        @"none" : @(LCQAutoMaskScreenshotOptionMaskNothing)
     };
 }
 @end

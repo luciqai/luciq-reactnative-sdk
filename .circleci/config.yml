@@ -108,7 +108,7 @@ commands:
           working_directory: << parameters.working_directory >>
       - find_and_replace:
           files: package.json android/sourcemaps.gradle ios/sourcemaps.sh
-          search: instabug-reactnative
+          search: @luciq/react-native
           replace: << parameters.npm_package >>
           working_directory: << parameters.working_directory >>
       - find_and_replace:
@@ -118,8 +118,8 @@ commands:
           working_directory: << parameters.working_directory >>
       - find_and_replace:
           files: android/native.gradle
-          search: 'com.instabug.library:instabug:'
-          replace: 'com.instabug.library-<< parameters.android_package >>:instabug:'
+          search: 'ai.luciq.library:luciq:'
+          replace: 'ai.luciq.library-<< parameters.android_package >>:luciq:'
           working_directory: << parameters.working_directory >>
 
   prepare_dream11:
@@ -130,9 +130,9 @@ commands:
     steps:
       - install_node_modules
       - prepare_custom_package:
-          npm_package: '@instabug/instabug-reactnative-dream11'
+          npm_package: '@luciq/react-native-dream11'
           android_package: dream11
-          api_endpoint: st001012dream11.instabug.ai
+          api_endpoint: st001012dream11.instabug.com
           working_directory: << parameters.working_directory >>
       - run:
           name: Give execute permission to Dream11 script
@@ -222,7 +222,7 @@ jobs:
       tag: '2024.01.1'
     working_directory: ~/project/examples/default
     environment:
-      INSTABUG_SOURCEMAPS_UPLOAD_DISABLE: true
+      LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
     steps:
       - advanced-checkout/shallow-checkout
       - steps: << parameters.prepare_steps >>
@@ -282,7 +282,7 @@ jobs:
     resource_class: macos.m1.medium.gen1
     working_directory: ~/project/examples/default
     environment:
-      INSTABUG_SOURCEMAPS_UPLOAD_DISABLE: true
+      LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
     steps:
       - advanced-checkout/shallow-checkout
       - steps: << parameters.prepare_steps >>
@@ -451,32 +451,7 @@ jobs:
           working_directory: project
           command: Escape react-native publish
           environment:
-            DASHBOARD_API_ENDPOINT: api.instabug.ai
-  publish_new_namespace:
-    working_directory: ~/project
-    executor:
-      name: node/default
-    steps:
-      - advanced-checkout/shallow-checkout
-      - find_and_replace:
-          files: package.json
-          search: instabug-reactnative
-          replace: '@instabug/react-native'
-      - run: git clone -b master2 git@github.ai:Instabug/Escape.git
-      - run:
-          working_directory: Escape
-          command: swift build -c release
-      - run:
-          working_directory: Escape/.build/release
-          command: cp -f Escape /usr/local/bin/escape
-      - install_node_modules:
-          app-dir: project
-      - run:
-          working_directory: project
-          command: yarn build
-      - run:
-          working_directory: project
-          command: Escape react-native publish
+            DASHBOARD_API_ENDPOINT: api.instabug.com
 
   generate_snapshot:
     executor:
@@ -571,10 +546,10 @@ workflows:
               only: master
           prepare_steps:
             - prepare_custom_package:
-                npm_package: '@instabug/react-native-nn'
+                npm_package: '@luciq/react-native-nn'
                 android_package: nn
-                api_endpoint: st001009nn.instabug.ai
-          api_endpoint: st001009nn.instabug.ai
+                api_endpoint: st001009nn.instabug.com
+          api_endpoint: st001009nn.instabug.com
           dashboard_token_env: NN_TOKEN
 
       - hold_release_injazat:
@@ -592,10 +567,10 @@ workflows:
               only: master
           prepare_steps:
             - prepare_custom_package:
-                npm_package: '@instabug/react-native-injazat'
+                npm_package: '@luciq/react-native-injazat'
                 android_package: injazat
-                api_endpoint: st001013mec1.instabug.ai
-          api_endpoint: st001013mec1.instabug.ai
+                api_endpoint: st001013mec1.instabug.com
+          api_endpoint: st001013mec1.instabug.com
           dashboard_token_env: INJAZAT_TOKEN
 
       # Dream11 tests
@@ -638,5 +613,5 @@ workflows:
               only: dream11
           prepare_steps:
             - prepare_dream11
-          api_endpoint: st001012dream11.instabug.ai
+          api_endpoint: st001012dream11.instabug.com
           dashboard_token_env: DREAM11_TOKEN

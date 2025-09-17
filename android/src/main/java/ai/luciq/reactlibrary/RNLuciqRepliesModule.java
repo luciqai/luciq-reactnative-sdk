@@ -7,8 +7,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
-import com.instabug.chat.Replies;
-import com.instabug.library.Feature;
+import ai.luciq.chat.Replies;
+import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
@@ -206,7 +206,7 @@ public class RNLuciqRepliesModule extends EventEmitterModule {
                                 break;
                         }
                     }
-                    if (Replies.isInstabugNotification(map)) {
+                    if (Replies.isLuciqNotification(map)) {
                         Replies.showNotification(map);
                     }
                 } catch (Exception e) {

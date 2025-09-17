@@ -1,7 +1,7 @@
 package ai.luciq.reactlibrary;
 
-import static com.instabug.apm.configuration.cp.APMFeature.APM_NETWORK_PLUGIN_INSTALLED;
-import static com.instabug.apm.configuration.cp.APMFeature.CP_NATIVE_INTERCEPTION_ENABLED;
+import static ai.luciq.apm.configuration.cp.APMFeature.APM_NETWORK_PLUGIN_INSTALLED;
+import static ai.luciq.apm.configuration.cp.APMFeature.CP_NATIVE_INTERCEPTION_ENABLED;
 import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
 import android.app.Application;
@@ -32,31 +32,31 @@ import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.UIManagerModule;
-import com.instabug.apm.InternalAPM;
-import com.instabug.apm.configuration.cp.APMFeature;
-import com.instabug.library.Feature;
-import com.instabug.library.Instabug;
-import com.instabug.library.InstabugColorTheme;
-import com.instabug.library.InstabugCustomTextPlaceHolder;
-import com.instabug.library.IssueType;
-import com.instabug.library.LogLevel;
-import com.instabug.library.ReproConfigurations;
-import com.instabug.library.core.InstabugCore;
-import com.instabug.library.internal.crossplatform.CoreFeature;
-import com.instabug.library.internal.crossplatform.CoreFeaturesState;
-import com.instabug.library.internal.crossplatform.FeaturesStateListener;
-import com.instabug.library.internal.crossplatform.InternalCore;
-import com.instabug.library.featuresflags.model.IBGFeatureFlag;
-import com.instabug.library.internal.crossplatform.InternalCore;
-import com.instabug.library.internal.crossplatform.OnFeaturesUpdatedListener;
-import com.instabug.library.internal.module.InstabugLocale;
-import com.instabug.library.invocation.InstabugInvocationEvent;
-import com.instabug.library.logging.InstabugLog;
-import com.instabug.library.model.IBGTheme;
-import com.instabug.library.model.NetworkLog;
-import com.instabug.library.model.Report;
-import com.instabug.library.ui.onboarding.WelcomeMessage;
-import com.instabug.library.util.InstabugSDKLogger;
+import ai.luciq.apm.InternalAPM;
+import ai.luciq.apm.configuration.cp.APMFeature;
+import ai.luciq.library.Feature;
+import ai.luciq.library.Luciq;
+import ai.luciq.library.LuciqColorTheme;
+import ai.luciq.library.LuciqCustomTextPlaceHolder;
+import ai.luciq.library.IssueType;
+import ai.luciq.library.LogLevel;
+import ai.luciq.library.ReproConfigurations;
+import ai.luciq.library.core.InstabugCore;
+import ai.luciq.library.internal.crossplatform.CoreFeature;
+import ai.luciq.library.internal.crossplatform.CoreFeaturesState;
+import ai.luciq.library.internal.crossplatform.FeaturesStateListener;
+import ai.luciq.library.internal.crossplatform.InternalCore;
+import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
+import ai.luciq.library.internal.crossplatform.InternalCore;
+import ai.luciq.library.internal.crossplatform.OnFeaturesUpdatedListener;
+import ai.luciq.library.internal.module.LuciqLocale;
+import ai.luciq.library.invocation.LuciqInvocationEvent;
+import ai.luciq.library.logging.LuciqLog;
+import ai.luciq.library.model.LuciqTheme;
+import ai.luciq.library.model.NetworkLog;
+import ai.luciq.library.model.Report;
+import ai.luciq.library.ui.onboarding.WelcomeMessage;
+import ai.luciq.library.util.LuciqSDKLogger;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
@@ -85,9 +85,9 @@ import javax.annotation.Nullable;
  */
 public class RNLuciqReactnativeModule extends EventEmitterModule {
 
-    private static final String TAG = "IBG-RN-Core";
+    private static final String TAG = "Luciq-RN-Core";
 
-    private InstabugCustomTextPlaceHolder placeHolders;
+    private LuciqCustomTextPlaceHolder placeHolders;
     private static Report currentReport;
     private final ReactApplicationContext reactContext;
 
@@ -102,7 +102,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         this.reactContext = reactContext;
 
         //init placeHolders
-        placeHolders = new InstabugCustomTextPlaceHolder();
+        placeHolders = new LuciqCustomTextPlaceHolder();
     }
 
     @Override
@@ -132,9 +132,9 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             public void run() {
                 try {
                     if (isEnabled)
-                        Instabug.enable();
+                        Luciq.enable();
                     else
-                        Instabug.disable();
+                        Luciq.disable();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -169,8 +169,8 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 final RNTouchedViewExtractor rnTouchedViewExtractor = new RNTouchedViewExtractor();
                 InstabugCore.setTouchedViewExtractorExtension(rnTouchedViewExtractor);
                 final ArrayList<String> keys = ArrayUtil.parseReadableArrayOfStrings(invocationEventValues);
-                final ArrayList<InstabugInvocationEvent> parsedInvocationEvents = ArgsRegistry.invocationEvents.getAll(keys);
-                final InstabugInvocationEvent[] invocationEvents = parsedInvocationEvents.toArray(new InstabugInvocationEvent[0]);
+                final ArrayList<LuciqInvocationEvent> parsedInvocationEvents = ArgsRegistry.invocationEvents.getAll(keys);
+                final LuciqInvocationEvent[] invocationEvents = parsedInvocationEvents.toArray(new LuciqInvocationEvent[0]);
                 final int parsedLogLevel = ArgsRegistry.sdkLogLevels.getOrDefault(logLevel, LogLevel.ERROR);
 
                 final Application application = (Application) reactContext.getApplicationContext();
@@ -184,8 +184,8 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 }
 
                 if (codePushVersion != null) {
-                    if (Instabug.isBuilt()) {
-                        Instabug.setCodePushVersion(codePushVersion);
+                    if (Luciq.isBuilt()) {
+                        Luciq.setCodePushVersion(codePushVersion);
                     } else {
                         builder.setCodePushVersion(codePushVersion);
                     }
@@ -195,8 +195,8 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                     }
 
                 if(overAirVersion != null ) {
-                    if(Instabug.isBuilt()) {
-                        Instabug.setOverAirVersion(overAirVersion.getString("version"),
+                    if(Luciq.isBuilt()) {
+                        Luciq.setOverAirVersion(overAirVersion.getString("version"),
                                 ArgsRegistry.overAirUpdateService.get(overAirVersion.getString("service")));
                     } else {
                         builder.setOverAirVersion(overAirVersion);
@@ -214,7 +214,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.setCodePushVersion(version);
+                    Luciq.setCodePushVersion(version);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -228,7 +228,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.setOverAirVersion(overAirVersion.getString("version"),
+                    Luciq.setOverAirVersion(overAirVersion.getString("version"),
                             ArgsRegistry.overAirUpdateService.get(overAirVersion.getString("service")));
 
                 } catch (Exception e) {
@@ -252,7 +252,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 try {
                     Object[] objectArray = ArrayUtil.toArray(tags);
                     String[] stringArray = Arrays.copyOf(objectArray, objectArray.length, String[].class);
-                    Instabug.addTags(stringArray);
+                    Luciq.addTags(stringArray);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -272,10 +272,10 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    final InstabugLocale parsedLocale = ArgsRegistry.locales
-                            .getOrDefault(luciqLocale, InstabugLocale.ENGLISH);
+                    final LuciqLocale parsedLocale = ArgsRegistry.locales
+                            .getOrDefault(luciqLocale, LuciqLocale.ENGLISH);
                     final Locale locale = new Locale(parsedLocale.getCode(), parsedLocale.getCountry());
-                    Instabug.setLocale(locale);
+                    Luciq.setLocale(locale);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -298,7 +298,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 try {
                     File file = new File(fileUri);
                     if (file.exists()) {
-                        Instabug.addFileAttachment(Uri.fromFile(file), fileNameWithExtension);
+                        Luciq.addFileAttachment(Uri.fromFile(file), fileNameWithExtension);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -319,7 +319,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.setUserData(userData);
+                    Luciq.setUserData(userData);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -341,7 +341,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             public void run() {
                 WritableArray tagsArray = Arguments.createArray();
                 try {
-                    ArrayList<String> tags = Instabug.getTags();
+                    ArrayList<String> tags = Luciq.getTags();
                     for (int i = 0; i < tags.size(); i++) {
                         tagsArray.pushString(tags.get(i));
                     }
@@ -372,7 +372,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             public void run() {
                 try {
                     // The arguments get re-ordered here to match the API signature.
-                    Instabug.identifyUser(userName, userEmail, userId);
+                    Luciq.identifyUser(userName, userEmail, userId);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -389,7 +389,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.resetTags();
+                    Luciq.resetTags();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -403,7 +403,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    InstabugLog.v(message);
+                    LuciqLog.v(message);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -417,7 +417,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    InstabugLog.d(message);
+                    LuciqLog.d(message);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -431,7 +431,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    InstabugLog.i(message);
+                    LuciqLog.i(message);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -445,7 +445,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    InstabugLog.e(message);
+                    LuciqLog.e(message);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -459,7 +459,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    InstabugLog.w(message);
+                    LuciqLog.w(message);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -476,7 +476,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    InstabugLog.clearLogs();
+                    LuciqLog.clearLogs();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -496,7 +496,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.setUserAttribute(key, value);
+                    Luciq.setUserAttribute(key, value);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -517,7 +517,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             public void run() {
                 String userAttribute = "";
                 try {
-                    userAttribute = Instabug.getUserAttribute(key);
+                    userAttribute = Luciq.getUserAttribute(key);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -540,7 +540,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.removeUserAttribute(key);
+                    Luciq.removeUserAttribute(key);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -560,7 +560,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             public void run() {
                 WritableMap writableMap = Arguments.createMap();
                 try {
-                    HashMap<String, String> map = Instabug.getAllUserAttributes();
+                    HashMap<String, String> map = Luciq.getAllUserAttributes();
                     for (HashMap.Entry<String, String> entry : map.entrySet()) {
                         writableMap.putString(entry.getKey(), entry.getValue());
                     }
@@ -581,7 +581,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.clearAllUserAttributes();
+                    Luciq.clearAllUserAttributes();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -600,9 +600,9 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    final InstabugColorTheme colorTheme = ArgsRegistry.colorThemes
-                            .getOrDefault(theme, InstabugColorTheme.InstabugColorThemeLight);
-                    Instabug.setColorTheme(colorTheme);
+                    final LuciqColorTheme colorTheme = ArgsRegistry.colorThemes
+                            .getOrDefault(theme, LuciqColorTheme.LuciqColorThemeLight);
+                    Luciq.setColorTheme(colorTheme);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -623,9 +623,9 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    final InstabugCustomTextPlaceHolder.Key parsedKey = ArgsRegistry.placeholders.get(key);
+                    final LuciqCustomTextPlaceHolder.Key parsedKey = ArgsRegistry.placeholders.get(key);
                     placeHolders.set(parsedKey, string);
-                    Instabug.setCustomTextPlaceHolders(placeHolders);
+                    Luciq.setCustomTextPlaceHolders(placeHolders);
                 } catch (java.lang.Exception exception) {
                     exception.printStackTrace();
                 }
@@ -645,7 +645,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.logoutUser();
+                    Luciq.logoutUser();
                 } catch (java.lang.Exception exception) {
                     exception.printStackTrace();
                 }
@@ -665,7 +665,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.logUserEvent(name);
+                    Luciq.logUserEvent(name);
                 } catch (java.lang.Exception exception) {
                     exception.printStackTrace();
                 }
@@ -687,7 +687,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                Instabug.onReportSubmitHandler(new Report.OnReportCreatedListener() {
+                Luciq.onReportSubmitHandler(new Report.OnReportCreatedListener() {
                     @Override
                     public void onReportCreated(Report report) {
                         WritableMap reportParam = Arguments.createMap();
@@ -696,7 +696,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                         reportParam.putString("userData", report.getUserData());
                         reportParam.putMap("userAttributes", convertFromHashMapToWriteableMap(report.getUserAttributes()));
                         reportParam.putMap("fileAttachments", convertFromHashMapToWriteableMap(report.getFileAttachments()));
-                        sendEvent("IBGpreSendingHandler", reportParam);
+                        sendEvent("LuciqpreSendingHandler", reportParam);
                         currentReport = report;
                     }
                 });
@@ -823,7 +823,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
 
     /**
      * Clears all Uris of the attached files.
-     * The URIs which added via {@link Instabug#addFileAttachment} API not the physical files.
+     * The URIs which added via {@link Luciq#addFileAttachment} API not the physical files.
      */
     @ReactMethod
     public void clearFileAttachment() {
@@ -831,7 +831,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.clearFileAttachment();
+                    Luciq.clearFileAttachment();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -855,7 +855,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                             .setIssueMode(IssueType.SessionReplay, resolvedSessionReplayMode)
                             .build();
 
-                    Instabug.setReproConfigurations(config);
+                    Luciq.setReproConfigurations(config);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -877,7 +877,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 try {
                     final WelcomeMessage.State parsedState = ArgsRegistry.welcomeMessageStates
                             .getOrDefault(welcomeMessageMode, WelcomeMessage.State.LIVE);
-                    Instabug.showWelcomeMessage(parsedState);
+                    Luciq.showWelcomeMessage(parsedState);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -899,7 +899,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 try {
                     final WelcomeMessage.State parsedState = ArgsRegistry.welcomeMessageStates
                             .getOrDefault(welcomeMessageMode, WelcomeMessage.State.LIVE);
-                    Instabug.setWelcomeMessageState(parsedState);
+                    Luciq.setWelcomeMessageState(parsedState);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -912,7 +912,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                Instabug.show();
+                Luciq.show();
             }
         });
     }
@@ -929,9 +929,9 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             public void run() {
                 try {
                     if (sessionProfilerEnabled) {
-                        Instabug.setSessionProfilerState(Feature.State.ENABLED);
+                        Luciq.setSessionProfilerState(Feature.State.ENABLED);
                     } else {
-                        Instabug.setSessionProfilerState(Feature.State.DISABLED);
+                        Luciq.setSessionProfilerState(Feature.State.DISABLED);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1005,7 +1005,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                     final View view = resolveReactView(reactTag);
 
                     if(view !=null){
-                    Instabug.addPrivateViews(view);
+                    Luciq.addPrivateViews(view);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1023,7 +1023,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                     final View view = resolveReactView(reactTag);
                     if(view !=null){
 
-                    Instabug.removePrivateViews(view);
+                    Luciq.removePrivateViews(view);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1043,7 +1043,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Method method = getMethod(Class.forName("com.instabug.library.Instabug"), "reportCurrentViewChange", String.class);
+                    Method method = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportCurrentViewChange", String.class);
                     if (method != null) {
                         method.invoke(null, screenName);
                     }
@@ -1065,7 +1065,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Method method = getMethod(Class.forName("com.instabug.library.Instabug"), "reportScreenChange", Bitmap.class, String.class);
+                    Method method = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class);
                     if (method != null) {
                         method.invoke(null, null, screenName);
                     }
@@ -1085,15 +1085,15 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             public void run() {
                 try {
                     Iterator<Map.Entry<String, Object>> iterator = featureFlagsMap.getEntryIterator();
-                    ArrayList<IBGFeatureFlag> featureFlags = new ArrayList<>();
+                    ArrayList<LuciqFeatureFlag> featureFlags = new ArrayList<>();
                     while (iterator.hasNext()) {
                         Map.Entry<String, Object> item = iterator.next();
                         String variant = (String) item.getValue();
                         String name = item.getKey();
-                        featureFlags.add(new IBGFeatureFlag(name, variant.isEmpty() ? null : variant));
+                        featureFlags.add(new LuciqFeatureFlag(name, variant.isEmpty() ? null : variant));
                     }
                     if (!featureFlags.isEmpty()) {
-                        Instabug.addFeatureFlags(featureFlags);
+                        Luciq.addFeatureFlags(featureFlags);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1109,7 +1109,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             public void run() {
                 try {
                     ArrayList<String> stringArray = ArrayUtil.parseReadableArrayOfStrings(featureFlags);
-                    Instabug.removeFeatureFlag(stringArray);
+                    Luciq.removeFeatureFlag(stringArray);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1123,7 +1123,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.removeAllFeatureFlags();
+                    Luciq.removeAllFeatureFlags();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1137,7 +1137,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    Instabug.willRedirectToStore();
+                    Luciq.willRedirectToStore();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1287,7 +1287,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
            @Override
            public void run() {
                try {
-                   Instabug.setNetworkLogBodyEnabled(isEnabled);
+                   Luciq.setNetworkLogBodyEnabled(isEnabled);
                } catch (Exception e) {
                    e.printStackTrace();
                }
@@ -1314,7 +1314,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
 
                 }
 
-                Instabug.setAutoMaskScreenshotsTypes(autoMassingTypesArray);
+                Luciq.setAutoMaskScreenshotsTypes(autoMassingTypesArray);
             }
 
         });
@@ -1347,7 +1347,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
        @ReactMethod
         public void setAppVariant(@NonNull String appVariant) {
             try {
-                Instabug.setAppVariant(appVariant);
+                Luciq.setAppVariant(appVariant);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -1364,7 +1364,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    com.instabug.library.model.IBGTheme.Builder builder = new com.instabug.library.model.IBGTheme.Builder();
+                    ai.luciq.library.model.LuciqTheme.Builder builder = new ai.luciq.library.model.LuciqTheme.Builder();
 
                     // Apply colors
                     applyColorIfPresent(themeConfig, builder, "primaryColor", (themeBuilder, color) -> themeBuilder.setPrimaryColor(color));
@@ -1381,8 +1381,8 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                     setFontIfPresent(themeConfig, builder, "secondaryFontPath", "secondaryFontAsset", "secondary");
                     setFontIfPresent(themeConfig, builder, "ctaFontPath", "ctaFontAsset", "CTA");
 
-                    IBGTheme theme = builder.build();
-                    Instabug.setTheme(theme);
+                    LuciqTheme theme = builder.build();
+                    Luciq.setTheme(theme);
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1449,8 +1449,8 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      * @param key The configuration key
      * @param setter The color setter function
      */
-    private void applyColorIfPresent(ReadableMap themeConfig, com.instabug.library.model.IBGTheme.Builder builder,
-                                   String key, java.util.function.BiConsumer<com.instabug.library.model.IBGTheme.Builder, Integer> setter) {
+    private void applyColorIfPresent(ReadableMap themeConfig, ai.luciq.library.model.LuciqTheme.Builder builder,
+                                   String key, java.util.function.BiConsumer<ai.luciq.library.model.LuciqTheme.Builder, Integer> setter) {
         if (themeConfig.hasKey(key)) {
             int color = getColor(themeConfig, key);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -1467,8 +1467,8 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      * @param key The configuration key
      * @param setter The text style setter function
      */
-    private void applyTextStyleIfPresent(ReadableMap themeConfig, com.instabug.library.model.IBGTheme.Builder builder,
-                                       String key, java.util.function.BiConsumer<com.instabug.library.model.IBGTheme.Builder, Integer> setter) {
+    private void applyTextStyleIfPresent(ReadableMap themeConfig, ai.luciq.library.model.LuciqTheme.Builder builder,
+                                       String key, java.util.function.BiConsumer<ai.luciq.library.model.LuciqTheme.Builder, Integer> setter) {
         if (themeConfig.hasKey(key)) {
             int style = getTextStyle(themeConfig, key);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -1486,7 +1486,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      * @param assetKey The key for font asset path
      * @param fontType The type of font (for logging purposes)
      */
-    private void setFontIfPresent(ReadableMap themeConfig, com.instabug.library.model.IBGTheme.Builder builder,
+    private void setFontIfPresent(ReadableMap themeConfig, ai.luciq.library.model.LuciqTheme.Builder builder,
                                  String fileKey, String assetKey, String fontType) {
         if (themeConfig.hasKey(fileKey) || themeConfig.hasKey(assetKey)) {
             Typeface typeface = getTypeface(themeConfig, fileKey, assetKey);
@@ -1601,7 +1601,7 @@ private String getFileName(String path) {
             @Override
             public void run() {
                 try {
-                        Instabug.setFullscreen(isEnabled);
+                        Luciq.setFullscreen(isEnabled);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

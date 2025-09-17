@@ -1,9 +1,9 @@
 #import <asl.h>
 #import <React/RCTLog.h>
 #import <os/log.h>
-#import <InstabugSDK/IBGTypes.h>
+#import <LuciqSDK/LCQTypes.h>
 #import <React/RCTUIManager.h>
-#import <InstabugSDK/IBGSessionReplay.h>
+#import <LuciqSDK/LCQSessionReplay.h>
 #import "LuciqSessionReplayBridge.h"
 
 @implementation LuciqSessionReplayBridge
@@ -26,39 +26,39 @@
 RCT_EXPORT_MODULE(LCQSessionReplay)
 
 RCT_EXPORT_METHOD(setEnabled:(BOOL)isEnabled) {
-    IBGSessionReplay.enabled = isEnabled;
+    LCQSessionReplay.enabled = isEnabled;
 }
 
 RCT_EXPORT_METHOD(setNetworkLogsEnabled:(BOOL)isEnabled) {
-    IBGSessionReplay.networkLogsEnabled = isEnabled;
+    LCQSessionReplay.networkLogsEnabled = isEnabled;
 }
 
 RCT_EXPORT_METHOD(setLuciqLogsEnabled:(BOOL)isEnabled) {
-    IBGSessionReplay.IBGLogsEnabled = isEnabled;
+    LCQSessionReplay.LCQLogsEnabled = isEnabled;
 }
 
 RCT_EXPORT_METHOD(setUserStepsEnabled:(BOOL)isEnabled) {
-    IBGSessionReplay.userStepsEnabled = isEnabled;
+    LCQSessionReplay.userStepsEnabled = isEnabled;
 }
 
 RCT_EXPORT_METHOD(getSessionReplayLink:
     (RCTPromiseResolveBlock) resolve :(RCTPromiseRejectBlock)reject) {
-    NSString *link = IBGSessionReplay.sessionReplayLink;
+    NSString *link = LCQSessionReplay.sessionReplayLink;
     resolve(link);
 }
 
 - (NSArray<NSDictionary *> *)getNetworkLogsArray:
-     (NSArray<IBGSessionMetadataNetworkLogs *>*) networkLogs {
+     (NSArray<LCQSessionMetadataNetworkLogs *>*) networkLogs {
      NSMutableArray<NSDictionary *> *networkLogsArray = [NSMutableArray array];
 
-    for (IBGSessionMetadataNetworkLogs* log in networkLogs) {
+    for (LCQSessionMetadataNetworkLogs* log in networkLogs) {
           NSDictionary *nLog = @{@"url": log.url, @"statusCode": @(log.statusCode), @"duration": @(log.duration)};
           [networkLogsArray addObject:nLog];
     }
     return networkLogsArray;
 }
 
-- (NSDictionary *)getMetadataObjectMap:(IBGSessionMetadata *)metadataObject {
+- (NSDictionary *)getMetadataObjectMap:(LCQSessionMetadata *)metadataObject {
     return @{
         @"appVersion": metadataObject.appVersion,
         @"OS": metadataObject.os,
@@ -75,7 +75,7 @@ RCT_EXPORT_METHOD(getSessionReplayLink:
 }
 
 RCT_EXPORT_METHOD(setSyncCallback) {
-    [IBGSessionReplay setSyncCallbackWithHandler:^(IBGSessionMetadata * _Nonnull metadataObject, SessionEvaluationCompletion  _Nonnull completion) {
+    [LCQSessionReplay setSyncCallbackWithHandler:^(LCQSessionMetadata * _Nonnull metadataObject, SessionEvaluationCompletion  _Nonnull completion) {
 
         [self sendEventWithName:@"LCQSessionReplayOnSyncCallback"
                            body:[self getMetadataObjectMap:metadataObject]];

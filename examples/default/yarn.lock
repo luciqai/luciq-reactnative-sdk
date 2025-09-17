@@ -4418,10 +4418,6 @@ inline-style-prefixer@^6.0.1:
     css-in-js-utils "^3.1.0"
     fast-loops "^1.1.3"
 
-"instabug-reactnative-ndk@github:https://github.com/Instabug/Instabug-React-Native-NDK":
-  version "0.1.0"
-  resolved "https://codeload.github.com/Instabug/Instabug-React-Native-NDK/tar.gz/5f8e2d744184ab8fb47bf573be1e7b4f1f1d00be"
-
 intl-messageformat@^10.1.0:
   version "10.7.3"
   resolved "https://registry.yarnpkg.com/intl-messageformat/-/intl-messageformat-10.7.3.tgz#a5cbc886f1db4b6324e6bfc4fd8f91a3e3e37c31"

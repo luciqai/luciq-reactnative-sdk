@@ -4,7 +4,7 @@ import static org.mockito.Mockito.mockStatic;
 
 import android.util.Log;
 
-import com.instabug.crash.models.IBGNonFatalException;
+import ai.luciq.crash.models.LuciqNonFatalException;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
 
 import org.json.JSONObject;
@@ -30,22 +30,22 @@ public class GlobalMocks {
 
         // setCurrentPlatform mock
         reflection
-                .when(() -> LuciqUtil.getMethod(Class.forName("com.instabug.library.Instabug"), "setCurrentPlatform", int.class))
+                .when(() -> LuciqUtil.getMethod(Class.forName("ai.luciq.library.Luciq"), "setCurrentPlatform", int.class))
                 .thenReturn(mSetCurrentPlatform);
 
         // setBaseUrl mock
         Method mSetBaseUrl = MockReflected.class.getDeclaredMethod("setBaseUrl", String.class);
         mSetBaseUrl.setAccessible(true);
         reflection
-                .when(() -> LuciqUtil.getMethod(Class.forName("com.instabug.library.util.InstabugDeprecationLogger"), "setBaseUrl", String.class))
+                .when(() -> LuciqUtil.getMethod(Class.forName("ai.luciq.library.util.InstabugDeprecationLogger"), "setBaseUrl", String.class))
                 .thenReturn(mSetBaseUrl);
 
         // reportException mock
-        Method mCrashReportException = MockReflected.class.getDeclaredMethod("reportException", JSONObject.class, boolean.class, java.util.Map.class, JSONObject.class, IBGNonFatalException.Level.class);
+        Method mCrashReportException = MockReflected.class.getDeclaredMethod("reportException", JSONObject.class, boolean.class, java.util.Map.class, JSONObject.class, LuciqNonFatalException.Level.class);
         mCrashReportException.setAccessible(true);
         reflection
-                .when(() -> LuciqUtil.getMethod(Class.forName("com.instabug.crash.CrashReporting"), "reportException", JSONObject.class,
-                        boolean.class, java.util.Map.class, JSONObject.class, IBGNonFatalException.Level.class))
+                .when(() -> LuciqUtil.getMethod(Class.forName("ai.luciq.crash.CrashReporting"), "reportException", JSONObject.class,
+                        boolean.class, java.util.Map.class, JSONObject.class, LuciqNonFatalException.Level.class))
                 .thenReturn(mCrashReportException);
     }
 
