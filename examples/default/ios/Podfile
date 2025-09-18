@@ -2,7 +2,7 @@ require_relative '../node_modules/react-native/scripts/react_native_pods'
 
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-platform :ios, '13.4'
+platform :ios, '15.0'
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -17,8 +17,7 @@ target 'LuciqExample' do
   pod 'react-native-google-maps', :path => rn_maps_path
 
   # XCFramework from local extracted folder
-  pod 'Luciq', :path => '.'
-
+    pod 'Luciq', :podspec => 'https://ios-releases.luciq.ai/custom/ci-test-update-unleash-with-new-identity/16.0.3/Luciq.podspec'
   # add this line
   flags = get_default_flags()
 
