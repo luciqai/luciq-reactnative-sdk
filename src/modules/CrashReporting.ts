@@ -36,7 +36,9 @@ export const reportError = (error: ExtendedError, nonFatalOptions: NonFatalOptio
       ),
     );
   } else {
-    Logger.warn(`LCQ-RN: The error ${error} has been omitted because only error type is supported.`);
+    Logger.warn(
+      `LCQ-RN: The error ${error} has been omitted because only error type is supported.`,
+    );
     return;
   }
 };

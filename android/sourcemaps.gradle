@@ -161,15 +161,27 @@ Map<String, String> getDefaultVersion(String flavor) {
 }
 
 boolean isUploadSourcemapsEnabled() {
-    def envValue = System.getenv('LUCIQ_SOURCEMAPS_UPLOAD_DISABLE')?.toBoolean()
+    def luciqEnvValue = System.getenv('LUCIQ_SOURCEMAPS_UPLOAD_DISABLE')?.toBoolean()
+    def instabugEnvValue = System.getenv('INSTABUG_SOURCEMAPS_UPLOAD_DISABLE')?.toBoolean()
     def defaultValue = true
 
+    def envValue = luciqEnvValue ?: instabugEnvValue
     return (envValue != null) ? !envValue : defaultValue
 }
 
 String resolveVar(String name, String envKey, String defaultValue) {
     def env = System.getenv()
-    def envValue = env.get(envKey)
+    
+    // First try LUCIQ environment variable
+    def luciqEnvKey = envKey.replace('LUCIQ_', 'LUCIQ_')
+    def luciqEnvValue = env.get(luciqEnvKey)
+    
+    // Then try INSTABUG environment variable as fallback
+    def instabugEnvKey = envKey.replace('LUCIQ_', 'INSTABUG_')
+    def instabugEnvValue = env.get(instabugEnvKey)
+    
+    // Use LUCIQ value if available, otherwise use INSTABUG value, otherwise use default
+    def envValue = luciqEnvValue ?: instabugEnvValue
 
     if (envValue != null && defaultValue !=null && envValue != defaultValue) {
         project.logger.warn "Environment variable `${envKey}` might have incorrect value, " +
@@ -182,7 +194,7 @@ String resolveVar(String name, String envKey, String defaultValue) {
 
     if (value == null) {
         throw new InvalidUserDataException("Unable to find ${name}! " +
-                "Set the environment variable `${envKey}` and try again.")
+                "Set the environment variable `${envKey}` or `${instabugEnvKey}` and try again.")
     }
 
     return value

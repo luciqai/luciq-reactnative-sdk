@@ -19,6 +19,12 @@ MigrateCommand.name('migrate')
     new Option('--config <path>', 'Path to custom migration configuration file').default(undefined),
   )
   .addOption(new Option('--silent', 'Run migration silently without console output').default(false))
+  .addOption(
+    new Option(
+      '--skip-git-check',
+      'Skip git status check and continue with uncommitted changes',
+    ).default(false),
+  )
   .action(function (this: Command) {
     const options = this.opts<MigrateOptions>();
     migrate(options);

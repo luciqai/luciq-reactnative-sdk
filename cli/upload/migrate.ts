@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import * as readline from 'readline';
 
 interface SearchReplaceRule {
   search: string;
@@ -15,6 +16,7 @@ interface MigrationMethod {
   targetExtensions: string[];
   ignoredDirs: string[];
   enabled: boolean;
+  priority?: number; // Lower number = higher priority
 }
 
 interface MigrationConfig {
@@ -29,13 +31,14 @@ interface MigrateOptions {
   dryRun?: boolean;
   silent?: boolean;
   configPath?: string;
+  skipGitCheck?: boolean;
 }
 
 /**
  * Loads migration configuration from JSON file
  */
 function loadMigrationConfig(configPath?: string): MigrationMethod[] {
-  const defaultConfigPath = path.join(__dirname, '../config/migration-config.json');
+  const defaultConfigPath = path.join(__dirname, 'config/migration-config.json');
   const configFilePath = configPath || defaultConfigPath;
 
   if (!fs.existsSync(configFilePath)) {
@@ -65,13 +68,21 @@ export const migrate = async (opts: MigrateOptions): Promise<boolean> => {
       return false;
     }
 
-    // Check git status automatically
-    checkGitClean(opts.silent);
+    // Check git status unless skipped
+    if (!opts.skipGitCheck) {
+      const shouldSkip = await checkGitStatus(opts.silent);
+      if (!shouldSkip) {
+        return false;
+      }
+    }
+
+    // Sort methods by priority (lower number = higher priority)
+    const sortedMethods = enabledMethods.sort((a, b) => (a.priority || 999) - (b.priority || 999));
 
     if (!opts.silent) {
       console.log('🔄 Starting migration with all enabled methods');
-      console.log(`📝 Found ${enabledMethods.length} enabled method(s):`);
-      enabledMethods.forEach((method) => {
+      console.log(`📝 Found ${sortedMethods.length} enabled method(s):`);
+      sortedMethods.forEach((method) => {
         console.log(`   - ${method.name}: ${method.description}`);
       });
       if (opts.dryRun) {
@@ -80,7 +91,7 @@ export const migrate = async (opts: MigrateOptions): Promise<boolean> => {
       console.log('================================');
     }
 
-    await executeAllMethods(enabledMethods, opts.dryRun || false, opts.silent);
+    await executeAllMethods(sortedMethods, opts.dryRun || false, opts.silent);
 
     if (!opts.silent) {
       if (opts.dryRun) {
@@ -100,21 +111,42 @@ export const migrate = async (opts: MigrateOptions): Promise<boolean> => {
   }
 };
 
-function checkGitClean(silent?: boolean): void {
+async function checkGitStatus(silent?: boolean): Promise<boolean> {
   try {
     const status = execSync('git status --porcelain').toString();
     if (status.trim()) {
-      if (!silent) {
-        console.error(
-          '❌ Uncommitted changes detected. Please commit or stash your changes first.',
-        );
-        process.exit(1);
+      if (silent) {
+        return false;
       }
+
+      console.warn('⚠️ Uncommitted changes detected.');
+      console.log('Current changes:');
+      console.log(status);
+
+      const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout,
+      });
+
+      const answer = await new Promise<string>((resolve) => {
+        rl.question('Do you want to continue anyway? (y/N): ', resolve);
+      });
+
+      rl.close();
+
+      if (answer.toLowerCase() !== 'y' && answer.toLowerCase() !== 'yes') {
+        console.log('Migration cancelled.');
+        return false;
+      }
+
+      console.log('Continuing with migration...');
     }
+    return true;
   } catch (error) {
     if (!silent) {
       console.warn('⚠️ Git check failed, continuing without git validation...');
     }
+    return true;
   }
 }
 
@@ -179,33 +211,6 @@ function processFile(
         console.log(`📝 [${method.name}] Updated content: ${filePath}`);
       }
     }
-
-    const dir = path.dirname(filePath);
-    const fileName = path.basename(filePath);
-    const newFileName = casePreservingReplace(fileName, method.searchReplace);
-
-    if (fileName !== newFileName) {
-      const newPath = path.join(dir, newFileName);
-      if (!fs.existsSync(newPath)) {
-        if (dryRun) {
-          if (!silent) {
-            console.log(`📁 [${method.name}] Would rename file: ${filePath} → ${newPath}`);
-          }
-          return;
-        }
-
-        fs.renameSync(filePath, newPath);
-        if (!silent) {
-          console.log(`📁 [${method.name}] Renamed file: ${filePath} → ${newPath}`);
-        }
-      } else {
-        if (!silent) {
-          console.warn(
-            `⚠️ [${method.name}] Skipping file rename: ${filePath} → ${newPath} (target exists)`,
-          );
-        }
-      }
-    }
   } catch (error) {
     if (!silent) {
       console.error(`❌ Error processing file ${filePath}:`, error);
@@ -213,65 +218,7 @@ function processFile(
   }
 }
 
-function renameFolderIfNeeded(
-  dirPath: string,
-  method: MigrationMethod,
-  dryRun: boolean,
-  silent?: boolean,
-): string {
-  if (isIgnored(dirPath, method.ignoredDirs)) {
-    return dirPath;
-  }
-
-  try {
-    const parentDir = path.dirname(dirPath);
-    const currentFolder = path.basename(dirPath);
-    const newFolder = casePreservingReplace(currentFolder, method.searchReplace);
-
-    if (currentFolder !== newFolder) {
-      const newPath = path.join(parentDir, newFolder);
-
-      if (fs.existsSync(newPath)) {
-        if (!silent) {
-          console.warn(
-            `⚠️ [${method.name}] Skipping folder rename: ${dirPath} → ${newPath} (target exists)`,
-          );
-        }
-        return dirPath;
-      }
-
-      try {
-        fs.accessSync(dirPath, fs.constants.R_OK);
-      } catch (error) {
-        if (!silent) {
-          console.warn(`⚠️ [${method.name}] Cannot access directory for rename: ${dirPath}`);
-        }
-        return dirPath;
-      }
-
-      if (dryRun) {
-        if (!silent) {
-          console.log(`📂 [${method.name}] Would rename folder: ${dirPath} → ${newPath}`);
-        }
-        return dirPath;
-      }
-
-      fs.renameSync(dirPath, newPath);
-      if (!silent) {
-        console.log(`📂 [${method.name}] Renamed folder: ${dirPath} → ${newPath}`);
-      }
-      return newPath;
-    }
-  } catch (error) {
-    if (!silent) {
-      console.error(`❌ Error renaming folder ${dirPath}:`, error);
-    }
-  }
-
-  return dirPath;
-}
-
-function walkAndRename(
+function walkDirectory(
   dirPath: string,
   method: MigrationMethod,
   dryRun: boolean,
@@ -287,8 +234,7 @@ function walkAndRename(
     for (const entry of entries) {
       const fullPath = path.join(dirPath, entry.name);
       if (entry.isDirectory()) {
-        const newDirPath = renameFolderIfNeeded(fullPath, method, dryRun, silent);
-        walkAndRename(newDirPath, method, dryRun, silent);
+        walkDirectory(fullPath, method, dryRun, silent);
       } else {
         processFile(fullPath, method, dryRun, silent);
       }
@@ -321,5 +267,5 @@ async function executeMethod(
     console.log(`🚀 Executing method: ${method.name}`);
   }
 
-  walkAndRename(startDir, method, dryRun, silent);
+  walkDirectory(startDir, method, dryRun, silent);
 }

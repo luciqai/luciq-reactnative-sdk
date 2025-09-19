@@ -68,7 +68,6 @@ cp fonts/*.ttf android/app/src/main/assets/fonts/
 #### Step 3: Add to iOS
 
 1. **Add to Xcode Project:**
-
    - Open your iOS project in Xcode
    - Right-click on your project → "Add Files to [ProjectName]"
    - Select your TTF files

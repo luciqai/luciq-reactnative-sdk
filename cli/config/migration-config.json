@@ -1,99 +1,9 @@
 {
   "migrationMethods": [
     {
-      "name": "Instabug to Luciq Text Replacements",
-      "description": "Replace all instances of Instabug with Luciq",
-      "searchReplace": [
-        { "search": "Instabug", "replacement": "Luciq" },
-        { "search": "instabug", "replacement": "luciq" },
-        { "search": "INSTABUG", "replacement": "LUCIQ" },
-        { "search": "IBG", "replacement": "LCQ" },
-        { "search": "ibg", "replacement": "lcq" }
-      ],
-      "targetExtensions": [
-        ".h",
-        ".m",
-        ".java",
-        ".kt",
-        ".ts",
-        ".tsx",
-        ".js",
-        ".jsx"
-      ],
-      "ignoredDirs": [
-        "node_modules",
-        "build",
-        "Pods",
-        "vendor",
-        ".git",
-        "dist",
-        "coverage",
-        ".next",
-        ".nuxt",
-        "target"
-      ],
-      "enabled": true
-    },
-    {
-      "name": "Package Name Updates",
-      "description": "Update package names and references",
-      "searchReplace": [
-        { "search": "com.instabug", "replacement": "ai.luciq" },
-        { "search": "com.instabug.reactlibrary", "replacement": "ai.luciq.reactlibrary" },
-        { "search": "RNInstabug", "replacement": "RNLuciq" },
-        { "search": "rninstabug", "replacement": "rnluciq" }
-      ],
-      "targetExtensions": [
-        ".java",
-        ".kt",
-        ".xml",
-        ".gradle",
-        ".properties",
-        ".ts",
-        ".tsx",
-        ".js",
-        ".jsx",
-        ".json"
-      ],
-      "ignoredDirs": [
-        "node_modules",
-        "build",
-        "Pods",
-        "vendor",
-        ".git",
-        "dist",
-        "coverage"
-      ],
-      "enabled": true
-    },
-    {
-      "name": "File Extension Cleanup",
-      "description": "Clean up file extensions and references",
-      "searchReplace": [
-        { "search": ".instabug", "replacement": ".luciq" },
-        { "search": "_instabug", "replacement": "_luciq" },
-        { "search": "instabug_", "replacement": "luciq_" }
-      ],
-      "targetExtensions": [
-        ".ts",
-        ".tsx",
-        ".js",
-        ".jsx"
-      ],
-      "ignoredDirs": [
-        "node_modules",
-        "build",
-        "Pods",
-        "vendor",
-        ".git",
-        "dist",
-        "coverage"
-      ],
-      "enabled": true
-    },
-    {
       "name": "Dependency Version Updates",
-      "description": "Update dependency versions from Instabug to Luciq",
+      "description": "Update dependency versions from Instabug to Luciq (runs first)",
+      "priority": 1,
       "searchReplace": [
         {
           "search": "com\\.instabug\\.library:instabug:[0-9]+\\.[0-9]+\\.[0-9]+",
@@ -109,14 +19,61 @@
           "search": "com\\.instabug\\.library:instabug:[0-9]+\\.[0-9]+\\.[0-9]+-SNAPSHOT",
           "replacement": "ai.luciq.library:luciq:18.0.0",
           "isRegex": true
+        },
+        {
+          "search": "\"instabug-react-native\":\\s*\"[^\"]+\"",
+          "replacement": "\"@luciq/react-native\": \"^18.0.0\"",
+          "isRegex": true
+        },
+        {
+          "search": "'instabug-react-native':\\s*'[^']+'",
+          "replacement": "'@luciq/react-native': '^18.0.0'",
+          "isRegex": true
         }
       ],
+      "targetExtensions": [".gradle", ".properties", ".xml", ".json", ".js", ".ts"],
+      "ignoredDirs": ["node_modules", "build", "Pods", "vendor", ".git", "dist", "coverage"],
+      "enabled": true
+    },
+    {
+      "name": "Package Name Updates",
+      "description": "Update package names and references",
+      "priority": 2,
+      "searchReplace": [
+        { "search": "com.instabug", "replacement": "ai.luciq" },
+        { "search": "com.instabug.reactlibrary", "replacement": "ai.luciq.reactlibrary" },
+        { "search": "RNInstabug", "replacement": "RNLuciq" },
+        { "search": "rninstabug", "replacement": "rnluciq" },
+        { "search": "instabug-reactnative", "replacement": "@luciq/react-native" },
+        { "search": "instabug-react-native", "replacement": "@luciq/react-native" }
+      ],
       "targetExtensions": [
+        ".java",
+        ".kt",
+        ".xml",
         ".gradle",
         ".properties",
-        ".xml",
+        ".ts",
+        ".tsx",
+        ".js",
+        ".jsx",
         ".json"
       ],
+      "ignoredDirs": ["node_modules", "build", "Pods", "vendor", ".git", "dist", "coverage"],
+      "enabled": true
+    },
+    {
+      "name": "Instabug to Luciq",
+      "description": "Replace all instances of Instabug with Luciq",
+      "priority": 3,
+      "searchReplace": [
+        { "search": "Instabug", "replacement": "Luciq" },
+        { "search": "instabug", "replacement": "luciq" },
+        { "search": "INSTABUG", "replacement": "LUCIQ" },
+        { "search": "IBG", "replacement": "LCQ" },
+        { "search": "ibg", "replacement": "lcq" }
+      ],
+      "targetExtensions": [".h", ".m", ".java", ".kt", ".ts", ".tsx", ".js", ".jsx"],
       "ignoredDirs": [
         "node_modules",
         "build",
@@ -124,8 +81,24 @@
         "vendor",
         ".git",
         "dist",
-        "coverage"
+        "coverage",
+        ".next",
+        ".nuxt",
+        "target"
       ],
+      "enabled": true
+    },
+    {
+      "name": "Cleanup",
+      "description": "Clean up file extensions and references",
+      "priority": 4,
+      "searchReplace": [
+        { "search": ".instabug", "replacement": ".luciq" },
+        { "search": "_instabug", "replacement": "_luciq" },
+        { "search": "instabug_", "replacement": "luciq_" }
+      ],
+      "targetExtensions": [".ts", ".tsx", ".js", ".jsx"],
+      "ignoredDirs": ["node_modules", "build", "Pods", "vendor", ".git", "dist", "coverage"],
       "enabled": true
     }
   ],

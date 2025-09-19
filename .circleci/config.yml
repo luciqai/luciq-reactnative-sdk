@@ -108,7 +108,7 @@ commands:
           working_directory: << parameters.working_directory >>
       - find_and_replace:
           files: package.json android/sourcemaps.gradle ios/sourcemaps.sh
-          search: "@luciq/react-native"
+          search: '@luciq/react-native'
           replace: << parameters.npm_package >>
           working_directory: << parameters.working_directory >>
       - find_and_replace:

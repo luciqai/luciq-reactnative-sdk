@@ -109,7 +109,6 @@ Luciq Repro Steps are enabled by default. It captures a screenshot of each scree
 We support the two most popular React Native navigation libraries:
 
 - **[react-navigation](https://github.com/react-navigation/react-navigation)**
-
   - **v5**
     set the `onStateChange` to `Luciq.onStateChange` in your NavigationContainer as follows:
 

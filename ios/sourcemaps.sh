@@ -16,8 +16,12 @@ main() {
       source "$local_env_path"
   fi
 
-  if [[ "$LUCIQ_SOURCEMAPS_UPLOAD_DISABLE" = true ]]; then
-    echo "[Info] \`LUCIQ_SOURCEMAPS_UPLOAD_DISABLE\` was set to true, skipping sourcemaps upload..."
+  # Check both LUCIQ and INSTABUG environment variables for sourcemaps upload disable
+  local luciq_disable="${LUCIQ_SOURCEMAPS_UPLOAD_DISABLE}"
+  local instabug_disable="${INSTABUG_SOURCEMAPS_UPLOAD_DISABLE}"
+  
+  if [[ "$luciq_disable" = true ]] || [[ "$instabug_disable" = true ]]; then
+    echo "[Info] Sourcemaps upload was disabled via environment variable, skipping sourcemaps upload..."
     exit 0
   fi
 
@@ -86,9 +90,18 @@ resolve_var() {
   local env_key=$2
   local default_value=$3
 
-  local env_value="${!env_key}"
+  # First try LUCIQ environment variable
+  local luciq_env_key="$env_key"
+  local luciq_env_value="${!luciq_env_key}"
+  
+  # Then try INSTABUG environment variable as fallback
+  local instabug_env_key="${env_key/LUCIQ_/INSTABUG_}"
+  local instabug_env_value="${!instabug_env_key}"
+  
+  # Use LUCIQ value if available, otherwise use INSTABUG value
+  local env_value="${luciq_env_value:-$instabug_env_value}"
 
-  if [[ -n "$env_value" ]] &&  [[ -n "$default_value" ]]  && [[ "$env_value" != default_value ]]; then
+  if [[ -n "$env_value" ]] &&  [[ -n "$default_value" ]]  && [[ "$env_value" != "$default_value" ]]; then
     echo "[Warning] Environment variable \`$env_key\` might have incorrect value, make sure this was intentional:"
     echo "   Environment Value: $env_value"
     echo "   Default Value: $default_value"
@@ -97,7 +110,7 @@ resolve_var() {
   local value="${env_value:-$default_value}"
 
   if [[ -z "$value" ]]; then
-    echo "[Error] Unable to find $name! Set the environment variable \`$env_key\` and try again."
+    echo "[Error] Unable to find $name! Set the environment variable \`$env_key\` or \`$instabug_env_key\` and try again."
     exit 0
   fi
 
