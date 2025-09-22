@@ -96,7 +96,7 @@
  +------------------------------------------------------------------------+
  */
 
-- (void)setLQLogPrintsToConsole:(BOOL)printsToConsole;
+- (void)setLCQLogPrintsToConsole:(BOOL)printsToConsole;
 - (void)logVerbose:(NSString *)log;
 - (void)logDebug:(NSString *)log;
 - (void)logInfo:(NSString *)log;

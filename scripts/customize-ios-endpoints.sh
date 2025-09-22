@@ -6,7 +6,7 @@
 # This is a workaround until the iOS SDK is updated to prioritize the custom
 # Luciq.plist over the internal Config.plist.
 
-luciq_plist=examples/default/ios/LuciqExample/Luciq.plist
+luciq_plist=examples/default/ios/LuciqExample/LuciqConfig.plist
 
 if [ ! -f $luciq_plist ]; then
   echo "Luciq.plist not found"
@@ -21,7 +21,7 @@ do
 
   if [ ! -f $config_path ]; then
     echo "Config.plist not found in $dir"
-    exit 1
+    exit 0
   fi
 
   cp -f $luciq_plist $config_path

@@ -31,11 +31,13 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
   const [userID, setUserID] = useState('');
   const [userAttributeKey, setUserAttributeKey] = useState('');
   const [userAttributeValue, setUserAttributeValue] = useState('');
-  const [userData, setUserData] = useState('')
-  const [userEvent, setUserEvent] = useState('')
-  const [tag, setTag] = useState('')
-  const [luciqLogLevel, setLuciqLogLevel] = useState<'verbose' | 'debug' | 'info' | 'warn' | 'error'>('debug');
-  const [luciqLog, setLuciqLog] = useState('')
+  const [userData, setUserData] = useState('');
+  const [userEvent, setUserEvent] = useState('');
+  const [tag, setTag] = useState('');
+  const [luciqLogLevel, setLuciqLogLevel] = useState<
+    'verbose' | 'debug' | 'info' | 'warn' | 'error'
+  >('debug');
+  const [luciqLog, setLuciqLog] = useState('');
   const [featureFlagName, setFeatureFlagName] = useState('');
   const [featureFlagVariant, setfeatureFlagVariant] = useState('');
   const [isUserStepEnabled, setIsUserStepEnabled] = useState<boolean>(true);
@@ -43,9 +45,9 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
 
   const toast = useToast();
   const [userAttributesFormError, setUserAttributesFormError] = useState<any>({});
-  const [userDataFormError, setUserDataFormError] = useState<any>({})
-  const [userEventFormError, setUserEventFormError] = useState<any>({})
-  const [tagFormError, setTagFormError] = useState<any>({})
+  const [userDataFormError, setUserDataFormError] = useState<any>({});
+  const [userEventFormError, setUserEventFormError] = useState<any>({});
+  const [tagFormError, setTagFormError] = useState<any>({});
   const [featureFlagFormError, setFeatureFlagFormError] = useState<any>({});
   const { addItem } = useCallbackHandlers();
 
@@ -130,7 +132,7 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
       toast.show({
         description: 'User Data added successfully',
       });
-      setUserData('')
+      setUserData('');
     }
   };
   const saveUserEvent = () => {
@@ -139,19 +141,19 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
       toast.show({
         description: 'User Event added successfully',
       });
-      setUserData('')
+      setUserData('');
     }
   };
   const saveTag = () => {
     if (validateTagForm()) {
-      Luciq.appendTags([tag])
+      Luciq.appendTags([tag]);
       toast.show({
         description: 'Tag added successfully',
       });
-      setTag('')
+      setTag('');
     }
   };
-  
+
   const saveFeatureFlags = () => {
     if (validateFeatureFlagForm()) {
       Luciq.addFeatureFlag({
@@ -208,7 +210,7 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
       toast.show({ description: 'Please enter a log message' });
       return;
     }
-  
+
     switch (luciqLogLevel) {
       case 'verbose':
         Luciq.logVerbose(luciqLog);
@@ -226,11 +228,10 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
         Luciq.logError(luciqLog);
         break;
     }
-  
+
     toast.show({ description: `Logged ${luciqLogLevel} message` });
     setLuciqLog('');
   };
-  
 
   return (
     <ScrollView>
@@ -341,8 +342,8 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
             Luciq.removeExperiments(['exp1', 'exp2']);
           }}
         />
-            
-            <ListTile
+
+        <ListTile
           title="Session Profiler"
           subtitle={isSessionProfilerEnabled ? 'Enabled' : 'Disabled'}
           onPress={() => {

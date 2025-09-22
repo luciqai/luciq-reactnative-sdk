@@ -280,7 +280,9 @@ export const BugReportingScreen: React.FC<
 
                 addItem('Invoke Handler', {
                   id: `event-${Math.random()}`,
-                  fields: [{ key: 'Date', value: new Date().toLocaleString() }, { key: 'status value', value: 'triggered' },
+                  fields: [
+                    { key: 'Date', value: new Date().toLocaleString() },
+                    { key: 'status value', value: 'triggered' },
                   ],
                 });
               })
@@ -316,11 +318,11 @@ export const BugReportingScreen: React.FC<
                 });
                 addItem('onSDKDismissedHandler', {
                   id: `event-${Math.random()}`,
-                  fields: [{ key: 'Date', value: new Date().toLocaleString() },
-                    { key: 'issue type', value: dismissType.toString()},
-                    { key: 'report type', value: reportType.toString()},
-                    { key: 'status value', value: 'triggered'},
-
+                  fields: [
+                    { key: 'Date', value: new Date().toLocaleString() },
+                    { key: 'issue type', value: dismissType.toString() },
+                    { key: 'report type', value: reportType.toString() },
+                    { key: 'status value', value: 'triggered' },
                   ],
                 });
               })
@@ -347,7 +349,10 @@ export const BugReportingScreen: React.FC<
               })
             }
           />
-          <ListTile title="Callback Handler" onPress={() => navigation.navigate('CallbackScreen')} />
+          <ListTile
+            title="Callback Handler"
+            onPress={() => navigation.navigate('CallbackScreen')}
+          />
         </Section>
       </Screen>
     </ScrollView>

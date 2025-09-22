@@ -37,14 +37,14 @@ export const HttpScreen: React.FC = () => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'traceparent': 'non-ibg-trace-value',
-          'tracestate': 'non-ibg=value',
+          traceparent: 'non-ibg-trace-value',
+          tracestate: 'non-ibg=value',
         },
       });
-  
+
       const responseBody = await response.json();
       console.log('Response with trace headers:', responseBody);
-  
+
       setLoading(false);
       showNotification('Success', 'Succeeded with trace');
     } catch (error) {
@@ -53,7 +53,6 @@ export const HttpScreen: React.FC = () => {
       showNotification('Error', 'Failed with trace');
     }
   };
-  
 
   const makePostCall = async () => {
     setLoading(true);
@@ -182,7 +181,11 @@ export const HttpScreen: React.FC = () => {
     <Screen>
       {loading && <ActivityIndicator size="large" color="#0000ff" />}
       <ListTile title="GET" onPress={makeGetCall} testID="http_get_request" />
-      <ListTile title="GET with trace" onPress={makeGetCallWithTrace} testID="http_get_with_trace_request" />
+      <ListTile
+        title="GET with trace"
+        onPress={makeGetCallWithTrace}
+        testID="http_get_with_trace_request"
+      />
       <ListTile title="POST" onPress={makePostCall} testID="http_post_request" />
       <ListTile title="DELETE" onPress={makeDeleteCall} testID="http_delete_request" />
       <ListTile title="PUT" onPress={makePutCall} testID="http_put_request" />

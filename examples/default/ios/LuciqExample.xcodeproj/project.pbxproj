@@ -13,7 +13,7 @@
 		20E556262AC55766007416B1 /* LuciqSessionReplayTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 20E556252AC55766007416B1 /* LuciqSessionReplayTests.m */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		AF8A18C6FA80B2BFE6006C9E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C4E7796400B3B360DD0B6E73 /* PrivacyInfo.xcprivacy */; };
-		BEF65EEE2E67C6D500C9F19D /* Luciq.plist in Resources */ = {isa = PBXBuildFile; fileRef = BEF65EED2E67C6D500C9F19D /* Luciq.plist */; };
+		BEAADDD92E81ABC80007D980 /* LuciqConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = BEAADDD82E81ABC80007D980 /* LuciqConfig.plist */; };
 		C3C8CCF379347A4DF9D2A39D /* CrashReportingExampleModule.m in Sources */ = {isa = PBXBuildFile; fileRef = C3C8C24386310A3120006604 /* CrashReportingExampleModule.m */; };
 		CC3DF88E2A1DFC9A003E9914 /* LuciqCrashReportingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC3DF8852A1DFC99003E9914 /* LuciqCrashReportingTests.m */; };
 		CC3DF88F2A1DFC9A003E9914 /* LuciqBugReportingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC3DF8862A1DFC99003E9914 /* LuciqBugReportingTests.m */; };
@@ -55,7 +55,7 @@
 		BAED0D0441A708AE2390E153 /* libPods-LuciqExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LuciqExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD54B44E2DF85672BB2D4DEE /* Pods-LuciqExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LuciqExample.release.xcconfig"; path = "Target Support Files/Pods-LuciqExample/Pods-LuciqExample.release.xcconfig"; sourceTree = "<group>"; };
 		BE3328762BDACE030078249A /* LCQCrashReporting+CP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "LCQCrashReporting+CP.h"; sourceTree = "<group>"; };
-		BEF65EED2E67C6D500C9F19D /* Luciq.plist */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = Luciq.plist; sourceTree = "<group>"; };
+		BEAADDD82E81ABC80007D980 /* LuciqConfig.plist */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = LuciqConfig.plist; sourceTree = "<group>"; };
 		C3C8C24386310A3120006604 /* CrashReportingExampleModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CrashReportingExampleModule.m; sourceTree = "<group>"; };
 		C3C8C784EADC037C5A752B94 /* CrashReportingExampleModule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CrashReportingExampleModule.h; sourceTree = "<group>"; };
 		C4E7796400B3B360DD0B6E73 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = LuciqExample/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -124,7 +124,7 @@
 		13B07FAE1A68108700A75B9A /* LuciqExample */ = {
 			isa = PBXGroup;
 			children = (
-				BEF65EED2E67C6D500C9F19D /* Luciq.plist */,
+				BEAADDD82E81ABC80007D980 /* LuciqConfig.plist */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -302,9 +302,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
-				BEF65EEE2E67C6D500C9F19D /* Luciq.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				AF8A18C6FA80B2BFE6006C9E /* PrivacyInfo.xcprivacy in Resources */,
+				BEAADDD92E81ABC80007D980 /* LuciqConfig.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -684,10 +684,7 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
@@ -759,10 +756,7 @@
 					"-DFOLLY_MOBILE=1",
 					"-DFOLLY_USE_LIBCPP=1",
 				);
-				OTHER_LDFLAGS = (
-					"$(inherited)",
-					" ",
-				);
+				OTHER_LDFLAGS = "$(inherited)  ";
 				REACT_NATIVE_PATH = "${PODS_ROOT}/../../node_modules/react-native";
 				SDKROOT = iphoneos;
 				USE_HERMES = true;

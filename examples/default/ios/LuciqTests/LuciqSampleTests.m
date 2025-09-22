@@ -451,7 +451,7 @@
  */
 
 - (void)testSetLCQLogPrintsToConsole {
-  [self.luciqBridge setLQLogPrintsToConsole:YES];
+  [self.luciqBridge setLCQLogPrintsToConsole:YES];
   XCTAssertTrue(LCQLog.printsToConsole);
 }
 
