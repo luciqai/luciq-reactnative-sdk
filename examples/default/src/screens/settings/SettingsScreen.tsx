@@ -5,7 +5,6 @@ import Luciq, {
   ColorTheme,
   InvocationEvent,
   Locale,
-  NetworkLogger,
   WelcomeMessageMode,
   ReproStepsMode,
 } from '@luciq/react-native';
@@ -330,18 +329,6 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
             });
           }}
         />
-        <ListTile
-          title="Add Experiments"
-          onPress={() => {
-            Luciq.addExperiments(['exp1', 'exp2']);
-          }}
-        />
-        <ListTile
-          title="Remove Experiments"
-          onPress={() => {
-            Luciq.removeExperiments(['exp1', 'exp2']);
-          }}
-        />
 
         <ListTile
           title="Session Profiler"
@@ -439,7 +426,7 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
               <View style={styles.inputWrapper}>
                 <InputField
                   placeholder="User data"
-                  onChangeText={(userData) => setUserData(userData)}
+                  onChangeText={(userDataText) => setUserData(userDataText)}
                   value={userData}
                   errorText={userDataFormError.userDataValue}
                 />
@@ -457,7 +444,7 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
               <View style={styles.inputWrapper}>
                 <InputField
                   placeholder="User event"
-                  onChangeText={(userEvent) => setUserEvent(userEvent)}
+                  onChangeText={(userEventText) => setUserEvent(userEventText)}
                   value={userEvent}
                   errorText={userEventFormError.userEventValue}
                 />
@@ -475,7 +462,7 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
               <View style={styles.inputWrapper}>
                 <InputField
                   placeholder="tag"
-                  onChangeText={(tag) => setTag(tag)}
+                  onChangeText={(tagText) => setTag(tagText)}
                   value={tag}
                   errorText={tagFormError.tagValue}
                 />

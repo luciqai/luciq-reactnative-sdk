@@ -481,7 +481,7 @@ Options:
       if (method.description) {
         console.log(`   Description: ${method.description}`);
       }
-      console.log(`   Search/Replace pairs:`);
+      console.log('   Search/Replace pairs:');
       method.searchReplace.forEach(({ search, replacement }) => {
         console.log(`     "${search}" → "${replacement}"`);
       });
