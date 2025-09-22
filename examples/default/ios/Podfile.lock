@@ -2043,11 +2043,11 @@ SPEC CHECKSUMS:
   React-FabricImage: 3f44dd25a2b020ed5215d4438a1bb1f3461cd4f1
   React-featureflags: ee1abd6f71555604a36cda6476e3c502ca9a48e5
   React-featureflagsnativemodule: 7ccc0cd666c2a6257401dceb7920818ac2b42803
- React-graphics: d7dd9c8d75cad5af19e19911fa370f78f2febd96
+  React-graphics: d7dd9c8d75cad5af19e19911fa370f78f2febd96
   React-hermes: 2069b08e965e48b7f8aa2c0ca0a2f383349ed55d
   React-idlecallbacksnativemodule: e211b2099b6dced97959cb58257bab2b2de4d7ef
   React-ImageManager: ab7a7d17dd0ff1ef1d4e1e88197d1119da9957ce
-    React-jserrorhandler: d9e867bb83b868472f3f7601883f0403b3e3942d
+  React-jserrorhandler: d9e867bb83b868472f3f7601883f0403b3e3942d
   React-jsi: d68f1d516e5120a510afe356647a6a1e1f98f2db
   React-jsiexecutor: 6366a08a0fc01c9b65736f8deacd47c4a397912a
   React-jsinspector: 0ac947411f0c73b34908800cc7a6a31d8f93e1a8
