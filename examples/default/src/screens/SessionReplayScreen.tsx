@@ -1,13 +1,24 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import { SessionReplay } from '@luciq/react-native';
 import { useToast } from 'native-base';
 
 import { ListTile } from '../components/ListTile';
 import { Screen } from '../components/Screen';
+import { UserStepsState } from './settings/UserStepsStateScreen';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { HomeStackParamList } from '../navigation/HomeStack';
 
-export const SessionReplayScreen: React.FC = () => {
+export const SessionReplayScreen: React.FC<
+  NativeStackScreenProps<HomeStackParamList, 'SessionReplay'>
+> = ({ navigation }) => {
   const toast = useToast();
+
+  const [isSessionReplayEnabled, setIsSessionReplayEnabled] = useState<boolean>(true);
+  const [isSessionNetworkLogsEnabled, setIsSessionNetworkLogsEnabled] = useState<boolean>(true);
+  const [isSessionLuciqLogsEnabled, setIsSessionLuciqLogsEnabled] = useState<boolean>(true);
+  const [isSessionUserStepsEnabled, setIsSessionUSerStepsEnabled] = useState<boolean>(true);
+
   return (
     <Screen>
       <ListTile
@@ -24,6 +35,74 @@ export const SessionReplayScreen: React.FC = () => {
             });
           }
         }}
+      />
+
+      <ListTile
+        title="Session Replay Enable"
+        subtitle={isSessionReplayEnabled ? 'Enabled' : 'Disabled'}
+        onPress={() => {
+          navigation.navigate('UserStepsState', {
+            state: isSessionReplayEnabled ? UserStepsState.Enabled : UserStepsState.Disabled,
+            setState: (newState: UserStepsState) => {
+              const isEnabled = newState === UserStepsState.Enabled;
+              setIsSessionReplayEnabled(isEnabled);
+              SessionReplay.setEnabled(isEnabled);
+              navigation.goBack();
+            },
+          });
+        }}
+        testID="id_steps_replay_state"
+      />
+
+      <ListTile
+        title="Session Replay Network Enable"
+        subtitle={isSessionNetworkLogsEnabled ? 'Enabled' : 'Disabled'}
+        onPress={() => {
+          navigation.navigate('UserStepsState', {
+            state: isSessionNetworkLogsEnabled ? UserStepsState.Enabled : UserStepsState.Disabled,
+            setState: (newState: UserStepsState) => {
+              const isEnabled = newState === UserStepsState.Enabled;
+              setIsSessionNetworkLogsEnabled(isEnabled);
+              SessionReplay.setNetworkLogsEnabled(isEnabled);
+              navigation.goBack();
+            },
+          });
+        }}
+        testID="id_steps_replay_network_state"
+      />
+
+      <ListTile
+        title="Session Replay Luciq Logs Enable"
+        subtitle={isSessionLuciqLogsEnabled ? 'Enabled' : 'Disabled'}
+        onPress={() => {
+          navigation.navigate('UserStepsState', {
+            state: isSessionLuciqLogsEnabled ? UserStepsState.Enabled : UserStepsState.Disabled,
+            setState: (newState: UserStepsState) => {
+              const isEnabled = newState === UserStepsState.Enabled;
+              setIsSessionLuciqLogsEnabled(isEnabled);
+              SessionReplay.setLuciqLogsEnabled(isEnabled);
+              navigation.goBack();
+            },
+          });
+        }}
+        testID="id_steps_replay_luciq_lgos_state"
+      />
+
+      <ListTile
+        title="Session Replay UserSteps Enable"
+        subtitle={isSessionUserStepsEnabled ? 'Enabled' : 'Disabled'}
+        onPress={() => {
+          navigation.navigate('UserStepsState', {
+            state: isSessionUserStepsEnabled ? UserStepsState.Enabled : UserStepsState.Disabled,
+            setState: (newState: UserStepsState) => {
+              const isEnabled = newState === UserStepsState.Enabled;
+              setIsSessionUSerStepsEnabled(isEnabled);
+              SessionReplay.setUserStepsEnabled(isEnabled);
+              navigation.goBack();
+            },
+          });
+        }}
+        testID="id_steps_replay_usersteps_state"
       />
     </Screen>
   );

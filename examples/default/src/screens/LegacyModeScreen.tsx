@@ -68,7 +68,10 @@ export const LegacyModeScreen: React.FC = () => {
     <Screen>
       {loading && <ActivityIndicator size="large" color="#0000ff" />}
 
-      <ListTile title="Attach 10 LuciqLogs at a time" onPress={() => addMultipleLuciqLogs(10)} />
+      <ListTile
+        title="Attach 10 LuciqLogs at a time"
+        onPress={() => addMultipleLuciqLogs(10)}
+      />
       <ListTile title="Attach 10 events at a time" onPress={() => addMultipleUserEvents(10)} />
       <ListTile title="Attach 10 tags at a time" onPress={() => addMultipleTags(10)} />
       <ListTile

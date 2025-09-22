@@ -22,6 +22,7 @@ import { nativeBaseTheme } from './theme/nativeBaseTheme';
 import { navigationTheme } from './theme/navigationTheme';
 
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { CallbackHandlersProvider } from './contexts/callbackContext';
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,8 @@ export const App: React.FC = () => {
         invocationEvents: [InvocationEvent.floatingButton],
         debugLogsLevel: LogLevel.verbose,
         networkInterceptionMode: NetworkInterceptionMode.javascript,
+        appVariant: 'App variant',
+        overAirVersion: { service: OverAirUpdateServices.codePush, version: '1.0.0' },
       });
 
       CrashReporting.setNDKCrashesEnabled(true);
@@ -79,7 +82,9 @@ export const App: React.FC = () => {
       <NativeBaseProvider theme={nativeBaseTheme}>
         <QueryClientProvider client={queryClient}>
           <NavigationContainer onStateChange={Luciq.onStateChange} theme={navigationTheme}>
-            <RootTabNavigator />
+            <CallbackHandlersProvider>
+              <RootTabNavigator />
+            </CallbackHandlersProvider>
           </NavigationContainer>
         </QueryClientProvider>
       </NativeBaseProvider>

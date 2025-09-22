@@ -48,7 +48,7 @@ commands:
           command: gem uninstall -x cocoapods
       - run:
           name: Install CocoaPods
-          command: gem install cocoapods:1.14.0
+          command: gem install cocoapods:1.16.2
       - restore_cache:
           name: Restore Pods Cache
           keys:
@@ -255,7 +255,7 @@ jobs:
   # ios/upload_sourcemap.sh files respectively.
   sync_generated_files:
     macos:
-      xcode: 15.4.0
+      xcode: 16.0.0
     resource_class: macos.m1.medium.gen1
     steps:
       - advanced-checkout/shallow-checkout

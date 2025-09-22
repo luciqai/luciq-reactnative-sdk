@@ -6,7 +6,7 @@ export const FullWebViewsScreen: React.FC = () => {
   return (
     <Screen>
       <WebView
-        source={{ uri: 'https://www.luciq.ai' }}
+        source={{ uri: 'https://www.luciq.com' }}
         javaScriptEnabled={true}
         domStorageEnabled={true}
       />
