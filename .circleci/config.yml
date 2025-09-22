@@ -512,25 +512,12 @@ workflows:
           filters:
             branches:
               only: master
-      - hold_publish_new_namespace:
-          requires: *release_dependencies
-          type: approval
-          filters:
-            branches:
-              only: master
       - publish:
           requires:
             - hold_publish
           filters:
             branches:
               only: master
-      - publish_new_namespace:
-          requires:
-            - hold_publish_new_namespace
-          filters:
-            branches:
-              only: master
-
       - hold_release_nn:
           requires: *release_dependencies
           type: approval
