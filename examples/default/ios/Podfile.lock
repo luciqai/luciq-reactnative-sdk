@@ -31,7 +31,7 @@ PODS:
   - hermes-engine (0.75.4):
     - hermes-engine/Pre-built (= 0.75.4)
   - hermes-engine/Pre-built (0.75.4)
-  - Luciq (16.0.3)
+  - Luciq (18.0.0)
   - OCMock (3.9.4)
   - RCT-Folly (2024.01.01.00):
     - boost
@@ -1626,7 +1626,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - RNLuciq (18.0.0):
-    - Luciq (= 16.0.3)
+    - Luciq (= 18.0.0)
     - React-Core
   - RNReanimated (3.16.1):
     - DoubleConversion
@@ -1770,7 +1770,6 @@ DEPENDENCIES:
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
-  - Luciq (from `https://ios-releases.luciq.ai/custom/ci-test-update-unleash-with-new-identity/16.0.3/Luciq.podspec`)
   - OCMock
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -1851,6 +1850,7 @@ SPEC REPOS:
   trunk:
     - Google-Maps-iOS-Utils
     - GoogleMaps
+    - Luciq
     - OCMock
     - SocketRocket
 
@@ -1868,8 +1868,6 @@ EXTERNAL SOURCES:
   hermes-engine:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-2024-08-15-RNv0.75.1-4b3bf912cc0f705b51b71ce1a5b8bd79b93a451b
-  Luciq:
-    :podspec: https://ios-releases.luciq.ai/custom/ci-test-update-unleash-with-new-identity/16.0.3/Luciq.podspec
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTDeprecation:
@@ -2024,7 +2022,7 @@ SPEC CHECKSUMS:
   Google-Maps-iOS-Utils: f77eab4c4326d7e6a277f8e23a0232402731913a
   GoogleMaps: 032f676450ba0779bd8ce16840690915f84e57ac
   hermes-engine: ea92f60f37dba025e293cbe4b4a548fd26b610a0
-  Luciq: 4dc415fc9ed5613ffda68b793700a35a4e86c49b
+  Luciq: f364d44f0d57a236fcebac5220a99310a1b7d698
   OCMock: 589f2c84dacb1f5aaf6e4cec1f292551fe748e74
   RCT-Folly: 4464f4d875961fce86008d45f4ecf6cef6de0740
   RCTDeprecation: 726d24248aeab6d7180dac71a936bbca6a994ed1

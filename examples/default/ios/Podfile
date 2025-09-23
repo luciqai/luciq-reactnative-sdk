@@ -17,7 +17,6 @@ target 'LuciqExample' do
   pod 'react-native-google-maps', :path => rn_maps_path
 
   # XCFramework from local extracted folder
-    pod 'Luciq', :podspec => 'https://ios-releases.luciq.ai/custom/ci-test-update-unleash-with-new-identity/16.0.3/Luciq.podspec'
   # add this line
   flags = get_default_flags()
 
