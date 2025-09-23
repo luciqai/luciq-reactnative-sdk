@@ -421,7 +421,7 @@ jobs:
           command: yarn build
       - run:
           name: Publish Custom Package with Escape
-          command: Escape react-native publish-custompackage
+          command: Escape react-native publish-custompackage-luciq
           environment:
             DASHBOARD_TOKEN: << parameters.dashboard_token_env >>
             DASHBOARD_API_ENDPOINT: << parameters.api_endpoint >>
@@ -448,7 +448,7 @@ jobs:
       - run:
           name: Publish Official Package with Escape
           working_directory: project
-          command: Escape react-native publish
+          command: Escape react-native publish-luciq
           environment:
             DASHBOARD_API_ENDPOINT: api.instabug.com
 
