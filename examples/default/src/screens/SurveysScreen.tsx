@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Surveys } from 'instabug-reactnative';
+import { Surveys } from '@luciq/react-native';
 
 import { ListTile } from '../components/ListTile';
 import { Screen } from '../components/Screen';

@@ -16,11 +16,11 @@ describe('Session Replay Module', () => {
     expect(NativeSessionReplay.setNetworkLogsEnabled).toBeCalledWith(true);
   });
 
-  it('should call the native method setInstabugLogsEnabled', () => {
-    SessionReplay.setInstabugLogsEnabled(true);
+  it('should call the native method setLuciqLogsEnabled', () => {
+    SessionReplay.setLuciqLogsEnabled(true);
 
-    expect(NativeSessionReplay.setInstabugLogsEnabled).toBeCalledTimes(1);
-    expect(NativeSessionReplay.setInstabugLogsEnabled).toBeCalledWith(true);
+    expect(NativeSessionReplay.setLuciqLogsEnabled).toBeCalledTimes(1);
+    expect(NativeSessionReplay.setLuciqLogsEnabled).toBeCalledWith(true);
   });
 
   it('should call the native method setUserStepsEnabled', () => {

@@ -10,7 +10,7 @@
  */
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_instabug_react_example_nativeLibs_CppNativeLib_crashNDK(JNIEnv *env,
+Java_ai_luciq_react_example_nativeLibs_CppNativeLib_crashNDK(JNIEnv *env,
                                                                 jobject object) {
     __android_log_print(ANDROID_LOG_DEBUG, "NativeC++", "%s", "received invalid value");
 

@@ -7,7 +7,7 @@
 
 /************* SIGSEGV *******************************/
 JNIEXPORT void JNICALL
-Java_com_instabug_react_example_nativeLibs_CppNativeLib_causeSIGSEGVCrash(JNIEnv *env, jobject thiz) {
+Java_ai_luciq_react_example_nativeLibs_CppNativeLib_causeSIGSEGVCrash(JNIEnv *env, jobject thiz) {
     causeSIGSEGVCrashF1();
 }
 
@@ -15,14 +15,14 @@ Java_com_instabug_react_example_nativeLibs_CppNativeLib_causeSIGSEGVCrash(JNIEnv
 
 /************* SIGABRT *******************************/
 void JNICALL
-Java_com_instabug_react_example_nativeLibs_CppNativeLib_causeSIGABRTCrash(JNIEnv *env, jobject thiz) {
+Java_ai_luciq_react_example_nativeLibs_CppNativeLib_causeSIGABRTCrash(JNIEnv *env, jobject thiz) {
     causeSIGABRTCrashF1();
 }
 /****************************************************/
 
 /************* SIGFPE *******************************/
 void JNICALL
-Java_com_instabug_react_example_nativeLibs_CppNativeLib_causeSIGFPECrash(JNIEnv *env, jobject thiz) {
+Java_ai_luciq_react_example_nativeLibs_CppNativeLib_causeSIGFPECrash(JNIEnv *env, jobject thiz) {
     causeSIGFPECrashF1();
 }
 /***************************************************/
@@ -30,21 +30,21 @@ Java_com_instabug_react_example_nativeLibs_CppNativeLib_causeSIGFPECrash(JNIEnv 
 /************* SIGILL *******************************/
 
 void JNICALL
-Java_com_instabug_react_example_nativeLibs_CppNativeLib_causeSIGILLCrash(JNIEnv *env, jobject thiz) {
+Java_ai_luciq_react_example_nativeLibs_CppNativeLib_causeSIGILLCrash(JNIEnv *env, jobject thiz) {
     causeSIGILLCrashF1();
 }
 /***************************************************/
 
 /************* SIGBUS *******************************/
 void JNICALL
-Java_com_instabug_react_example_nativeLibs_CppNativeLib_causeSIGBUSCrash(JNIEnv *env, jobject thiz) {
+Java_ai_luciq_react_example_nativeLibs_CppNativeLib_causeSIGBUSCrash(JNIEnv *env, jobject thiz) {
     causeSIGBUSCrashF1();
 }
 /***************************************************/
 
 /************* SIGTRAP *******************************/
 void JNICALL
-Java_com_instabug_react_example_nativeLibs_CppNativeLib_causeSIGTRAPCrash(JNIEnv *env, jobject thiz) {
+Java_ai_luciq_react_example_nativeLibs_CppNativeLib_causeSIGTRAPCrash(JNIEnv *env, jobject thiz) {
     causeSIGTRAPCrashF1();
 }
 /***************************************************/

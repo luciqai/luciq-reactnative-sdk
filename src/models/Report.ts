@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-import { NativeInstabug } from '../native/NativeInstabug';
+import { NativeLuciq } from '../native/NativeLuciq';
 
 interface LogInfo {
   log: string;
@@ -16,7 +16,7 @@ export default class Report {
   constructor(
     public tags: string[] = [],
     public consoleLogs: string[] = [],
-    public instabugLogs: LogInfo[] = [],
+    public luciqLogs: LogInfo[] = [],
     public userAttributes: Record<string, string> = {},
     public fileAttachments: FileAttachmentInfo[] = [],
   ) {}
@@ -26,7 +26,7 @@ export default class Report {
    * @param tag
    */
   appendTag(tag: string) {
-    NativeInstabug.appendTagToReport(tag);
+    NativeLuciq.appendTagToReport(tag);
     this.tags = [...this.tags, tag];
   }
 
@@ -35,7 +35,7 @@ export default class Report {
    * @param consoleLog
    */
   appendConsoleLog(consoleLog: string) {
-    NativeInstabug.appendConsoleLogToReport(consoleLog);
+    NativeLuciq.appendConsoleLogToReport(consoleLog);
     this.consoleLogs = [...this.consoleLogs, consoleLog];
   }
 
@@ -45,7 +45,7 @@ export default class Report {
    * @param value
    */
   setUserAttribute(key: string, value: string) {
-    NativeInstabug.setUserAttributeToReport(key, value);
+    NativeLuciq.setUserAttributeToReport(key, value);
     this.userAttributes[key] = value;
   }
 
@@ -54,8 +54,8 @@ export default class Report {
    * @param log
    */
   logDebug(log: string) {
-    NativeInstabug.logDebugToReport(log);
-    this.instabugLogs = [...this.instabugLogs, { log: log, type: 'debug' }];
+    NativeLuciq.logDebugToReport(log);
+    this.luciqLogs = [...this.luciqLogs, { log: log, type: 'debug' }];
   }
 
   /**
@@ -63,8 +63,8 @@ export default class Report {
    * @param log
    */
   logVerbose(log: string) {
-    NativeInstabug.logVerboseToReport(log);
-    this.instabugLogs = [...this.instabugLogs, { log: log, type: 'verbose' }];
+    NativeLuciq.logVerboseToReport(log);
+    this.luciqLogs = [...this.luciqLogs, { log: log, type: 'verbose' }];
   }
 
   /**
@@ -72,8 +72,8 @@ export default class Report {
    * @param log
    */
   logWarn(log: string) {
-    NativeInstabug.logWarnToReport(log);
-    this.instabugLogs = [...this.instabugLogs, { log: log, type: 'warn' }];
+    NativeLuciq.logWarnToReport(log);
+    this.luciqLogs = [...this.luciqLogs, { log: log, type: 'warn' }];
   }
 
   /**
@@ -81,8 +81,8 @@ export default class Report {
    * @param log
    */
   logError(log: string) {
-    NativeInstabug.logErrorToReport(log);
-    this.instabugLogs = [...this.instabugLogs, { log: log, type: 'error' }];
+    NativeLuciq.logErrorToReport(log);
+    this.luciqLogs = [...this.luciqLogs, { log: log, type: 'error' }];
   }
 
   /**
@@ -90,8 +90,8 @@ export default class Report {
    * @param log
    */
   logInfo(log: string) {
-    NativeInstabug.logInfoToReport(log);
-    this.instabugLogs = [...this.instabugLogs, { log: log, type: 'info' }];
+    NativeLuciq.logInfoToReport(log);
+    this.luciqLogs = [...this.luciqLogs, { log: log, type: 'info' }];
   }
 
   /**
@@ -101,9 +101,9 @@ export default class Report {
    */
   addFileAttachmentWithUrl(url: string, fileName: string) {
     if (Platform.OS === 'ios') {
-      NativeInstabug.addFileAttachmentWithURLToReport(url);
+      NativeLuciq.addFileAttachmentWithURLToReport(url);
     } else {
-      NativeInstabug.addFileAttachmentWithURLToReport(url, fileName);
+      NativeLuciq.addFileAttachmentWithURLToReport(url, fileName);
     }
     this.fileAttachments = [...this.fileAttachments, { file: url, type: 'url' }];
   }
@@ -115,9 +115,9 @@ export default class Report {
    */
   addFileAttachmentWithData(data: string, fileName: string) {
     if (Platform.OS === 'ios') {
-      NativeInstabug.addFileAttachmentWithDataToReport(data);
+      NativeLuciq.addFileAttachmentWithDataToReport(data);
     } else {
-      NativeInstabug.addFileAttachmentWithDataToReport(data, fileName);
+      NativeLuciq.addFileAttachmentWithDataToReport(data, fileName);
     }
     this.fileAttachments = [...this.fileAttachments, { file: data, type: 'data' }];
   }

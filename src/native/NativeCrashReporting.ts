@@ -26,4 +26,4 @@ export interface CrashReportingNativeModule extends NativeModule {
   setNDKCrashesEnabled(isEnabled: boolean): Promise<void>;
 }
 
-export const NativeCrashReporting = NativeModules.IBGCrashReporting;
+export const NativeCrashReporting = NativeModules.LCQCrashReporting;

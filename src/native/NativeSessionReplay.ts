@@ -6,16 +6,16 @@ import { NativeModules } from './NativePackage';
 export interface SessionReplayNativeModule extends NativeModule {
   setEnabled(isEnabled: boolean): void;
   setNetworkLogsEnabled(isEnabled: boolean): void;
-  setInstabugLogsEnabled(isEnabled: boolean): void;
+  setLuciqLogsEnabled(isEnabled: boolean): void;
   setUserStepsEnabled(isEnabled: boolean): void;
   getSessionReplayLink(): Promise<string>;
   setSyncCallback(): Promise<void>;
   evaluateSync(shouldSync: boolean): void;
 }
 
-export const NativeSessionReplay = NativeModules.IBGSessionReplay;
+export const NativeSessionReplay = NativeModules.LCQSessionReplay;
 export enum NativeEvents {
-  SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION = 'IBGSessionReplayOnSyncCallback',
+  SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION = 'LCQSessionReplayOnSyncCallback',
 }
 
 export const emitter = new NativeEventEmitter(NativeSessionReplay);

@@ -1,5 +1,5 @@
-import InstabugConstants from './InstabugConstants';
-import { stringifyIfNotString, generateW3CHeader } from './InstabugUtils';
+import LuciqConstants from './LuciqConstants';
+import { stringifyIfNotString, generateW3CHeader } from './LuciqUtils';
 
 import { FeatureFlags } from '../utils/FeatureFlags';
 
@@ -267,10 +267,10 @@ export default {
               cloneNetwork.responseBodySize = cloneNetwork.responseBody.length;
             }
 
-            if (cloneNetwork.requestHeaders[InstabugConstants.GRAPHQL_HEADER]) {
+            if (cloneNetwork.requestHeaders[LuciqConstants.GRAPHQL_HEADER]) {
               cloneNetwork.gqlQueryName =
-                cloneNetwork.requestHeaders[InstabugConstants.GRAPHQL_HEADER];
-              delete cloneNetwork.requestHeaders[InstabugConstants.GRAPHQL_HEADER];
+                cloneNetwork.requestHeaders[LuciqConstants.GRAPHQL_HEADER];
+              delete cloneNetwork.requestHeaders[LuciqConstants.GRAPHQL_HEADER];
               if (cloneNetwork.gqlQueryName === 'null') {
                 cloneNetwork.gqlQueryName = '';
               }

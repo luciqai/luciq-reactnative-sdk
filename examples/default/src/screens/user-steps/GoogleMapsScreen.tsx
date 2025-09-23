@@ -7,7 +7,7 @@ import { StyleSheet, View } from 'react-native';
 /**
  *  don't forgot to add Google API key to
  *  examples/default/android/app/src/main/res/values/strings.xml
- *  examples/default/ios/InstabugExample/AppDelegate.mm
+ *  examples/default/ios/LuciqExample/AppDelegate.mm
  *
  * **/
 

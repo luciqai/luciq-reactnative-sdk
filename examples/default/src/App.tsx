@@ -3,8 +3,8 @@ import { StyleSheet } from 'react-native';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import type { SessionMetadata } from 'instabug-reactnative';
-import Instabug, {
+import type { SessionMetadata } from '@luciq/react-native';
+import Luciq, {
   CrashReporting,
   InvocationEvent,
   LaunchType,
@@ -14,7 +14,7 @@ import Instabug, {
   ReproStepsMode,
   SessionReplay,
   OverAirUpdateServices,
-} from 'instabug-reactnative';
+} from '@luciq/react-native';
 import { NativeBaseProvider } from 'native-base';
 
 import { RootTabNavigator } from './navigation/RootTab';
@@ -22,6 +22,7 @@ import { nativeBaseTheme } from './theme/nativeBaseTheme';
 import { navigationTheme } from './theme/navigationTheme';
 
 import { QueryClient, QueryClientProvider } from 'react-query';
+import { CallbackHandlersProvider } from './contexts/callbackContext';
 
 const queryClient = new QueryClient();
 
@@ -41,11 +42,11 @@ export const App: React.FC = () => {
 
   const navigationRef = useNavigationContainerRef();
 
-  const initializeInstabug = () => {
+  const initializeLuciq = () => {
     try {
       SessionReplay.setSyncCallback((data) => shouldSyncSession(data));
 
-      Instabug.init({
+      Luciq.init({
         token: 'deb1910a7342814af4e4c9210c786f35',
         invocationEvents: [InvocationEvent.floatingButton],
         debugLogsLevel: LogLevel.verbose,
@@ -55,14 +56,14 @@ export const App: React.FC = () => {
       });
 
       CrashReporting.setNDKCrashesEnabled(true);
-      Instabug.setReproStepsConfig({ all: ReproStepsMode.enabled });
+      Luciq.setReproStepsConfig({ all: ReproStepsMode.enabled });
     } catch (error) {
-      console.error('Instabug initialization failed:', error);
+      console.error('Luciq initialization failed:', error);
     }
   };
 
   useEffect(() => {
-    initializeInstabug();
+    initializeLuciq();
     NetworkLogger.setNetworkDataObfuscationHandler(async (networkData) => {
       networkData.url = `${networkData.url}/JS/Obfuscated`;
       return networkData;
@@ -71,7 +72,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     // @ts-ignore
-    const unregisterListener = Instabug.setNavigationListener(navigationRef);
+    const unregisterListener = Luciq.setNavigationListener(navigationRef);
 
     return unregisterListener;
   }, [navigationRef]);
@@ -80,8 +81,10 @@ export const App: React.FC = () => {
     <GestureHandlerRootView style={styles.root}>
       <NativeBaseProvider theme={nativeBaseTheme}>
         <QueryClientProvider client={queryClient}>
-          <NavigationContainer onStateChange={Instabug.onStateChange} theme={navigationTheme}>
-            <RootTabNavigator />
+          <NavigationContainer onStateChange={Luciq.onStateChange} theme={navigationTheme}>
+            <CallbackHandlersProvider>
+              <RootTabNavigator />
+            </CallbackHandlersProvider>
           </NavigationContainer>
         </QueryClientProvider>
       </NativeBaseProvider>

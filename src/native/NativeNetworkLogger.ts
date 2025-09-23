@@ -33,10 +33,10 @@ export interface NetworkLoggerNativeModule extends NativeModule {
   forceStopNetworkLoggingIOS(): void; // iOS only;
 }
 
-export const NativeNetworkLogger = NativeModules.IBGNetworkLogger;
+export const NativeNetworkLogger = NativeModules.LCQNetworkLogger;
 
 export enum NativeNetworkLoggerEvent {
-  NETWORK_LOGGER_HANDLER = 'IBGNetworkLoggerHandler',
+  NETWORK_LOGGER_HANDLER = 'LCQNetworkLoggerHandler',
 }
 
 export const NetworkLoggerEmitter = new NativeEventEmitter(NativeNetworkLogger);

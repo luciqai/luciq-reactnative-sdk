@@ -19,34 +19,34 @@ done
 npx eslint src/index.ts --fix
 
 # remove survey and featureRequest features in Android  files
-deletedFeaturesFilesInAndroidApp=("RNInstabugSurveysModule" "RNInstabugFeatureRequestsModule")
+deletedFeaturesFilesInAndroidApp=("RNLuciqSurveysModule" "RNLuciqFeatureRequestsModule")
 for feature in "${deletedFeaturesFilesInAndroidApp[@]}"; do
 	echo "$feature"
 
-	rm -f android/src/main/java/com/instabug/reactlibrary/"$feature".java
-	rm -f android/src/test/java/com/instabug/reactlibrary/"$feature"Test.java
-	node scripts/replace.js "modules.add(new $feature(reactContext));" "" android/src/main/java/com/instabug/reactlibrary/RNInstabugReactnativePackage.java
+	rm -f android/src/main/java/ai/luciq/reactlibrary/"$feature".java
+	rm -f android/src/test/java/ai/luciq/reactlibrary/"$feature"Test.java
+	node scripts/replace.js "modules.add(new $feature(reactContext));" "" android/src/main/java/ai/luciq/reactlibrary/RNLuciqReactnativePackage.java
 done
 
 # remove survey and featureRequest features in IOS  files
-deletedFeaturesFilesInIosApp=("InstabugSurveysBridge" "InstabugFeatureRequestsBridge")
+deletedFeaturesFilesInIosApp=("LuciqSurveysBridge" "LuciqFeatureRequestsBridge")
 for feature in "${deletedFeaturesFilesInIosApp[@]}"; do
 	echo "$feature"
-	rm -f ios/RNInstabug/"$feature".h
-	rm -f ios/RNInstabug/"$feature".m
+	rm -f ios/RNLuciq/"$feature".h
+	rm -f ios/RNLuciq/"$feature".m
 done
 
 # Remove unused features iOS test files
-iosTestFiles=("InstabugSurveysTests.m" "InstabugFeatureRequestsTests.m")
+iosTestFiles=("LuciqSurveysTests.m" "LuciqFeatureRequestsTests.m")
 for file in "${iosTestFiles[@]}"; do
 	echo "Deleting $file"
 
-	rm -f examples/default/ios/InstabugTests/"$file"
-	node scripts/replace.js --pattern ".*$file.*" "" examples/default/ios/InstabugExample.xcodeproj/project.pbxproj
+	rm -f examples/default/ios/LuciqTests/"$file"
+	node scripts/replace.js --pattern ".*$file.*" "" examples/default/ios/LuciqExample.xcodeproj/project.pbxproj
 done
 
-node scripts/replace.js "#import <Instabug/IBGSurveys.h>" "" ios/RNInstabug/InstabugReactBridge.m
-node scripts/replace.js "#import <Instabug/IBGSurveys.h>" "" ios/RNInstabug/InstabugReactBridge.h
+node scripts/replace.js "#import <Luciq/LQSurveys.h>" "" ios/RNLuciq/LuciqReactBridge.m
+node scripts/replace.js "#import <Luciq/LQSurveys.h>" "" ios/RNLuciq/LuciqReactBridge.h
 
 # Remove all locales except for English
 # This ugly regular expression matches all lines not containing "english" and containing "constants.locale"
@@ -59,4 +59,4 @@ node scripts/replace.js "return (major == 7 && minor >= 3) || major >= 8" "retur
 node scripts/replace.js "static boolean supportsNamespace() {" "$(printf "static boolean supportsNamespace() {\n  return false")" android/build.gradle
 
 # Add Dream11 custom iOS build podspec to Podfile
-node scripts/replace.js "target 'InstabugExample' do" "$(printf "target 'InstabugExample' do\n  pod 'Instabug', :podspec => 'https://ios-releases.instabug.com/custom/dream11/Instabug.podspec'")" examples/default/ios/Podfile
+node scripts/replace.js "target 'LuciqExample' do" "$(printf "target 'LuciqExample' do\n  pod 'Luciq', :podspec => 'https://ios-releases.luciq.ai/custom/dream11/Luciq.podspec'")" examples/default/ios/Podfile

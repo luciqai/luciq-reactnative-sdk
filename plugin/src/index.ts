@@ -1,5 +1,5 @@
-import { withInstabug } from './withInstabug';
+import { withLuciq } from './withLuciq';
 
-export { withInstabug };
+export { withLuciq };
 
-export default withInstabug;
+export default withLuciq;

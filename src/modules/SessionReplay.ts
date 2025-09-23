@@ -1,7 +1,7 @@
 import { NativeSessionReplay, NativeEvents, emitter } from '../native/NativeSessionReplay';
 import type { SessionMetadata } from '../models/SessionMetadata';
 /**
- * Enables or disables Session Replay for your Instabug integration.
+ * Enables or disables Session Replay for your Luciq integration.
  *
  * By default, Session Replay is enabled if it is available in your current plan
  *
@@ -33,19 +33,19 @@ export const setNetworkLogsEnabled = (isEnabled: boolean) => {
 };
 
 /**
- * Enables or disables Instabug logs for Session Replay.
+ * Enables or disables Luciq logs for Session Replay.
  *
- * By default, Instabug logs are enabled.
+ * By default, Luciq logs are enabled.
  *
  * @param isEnabled
  *
  * @example
  * ```ts
- * SessionReplay.setInstabugLogsEnabled(true);
+ * SessionReplay.setLuciqLogsEnabled(true);
  * ```
  */
-export const setInstabugLogsEnabled = (isEnabled: boolean) => {
-  NativeSessionReplay.setInstabugLogsEnabled(isEnabled);
+export const setLuciqLogsEnabled = (isEnabled: boolean) => {
+  NativeSessionReplay.setLuciqLogsEnabled(isEnabled);
 };
 
 /**
@@ -100,7 +100,7 @@ export const setSyncCallback = async (
 
     if (typeof result !== 'boolean') {
       console.warn(
-        `IBG-RN: The callback passed to SessionReplay.setSyncCallback was expected to return a boolean but returned "${result}". The value has been cast to boolean, proceeding with ${shouldSync}.`,
+        `LCQ-RN: The callback passed to SessionReplay.setSyncCallback was expected to return a boolean but returned "${result}". The value has been cast to boolean, proceeding with ${shouldSync}.`,
       );
     }
 

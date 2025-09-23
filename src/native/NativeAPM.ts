@@ -43,9 +43,9 @@ export interface ApmNativeModule extends NativeModule {
   setAutoUITraceEnabled(isEnabled: boolean): void;
   startUITrace(name: string): void;
   endUITrace(): void;
-  ibgSleep(): void;
+  lcqSleep(): void;
 }
 
-export const NativeAPM = NativeModules.IBGAPM;
+export const NativeAPM = NativeModules.LCQAPM;
 
 export const emitter = new NativeEventEmitter(NativeAPM);

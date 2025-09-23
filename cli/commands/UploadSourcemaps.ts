@@ -15,22 +15,22 @@ uploadSourcemapsCommand
   )
   .addOption(
     new Option('-t, --token <value>', 'Your App Token')
-      .env('INSTABUG_APP_TOKEN')
+      .env('LUCIQ_APP_TOKEN')
       .makeOptionMandatory(),
   )
   .addOption(
     new Option('-n, --name <value>', 'The app version name')
-      .env('INSTABUG_APP_VERSION_NAME')
+      .env('LUCIQ_APP_VERSION_NAME')
       .makeOptionMandatory(),
   )
   .addOption(
     new Option('-c, --code <value>', 'The app version code')
-      .env('INSTABUG_APP_VERSION_CODE')
+      .env('LUCIQ_APP_VERSION_CODE')
       .makeOptionMandatory(),
   )
   .addOption(
     new Option('-l, --label <value>', "The CodePush label if it's a CodePush release").env(
-      'INSTABUG_APP_VERSION_LABEL',
+      'LUCIQ_APP_VERSION_LABEL',
     ),
   )
   .action(function (this: Command) {

@@ -3,10 +3,10 @@ import FakeRequest from '../mocks/fakeNetworkRequest';
 import nock from 'nock';
 import waitForExpect from 'wait-for-expect';
 
-import InstabugConstants from '../../src/utils/InstabugConstants';
+import LuciqConstants from '../../src/utils/LuciqConstants';
 import Interceptor, { injectHeaders } from '../../src/utils/XhrNetworkInterceptor';
 
-const url = 'http://api.instabug.com';
+const url = 'http://api.luciq.ai';
 const method = 'GET';
 
 const request = nock(url).get('/');
@@ -100,7 +100,7 @@ describe('Network Interceptor', () => {
   });
 
   it('should stringify requestBody in network object', (done) => {
-    const requestBody = Buffer.from('Instabug');
+    const requestBody = Buffer.from('Luciq');
     Interceptor.enableInterception();
     Interceptor.setOnDoneCallback((network) => {
       expect(network.requestBody).toBe(JSON.stringify(requestBody));
@@ -245,12 +245,12 @@ describe('Network Interceptor', () => {
   it('should set gqlQueryName in network object on receiving response', (done) => {
     const responseBody = { data: [{ item: 'first' }, { item: 'second' }] };
     const headers = {
-      [InstabugConstants.GRAPHQL_HEADER]: InstabugConstants.GRAPHQL_HEADER,
+      [LuciqConstants.GRAPHQL_HEADER]: LuciqConstants.GRAPHQL_HEADER,
     };
 
     Interceptor.enableInterception();
     Interceptor.setOnDoneCallback((network) => {
-      expect(network.gqlQueryName).toEqual(headers[InstabugConstants.GRAPHQL_HEADER]);
+      expect(network.gqlQueryName).toEqual(headers[LuciqConstants.GRAPHQL_HEADER]);
       done();
     });
     FakeRequest.open(method, url);
@@ -261,7 +261,7 @@ describe('Network Interceptor', () => {
 
   it('should set gqlQueryName in network object on receiving response with empty string', (done) => {
     const headers = {
-      [InstabugConstants.GRAPHQL_HEADER]: 'null',
+      [LuciqConstants.GRAPHQL_HEADER]: 'null',
     };
 
     Interceptor.enableInterception();
@@ -278,7 +278,7 @@ describe('Network Interceptor', () => {
   it('should set serverErrorMessage in network object on receiving response', (done) => {
     const responseBody = { errors: [{ item: 'first' }, { item: 'second' }] };
     const headers = {
-      [InstabugConstants.GRAPHQL_HEADER]: InstabugConstants.GRAPHQL_HEADER,
+      [LuciqConstants.GRAPHQL_HEADER]: LuciqConstants.GRAPHQL_HEADER,
     };
 
     Interceptor.enableInterception();

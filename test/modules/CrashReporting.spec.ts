@@ -4,7 +4,7 @@ import * as CrashReporting from '../../src/modules/CrashReporting';
 import { NativeCrashReporting } from '../../src/native/NativeCrashReporting';
 import { Platform } from 'react-native';
 import { NonFatalErrorLevel } from '../../src';
-import { getCrashDataFromError } from '../../src/utils/InstabugUtils';
+import { getCrashDataFromError } from '../../src/utils/LuciqUtils';
 
 describe('CrashReporting Module', () => {
   it('should call the native method setEnabled', () => {

@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import Slider from '@react-native-community/slider';
 import { Center, HStack, ScrollView, VStack } from 'native-base';
-import Instabug from 'instabug-reactnative';
+import Luciq from '@luciq/react-native';
 
 import { Screen } from '../../components/Screen';
 import { Section } from '../../components/Section';
@@ -54,43 +54,43 @@ export const BasicComponentsScreen: React.FC = () => {
 
   function maskAllViews() {
     // Mask Text
-    Instabug.addPrivateView(textRef.current!);
+    Luciq.addPrivateView(textRef.current!);
 
     // Mask Image
-    Instabug.addPrivateView(imageRef.current!);
+    Luciq.addPrivateView(imageRef.current!);
 
     // Mask TextInput
-    Instabug.addPrivateView(textInputRef.current!);
+    Luciq.addPrivateView(textInputRef.current!);
 
     // Mask Button
-    Instabug.addPrivateView(buttonRef.current!);
+    Luciq.addPrivateView(buttonRef.current!);
 
     // Mask Pressable
-    Instabug.addPrivateView(pressableRef.current!);
+    Luciq.addPrivateView(pressableRef.current!);
 
     // Mask TouchableOpacity
-    Instabug.addPrivateView(touchableOpacityRef.current!);
+    Luciq.addPrivateView(touchableOpacityRef.current!);
 
     // Mask MultiText touchable opacity Button
-    Instabug.addPrivateView(multiTextTouchableOpacityRef.current!);
+    Luciq.addPrivateView(multiTextTouchableOpacityRef.current!);
 
     // Mask Icon Pressable Button
-    Instabug.addPrivateView(iconPressableButtonRef.current!);
+    Luciq.addPrivateView(iconPressableButtonRef.current!);
 
     // Mask Icon.Button
-    Instabug.addPrivateView(iconButtonRef.current!);
+    Luciq.addPrivateView(iconButtonRef.current!);
 
     // Mask A four TouchableOpacity Button
-    Instabug.addPrivateView(fourTierTouchableOpacityButtonRef.current!);
+    Luciq.addPrivateView(fourTierTouchableOpacityButtonRef.current!);
 
     // Mask Switch Button
-    Instabug.addPrivateView(switchButtonRef.current!);
+    Luciq.addPrivateView(switchButtonRef.current!);
 
     // Mask slider
-    Instabug.addPrivateView(sliderRef.current!);
+    Luciq.addPrivateView(sliderRef.current!);
 
     // Mask slider
-    Instabug.addPrivateView(activityIndicatorRef.current!);
+    Luciq.addPrivateView(activityIndicatorRef.current!);
   }
 
   return (

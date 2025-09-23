@@ -1,0 +1,744 @@
+package ai.luciq.reactlibrary;
+
+import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
+
+import android.graphics.Bitmap;
+import android.os.Looper;
+
+import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.JavaOnlyArray;
+import com.facebook.react.bridge.JavaOnlyMap;
+import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.bridge.WritableMap;
+import ai.luciq.library.Feature;
+import ai.luciq.library.Luciq;
+import ai.luciq.library.LuciqColorTheme;
+import ai.luciq.library.LuciqCustomTextPlaceHolder;
+import ai.luciq.library.IssueType;
+import ai.luciq.library.ReproConfigurations;
+import ai.luciq.library.ReproMode;
+import ai.luciq.library.internal.crossplatform.CoreFeature;
+import ai.luciq.library.internal.crossplatform.InternalCore;
+import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
+import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
+import ai.luciq.library.internal.module.LuciqLocale;
+import ai.luciq.library.ui.onboarding.WelcomeMessage;
+import ai.luciq.library.util.overairversion.OverAirVersionType;
+import ai.luciq.reactlibrary.utils.MainThreadHandler;
+import ai.luciq.library.MaskingType;
+
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Matchers;
+import org.mockito.MockedConstruction;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.internal.verification.VerificationModeFactory;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+
+public class RNLuciqReactnativeModuleTest {
+    private RNLuciqReactnativeModule rnModule = new RNLuciqReactnativeModule(null);
+
+    private final static ScheduledExecutorService mainThread = Executors.newSingleThreadScheduledExecutor();
+
+    // Mock Objects
+    private MockedStatic<Looper> mockLooper;
+    private MockedStatic <MainThreadHandler> mockMainThreadHandler;
+    private MockedStatic <Luciq> mockLuciq;
+
+    @Before
+    public void mockMainThreadHandler() throws Exception {
+        // Mock static functions
+        mockLuciq = mockStatic(Luciq.class);
+        mockLooper = mockStatic(Looper.class);
+        mockMainThreadHandler = mockStatic(MainThreadHandler.class);
+
+        // Mock Looper class
+        Looper mockMainThreadLooper = mock(Looper.class);
+        when(Looper.getMainLooper()).thenReturn(mockMainThreadLooper);
+
+        // Override runOnMainThread
+        Answer<Boolean> handlerPostAnswer = new Answer<Boolean>() {
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgument(0, Runnable.class).run();
+                return true;
+            }
+        };
+        Mockito.doAnswer(handlerPostAnswer).when(MainThreadHandler.class);
+        MainThreadHandler.runOnMainThread(any(Runnable.class));
+    }
+    @After
+    public void tearDown() {
+        // Remove static mocks
+        mockLooper.close();
+        mockMainThreadHandler.close();
+        mockLuciq.close();
+    }
+
+    /********Luciq*********/
+
+
+    @Test
+    public void givenTrue$setEnabled_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        // when
+        rnModule.setEnabled(true);
+        // then
+        verify(Luciq.class, times(1));
+        Luciq.enable();
+    }
+
+    @Test
+    public void givenFalse$setEnabled_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        // when
+        rnModule.setEnabled(false);
+        // then
+        verify(Luciq.class, times(1));
+        Luciq.disable();
+    }
+
+    @Test
+    public void givenArgs$setUserAttribute_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        String key = "company";
+        String value = "Luciq";
+        // when
+        rnModule.setUserAttribute(key, value);
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.setUserAttribute(key, value);
+    }
+
+    @Test
+    public void givenArg$removeUserAttribute_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        String key = "company";
+        // when
+        rnModule.removeUserAttribute(key);
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.removeUserAttribute(key);
+    }
+
+    @Test
+    public void given$clearAllUserAttributes_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        // when
+        rnModule.clearAllUserAttributes();
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.clearAllUserAttributes();
+    }
+
+    @Test
+    public void givenStringTheme$setColorTheme_whenQuery_thenShouldCallNativeApiWithTheme() {
+        // given
+        Map<String, LuciqColorTheme> themesArgs = ArgsRegistry.colorThemes;
+        final String[] keysArray = themesArgs.keySet().toArray(new String[0]);
+
+        // when
+        for (String key: keysArray) {
+            rnModule.setColorTheme(key);
+        }
+
+        // then
+        verify(Luciq.class,times(1));
+        for (String key : keysArray) {
+            LuciqColorTheme theme = themesArgs.get(key);
+            Luciq.setColorTheme(theme);
+        }
+    }
+
+    @Test
+    public void givenArg$setUserData_whenQuery_thenShouldCallNativeApiWithArg() {
+        // given
+
+        String data = "something";
+        // when
+        rnModule.setUserData(data);
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.setUserData(data);
+    }
+
+    @Test
+    public void testSetCodePushVersion() {
+        String codePushVersion = "123";
+
+        rnModule.setCodePushVersion(codePushVersion);
+
+        mockLuciq.verify(() -> Luciq.setCodePushVersion(codePushVersion));
+    }
+
+    @Test
+    public void testSetOverAirVersion() {
+        WritableMap mockMap = mock(WritableMap.class);
+
+        String version="D0A12345-6789-4B3C-A123-4567ABCDEF0";
+
+        when(mockMap.getString("version")).thenReturn(version);
+        when(mockMap.getString("service")).thenReturn("expo");
+
+        rnModule.setOverAirVersion(mockMap);
+
+        mockLuciq.verify(() -> Luciq.setOverAirVersion(
+                version, OverAirVersionType.EXPO));
+    }
+
+    @Test
+    public void testIdentifyUserWithNoId() {
+        // given
+
+        String email = "sali@luciq.ai";
+        String userName = "salmaali";
+        String id = null;
+        // when
+        rnModule.identifyUser(email, userName, id);
+        // then
+        mockLuciq.verify(() -> Luciq.identifyUser(userName, email, id));
+    }
+
+    @Test
+    public void testIdentifyUserWithId() {
+        // given
+
+        String email = "sali@luciq.ai";
+        String userName = "salmaali";
+        String id = "salmaali";
+        // when
+        rnModule.identifyUser(email, userName, id);
+        // then
+        mockLuciq.verify(() -> Luciq.identifyUser(userName, email, id));
+    }
+
+    @Test
+    public void given$resetTags_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        // when
+        rnModule.resetTags();
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.resetTags();
+    }
+
+    @Test
+    public void given$logOut_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        // when
+        rnModule.logOut();
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.logoutUser();
+    }
+
+    @Test
+    public void given$logUserEvent_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        String eventName = "click";
+        // when
+        rnModule.logUserEvent(eventName);
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.logUserEvent(eventName);
+    }
+
+    @Test
+    public void given$clearFileAttachment_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        // when
+        rnModule.clearFileAttachment();
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.clearFileAttachment();
+    }
+
+    @Test
+    public void givenArg$setReproStepsConfig_whenQuery_thenShouldCallNativeApiWithArg() {
+        String bug = "reproStepsEnabled";
+        String crash = "reproStepsDisabled";
+        String sessionReplay = "reproStepsEnabled";
+
+        ReproConfigurations config = mock(ReproConfigurations.class);
+        MockedConstruction<ReproConfigurations.Builder> mReproConfigurationsBuilder = mockConstruction(ReproConfigurations.Builder.class, (mock, context) -> {
+            when(mock.setIssueMode(anyInt(), anyInt())).thenReturn(mock);
+            when(mock.build()).thenReturn(config);
+        });
+
+        rnModule.setReproStepsConfig(bug, crash, sessionReplay);
+
+        ReproConfigurations.Builder builder = mReproConfigurationsBuilder.constructed().get(0);
+
+        verify(builder).setIssueMode(IssueType.Bug, ReproMode.EnableWithScreenshots);
+        verify(builder).setIssueMode(IssueType.Crash, ReproMode.Disable);
+        verify(builder).setIssueMode(IssueType.SessionReplay, ReproMode.EnableWithScreenshots);
+        verify(builder).build();
+
+        mockLuciq.verify(() -> Luciq.setReproConfigurations(config));
+
+        mReproConfigurationsBuilder.close();
+    }
+
+    @Test
+    public void givenArg$showWelcomeMessageWithMode_whenQuery_thenShouldCallNativeApiWithArg() {
+        // given
+        Map<String, WelcomeMessage.State> args = ArgsRegistry.welcomeMessageStates;
+        final String[] keysArray = args.keySet().toArray(new String[0]);
+
+        // when
+        for (String key : keysArray) {
+            rnModule.showWelcomeMessageWithMode(key);
+        }
+
+        // then
+        verify(Luciq.class,times(1));
+        for (String key : keysArray) {
+            WelcomeMessage.State state = (WelcomeMessage.State) args.get(key);
+            Luciq.showWelcomeMessage(state);
+        }
+    }
+
+    @Test
+    public void givenArg$setWelcomeMessageMode_whenQuery_thenShouldCallNativeApiWithArg() {
+        // given
+        Map<String, WelcomeMessage.State> args = ArgsRegistry.welcomeMessageStates;
+        final String[] keysArray = args.keySet().toArray(new String[0]);
+
+        // when
+        for (String key : keysArray) {
+            rnModule.setWelcomeMessageMode(key);
+        }
+
+        // then
+        verify(Luciq.class,times(1));
+        for (String key : keysArray) {
+            WelcomeMessage.State state = args.get(key);
+            Luciq.setWelcomeMessageState(state);
+        }
+    }
+
+    @Test
+    public void given$show_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        // when
+        rnModule.show();
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.show();
+    }
+
+    @Test
+    public void givenTrue$setSessionProfilerEnabled_whenQuery_thenShouldCallNativeApiWithEnabled() {
+        // given
+
+        // when
+        rnModule.setSessionProfilerEnabled(true);
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.setSessionProfilerState(Feature.State.ENABLED);
+    }
+
+    @Test
+    public void givenFalse$setSessionProfilerEnabled_whenQuery_thenShouldCallNativeApiWithDisabled() {
+        // given
+
+        // when
+        rnModule.setSessionProfilerEnabled(false);
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.setSessionProfilerState(Feature.State.DISABLED);
+    }
+
+    @Test
+    public void givenArg$appendTags_whenQuery_thenShouldCallNativeApiWithArg() {
+        // given
+
+        JavaOnlyArray array = new JavaOnlyArray();
+        array.pushString("tag1");
+        array.pushString("tag2");
+        // when
+        rnModule.appendTags(array);
+        // then
+        verify(Luciq.class,times(1));
+        String [] expectedArray = {"tag1", "tag2"};
+        Luciq.addTags(expectedArray);
+    }
+
+    @Test
+    public void givenCallback$getTags_whenQuery_thenShouldCallNativeApiAndResolvePromise() {
+        // given
+
+        MockedStatic mockArgument = mockStatic(Arguments.class);
+        Promise promise = mock(Promise.class);
+        // when
+        ArrayList<String> tags = new ArrayList<>();
+        tags.add("tag1");
+        tags.add("tag2");
+        when(Luciq.getTags()).thenReturn(tags);
+        when(Arguments.createArray()).thenReturn(new JavaOnlyArray());
+        rnModule.getTags(promise);
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.getTags();
+        WritableArray expectedArray = new JavaOnlyArray();
+        expectedArray.pushString("tag1");
+        expectedArray.pushString("tag2");
+        verify(promise).resolve(expectedArray);
+        mockArgument.close();
+
+    }
+
+    @Test
+    public void givenArgs$getUserAttribute_whenQuery_thenShouldCallNativeApiAndResolvePromise() {
+        // given
+
+        Promise promise = mock(Promise.class);
+        // when
+        String key = "company";
+        String value = "Luciq";
+        when(Luciq.getUserAttribute(key)).thenReturn(value);
+        rnModule.getUserAttribute(key, promise);
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.getUserAttribute(key);
+        verify(promise).resolve(value);
+    }
+
+    @Test
+    public void givenCallback$getAllUserAttributes_whenQuery_thenShouldCallNativeApiAndResolvePromise() {
+        // given
+        MockedStatic mockArgument = mockStatic(Arguments.class);
+        Promise promise = mock(Promise.class);
+        // when
+        HashMap<String, String> userAttributes = new HashMap<>();
+        userAttributes.put("email", "sali@luciq.ai");
+        when(Arguments.createMap()).thenReturn(new JavaOnlyMap());
+        when(Luciq.getAllUserAttributes()).thenReturn(userAttributes);
+        rnModule.getAllUserAttributes(promise);
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.getAllUserAttributes();
+        WritableMap expectedMap = new JavaOnlyMap();
+        expectedMap.putString("email", "sali@luciq.ai");
+        verify(promise).resolve(expectedMap);
+        mockArgument.close();
+    }
+
+    @Test
+    public void givenArg$setLocale_whenQuery_thenShouldCallNativeApiWithLocale() {
+        // given
+        Map<String, LuciqLocale> args = ArgsRegistry.locales;
+        String[] keysArray = args.keySet().toArray(new String[0]);
+
+        // when
+        for (String key : keysArray) {
+            rnModule.setLocale(key);
+        }
+
+        // then
+        verify(Luciq.class,times(1));
+        for (String key : keysArray) {
+            final LuciqLocale luciqLocale = args.get(key);
+            final Locale locale = new Locale(luciqLocale.getCode(), luciqLocale.getCountry());
+            Luciq.setLocale(locale);
+        }
+    }
+
+    @Test
+    public void givenString$setString_whenQuery_thenShouldCallNativeApiWithEnum() {
+        // given
+        Map<String, LuciqCustomTextPlaceHolder.Key> args = ArgsRegistry.placeholders;
+        Set<String> keys = args.keySet();
+
+        // when
+        LuciqCustomTextPlaceHolder expectedPlaceHolders = new LuciqCustomTextPlaceHolder();
+        for (String key : keys) {
+            LuciqCustomTextPlaceHolder.Key placeHolder = args.get(key);
+            expectedPlaceHolders.set(placeHolder, key);
+            rnModule.setString(key, key);
+        }
+
+        // then
+        verify(Luciq.class ,VerificationModeFactory.atLeastOnce());
+        Luciq.setCustomTextPlaceHolders(Matchers.any(LuciqCustomTextPlaceHolder.class));
+
+        // access placeHolders field by reflection
+        try {
+            Field privateStringField = RNLuciqReactnativeModule.class.
+                    getDeclaredField("placeHolders");
+            privateStringField.setAccessible(true);
+            LuciqCustomTextPlaceHolder placeHolders = (LuciqCustomTextPlaceHolder) privateStringField.get(rnModule);
+        for (String key : keys) {
+            LuciqCustomTextPlaceHolder.Key placeHolder = args.get(key);
+            Assert.assertEquals(placeHolders.get(placeHolder), key);
+        }
+        } catch (NoSuchFieldException | IllegalAccessException nsfe) {
+            throw new RuntimeException(nsfe);
+        }
+    }
+
+    @Test
+    public void givenString$reportCurrentViewChange_whenQuery_thenShouldCallNativeApiWithString() throws Exception {
+        // when
+        rnModule.reportCurrentViewChange("screen");
+        Method privateStringMethod = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportCurrentViewChange", String.class);
+        privateStringMethod.setAccessible(true);
+
+        // then
+        verify(Luciq.class, VerificationModeFactory.times(1));
+        privateStringMethod.invoke("reportCurrentViewChange","screen");
+    }
+
+    @Test
+    public void givenString$reportScreenChange_whenQuery_thenShouldCallNativeApiWithString() throws Exception {
+        // when
+        rnModule.reportScreenChange("screen");
+        Method privateStringMethod = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class);
+        privateStringMethod.setAccessible(true);
+
+        // then
+        verify(Luciq.class, VerificationModeFactory.times(1));
+        privateStringMethod.invoke("reportScreenChange", null,"screen");
+
+    }
+
+
+    @Test
+    public void testAddFeatureFlags() {
+        // given
+        JavaOnlyMap map = new JavaOnlyMap();
+        map.putString("key1", "value1");
+        map.putString("key2", "value2");
+
+        // when
+        rnModule.addFeatureFlags(map);
+
+        // then
+        Iterator<Map.Entry<String, Object>> iterator = map.getEntryIterator();
+        ArrayList<LuciqFeatureFlag> featureFlags = new ArrayList<>();
+        while (iterator.hasNext()) {
+            Map.Entry<String, Object> item = iterator.next();
+            featureFlags.add(new LuciqFeatureFlag(item.getKey(), (String) item.getValue()));
+        }
+
+        mockLuciq.verify(() -> Luciq.addFeatureFlags(featureFlags));
+
+    }
+
+    @Test
+    public void testRemoveFeatureFlags() {
+        // given
+        JavaOnlyArray array = new JavaOnlyArray();
+        array.pushString("exp1");
+        array.pushString("exp2");
+
+        // when
+        rnModule.removeFeatureFlags(array);
+
+        // then
+        List<String> expectedList = new ArrayList<String>();
+        for (Object o : array.toArrayList()) {
+            expectedList.add((String) o);
+        }
+        mockLuciq.verify(() -> Luciq.removeFeatureFlag(expectedList));
+
+    }
+
+    @Test
+    public void testRemoveAllFeatureFlags() {
+        // when
+        rnModule.removeAllFeatureFlags();
+
+        // then
+        mockLuciq.verify(() -> Luciq.removeAllFeatureFlags());
+    }
+
+      @Test
+        public void testSetAppVariant() {
+              String appVariant="App-variant";
+            // when
+            rnModule.setAppVariant(appVariant);
+
+            // then
+            mockLuciq.verify(() -> Luciq.setAppVariant(appVariant));
+        }
+
+    @Test
+    public void testWillRedirectToStore() {
+        // when
+        rnModule.willRedirectToStore();
+
+        // then
+        mockLuciq.verify(() -> Luciq.willRedirectToStore());
+    }
+    @Test
+    public void testW3CExternalTraceIDFlag(){
+        Promise promise = mock(Promise.class);
+        InternalCore internalAPM = mock(InternalCore.class);
+        rnModule.isW3ExternalTraceIDEnabled(promise);
+        boolean expected=internalAPM._isFeatureEnabled(CoreFeature.W3C_EXTERNAL_TRACE_ID);
+        verify(promise).resolve(expected);
+    }
+    @Test
+    public void testW3CExternalGeneratedHeaderFlag(){
+        Promise promise = mock(Promise.class);
+        InternalCore internalAPM = mock(InternalCore.class);
+        rnModule.isW3ExternalGeneratedHeaderEnabled(promise);
+        boolean expected=internalAPM._isFeatureEnabled(CoreFeature.W3C_ATTACHING_GENERATED_HEADER);
+        verify(promise).resolve(expected);
+    }
+    @Test
+    public void testW3CCaughtHeaderFlag(){
+        Promise promise = mock(Promise.class);
+        InternalCore internalAPM = mock(InternalCore.class);
+        rnModule.isW3CaughtHeaderEnabled(promise);
+        boolean expected=internalAPM._isFeatureEnabled(CoreFeature.W3C_ATTACHING_CAPTURED_HEADER);
+        verify(promise).resolve(expected);
+    }
+
+
+    @Test
+    public void testSetNetworkLogBodyEnabled() {
+        rnModule.setNetworkLogBodyEnabled(true);
+
+        mockLuciq.verify(() -> Luciq.setNetworkLogBodyEnabled(true));
+    }
+
+    @Test
+    public void testSetNetworkLogBodyDisabled() {
+        rnModule.setNetworkLogBodyEnabled(false);
+
+        mockLuciq.verify(() -> Luciq.setNetworkLogBodyEnabled(false));
+    }
+
+    @Test
+    public void testEnableAutoMasking(){
+
+            String maskLabel = "labels";
+            String maskTextInputs = "textInputs";
+            String maskMedia = "media";
+            String maskNone = "none";
+
+            rnModule.enableAutoMasking(JavaOnlyArray.of(maskLabel, maskMedia, maskTextInputs,maskNone));
+
+            mockLuciq.verify(() -> Luciq.setAutoMaskScreenshotsTypes(MaskingType.LABELS,MaskingType.MEDIA,MaskingType.TEXT_INPUTS,MaskingType.MASK_NOTHING));
+    }
+
+    @Test
+    public void testGetNetworkBodyMaxSize_resolvesPromiseWithExpectedValue() {
+        Promise promise = mock(Promise.class);
+        InternalCore internalAPM = mock(InternalCore.class);
+        int expected = 10240;
+        when(internalAPM.get_networkLogCharLimit()).thenReturn(expected);
+
+        rnModule.getNetworkBodyMaxSize(promise);
+
+        verify(promise).resolve(expected);
+    }
+
+    @Test
+    public void testEnablSetFullScreen() {
+        boolean isEnabled = true;
+
+        // when
+        rnModule.setFullscreen(isEnabled);
+
+        // then
+        verify(Luciq.class, times(1));
+        Luciq.setFullscreen(isEnabled);
+    }
+
+    @Test
+    public void testDisableSetFullScreen() {
+        // given
+        boolean isEnabled = false;
+
+        // when
+        rnModule.setFullscreen(isEnabled);
+
+        // then
+        verify(Luciq.class, times(1));
+        Luciq.setFullscreen(isEnabled);
+    }
+
+    @Test
+    public void testSetTheme() {
+        // given
+        JavaOnlyMap themeConfig = new JavaOnlyMap();
+        themeConfig.putString("primaryColor", "#FF0000");
+        themeConfig.putString("primaryTextColor", "#00FF00");
+        themeConfig.putString("secondaryTextColor", "#0000FF");
+        themeConfig.putString("titleTextColor", "#FFFF00");
+        themeConfig.putString("backgroundColor", "#FF00FF");
+        themeConfig.putString("primaryTextStyle", "bold");
+        themeConfig.putString("secondaryTextStyle", "italic");
+        themeConfig.putString("ctaTextStyle", "bold");
+
+        // Mock LuciqTheme.Builder
+        ai.luciq.library.model.LuciqTheme.Builder mockBuilder = mock(ai.luciq.library.model.LuciqTheme.Builder.class);
+        ai.luciq.library.model.LuciqTheme mockTheme = mock(ai.luciq.library.model.LuciqTheme.class);
+
+        try (MockedConstruction<ai.luciq.library.model.LuciqTheme.Builder> mockedBuilder = mockConstruction(
+                ai.luciq.library.model.LuciqTheme.Builder.class,
+                (mock, context) -> {
+                    when(mock.setPrimaryColor(anyInt())).thenReturn(mock);
+                    when(mock.setPrimaryTextColor(anyInt())).thenReturn(mock);
+                    when(mock.setSecondaryTextColor(anyInt())).thenReturn(mock);
+                    when(mock.setTitleTextColor(anyInt())).thenReturn(mock);
+                    when(mock.setBackgroundColor(anyInt())).thenReturn(mock);
+                    when(mock.setPrimaryTextStyle(anyInt())).thenReturn(mock);
+                    when(mock.setSecondaryTextStyle(anyInt())).thenReturn(mock);
+                    when(mock.setCtaTextStyle(anyInt())).thenReturn(mock);
+                    when(mock.setPrimaryTextFont(any())).thenReturn(mock);
+                    when(mock.setSecondaryTextFont(any())).thenReturn(mock);
+                    when(mock.setCtaTextFont(any())).thenReturn(mock);
+                    when(mock.build()).thenReturn(mockTheme);
+                })) {
+
+            // when
+            rnModule.setTheme(themeConfig);
+
+            // then
+            verify(Luciq.class, times(1));
+            Luciq.setTheme(mockTheme);
+        }
+    }
+
+}

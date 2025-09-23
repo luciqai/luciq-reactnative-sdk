@@ -33,8 +33,8 @@ Task createUploadSourcemapsTask(String flavor, String defaultVersionName, String
     }
 
     def provider = tasks.register(name) {
-        group 'instabug'
-        description 'Uploads sourcemaps file to Instabug server'
+        group 'luciq'
+        description 'Uploads sourcemaps file to Luciq server'
         enabled = isUploadSourcemapsEnabled()
 
         doLast {
@@ -42,29 +42,29 @@ Task createUploadSourcemapsTask(String flavor, String defaultVersionName, String
                 def appProject = project(':app')
                 def appDir = appProject.projectDir
                 def sourceMapFile = getSourceMapFile(appDir, flavor,task)
-                println "✅ Resolved sourcemap file path: ${sourceMapFile.absolutePath}"
 
                 def jsProjectDir = rootDir.parentFile
-                def instabugDir = new File(['node', '-p', 'require.resolve("instabug-reactnative/package.json")'].execute(null, rootDir).text.trim()).getParentFile()
+                def luciqDir = new File(['node', '-p', 'require.resolve("@luciq/react-native/package.json")'].execute(null, rootDir).text.trim()).getParentFile()
 
-              def tokenJsFile = new File(instabugDir, 'scripts/find-token.js')
+              def tokenJsFile = new File(luciqDir, 'scripts/find-token.js')
               def inferredToken = executeNodeScript(tokenJsFile, jsProjectDir)
 
-                if (!inferredToken) {
-                    throw new GradleException("❌ Unable to infer Instabug token from script: ${tokenShellFile.absolutePath}")
+
+                def appToken = resolveVar('App Token', 'LUCIQ_APP_TOKEN', inferredToken)
+
+                if (!appToken) {
+                    throw new GradleException("❌ Unable to infer Luciq token from script: ${tokenShellFile.absolutePath}")
                 }
 
-                def appToken = resolveVar('App Token', 'INSTABUG_APP_TOKEN', inferredToken)
-
-                def versionName = resolveVar('Version Name', 'INSTABUG_VERSION_NAME', defaultVersionName)
-                def versionCode = resolveVar('Version Code', 'INSTABUG_VERSION_CODE', defaultVersionCode)
+                def versionName = resolveVar('Version Name', 'LUCIQ_VERSION_NAME', defaultVersionName)
+                def versionCode = resolveVar('Version Code', 'LUCIQ_VERSION_CODE', defaultVersionCode)
 
                 println "📦 Uploading with versionName=${versionName}, versionCode=${versionCode}, appToken=${appToken.take(5)}..."
 
                 exec {
                     def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c'] : []
                     def args = [
-                            'npx', 'instabug', 'upload-sourcemaps',
+                            'npx', 'luciq', 'upload-sourcemaps',
                             '--platform', 'android',
                             '--file', sourceMapFile.absolutePath,
                             '--token', appToken,
@@ -161,15 +161,27 @@ Map<String, String> getDefaultVersion(String flavor) {
 }
 
 boolean isUploadSourcemapsEnabled() {
-    def envValue = System.getenv('INSTABUG_SOURCEMAPS_UPLOAD_DISABLE')?.toBoolean()
+    def luciqEnvValue = System.getenv('LUCIQ_SOURCEMAPS_UPLOAD_DISABLE')?.toBoolean()
+    def instabugEnvValue = System.getenv('INSTABUG_SOURCEMAPS_UPLOAD_DISABLE')?.toBoolean()
     def defaultValue = true
 
+    def envValue = luciqEnvValue ?: instabugEnvValue
     return (envValue != null) ? !envValue : defaultValue
 }
 
 String resolveVar(String name, String envKey, String defaultValue) {
     def env = System.getenv()
-    def envValue = env.get(envKey)
+    
+    // First try LUCIQ environment variable
+    def luciqEnvKey = envKey.replace('LUCIQ_', 'LUCIQ_')
+    def luciqEnvValue = env.get(luciqEnvKey)
+    
+    // Then try INSTABUG environment variable as fallback
+    def instabugEnvKey = envKey.replace('LUCIQ_', 'INSTABUG_')
+    def instabugEnvValue = env.get(instabugEnvKey)
+    
+    // Use LUCIQ value if available, otherwise use INSTABUG value, otherwise use default
+    def envValue = luciqEnvValue ?: instabugEnvValue
 
     if (envValue != null && defaultValue !=null && envValue != defaultValue) {
         project.logger.warn "Environment variable `${envKey}` might have incorrect value, " +
@@ -182,7 +194,7 @@ String resolveVar(String name, String envKey, String defaultValue) {
 
     if (value == null) {
         throw new InvalidUserDataException("Unable to find ${name}! " +
-                "Set the environment variable `${envKey}` and try again.")
+                "Set the environment variable `${envKey}` or `${instabugEnvKey}` and try again.")
     }
 
     return value

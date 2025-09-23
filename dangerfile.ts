@@ -1,4 +1,4 @@
-import collectCoverage, { ReportType } from '@instabug/danger-plugin-coverage';
+import collectCoverage, { ReportType } from '@luciq/danger-plugin-coverage';
 import { danger, fail, schedule, warn } from 'danger';
 
 const hasSourceChanges = danger.git.modified_files.some((file) => file.startsWith('src/'));
@@ -15,7 +15,7 @@ async function hasDescription() {
 
   if (!danger.git.modified_files.includes('CHANGELOG.md') && !declaredTrivial) {
     warn(
-      'You have not included a CHANGELOG entry! \nYou can find it at [CHANGELOG.md](https://github.com/Instabug/Instabug-React-Native/blob/master/CHANGELOG.md).',
+      'You have not included a CHANGELOG entry! \nYou can find it at [CHANGELOG.md](https://github.com/luciqai/luciq-reactnative-sdk/blob/master/CHANGELOG.md).',
     );
   }
 }

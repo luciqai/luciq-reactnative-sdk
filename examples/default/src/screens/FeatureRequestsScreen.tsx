@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { FeatureRequests, ActionType } from 'instabug-reactnative';
+import { FeatureRequests, ActionType } from '@luciq/react-native';
 
 import { ListTile } from '../components/ListTile';
 import { Text, Switch } from 'react-native';

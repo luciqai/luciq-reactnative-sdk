@@ -18,7 +18,7 @@ export interface UploadSoFilesOptions {
 }
 
 /**
- * Uploads NDK `.so` files to Instabug.
+ * Uploads NDK `.so` files to Luciq.
  *
  * @param opts Options for the `.so` files upload process.
  * @returns A promise that resolves to a boolean indicating whether the upload was successful.

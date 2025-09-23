@@ -7,12 +7,12 @@ export type { Survey };
 
 /**
  * Sets whether surveys are enabled or not.
- * If you disable surveys on the SDK but still have active surveys on your Instabug dashboard,
+ * If you disable surveys on the SDK but still have active surveys on your Luciq dashboard,
  * those surveys are still going to be sent to the device, but are not going to be
  * shown automatically.
- * To manually display any available surveys, call `Instabug.showSurveyIfAvailable()`.
+ * To manually display any available surveys, call `Luciq.showSurveyIfAvailable()`.
  * Defaults to `true`.
- * @param isEnabled A boolean to set whether Instabug Surveys is enabled or disabled.
+ * @param isEnabled A boolean to set whether Luciq Surveys is enabled or disabled.
  */
 export const setEnabled = (isEnabled: boolean) => {
   NativeSurveys.setEnabled(isEnabled);
