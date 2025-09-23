@@ -1,6 +1,6 @@
 #import "CrashReportingExampleModule.h"
-#import <InstabugSDK/IBGCrashReporting.h>
-#import <InstabugSDK/InstabugSDK.h>
+#import <LuciqSDK/LCQCrashReporting.h>
+#import <LuciqSDK/LuciqSDK.h>
 
 @interface CrashReportingExampleModule()
 @property (nonatomic, strong) NSMutableArray *oomBelly;
@@ -49,7 +49,7 @@ RCT_EXPORT_MODULE(CrashReportingExampleModule)
 
 
 RCT_EXPORT_METHOD(sendNativeNonFatal) {
-    IBGNonFatalException *nonFatalException = [IBGCrashReporting exception:[NSException exceptionWithName:@"native Handled NS Exception" reason:@"Test iOS Handled Crash" userInfo:@{@"Key": @"Value"}]];
+    LCQNonFatalException *nonFatalException = [LCQCrashReporting exception:[NSException exceptionWithName:@"native Handled NS Exception" reason:@"Test iOS Handled Crash" userInfo:@{@"Key": @"Value"}]];
 
     [nonFatalException report];
 }

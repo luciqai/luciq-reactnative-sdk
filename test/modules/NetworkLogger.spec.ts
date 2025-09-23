@@ -1,13 +1,13 @@
 import '../mocks/mockXhrNetworkInterceptor';
-import '../mocks/mockInstabugUtils';
+import '../mocks/mockLuciqUtils';
 
 import waitForExpect from 'wait-for-expect';
 
 import * as NetworkLogger from '../../src/modules/NetworkLogger';
 import Interceptor from '../../src/utils/XhrNetworkInterceptor';
-import { isContentTypeNotAllowed, reportNetworkLog } from '../../src/utils/InstabugUtils';
-import InstabugConstants from '../../src/utils/InstabugConstants';
-import * as Instabug from '../../src/modules/Instabug';
+import { isContentTypeNotAllowed, reportNetworkLog } from '../../src/utils/LuciqUtils';
+import LuciqConstants from '../../src/utils/LuciqConstants';
+import * as Luciq from '../../src/modules/Luciq';
 import {
   NativeNetworkLogger,
   NativeNetworkLoggerEvent,
@@ -17,7 +17,7 @@ import {
 import { InvocationEvent, LogLevel, NetworkInterceptionMode } from '../../src';
 import { Platform } from 'react-native';
 import { Logger } from '../../src/utils/logger';
-import { NativeInstabug } from '../../src/native/NativeInstabug';
+import { NativeLuciq } from '../../src/native/NativeLuciq';
 
 const clone = <T>(obj: T): T => {
   return JSON.parse(JSON.stringify(obj));
@@ -28,7 +28,7 @@ jest.mock('../../src/native/NativeNetworkLogger');
 describe('NetworkLogger Module', () => {
   const network: NetworkLogger.NetworkData = {
     id: '',
-    url: 'https://api.instabug.com',
+    url: 'https://api.luciq.ai',
     requestBody: '',
     requestHeaders: { 'content-type': 'application/json' },
     method: 'GET',
@@ -86,7 +86,7 @@ describe('NetworkLogger Module', () => {
 
     expect(reportNetworkLog).toBeCalledTimes(1);
     expect(reportNetworkLog).toBeCalledWith(network);
-    expect(NativeInstabug.getNetworkBodyMaxSize).toBeCalledTimes(1);
+    expect(NativeLuciq.getNetworkBodyMaxSize).toBeCalledTimes(1);
   });
 
   it('should send log network when setNetworkDataObfuscationHandler is set', async () => {
@@ -221,7 +221,7 @@ describe('NetworkLogger Module', () => {
 
   it('should omit request body if its size exceeds the maximum allowed size', async () => {
     const consoleWarn = jest.spyOn(Logger, 'warn').mockImplementation();
-    const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeInstabug.getNetworkBodyMaxSize();
+    const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeLuciq.getNetworkBodyMaxSize();
 
     const networkData = {
       ...network,
@@ -236,7 +236,7 @@ describe('NetworkLogger Module', () => {
 
     expect(reportNetworkLog).toHaveBeenCalledWith({
       ...networkData,
-      requestBody: `${InstabugConstants.MAX_REQUEST_BODY_SIZE_EXCEEDED_MESSAGE}${
+      requestBody: `${LuciqConstants.MAX_REQUEST_BODY_SIZE_EXCEEDED_MESSAGE}${
         MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024
       } Kb`,
     });
@@ -247,7 +247,7 @@ describe('NetworkLogger Module', () => {
   });
 
   it('should not omit request body if its size does not exceed the maximum allowed size', async () => {
-    const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeInstabug.getNetworkBodyMaxSize();
+    const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeLuciq.getNetworkBodyMaxSize();
 
     const networkData = {
       ...network,
@@ -265,7 +265,7 @@ describe('NetworkLogger Module', () => {
 
   it('should omit response body if its size exceeds the maximum allowed size', async () => {
     const consoleWarn = jest.spyOn(Logger, 'warn').mockImplementation();
-    const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeInstabug.getNetworkBodyMaxSize();
+    const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeLuciq.getNetworkBodyMaxSize();
 
     const networkData = {
       ...network,
@@ -280,7 +280,7 @@ describe('NetworkLogger Module', () => {
 
     expect(reportNetworkLog).toHaveBeenCalledWith({
       ...networkData,
-      responseBody: `${InstabugConstants.MAX_RESPONSE_BODY_SIZE_EXCEEDED_MESSAGE}${
+      responseBody: `${LuciqConstants.MAX_RESPONSE_BODY_SIZE_EXCEEDED_MESSAGE}${
         MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024
       } Kb`,
     });
@@ -291,7 +291,7 @@ describe('NetworkLogger Module', () => {
   });
 
   it('should not omit response body if its size does not exceed the maximum allowed size', async () => {
-    const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeInstabug.getNetworkBodyMaxSize();
+    const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeLuciq.getNetworkBodyMaxSize();
 
     const networkData = {
       ...network,
@@ -310,11 +310,11 @@ describe('NetworkLogger Module', () => {
   it('should call the native method setNetworkLogBodyEnabled', () => {
     NetworkLogger.setNetworkLogBodyEnabled(true);
 
-    expect(NativeInstabug.setNetworkLogBodyEnabled).toBeCalledTimes(1);
-    expect(NativeInstabug.setNetworkLogBodyEnabled).toBeCalledWith(true);
+    expect(NativeLuciq.setNetworkLogBodyEnabled).toBeCalledTimes(1);
+    expect(NativeLuciq.setNetworkLogBodyEnabled).toBeCalledWith(true);
   });
 
-  it('Instabug.init should call NativeNetworkLogger.isNativeInterceptionEnabled and not call NativeNetworkLogger.hasAPMNetworkPlugin with iOS', async () => {
+  it('Luciq.init should call NativeNetworkLogger.isNativeInterceptionEnabled and not call NativeNetworkLogger.hasAPMNetworkPlugin with iOS', async () => {
     Platform.OS = 'ios';
     const config = {
       token: 'some-token',
@@ -323,7 +323,7 @@ describe('NetworkLogger Module', () => {
       networkInterceptionMode: NetworkInterceptionMode.native,
       codePushVersion: '1.1.0',
     };
-    await Instabug.init(config);
+    await Luciq.init(config);
 
     expect(NativeNetworkLogger.isNativeInterceptionEnabled).toHaveBeenCalled();
     expect(NativeNetworkLogger.hasAPMNetworkPlugin).not.toHaveBeenCalled();

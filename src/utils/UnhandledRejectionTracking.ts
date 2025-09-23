@@ -1,5 +1,5 @@
 import tracking, { RejectionTrackingOptions } from 'promise/setimmediate/rejection-tracking';
-import { sendCrashReport } from './InstabugUtils';
+import { sendCrashReport } from './LuciqUtils';
 import { NativeCrashReporting } from '../native/NativeCrashReporting';
 import { NonFatalErrorLevel } from './Enums';
 import { Logger } from './logger';

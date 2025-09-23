@@ -59,12 +59,12 @@ export interface BugReportingNativeModule extends NativeModule {
   ): void;
 }
 
-export const NativeBugReporting = NativeModules.IBGBugReporting;
+export const NativeBugReporting = NativeModules.LCQBugReporting;
 
 export enum NativeEvents {
-  ON_INVOKE_HANDLER = 'IBGpreInvocationHandler',
-  ON_DISMISS_HANDLER = 'IBGpostInvocationHandler',
-  DID_SELECT_PROMPT_OPTION_HANDLER = 'IBGDidSelectPromptOptionHandler',
+  ON_INVOKE_HANDLER = 'LCQpreInvocationHandler',
+  ON_DISMISS_HANDLER = 'LCQpostInvocationHandler',
+  DID_SELECT_PROMPT_OPTION_HANDLER = 'LCQDidSelectPromptOptionHandler',
 }
 
 export const emitter = new NativeEventEmitter(NativeBugReporting);

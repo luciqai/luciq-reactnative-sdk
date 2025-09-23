@@ -35,7 +35,7 @@ function getMapFile(folderPath: string): string | null {
 }
 
 /**
- * Uploads JavaScript sourcemaps to Instabug.
+ * Uploads JavaScript sourcemaps to Luciq.
  *
  * @param opts Options for the sourcemaps upload process.
  * @returns A promise that resolves to a boolean indicating whether the upload was successful.

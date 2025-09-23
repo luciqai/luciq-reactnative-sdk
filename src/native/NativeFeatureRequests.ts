@@ -9,4 +9,4 @@ export interface FeatureRequestsNativeModule extends NativeModule {
   setEmailFieldRequiredForFeatureRequests(isEmailFieldRequired: boolean, types: ActionType[]): void;
 }
 
-export const NativeFeatureRequests = NativeModules.IBGFeatureRequests;
+export const NativeFeatureRequests = NativeModules.LCQFeatureRequests;

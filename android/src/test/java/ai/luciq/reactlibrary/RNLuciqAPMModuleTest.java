@@ -1,0 +1,170 @@
+package ai.luciq.reactlibrary;
+import android.os.Looper;
+
+import com.facebook.react.bridge.Promise;
+import ai.luciq.apm.APM;
+
+import ai.luciq.reactlibrary.utils.MainThreadHandler;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.MockedStatic;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+public class RNLuciqAPMModuleTest {
+
+    private RNLuciqAPMModule apmModule = new RNLuciqAPMModule(null);
+    private final static ScheduledExecutorService mainThread = Executors.newSingleThreadScheduledExecutor();
+
+    // Mock Objects
+    private MockedStatic<Looper> mockLooper;
+    private MockedStatic <MainThreadHandler> mockMainThreadHandler;
+    private MockedStatic <APM> mockAPM;
+
+    @Before
+    public void mockMainThreadHandler() throws Exception {
+        // Mock static functions
+        mockAPM = mockStatic(APM.class);
+        mockLooper = mockStatic(Looper.class);
+        mockMainThreadHandler = mockStatic(MainThreadHandler.class);
+
+        // Mock Looper class
+        Looper mockMainThreadLooper = mock(Looper.class);
+        when(Looper.getMainLooper()).thenReturn(mockMainThreadLooper);
+
+        // Override runOnMainThread
+        Answer<Boolean> handlerPostAnswer = new Answer<Boolean>() {
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                invocation.getArgument(0, Runnable.class).run();
+                return true;
+            }
+        };
+        doAnswer(handlerPostAnswer).when(MainThreadHandler.class);
+        MainThreadHandler.runOnMainThread(any(Runnable.class));
+    }
+    @After
+    public void tearDown() {
+        // Remove static mocks
+        mockLooper.close();
+        mockMainThreadHandler.close();
+        mockAPM.close();
+    }
+
+    /********APM*********/
+
+    @Test
+    public void givenFalsesetEnabled_whenQuery_thenShouldCallNativeApiWithDisabled() {
+        // when
+        apmModule.setEnabled(false);
+        // then
+        verify(APM.class, times(1));
+        APM.setEnabled(false);
+    }
+
+    @Test
+    public void givenTruesetEnabled_whenQuery_thenShouldCallNativeApiWithEnabled() {
+        // when
+        apmModule.setEnabled(true);
+        // then
+        verify(APM.class, times(1));
+        APM.setEnabled(true);
+    }
+
+    @Test
+    public void givenFalse$setAppLaunchEnabled_whenQuery_thenShouldCallNativeApiWithDisabled() {
+
+        // when
+        apmModule.setAppLaunchEnabled(false);
+        // then
+        verify(APM.class, times(1));
+        APM.setColdAppLaunchEnabled(false);
+    }
+
+    @Test
+    public void givenTrue$setAppLaunchEnabled_whenQuery_thenShouldCallNativeApiWithEnabled() {
+
+        // when
+        apmModule.setAppLaunchEnabled(true);
+        // then
+        verify(APM.class, times(1));
+        APM.setColdAppLaunchEnabled(true);
+    }
+
+    @Test
+    public void given$endAppLaunch_whenQuery_thenShouldCallNativeApiWithEnabled() {
+
+        // when
+        apmModule.endAppLaunch();
+        // then
+        verify(APM.class, times(1));
+        APM.endAppLaunch();
+    }
+
+    @Test
+    public void testStartFlow() {
+        String appFlowName = "appFlowName";
+
+        apmModule.startFlow(appFlowName);
+
+        mockAPM.verify(() -> APM.startFlow(appFlowName));
+        mockAPM.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testEndFlow() {
+        String appFlowName = "appFlowName";
+
+        apmModule.endFlow(appFlowName);
+
+        mockAPM.verify(() -> APM.endFlow(appFlowName));
+        mockAPM.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testSetFlowAttribute() {
+        String appFlowName = "appFlowName";
+        String flowAttributeKey = "attributeKey";
+        String flowAttributeValue = "attributeValue";
+        apmModule.setFlowAttribute(appFlowName, flowAttributeKey, flowAttributeValue);
+
+        mockAPM.verify(() -> APM.setFlowAttribute(appFlowName, flowAttributeKey, flowAttributeValue));
+        mockAPM.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void givenString$startUITrace_whenQuery_thenShouldCallNativeApiWithEnabled() {
+
+        // when
+        apmModule.startUITrace("uiTrace");
+        // then
+        verify(APM.class, times(1));
+        APM.startUITrace("uiTrace");
+    }
+
+    @Test
+    public void given$endUITrace_whenQuery_thenShouldCallNativeApiWithEnabled() {
+
+        // when
+        apmModule.startUITrace("uiTrace");
+        apmModule.endUITrace();
+        // then
+        verify(APM.class, times(1));
+        APM.endUITrace();
+    }
+
+
+}

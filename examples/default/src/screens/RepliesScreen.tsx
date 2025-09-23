@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
-import { Replies } from 'instabug-reactnative';
+import { Replies } from '@luciq/react-native';
 import { Heading } from 'native-base';
 
 import { ListTile } from '../components/ListTile';

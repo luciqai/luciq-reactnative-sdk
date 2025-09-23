@@ -2,7 +2,7 @@ require_relative '../node_modules/react-native/scripts/react_native_pods'
 
 require_relative '../node_modules/@react-native-community/cli-platform-ios/native_modules'
 
-platform :ios, '13.4'
+platform :ios, '15.0'
 prepare_react_native_project!
 
 linkage = ENV['USE_FRAMEWORKS']
@@ -11,11 +11,12 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'InstabugExample' do
+target 'LuciqExample' do
   config = use_native_modules!
   rn_maps_path = '../node_modules/react-native-maps'
   pod 'react-native-google-maps', :path => rn_maps_path
 
+  # XCFramework from local extracted folder
   # add this line
   flags = get_default_flags()
 
@@ -30,7 +31,7 @@ target 'InstabugExample' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  target 'InstabugTests' do
+  target 'LuciqTests' do
     inherit! :complete
     pod 'OCMock'
     end

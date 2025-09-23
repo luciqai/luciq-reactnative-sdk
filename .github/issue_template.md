@@ -12,13 +12,13 @@ your issue will help us a lot.
 
 ### Actual Behavior
 
-### Instabug integration code
+### Luciq integration code
 
 <!--Make sure to remove your app token.-->
 
 ### SDK Version
 
-<!--Which version of Instabug React Native are you on?.-->
+<!--Which version of Luciq React Native are you on?.-->
 
 ### React Native, iOS and Android Versions
 

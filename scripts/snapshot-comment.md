@@ -5,11 +5,11 @@ Your snapshot has been generated! :rocket:
 You can install the snapshot through NPM:
 
 ```sh
-npm install instabug-reactnative@{VERSION}
+npm install @luciq/react-native@{VERSION}
 ```
 
 or Yarn:
 
 ```sh
-yarn add instabug-reactnative@{VERSION}
+yarn add @luciq/react-native@{VERSION}
 ```

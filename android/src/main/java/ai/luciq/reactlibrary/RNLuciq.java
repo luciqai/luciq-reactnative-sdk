@@ -1,0 +1,328 @@
+package ai.luciq.reactlibrary;
+
+import android.app.Application;
+import android.util.Log;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.VisibleForTesting;
+
+import com.facebook.react.bridge.ReadableMap;
+import ai.luciq.apm.APM;
+import ai.luciq.library.Luciq;
+import ai.luciq.library.LogLevel;
+import ai.luciq.library.Platform;
+import ai.luciq.library.invocation.LuciqInvocationEvent;
+import ai.luciq.reactlibrary.utils.LuciqUtil;
+
+import java.lang.reflect.Method;
+
+public class RNLuciq {
+
+    private static RNLuciq instance;
+
+    private RNLuciq() {
+    }
+
+
+    public static RNLuciq getInstance() {
+        if (instance == null) {
+            synchronized (RNLuciq.class) {
+                if (instance == null) {
+                    instance = new RNLuciq();
+                }
+            }
+        }
+        return instance;
+    }
+
+    /**
+     * Initializes the SDK on the native side, which is useful for capturing startup issues specific to the native part of the app.
+     *
+     * @param application      The application context.
+     * @param applicationToken The app's identifying token, available on your dashboard.
+     * @param logLevel         The level of detail in logs that you want to print.
+     *                         <p>Pick one of the log levels described in {@link LogLevel}.
+     *                         default logLevel is {@link LogLevel#ERROR}</p>
+     * @param InvocationEvent  The events that trigger the SDK's user interface.
+     *                         Choose from the available events listed in {@link LuciqInvocationEvent}.
+     * @example <p>Here's an example usage: </p>
+     * <blockquote><pre>
+     * RNLuciq.getInstance().init(
+     *     this,
+     *     "your_token_here",
+     *     LogLevel.VERBOSE,
+     *     LuciqInvocationEvent.SHAKE,
+     *     ... // Other invocation events
+     * );
+     * </pre></blockquote>
+     */
+    public void init(
+            @NonNull Application application,
+            @NonNull String applicationToken,
+            int logLevel,
+            String codePushVersion,
+            String appVariant,
+            Boolean ignoreSecureFlag,
+            @NonNull LuciqInvocationEvent... InvocationEvent
+
+
+            ) {
+        try {
+
+            setBaseUrlForDeprecationLogs();
+            setCurrentPlatform();
+
+           Luciq.Builder builder= new Luciq.Builder(application, applicationToken)
+                    .setInvocationEvents(InvocationEvent)
+                    .setSdkDebugLogsLevel(logLevel);
+
+           if(codePushVersion!=null){
+               builder.setCodePushVersion(codePushVersion);
+           }
+           if(appVariant!=null)
+               builder.setAppVariant(appVariant);
+
+
+
+            if (ignoreSecureFlag != null) {
+                builder.ignoreFlagSecure(ignoreSecureFlag);
+            }
+
+            builder.build();
+
+
+            // Temporarily disabling APM hot launches
+            APM.setHotAppLaunchEnabled(false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+    /**
+     * Initializes the SDK on the native side, which is useful for capturing startup issues specific to the native part of the app.
+     *
+     * @param application      The application context.
+     * @param applicationToken The app's identifying token, available on your dashboard.
+     * @param invocationEvent  The events that trigger the SDK's user interface.
+     *                         Choose from the available events listed in {@link LuciqInvocationEvent}.
+     * @example <p>Here's an example usage: </p>
+     * <blockquote><pre>
+     * RNLuciq.getInstance().init(
+     *     this,
+     *     "your_token_here",
+     *     LuciqInvocationEvent.SHAKE,
+     *     ... // Other invocation events
+     * );
+     * </pre></blockquote>
+     */
+    public void init(
+            @NonNull Application application,
+            @NonNull String applicationToken,
+            String codePushVersion,
+            String appVariant,
+            @NonNull LuciqInvocationEvent... invocationEvent
+    ) {
+        init(application, applicationToken, LogLevel.ERROR,codePushVersion,appVariant, null,invocationEvent);
+    }
+
+    @VisibleForTesting
+    public void setCurrentPlatform() {
+        try {
+            Method method = LuciqUtil.getMethod(Class.forName("ai.luciq.library.Luciq"), "setCurrentPlatform", int.class);
+            if (method != null) {
+                Log.i("LCQ-CP-Bridge", "invoking setCurrentPlatform with platform: " + Platform.RN);
+                method.invoke(null, Platform.RN);
+            } else {
+                Log.e("LCQ-CP-Bridge", "setCurrentPlatform was not found by reflection");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @VisibleForTesting
+    public void setBaseUrlForDeprecationLogs() {
+        try {
+            Method method = LuciqUtil.getMethod(Class.forName("ai.luciq.library.util.InstabugDeprecationLogger"), "setBaseUrl", String.class);
+            if (method != null) {
+                method.invoke(null, "https://docs.luciq.ai/docs/react-native-sdk-migration-guide");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static class Builder {
+
+        /**
+         * Application instance to initialize Luciq.
+         */
+        private Application application;
+
+        /**
+         * The application token obtained from the Luciq dashboard.
+         */
+        private String applicationToken;
+
+        /**
+         * The level of detail in logs that you want to print.
+         */
+        private int logLevel = LogLevel.ERROR;
+
+        /**
+         * The Code Push version to be used for all reports.
+         */
+        private String codePushVersion;
+
+        /**
+         * The overAirUpdate Version to be used for all reports.
+         */
+       private ReadableMap overAirVersion;
+
+        /**
+         * The events that trigger the SDK's user interface.
+         */
+        private LuciqInvocationEvent[] invocationEvents;
+        /**
+         * The App variant name to be used for all reports.
+         */
+        private String appVariant;
+
+        private Boolean ignoreFlagSecure;
+
+
+        /**
+         * Initialize Luciq SDK with application token
+         *
+         * @param application      Application object for initialization of library
+         * @param applicationToken The app's identifying token, available on your dashboard.
+         */
+        public Builder(Application application, String applicationToken) {
+            this.application = application;
+            this.applicationToken = applicationToken;
+        }
+
+        /**
+         * Initialize Luciq SDK with application token and invocation trigger events
+         *
+         * @param application      Application object for initialization of library
+         * @param applicationToken The app's identifying token, available on your dashboard.
+         * @param invocationEvents The events that trigger the SDK's user interface.
+         *                         <p>Choose from the available events listed in {@link LuciqInvocationEvent}.</p>
+         */
+        public Builder(Application application, String applicationToken, LuciqInvocationEvent... invocationEvents) {
+            this.application = application;
+            this.applicationToken = applicationToken;
+            this.invocationEvents = invocationEvents;
+        }
+
+        /**
+         * Sets the filtering level for printed SDK logs.
+         *
+         * @param logLevel The log filtering level to be set.
+         *                 Choose from {@link LogLevel} constants:
+         *                 {@link LogLevel#NONE}, {@link LogLevel#ERROR}, {@link LogLevel#DEBUG}, or {@link LogLevel#VERBOSE}.
+         *                 <p>Default level is {@link LogLevel#ERROR}.</p>
+         */
+        public Builder setLogLevel(int logLevel) {
+            this.logLevel = logLevel;
+            return this;
+        }
+
+        /**
+         * Sets Code Push version to be used for all reports.
+         *
+         * @param codePushVersion the Code Push version to work with.
+         */
+        public Builder setCodePushVersion(String codePushVersion) {
+            this.codePushVersion = codePushVersion;
+            return this;
+        }
+
+       /**
+        * Sets over air update version to be used for all reports.
+        *
+        * @param overAirVersion the over air update version and service map.
+        */
+       public Builder setOverAirVersion(ReadableMap overAirVersion) {
+           this.overAirVersion = overAirVersion;
+           return this;
+       }
+
+        /**
+         * Sets flag to override SDK screenshot security behavior.
+         *
+         * @param ignoreFlagSecure flag to override SDK screenshot security behavior.
+         */
+        public Builder ignoreFlagSecure(boolean ignoreFlagSecure) {
+            this.ignoreFlagSecure = ignoreFlagSecure;
+            return this;
+        }
+
+        /**
+         * Sets the invocation triggering events for the SDK's user interface
+         *
+         * @param invocationEvents The events that trigger the SDK's user interface.
+         *                         Choose from the available events listed in {@link LuciqInvocationEvent}.
+         */
+        public Builder setInvocationEvents(LuciqInvocationEvent... invocationEvents) {
+            this.invocationEvents = invocationEvents;
+            return this;
+        }
+
+        /**
+         * Sets the the current App variant
+         *
+         * @param appVariant the current App variant to work with.
+         */
+        public Builder setAppVariant(String appVariant) {
+            this.appVariant = appVariant;
+            return this;
+        }
+
+        /**
+         * Builds the Luciq instance with the provided configurations.
+         */
+        public void build() {
+            try {
+                RNLuciq.getInstance().setBaseUrlForDeprecationLogs();
+                RNLuciq.getInstance().setCurrentPlatform();
+
+                Luciq.Builder luciqBuilder = new Luciq.Builder(application, applicationToken)
+                        .setInvocationEvents(invocationEvents)
+                        .setSdkDebugLogsLevel(logLevel);
+
+                if (codePushVersion != null) {
+                    luciqBuilder.setCodePushVersion(codePushVersion);
+                }
+                if(appVariant!=null){
+                    luciqBuilder.setAppVariant(appVariant);
+                }
+
+                if (ignoreFlagSecure != null) {
+                    luciqBuilder.ignoreFlagSecure(ignoreFlagSecure);
+                }
+
+               if (overAirVersion != null ) {
+                   if (overAirVersion.hasKey("service") && overAirVersion.hasKey("version"))
+                   {
+                       if (overAirVersion.getString("service")!=null && overAirVersion.getString("version")!=null)
+                       {
+                           luciqBuilder.setOverAirVersion(overAirVersion.getString("version"),
+                               ArgsRegistry.overAirUpdateService.get(overAirVersion.getString("service")));
+                       }
+                   }
+               }
+
+                luciqBuilder.build();
+
+                // Temporarily disabling APM hot launches
+                APM.setHotAppLaunchEnabled(false);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}

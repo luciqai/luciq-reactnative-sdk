@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { APM } from 'instabug-reactnative';
+import { APM } from '@luciq/react-native';
 import { ScrollView } from 'react-native';
 import { Section } from '../../components/Section';
 import { Screen } from '../../components/Screen';
@@ -40,6 +40,7 @@ export const FlowsScreen: React.FC = () => {
               placeholder="Flow Name"
               onChangeText={(text) => setFlowName(text)}
               value={flowName}
+              testID="id_flow_name"
             />
             <CustomButton title="Start Flow" onPress={startFlow} />
             <CustomButton title="Start 5s Delayed Flow" onPress={startDelayedFlow} />

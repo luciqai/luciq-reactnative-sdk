@@ -80,7 +80,7 @@ export const setPushNotificationsEnabled = (isEnabled: boolean) => {
 };
 
 /**
- * Set the GCM registration token to Instabug
+ * Set the GCM registration token to Luciq
  *
  * @param token the GCM registration token
  */
@@ -93,7 +93,7 @@ export const setPushNotificationRegistrationTokenAndroid = (token: string) => {
 /**
  * Show in-app Messaging's notifications
  *
- * @param data the data bundle related to Instabug
+ * @param data the data bundle related to Luciq
  */
 export const showNotificationAndroid = (data: Record<string, string>) => {
   if (Platform.OS === 'android') {
@@ -102,7 +102,7 @@ export const showNotificationAndroid = (data: Record<string, string>) => {
 };
 
 /**
- * Set the push notification's icon that will be shown with Instabug notifications
+ * Set the push notification's icon that will be shown with Luciq notifications
  *
  * @param resourceId the notification icon resource ID
  */

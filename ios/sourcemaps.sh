@@ -16,8 +16,12 @@ main() {
       source "$local_env_path"
   fi
 
-  if [[ "$INSTABUG_SOURCEMAPS_UPLOAD_DISABLE" = true ]]; then
-    echo "[Info] \`INSTABUG_SOURCEMAPS_UPLOAD_DISABLE\` was set to true, skipping sourcemaps upload..."
+  # Check both LUCIQ and INSTABUG environment variables for sourcemaps upload disable
+  local luciq_disable="${LUCIQ_SOURCEMAPS_UPLOAD_DISABLE}"
+  local instabug_disable="${INSTABUG_SOURCEMAPS_UPLOAD_DISABLE}"
+  
+  if [[ "$luciq_disable" = true ]] || [[ "$instabug_disable" = true ]]; then
+    echo "[Info] Sourcemaps upload was disabled via environment variable, skipping sourcemaps upload..."
     exit 0
   fi
 
@@ -27,7 +31,7 @@ main() {
   fi
 
   if [[ -z "$INFOPLIST_FILE" ]] || [[ -z "$PROJECT_DIR" ]]; then
-    echo "[Error] Instabug sourcemaps script must be invoked by Xcode"
+    echo "[Error] Luciq sourcemaps script must be invoked by Xcode"
     exit 0
   fi
 
@@ -41,18 +45,18 @@ local sourcemap_file=""
 fi
 
   local js_project_dir="$PROJECT_DIR/.."
-  local instabug_dir=$(dirname $(node -p "require.resolve('instabug-reactnative/package.json')"))
-  local inferred_token=$(cd $js_project_dir && node $instabug_dir/scripts/find-token.js)
-  local app_token=$(resolve_var "App Token" "INSTABUG_APP_TOKEN" "$inferred_token" | tail -n 1)
+  local luciq_dir=$(dirname $(node -p "require.resolve('@luciq/react-native/package.json')"))
+  local inferred_token=$(cd $js_project_dir && node $luciq_dir/scripts/find-token.js)
+  local app_token=$(resolve_var "App Token" "LUCIQ_APP_TOKEN" "$inferred_token" | tail -n 1)
 
   local inferred_name=$(/usr/libexec/PlistBuddy -c 'print CFBundleShortVersionString' "$PROJECT_DIR/$INFOPLIST_FILE")
-  local version_name=$(resolve_var "Version Name" "INSTABUG_APP_VERSION_NAME" "$inferred_name" | tail -n 1)
+  local version_name=$(resolve_var "Version Name" "LUCIQ_APP_VERSION_NAME" "$inferred_name" | tail -n 1)
 
   local inferred_code=$(/usr/libexec/PlistBuddy -c 'print CFBundleVersion' "$PROJECT_DIR/$INFOPLIST_FILE")
-  local version_code=$(resolve_var "Version Code" "INSTABUG_APP_VERSION_CODE" "$inferred_code" | tail -n 1)
+  local version_code=$(resolve_var "Version Code" "LUCIQ_APP_VERSION_CODE" "$inferred_code" | tail -n 1)
 
 if [ -n "$sourcemap_file" ]; then
-  node $instabug_dir/bin/index.js upload-sourcemaps \
+  node $luciq_dir/bin/index.js upload-sourcemaps \
       --platform ios \
       --file $sourcemap_file \
       --token $app_token \
@@ -86,9 +90,18 @@ resolve_var() {
   local env_key=$2
   local default_value=$3
 
-  local env_value="${!env_key}"
+  # First try LUCIQ environment variable
+  local luciq_env_key="$env_key"
+  local luciq_env_value="${!luciq_env_key}"
+  
+  # Then try INSTABUG environment variable as fallback
+  local instabug_env_key="${env_key/LUCIQ_/INSTABUG_}"
+  local instabug_env_value="${!instabug_env_key}"
+  
+  # Use LUCIQ value if available, otherwise use INSTABUG value
+  local env_value="${luciq_env_value:-$instabug_env_value}"
 
-  if [[ -n "$env_value" ]] &&  [[ -n "$default_value" ]]  && [[ "$env_value" != default_value ]]; then
+  if [[ -n "$env_value" ]] &&  [[ -n "$default_value" ]]  && [[ "$env_value" != "$default_value" ]]; then
     echo "[Warning] Environment variable \`$env_key\` might have incorrect value, make sure this was intentional:"
     echo "   Environment Value: $env_value"
     echo "   Default Value: $default_value"
@@ -97,7 +110,7 @@ resolve_var() {
   local value="${env_value:-$default_value}"
 
   if [[ -z "$value" ]]; then
-    echo "[Error] Unable to find $name! Set the environment variable \`$env_key\` and try again."
+    echo "[Error] Unable to find $name! Set the environment variable \`$env_key\` or \`$instabug_env_key\` and try again."
     exit 0
   fi
 

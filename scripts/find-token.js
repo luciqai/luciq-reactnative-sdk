@@ -23,16 +23,16 @@ function getAllFiles(dir, fileList = []) {
 }
 
 function extractTokenFromInit(content) {
-  const initMatch = content.match(/Instabug\.init\(\s*{[\s\S]*?token:\s*['"]([0-9a-zA-Z]+)['"]/);
+  const initMatch = content.match(/Luciq\.init\(\s*{[\s\S]*?token:\s*['"]([0-9a-zA-Z]+)['"]/);
   return initMatch ? initMatch[1] : null;
 }
 
 function extractTokenFromStart(content) {
-  const startMatch = content.match(/Instabug\.start\(\s*['"]([0-9a-zA-Z]+)['"]/);
+  const startMatch = content.match(/Luciq\.start\(\s*['"]([0-9a-zA-Z]+)['"]/);
   return startMatch ? startMatch[1] : null;
 }
 
-function findInstabugToken() {
+function findLuciqToken() {
   const allFiles = getAllFiles('.');
 
   for (const file of allFiles) {
@@ -51,8 +51,8 @@ function findInstabugToken() {
     }
   }
 
-  console.log("Couldn't find Instabug's app token");
+  console.log("Couldn't find Luciq's app token");
   process.exit(1);
 }
 
-findInstabugToken();
+findLuciqToken();

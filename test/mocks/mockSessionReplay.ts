@@ -5,7 +5,7 @@ const mockSessionReplay: SessionReplayNativeModule = {
   removeListeners: jest.fn(),
   setEnabled: jest.fn(),
   setNetworkLogsEnabled: jest.fn(),
-  setInstabugLogsEnabled: jest.fn(),
+  setLuciqLogsEnabled: jest.fn(),
   setUserStepsEnabled: jest.fn(),
   getSessionReplayLink: jest.fn().mockReturnValue('link'),
   setSyncCallback: jest.fn(),

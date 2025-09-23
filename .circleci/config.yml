@@ -48,7 +48,7 @@ commands:
           command: gem uninstall -x cocoapods
       - run:
           name: Install CocoaPods
-          command: gem install cocoapods:1.14.0
+          command: gem install cocoapods:1.16.2
       - restore_cache:
           name: Restore Pods Cache
           keys:
@@ -108,7 +108,7 @@ commands:
           working_directory: << parameters.working_directory >>
       - find_and_replace:
           files: package.json android/sourcemaps.gradle ios/sourcemaps.sh
-          search: instabug-reactnative
+          search: '@luciq/react-native'
           replace: << parameters.npm_package >>
           working_directory: << parameters.working_directory >>
       - find_and_replace:
@@ -118,8 +118,8 @@ commands:
           working_directory: << parameters.working_directory >>
       - find_and_replace:
           files: android/native.gradle
-          search: 'com.instabug.library:instabug:'
-          replace: 'com.instabug.library-<< parameters.android_package >>:instabug:'
+          search: 'ai.luciq.library:luciq:'
+          replace: 'ai.luciq.library-<< parameters.android_package >>:luciq:'
           working_directory: << parameters.working_directory >>
 
   prepare_dream11:
@@ -130,7 +130,7 @@ commands:
     steps:
       - install_node_modules
       - prepare_custom_package:
-          npm_package: '@instabug/instabug-reactnative-dream11'
+          npm_package: '@luciq/react-native-dream11'
           android_package: dream11
           api_endpoint: st001012dream11.instabug.com
           working_directory: << parameters.working_directory >>
@@ -222,7 +222,7 @@ jobs:
       tag: '2024.01.1'
     working_directory: ~/project/examples/default
     environment:
-      INSTABUG_SOURCEMAPS_UPLOAD_DISABLE: true
+      LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
     steps:
       - advanced-checkout/shallow-checkout
       - steps: << parameters.prepare_steps >>
@@ -255,7 +255,7 @@ jobs:
   # ios/upload_sourcemap.sh files respectively.
   sync_generated_files:
     macos:
-      xcode: 15.4.0
+      xcode: 16.0.0
     resource_class: macos.m1.medium.gen1
     steps:
       - advanced-checkout/shallow-checkout
@@ -282,7 +282,7 @@ jobs:
     resource_class: macos.m1.medium.gen1
     working_directory: ~/project/examples/default
     environment:
-      INSTABUG_SOURCEMAPS_UPLOAD_DISABLE: true
+      LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
     steps:
       - advanced-checkout/shallow-checkout
       - steps: << parameters.prepare_steps >>
@@ -294,8 +294,8 @@ jobs:
           working_directory: ios
           command: |
             xcodebuild -allowProvisioningUpdates \
-                -workspace InstabugExample.xcworkspace \
-                -scheme InstabugExample \
+                -workspace LuciqExample.xcworkspace \
+                -scheme LuciqExample \
                 -resultBundlePath coverage/result.xcresult \
                 -sdk iphonesimulator \
                 -destination 'platform=iOS Simulator,name=iPhone 15 Pro Max,OS=17.5' \
@@ -321,7 +321,7 @@ jobs:
       xcode: 15.4.0
     resource_class: macos.m1.medium.gen1
     environment:
-      INSTABUG_SOURCEMAPS_UPLOAD_DISABLE: true
+      LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
     steps:
       - advanced-checkout/shallow-checkout
       - steps: << parameters.prepare_steps >>
@@ -342,7 +342,7 @@ jobs:
           working_directory: examples/default
           command: detox clean-framework-cache && detox build-framework-cache
       # This is a workaround until the iOS SDK is updated to prioritize the custom
-      # Instabug.plist over the internal Config.plist.
+      # Luciq.plist over the internal Config.plist.
       - run:
           name: Customize API Endpoints
           command: ./scripts/customize-ios-endpoints.sh
@@ -365,7 +365,7 @@ jobs:
       tag: '2024.01.1'
       resource-class: large
     environment:
-      INSTABUG_SOURCEMAPS_UPLOAD_DISABLE: true
+      LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
     steps:
       - advanced-checkout/shallow-checkout
       - steps: << parameters.prepare_steps >>
@@ -385,8 +385,7 @@ jobs:
           no-window: true
           memory: 2048
           post-emulator-launch-assemble-command: |
-            rm -rf ~/.gradle/caches
-            cd ~/project/examples/default/android && ./gradlew androidDependencies
+            cd ~/project/examples/default/android
             cd .. && detox build -c android.emu.release
       - run:
           name: Detox - Run E2E Tests
@@ -422,7 +421,7 @@ jobs:
           command: yarn build
       - run:
           name: Publish Custom Package with Escape
-          command: Escape react-native publish-custompackage
+          command: Escape react-native publish-custompackage-luciq
           environment:
             DASHBOARD_TOKEN: << parameters.dashboard_token_env >>
             DASHBOARD_API_ENDPOINT: << parameters.api_endpoint >>
@@ -449,34 +448,9 @@ jobs:
       - run:
           name: Publish Official Package with Escape
           working_directory: project
-          command: Escape react-native publish
+          command: Escape react-native publish-luciq
           environment:
             DASHBOARD_API_ENDPOINT: api.instabug.com
-  publish_new_namespace:
-    working_directory: ~/project
-    executor:
-      name: node/default
-    steps:
-      - advanced-checkout/shallow-checkout
-      - find_and_replace:
-          files: package.json
-          search: instabug-reactnative
-          replace: '@instabug/react-native'
-      - run: git clone -b master2 git@github.com:Instabug/Escape.git
-      - run:
-          working_directory: Escape
-          command: swift build -c release
-      - run:
-          working_directory: Escape/.build/release
-          command: cp -f Escape /usr/local/bin/escape
-      - install_node_modules:
-          app-dir: project
-      - run:
-          working_directory: project
-          command: yarn build
-      - run:
-          working_directory: project
-          command: Escape react-native publish
 
   generate_snapshot:
     executor:
@@ -537,25 +511,12 @@ workflows:
           filters:
             branches:
               only: master
-      - hold_publish_new_namespace:
-          requires: *release_dependencies
-          type: approval
-          filters:
-            branches:
-              only: master
       - publish:
           requires:
             - hold_publish
           filters:
             branches:
               only: master
-      - publish_new_namespace:
-          requires:
-            - hold_publish_new_namespace
-          filters:
-            branches:
-              only: master
-
       - hold_release_nn:
           requires: *release_dependencies
           type: approval
@@ -571,7 +532,7 @@ workflows:
               only: master
           prepare_steps:
             - prepare_custom_package:
-                npm_package: '@instabug/react-native-nn'
+                npm_package: '@luciq/react-native-nn'
                 android_package: nn
                 api_endpoint: st001009nn.instabug.com
           api_endpoint: st001009nn.instabug.com
@@ -592,7 +553,7 @@ workflows:
               only: master
           prepare_steps:
             - prepare_custom_package:
-                npm_package: '@instabug/react-native-injazat'
+                npm_package: '@luciq/react-native-injazat'
                 android_package: injazat
                 api_endpoint: st001013mec1.instabug.com
           api_endpoint: st001013mec1.instabug.com

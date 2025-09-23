@@ -5,6 +5,8 @@
   "compilerOptions": {
     "lib": ["dom"],
     "outDir": "bin",
-    "module": "esnext"
+    "module": "esnext",
+    "types": ["node"],
+    "typeRoots": ["./node_modules/@types"]
   }
 }

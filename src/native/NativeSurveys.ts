@@ -24,11 +24,11 @@ export interface SurveysNativeModule extends NativeModule {
   setOnDismissHandler(onDismissHandler: () => void): void;
 }
 
-export const NativeSurveys = NativeModules.IBGSurveys;
+export const NativeSurveys = NativeModules.LCQSurveys;
 
 export enum NativeEvents {
-  WILL_SHOW_SURVEY_HANDLER = 'IBGWillShowSurvey',
-  DID_DISMISS_SURVEY_HANDLER = 'IBGDidDismissSurvey',
+  WILL_SHOW_SURVEY_HANDLER = 'LCQWillShowSurvey',
+  DID_DISMISS_SURVEY_HANDLER = 'LCQDidDismissSurvey',
 }
 
 export const emitter = new NativeEventEmitter(NativeSurveys);

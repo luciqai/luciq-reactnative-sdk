@@ -19,7 +19,14 @@ it('reports a bug', async () => {
   await reportBugMenuItemButton.tap();
 
   await getElement('emailField').typeText(mockData.email);
+  if (device.getPlatform() === 'android') {
+    await device.pressBack();
+  }
+
   await getElement('commentField').typeText(mockData.bugComment);
+  if (device.getPlatform() === 'android') {
+    await device.pressBack();
+  }
   await getElement('sendBugButton').tap();
 
   await expect(getElement('thanksMessage')).toBeVisible();

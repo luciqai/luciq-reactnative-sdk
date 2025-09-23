@@ -23,7 +23,7 @@ export const setEnabled = (isEnabled: boolean) => {
 
 /**
  * Sets the events that invoke the feedback form.
- * Default is set by `Instabug.init`.
+ * Default is set by `Luciq.init`.
  * @param events Array of events that invokes the feedback form.
  */
 export const setInvocationEvents = (events: InvocationEvent[]) => {
@@ -32,7 +32,7 @@ export const setInvocationEvents = (events: InvocationEvent[]) => {
 
 /**
  * Sets the invocation options.
- * Default is set by `Instabug.init`.
+ * Default is set by `Luciq.init`.
  * @param options Array of invocation options
  */
 export const setOptions = (options: InvocationOption[]) => {
@@ -149,7 +149,7 @@ export const setAutoScreenRecordingDurationIOS = (maxDuration: number) => {
 };
 
 /**
- * Sets the default position at which the Instabug screen recording button will be shown.
+ * Sets the default position at which the Luciq screen recording button will be shown.
  * Different orientations are already handled.
  * (Default for `position` is `bottomRight`)
  *
