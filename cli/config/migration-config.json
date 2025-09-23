@@ -47,15 +47,7 @@
         { "search": "instabug-reactnative", "replacement": "@luciq/react-native" },
         { "search": "instabug-react-native", "replacement": "@luciq/react-native" }
       ],
-      "targetExtensions": [
-        ".java",
-        ".kt",
-        ".ts",
-        ".tsx",
-        ".js",
-        ".jsx",
-        ".json"
-      ],
+      "targetExtensions": [".java", ".kt", ".ts", ".tsx", ".js", ".jsx", ".json"],
       "ignoredDirs": ["node_modules", "build", "Pods", "vendor", ".git", "dist", "coverage"],
       "enabled": true
     },
