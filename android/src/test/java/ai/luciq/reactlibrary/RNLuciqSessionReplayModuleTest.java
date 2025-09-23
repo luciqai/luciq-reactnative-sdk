@@ -104,7 +104,7 @@ public class RNLuciqSessionReplayModuleTest {
 
         sessionReplayModule.setLuciqLogsEnabled(true);
 
-        mockSessionReplay.verify(() -> SessionReplay.setIBGLogsEnabled(true));
+        mockSessionReplay.verify(() -> SessionReplay.setLuciqLogsEnabled(true));
         mockSessionReplay.verifyNoMoreInteractions();
     }
 

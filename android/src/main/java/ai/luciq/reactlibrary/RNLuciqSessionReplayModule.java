@@ -81,7 +81,7 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    SessionReplay.setIBGLogsEnabled(isEnabled);
+                    SessionReplay.setLuciqLogsEnabled(isEnabled);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

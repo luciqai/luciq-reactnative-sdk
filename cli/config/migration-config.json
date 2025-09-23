@@ -50,9 +50,6 @@
       "targetExtensions": [
         ".java",
         ".kt",
-        ".xml",
-        ".gradle",
-        ".properties",
         ".ts",
         ".tsx",
         ".js",
@@ -98,6 +95,33 @@
         { "search": "instabug_", "replacement": "luciq_" }
       ],
       "targetExtensions": [".ts", ".tsx", ".js", ".jsx"],
+      "ignoredDirs": ["node_modules", "build", "Pods", "vendor", ".git", "dist", "coverage"],
+      "enabled": true
+    },
+    {
+      "name": "IOS File changes objective c",
+      "description": "IOS Objective C files",
+      "priority": 5,
+      "searchReplace": [
+        { "search": "Instabug", "replacement": "Luciq" },
+        { "search": "instabug", "replacement": "luciq" },
+        { "search": "INSTABUG", "replacement": "LUCIQ" },
+        { "search": "IBG", "replacement": "LCQ" }
+      ],
+      "targetExtensions": [".h", ".m"],
+      "ignoredDirs": ["node_modules", "build", "Pods", "vendor", ".git", "dist", "coverage"],
+      "enabled": true
+    },
+    {
+      "name": "IOS File changes objective swift",
+      "description": "IOS Swift files",
+      "priority": 6,
+      "searchReplace": [
+        { "search": "Instabug", "replacement": "Luciq" },
+        { "search": "instabug", "replacement": "luciq" },
+        { "search": "INSTABUG", "replacement": "LUCIQ" }
+      ],
+      "targetExtensions": [".swift"],
       "ignoredDirs": ["node_modules", "build", "Pods", "vendor", ".git", "dist", "coverage"],
       "enabled": true
     }

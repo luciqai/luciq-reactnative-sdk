@@ -84,12 +84,5 @@ rootProject.allprojects {
 	repositories {
 		google()
 		jcenter()
-		maven {
-			url "https://mvn.luciq.ai/nexus/repository/luciq-internal/"
-			credentials {
-			  username "luciq"
-			  password System.getenv('LUCIQ_REPOSITORY_PASSWORD')
-			}
-		}
 	}
 }
