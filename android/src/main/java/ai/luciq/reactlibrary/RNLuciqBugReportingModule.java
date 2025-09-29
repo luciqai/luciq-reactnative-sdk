@@ -439,6 +439,27 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
     });
 
     }
+ /**
+     * prompts end users to submit their feedback after our SDK automatically detects a frustrating experience.
+     *
+     * @param enabled                  controls the state of the feature
+     * @param modalDelayAfterDetection controls the time gap between detecting a frustrating experience
+     * @param gapBetweenModals         controls the time gap between showing 2 proactive reporting dialogs in seconds
+     */
+    @ReactMethod
+    public void setProactiveReportingConfigurations(final boolean enabled, final int gapBetweenModals, final int modalDelayAfterDetection) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                ProactiveReportingConfigs configs = new ProactiveReportingConfigs.Builder()
+                        .setGapBetweenModals(gapBetweenModals) // Time in seconds
+                        .setModalDelayAfterDetection(modalDelayAfterDetection) // Time in seconds
+                        .isEnabled(enabled) //Enable/disable
+                        .build();
+                BugReporting.setProactiveReportingConfigurations(configs);
 
 
+            }
+        });
+    }
 }

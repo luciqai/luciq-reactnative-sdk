@@ -380,4 +380,24 @@ public class RNLuciqBugReportingModuleTest {
                verify(BugReporting.class, VerificationModeFactory.times(1));
                BugReporting.addUserConsent(key, description, mandatory, checked, expectedMappedAction);
     }
+
+      @Test
+        public void testSetProactiveReportingConfigurations() {
+            // given
+            boolean enabled = true;
+            int gapBetweekDialogs = 20;
+            int modeDelay = 30;
+
+            // when
+            bugReportingModule.setProactiveReportingConfigurations(enabled, gapBetweekDialogs, modeDelay);
+
+            // then
+            mockBugReporting.verify(() -> BugReporting.setProactiveReportingConfigurations(argThat(config ->
+                    config.getModalsGap() == gapBetweekDialogs &&
+                            config.getDetectionGap() == modeDelay &&
+                            config.isEnabled() == enabled
+            )));
+
+
+        }
 }

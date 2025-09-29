@@ -231,6 +231,14 @@ RCT_EXPORT_METHOD(addUserConsent:(NSString *)key
                                 actionType:mappedActionType];
 }
 
+RCT_EXPORT_METHOD(setProactiveReportingConfigurations:(BOOL)enabled gap:(nonnull NSNumber* )gap model:(nonnull NSNumber* )modal) {
+    IBGProactiveReportingConfigurations *configurations = [[IBGProactiveReportingConfigurations alloc] init];
+    configurations.enabled = enabled; //Enable/disable
+    configurations.gapBetweenModals = gap; // Time in seconds
+    configurations.modalDelayAfterDetection = modal; // Time in seconds
+   [IBGBugReporting setProactiveReportingConfigurations:configurations];
+}
+
 
 @synthesize description;
 

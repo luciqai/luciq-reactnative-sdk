@@ -12,6 +12,10 @@ const LuciqConstants = {
   REMOVE_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE:
     'LCQ-RN: Expected key and value passed to removeUserAttribute to be of type string',
   DEFAULT_METRO_PORT: '8081',
+  GAP_MODEL_ERROR_MESSAGE:
+    'gapBetweenModals must be a positive number. Using default value of 24 seconds.',
+  MODAL_DETECTION_ERROR_MESSAGE:
+    'modalDelayAfterDetection must be a positive number. Using default value of 20 seconds.',
   LCQ_APM_TAG: 'LCQ-APM: ',
   SWITCHED_TO_NATIVE_INTERCEPTION_MESSAGE:
     'Android Plugin Detected. Switched to Native Interception.',
