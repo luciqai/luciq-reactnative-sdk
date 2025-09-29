@@ -21,6 +21,8 @@
 - (void)startUITrace:(NSString *)name;
 - (void)endUITrace;
 
+- (void)setScreenRenderingEnabled:(BOOL)isEnabled;
+
 extern NSMutableDictionary *traces;
 
 @end

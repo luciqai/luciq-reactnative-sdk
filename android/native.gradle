@@ -1,7 +1,25 @@
 project.ext.luciq = [
-    version: '18.0.0'
+    version: '18.0.0.7301204-SNAPSHOT'
 ]
+
+// Check if luciq-config.json exists and has ndk: true
+def luciqConfigFile = new File(project.rootDir, "luciq-config.json")
+def shouldIncludeNdk = false
+
+if (luciqConfigFile.exists()) {
+    try {
+        def configText = luciqConfigFile.text
+        // Simple regex check for "ndk": true (case-insensitive, handles whitespace)
+        shouldIncludeNdk = configText =~ /(?i)"ndk"\s*:\s*true/
+    } catch (Exception e) {
+        println "Warning: Could not read luciq-config.json: ${e.message}"
+    }
+}
 
 dependencies {
     api "ai.luciq.library:luciq:${project.ext.luciq.version}"
+
+    if (shouldIncludeNdk) {
+        api "ai.luciq.library:luciq-ndk-crash:${project.ext.luciq.version}"
+    }
 }
