@@ -23,8 +23,9 @@ import ai.luciq.reactlibrary.utils.ArrayUtil;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import ai.luciq.bug.userConsent.ActionType;
-
 import java.util.ArrayList;
+import ai.luciq.bug.ProactiveReportingConfigs;
+
 
 import javax.annotation.Nonnull;
 

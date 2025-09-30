@@ -232,11 +232,11 @@ RCT_EXPORT_METHOD(addUserConsent:(NSString *)key
 }
 
 RCT_EXPORT_METHOD(setProactiveReportingConfigurations:(BOOL)enabled gap:(nonnull NSNumber* )gap model:(nonnull NSNumber* )modal) {
-    IBGProactiveReportingConfigurations *configurations = [[IBGProactiveReportingConfigurations alloc] init];
+    LCQProactiveReportingConfigurations *configurations = [[LCQProactiveReportingConfigurations alloc] init];
     configurations.enabled = enabled; //Enable/disable
     configurations.gapBetweenModals = gap; // Time in seconds
     configurations.modalDelayAfterDetection = modal; // Time in seconds
-   [IBGBugReporting setProactiveReportingConfigurations:configurations];
+   [LCQBugReporting setProactiveReportingConfigurations:configurations];
 }
 
 
