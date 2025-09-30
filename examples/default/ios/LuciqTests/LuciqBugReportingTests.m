@@ -211,7 +211,7 @@
 
   OCMStub([mock setProactiveReportingConfigurations:OCMOCK_ANY]);
 
-  [self.instabugBridge setProactiveReportingConfigurations:enabled gap:gap model:delay];
+  [self.luciqBridge setProactiveReportingConfigurations:enabled gap:gap model:delay];
 
   // Verify that the method is called with the correct properties (using OCMArg to match properties)
   OCMVerify([mock setProactiveReportingConfigurations:[OCMArg checkWithBlock:^BOOL(id obj) {
