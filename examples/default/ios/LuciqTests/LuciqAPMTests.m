@@ -131,7 +131,7 @@
 }
 
 - (void) testSetScreenRenderEnabled {
-    id mock = OCMClassMock([IBGAPM class]);
+    id mock = OCMClassMock([LCQAPM class]);
     BOOL isEnabled = YES;
 
     [self.luciqBridge setScreenRenderingEnabled:isEnabled];
@@ -140,7 +140,7 @@
 }
 
 - (void) testSetScreenRenderDisabled {
-    id mock = OCMClassMock([IBGAPM class]);
+    id mock = OCMClassMock([LCQAPM class]);
     BOOL isEnabled = NO;
 
     [self.luciqBridge setScreenRenderingEnabled:isEnabled];
