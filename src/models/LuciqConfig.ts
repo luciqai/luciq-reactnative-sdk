@@ -45,4 +45,19 @@ export interface LuciqConfig {
    * An optional over air service update version to be used for all reports.
    */
   overAirVersion?: OverAirUpdate;
+
+  /**
+   * Enables a JS-side fallback to end app launch on first root mount
+   * in case native markers are unavailable.
+   *
+   * @default true
+   */
+  enableStartupJSFallback?: boolean;
+
+  /**
+   * Enables detailed startup flows (e.g., JS bundle and per-native-module flows).
+   *
+   * @default true
+   */
+  enableDetailedStartupFlows?: boolean;
 }

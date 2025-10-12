@@ -1,4 +1,5 @@
-import { Platform } from 'react-native';
+import React from 'react';
+import { Platform, AppRegistry } from 'react-native';
 import parseErrorStackLib, {
   ExtendedError,
   StackFrame,
@@ -12,6 +13,7 @@ import { NativeCrashReporting } from '../native/NativeCrashReporting';
 import type { NetworkData } from './XhrNetworkInterceptor';
 import { NativeLuciq } from '../native/NativeLuciq';
 import { NativeAPM } from '../native/NativeAPM';
+import { LuciqRNConfig } from './config';
 import * as NetworkLogger from '../modules/NetworkLogger';
 import {
   NativeNetworkLogger,
@@ -414,4 +416,55 @@ export default {
   reportNetworkLog,
   generateTracePartialId,
   generateW3CHeader,
+  endAppLaunchIfConfigured,
 };
+
+/**
+ * Wrap AppRegistry.registerComponent to end app launch on first root mount if enabled.
+ */
+export function endAppLaunchIfConfigured() {
+  if (!LuciqRNConfig.enableStartupJSFallback) {
+    return;
+  }
+  const originalRegister = AppRegistry.registerComponent;
+  // Avoid double wrap
+  // @ts-ignore
+  if ((AppRegistry as any)._lcqWrappedRegisterComponent) {
+    return;
+  }
+  // @ts-ignore
+  (AppRegistry as any)._lcqWrappedRegisterComponent = true;
+  AppRegistry.registerComponent = (appKey: string, componentProvider: () => any) => {
+    const WrappedProvider = () => {
+      const Component = componentProvider();
+      return function LCQRootWrapper(props: any) {
+        const didEndRef = React.useRef(false);
+        React.useEffect(() => {
+          if (!didEndRef.current) {
+            didEndRef.current = true;
+            try {
+              NativeAPM.endAppLaunch();
+            } catch (e) {}
+            if (LuciqRNConfig.enableDetailedStartupFlows) {
+              try {
+                NativeAPM.endFlow('RN_FIRST_SCREEN_MOUNT');
+              } catch (e) {}
+              // Schedule TTI end using heuristic
+
+              requestAnimationFrame(() => {
+                setTimeout(() => {
+                  try {
+                    NativeAPM.endFlow('RN_FIRST_SCREEN_TTI');
+                  } catch (e) {}
+                }, 0);
+              });
+            }
+          }
+        }, []);
+        return React.createElement(Component, props);
+      };
+    };
+    // @ts-ignore
+    return originalRegister.call(AppRegistry, appKey, WrappedProvider);
+  };
+}

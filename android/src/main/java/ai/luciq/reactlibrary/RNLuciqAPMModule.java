@@ -11,6 +11,8 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReactMarker;
+import com.facebook.react.bridge.ReactMarkerConstants;
 import ai.luciq.apm.APM;
 import ai.luciq.apm.networking.APMNetworkLogger;
 import ai.luciq.apm.networkinterception.cp.APMCPNetworkLog;
@@ -27,8 +29,100 @@ import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
 public class RNLuciqAPMModule extends EventEmitterModule {
 
+    private static final java.util.concurrent.atomic.AtomicBoolean sLaunchEnded = new java.util.concurrent.atomic.AtomicBoolean(false);
+    private static boolean sReactMarkerHooked = false;
+    private static volatile boolean sDetailedStartupFlowsEnabled = true;
+
     public RNLuciqAPMModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
+
+        // Hook React startup markers once to precisely end app launch on first content appearance
+        if (!sReactMarkerHooked) {
+            sReactMarkerHooked = true;
+            try {
+                ReactMarker.addListener(new ReactMarker.MarkerListener() {
+                    @Override
+                    public void logMarker(ReactMarkerConstants constant, @Nullable String tag, int instanceKey) {
+                        switch (constant) {
+                            case CONTENT_APPEARED:
+                                if (!sLaunchEnded.getAndSet(true)) {
+                                    MainThreadHandler.runOnMainThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                APM.endAppLaunch();
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    });
+                                }
+                                break;
+                            case RUN_JS_BUNDLE_START:
+                                if (!sDetailedStartupFlowsEnabled) break;
+                                MainThreadHandler.runOnMainThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            APM.startFlow("RN_JS_BUNDLE");
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                                break;
+                            case RUN_JS_BUNDLE_END:
+                                if (!sDetailedStartupFlowsEnabled) break;
+                                MainThreadHandler.runOnMainThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            APM.endFlow("RN_JS_BUNDLE");
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                });
+                                break;
+                            case NATIVE_MODULE_SETUP_START:
+                                if (sDetailedStartupFlowsEnabled && tag != null) {
+                                    final String flowNameStart = "RN_NATIVE_MODULE_SETUP:" + tag;
+                                    MainThreadHandler.runOnMainThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                APM.startFlow(flowNameStart);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    });
+                                }
+                                break;
+                            case NATIVE_MODULE_SETUP_END:
+                                if (sDetailedStartupFlowsEnabled && tag != null) {
+                                    final String flowNameEnd = "RN_NATIVE_MODULE_SETUP:" + tag;
+                                    MainThreadHandler.runOnMainThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            try {
+                                                APM.endFlow(flowNameEnd);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    });
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                });
+            } catch (Throwable t) {
+                t.printStackTrace();
+            }
+        }
     }
 
 
@@ -98,12 +192,21 @@ public class RNLuciqAPMModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    sLaunchEnded.set(true);
                     APM.endAppLaunch();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         });
+    }
+
+    /**
+     * Enable/disable detailed startup flows from JS
+     */
+    @ReactMethod
+    public void setDetailedStartupFlowsEnabled(final boolean isEnabled) {
+        sDetailedStartupFlowsEnabled = isEnabled;
     }
 
     /**

@@ -28,6 +28,7 @@ import LuciqUtils, {
   stringifyIfNotString,
 } from '../utils/LuciqUtils';
 import * as NetworkLogger from './NetworkLogger';
+import * as APM from './APM';
 import { captureUnhandledRejections } from '../utils/UnhandledRejectionTracking';
 import type { ReproConfig } from '../models/ReproConfig';
 import type { FeatureFlag } from '../models/FeatureFlag';
@@ -35,6 +36,7 @@ import { addAppStateListener } from '../utils/AppStatesHandler';
 import { NativeNetworkLogger } from '../native/NativeNetworkLogger';
 import LuciqConstants from '../utils/LuciqConstants';
 import { LuciqRNConfig } from '../utils/config';
+import { NativeAPM } from '../native/NativeAPM';
 import { Logger } from '../utils/logger';
 import type { OverAirUpdate } from '../models/OverAirUpdate';
 import type { ThemeConfig } from '../models/ThemeConfig';
@@ -81,6 +83,18 @@ function reportCurrentViewForAndroid(screenName: string | null) {
  * @param config SDK configurations. See {@link LuciqConfig} for more info.
  */
 export const init = (config: LuciqConfig) => {
+  // Apply startup flags early
+  if (typeof config.enableStartupJSFallback === 'boolean') {
+    LuciqRNConfig.enableStartupJSFallback = config.enableStartupJSFallback;
+  }
+  if (typeof config.enableDetailedStartupFlows === 'boolean') {
+    LuciqRNConfig.enableDetailedStartupFlows = config.enableDetailedStartupFlows;
+  }
+  try {
+    NativeAPM.setDetailedStartupFlowsEnabled(LuciqRNConfig.enableDetailedStartupFlows);
+  } catch (e) {
+    // no-op
+  }
   if (Platform.OS === 'android') {
     // Add android feature flags listener for android
     registerFeatureFlagsListener();
@@ -106,7 +120,18 @@ export const init = (config: LuciqConfig) => {
 
   // Set up error capturing and rejection handling
   LuciqUtils.captureJsErrors();
+  LuciqUtils.endAppLaunchIfConfigured();
   captureUnhandledRejections();
+
+  // Start JS-level startup flows (first screen mount and TTI) if enabled
+  if (LuciqRNConfig.enableDetailedStartupFlows) {
+    try {
+      APM.startFlow('RN_FIRST_SCREEN_MOUNT');
+    } catch (e) {}
+    try {
+      APM.startFlow('RN_FIRST_SCREEN_TTI');
+    } catch (e) {}
+  }
 
   _isFirstScreen = true;
   _currentScreen = firstScreen;

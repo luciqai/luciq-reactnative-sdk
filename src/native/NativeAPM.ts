@@ -33,6 +33,9 @@ export interface ApmNativeModule extends NativeModule {
   setAppLaunchEnabled(isEnabled: boolean): void;
   endAppLaunch(): void;
 
+  // Startup Flow Controls //
+  setDetailedStartupFlowsEnabled(isEnabled: boolean): void;
+
   // Execution Traces APIs //
   // App Flows APIs //
   startFlow(name: string): void;

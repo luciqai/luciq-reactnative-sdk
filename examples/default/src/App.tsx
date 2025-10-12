@@ -53,6 +53,8 @@ export const App: React.FC = () => {
         networkInterceptionMode: NetworkInterceptionMode.javascript,
         appVariant: 'App variant',
         overAirVersion: { service: OverAirUpdateServices.codePush, version: '1.0.0' },
+        enableDetailedStartupFlows: true,
+        enableStartupJSFallback: true,
       });
 
       CrashReporting.setNDKCrashesEnabled(true);
