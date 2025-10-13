@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Section } from '../../../components/Section';
 import { Screen } from '../../../components/Screen';
@@ -15,6 +15,7 @@ import { ListTile } from '../../../components/ListTile';
 import { NetworkLogger } from '@luciq/react-native';
 import { NetworkState } from './NetworkStateScreen';
 import { useCallbackHandlers } from '../../../contexts/callbackContext';
+import BackgroundTimer from 'react-native-background-timer';
 
 export const NetworkScreen: React.FC<
   NativeStackScreenProps<HomeStackParamList, 'NetworkTraces'>
@@ -172,6 +173,63 @@ export const NetworkScreen: React.FC<
 
   const [isNetworkEnabled, setIsNetworkEnabled] = useState<boolean>(true);
 
+  // Long-running background network task state
+  const [isLongTaskRunning, setIsLongTaskRunning] = useState<boolean>(false);
+  const [longTaskSeconds, setLongTaskSeconds] = useState<number>(0);
+  const longTaskStartTimeRef = useRef<number | null>(null);
+  const LONG_TASK_TOTAL_MS = 5 * 60 * 1000; // 5 minutes
+  const LONG_TASK_TICK_MS = 5000; // perform a network ping every 5s
+
+  const startLongRunningNetworkTask = () => {
+    if (isLongTaskRunning) {
+      return;
+    }
+
+    setIsLongTaskRunning(true);
+    setLongTaskSeconds(0);
+    longTaskStartTimeRef.current = Date.now();
+
+    // Ensure no previous timer is left running
+    BackgroundTimer.stopBackgroundTimer();
+
+    // Keep JS active in background and perform periodic network requests
+    BackgroundTimer.runBackgroundTimer(async () => {
+      try {
+        const now = Date.now();
+        const startedAt = longTaskStartTimeRef.current ?? now;
+        const elapsed = now - startedAt;
+        setLongTaskSeconds(Math.floor(elapsed / 1000));
+
+        // Example network call that will be executed while in background as well
+        // You can change this to your own long-running endpoint
+        await axios.get('https://httpbin.org/delay/10', {
+          params: { tick: Math.floor(elapsed / 1000) },
+          timeout: 15000,
+        });
+
+        if (elapsed >= LONG_TASK_TOTAL_MS) {
+          stopLongRunningNetworkTask();
+        }
+      } catch (err) {
+        // Keep running despite transient failures
+        console.warn('Background tick error', err);
+      }
+    }, LONG_TASK_TOTAL_MS);
+  };
+
+  const stopLongRunningNetworkTask = () => {
+    BackgroundTimer.stopBackgroundTimer();
+    setIsLongTaskRunning(false);
+    longTaskStartTimeRef.current = null;
+  };
+
+  useEffect(() => {
+    return () => {
+      // Cleanup when screen unmounts
+      BackgroundTimer.stopBackgroundTimer();
+    };
+  }, []);
+
   return (
     <ScrollView>
       <Screen>
@@ -238,6 +296,26 @@ export const NetworkScreen: React.FC<
               {isLoading && <Text>Loading...</Text>}
               {isSuccess && <Text>GraphQL Data: {data.country.emoji}</Text>}
               {isError && <Text>Error!</Text>}
+            </View>
+          </VStack>
+        </Section>
+        <Section title="Background Long Request">
+          <VStack space="xs">
+            <CustomButton
+
+              title={isLongTaskRunning ? 'Running… (continues in background)' : 'Start 5-min Background Task'}
+              onPress={startLongRunningNetworkTask}
+            />
+            <CustomButton
+              title="Stop Background Task"
+              onPress={stopLongRunningNetworkTask}
+            />
+            <View>
+              <Text>
+                {isLongTaskRunning
+                  ? `Elapsed: ${longTaskSeconds}s`
+                  : 'Idle. Starts periodic network requests for ~5 minutes.'}
+              </Text>
             </View>
           </VStack>
         </Section>
