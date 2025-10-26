@@ -36,6 +36,9 @@ export interface ApmNativeModule extends NativeModule {
   // Startup Flow Controls //
   setDetailedStartupFlowsEnabled(isEnabled: boolean): void;
 
+  // Startup timing
+  getElapsedSinceAppStartMicros(): Promise<number>;
+
   // Execution Traces APIs //
   // App Flows APIs //
   startFlow(name: string): void;

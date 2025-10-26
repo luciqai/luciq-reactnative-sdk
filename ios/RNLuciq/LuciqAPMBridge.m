@@ -12,6 +12,7 @@
 #import <React/RCTBridge+Private.h>
 #import <React/RCTRootView.h>
 #import <Foundation/Foundation.h>
+#import "RNLuciqStartup.m"
 
 @implementation LuciqAPMBridge
 
@@ -35,6 +36,10 @@ RCT_EXPORT_MODULE(LCQAPM)
     self = [super init];
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
+        // Default detailed startup flows to ON early before JS runs
+        if (![[NSUserDefaults standardUserDefaults] objectForKey:@"LCQEnableDetailedStartupFlows"]) {
+            [[NSUserDefaults standardUserDefaults] setBool:YES forKey:@"LCQEnableDetailedStartupFlows"];
+        }
         // Observe when the first RN content appears to end app launch precisely once
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(rn_contentDidAppear:)
@@ -50,6 +55,16 @@ RCT_EXPORT_MODULE(LCQAPM)
                                                  selector:@selector(rn_jsDidLoad:)
                                                      name:@"RCTJavaScriptDidLoadNotification"
                                                    object:nil];
+
+        // Per-native-module setup spans (gated by detailed flag)
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(rn_moduleDidInitialize:)
+                                                     name:@"RCTDidInitializeModuleNotification"
+                                                   object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(rn_moduleDidSetup:)
+                                                     name:@"RCTDidSetupModuleNotification"
+                                                   object:nil];
     });
     return self;
 }
@@ -62,6 +77,7 @@ RCT_EXPORT_MODULE(LCQAPM)
         dispatch_async(dispatch_get_main_queue(), ^{
             @try {
                 [LCQAPM endAppLaunch];
+                RCTLogInfo(@"LCQ-Startup: END: APP_LAUNCH %lld", (long long)([[NSDate date] timeIntervalSince1970] * 1000));
             } @catch (NSException *exception) {
                 RCTLogWarn(@"LCQAPM endAppLaunch threw: %@", exception);
             }
@@ -75,6 +91,7 @@ RCT_EXPORT_MODULE(LCQAPM)
     if (!enabled) { return; }
     dispatch_async(dispatch_get_main_queue(), ^{
         @try { [LCQAPM startFlowWithName:@"RN_JS_BUNDLE"]; } @catch (__unused NSException *e) {}
+        RCTLogInfo(@"LCQ-Startup: START: RN_JS_BUNDLE %lld", (long long)([[NSDate date] timeIntervalSince1970] * 1000));
     });
 }
 
@@ -84,6 +101,37 @@ RCT_EXPORT_MODULE(LCQAPM)
     if (!enabled) { return; }
     dispatch_async(dispatch_get_main_queue(), ^{
         @try { [LCQAPM endFlowWithName:@"RN_JS_BUNDLE"]; } @catch (__unused NSException *e) {}
+        RCTLogInfo(@"LCQ-Startup: END: RN_JS_BUNDLE %lld", (long long)([[NSDate date] timeIntervalSince1970] * 1000));
+    });
+}
+
+- (void)rn_moduleDidInitialize:(NSNotification *)notification
+{
+    BOOL enabled = [[NSUserDefaults standardUserDefaults] boolForKey:@"LCQEnableDetailedStartupFlows"];
+    if (!enabled) { return; }
+    NSString *moduleName = notification.userInfo[@"module_name"] ?: notification.object;
+    if (![moduleName isKindOfClass:[NSString class]] || moduleName.length == 0) {
+        return;
+    }
+    NSString *flowName = [NSString stringWithFormat:@"RN_NATIVE_MODULE_SETUP:%@", moduleName];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @try { [LCQAPM startFlowWithName:flowName]; } @catch (__unused NSException *e) {}
+        RCTLogInfo(@"LCQ-Startup: START: %@ %lld", flowName, (long long)([[NSDate date] timeIntervalSince1970] * 1000));
+    });
+}
+
+- (void)rn_moduleDidSetup:(NSNotification *)notification
+{
+    BOOL enabled = [[NSUserDefaults standardUserDefaults] boolForKey:@"LCQEnableDetailedStartupFlows"];
+    if (!enabled) { return; }
+    NSString *moduleName = notification.userInfo[@"module_name"] ?: notification.object;
+    if (![moduleName isKindOfClass:[NSString class]] || moduleName.length == 0) {
+        return;
+    }
+    NSString *flowName = [NSString stringWithFormat:@"RN_NATIVE_MODULE_SETUP:%@", moduleName];
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @try { [LCQAPM endFlowWithName:flowName]; } @catch (__unused NSException *e) {}
+        RCTLogInfo(@"LCQ-Startup: END: %@ %lld", flowName, (long long)([[NSDate date] timeIntervalSince1970] * 1000));
     });
 }
 
@@ -115,6 +163,19 @@ RCT_EXPORT_METHOD(setAutoUITraceEnabled:(BOOL)isEnabled) {
 // Enable/disable detailed startup flows on native side (persisted)
 RCT_EXPORT_METHOD(setDetailedStartupFlowsEnabled:(BOOL)isEnabled) {
     [[NSUserDefaults standardUserDefaults] setBool:isEnabled forKey:@"LCQEnableDetailedStartupFlows"];
+}
+
+// Returns elapsed microseconds since process start using monotonic clock
+RCT_REMAP_METHOD(getElapsedSinceAppStartMicros,
+                 resolver:(RCTPromiseResolveBlock)resolve
+                 rejecter:(RCTPromiseRejectBlock)reject)
+{
+    @try {
+        uint64_t us = lcq_elapsed_us_since_start();
+        resolve(@((double)us));
+    } @catch (NSException *exception) {
+        reject(@"LCQ_APM_TIME_ERROR", exception.reason, nil);
+    }
 }
 
 // Starts a flow trace with the specified `name`,

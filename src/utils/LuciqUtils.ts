@@ -444,20 +444,49 @@ export function endAppLaunchIfConfigured() {
             didEndRef.current = true;
             try {
               NativeAPM.endAppLaunch();
+              // eslint-disable-next-line no-console
+              console.log('LCQ-Startup: END: APP_LAUNCH', Date.now());
             } catch (e) {}
             if (LuciqRNConfig.enableDetailedStartupFlows) {
               try {
                 NativeAPM.endFlow('RN_FIRST_SCREEN_MOUNT');
+                console.log('LCQ-Startup: END: RN_FIRST_SCREEN_MOUNT', Date.now());
               } catch (e) {}
-              // Schedule TTI end using heuristic
-
-              requestAnimationFrame(() => {
-                setTimeout(() => {
-                  try {
-                    NativeAPM.endFlow('RN_FIRST_SCREEN_TTI');
-                  } catch (e) {}
-                }, 0);
-              });
+              // Schedule TTI end using heuristic: interactions -> next frame -> microtask
+              const scheduleTTIEnd = async () => {
+                requestAnimationFrame(() => {
+                  setTimeout(() => {
+                    (async () => {
+                      try {
+                        NativeAPM.endFlow('RN_FIRST_SCREEN_TTI');
+                        if (LuciqRNConfig.enableDetailedStartupFlows) {
+                          try {
+                            const us = await NativeAPM.getElapsedSinceAppStartMicros();
+                            // Attach to flow and log
+                            try {
+                              NativeAPM.setFlowAttribute(
+                                'RN_FIRST_SCREEN_TTI',
+                                'totalAppStartToJsTTIUs',
+                                String(us),
+                              );
+                            } catch (e) {}
+                            console.log('LCQ-Startup: TOTAL_APP_START_TO_JS_TTI_US', us);
+                          } catch (_e) {}
+                        }
+                        console.log('LCQ-Startup: END: RN_FIRST_SCREEN_TTI', Date.now());
+                      } catch (e) {}
+                    })();
+                  }, 0);
+                });
+              };
+              // Prefer InteractionManager if available
+              try {
+                // Lazy import to avoid perf cost if not needed
+                const { InteractionManager } = require('react-native');
+                InteractionManager.runAfterInteractions(scheduleTTIEnd);
+              } catch (_e) {
+                scheduleTTIEnd();
+              }
             }
           }
         }, []);

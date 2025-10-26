@@ -28,7 +28,6 @@ import LuciqUtils, {
   stringifyIfNotString,
 } from '../utils/LuciqUtils';
 import * as NetworkLogger from './NetworkLogger';
-import * as APM from './APM';
 import { captureUnhandledRejections } from '../utils/UnhandledRejectionTracking';
 import type { ReproConfig } from '../models/ReproConfig';
 import type { FeatureFlag } from '../models/FeatureFlag';
@@ -49,6 +48,7 @@ let _currentAppState = AppState.currentState;
 let isNativeInterceptionFeatureEnabled = false; // Checks the value of "cp_native_interception_enabled" backend flag.
 let hasAPMNetworkPlugin = false; // Android only: checks if the APM plugin is installed.
 let shouldEnableNativeInterception = false; // For Android: used to disable APM logging inside reportNetworkLog() -> NativeAPM.networkLogAndroid(), For iOS: used to control native interception (true == enabled , false == disabled)
+let _navFirstResolved = false; // Tracks first navigation state resolution for navigation-aware spans
 
 /**
  * Enables or disables Luciq functionality.
@@ -126,10 +126,25 @@ export const init = (config: LuciqConfig) => {
   // Start JS-level startup flows (first screen mount and TTI) if enabled
   if (LuciqRNConfig.enableDetailedStartupFlows) {
     try {
-      APM.startFlow('RN_FIRST_SCREEN_MOUNT');
+      NativeAPM.startFlow('RN_FIRST_SCREEN_MOUNT');
+
+      console.log('LCQ-Startup: START: RN_FIRST_SCREEN_MOUNT', Date.now());
     } catch (e) {}
     try {
-      APM.startFlow('RN_FIRST_SCREEN_TTI');
+      NativeAPM.startFlow('RN_FIRST_SCREEN_TTI');
+
+      console.log('LCQ-Startup: START: RN_FIRST_SCREEN_TTI', Date.now());
+    } catch (e) {}
+    // Navigation-aware variants (optional, end on first navigation state change)
+    try {
+      NativeAPM.startFlow('RN_FIRST_NAV_SCREEN');
+
+      console.log('LCQ-Startup: START: RN_FIRST_NAV_SCREEN', Date.now());
+    } catch (e) {}
+    try {
+      NativeAPM.startFlow('RN_FIRST_NAV_TTI');
+
+      console.log('LCQ-Startup: START: RN_FIRST_NAV_TTI', Date.now());
     } catch (e) {}
   }
 
@@ -800,6 +815,50 @@ export const onStateChange = (state?: NavigationStateV5) => {
       _currentScreen = null;
     }
   }, 1000);
+
+  // On first navigation state resolution, end navigation-aware spans
+  if (LuciqRNConfig.enableDetailedStartupFlows && !_navFirstResolved) {
+    _navFirstResolved = true;
+    try {
+      NativeAPM.endFlow('RN_FIRST_NAV_SCREEN');
+
+      console.log('LCQ-Startup: END: RN_FIRST_NAV_SCREEN', Date.now());
+    } catch (e) {}
+
+    const endNavTTI = () => {
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          (async () => {
+            try {
+              NativeAPM.endFlow('RN_FIRST_NAV_TTI');
+              if (LuciqRNConfig.enableDetailedStartupFlows) {
+                try {
+                  const us = await NativeAPM.getElapsedSinceAppStartMicros();
+                  try {
+                    NativeAPM.setFlowAttribute(
+                      'RN_FIRST_NAV_TTI',
+                      'totalAppStartToJsTTIUs',
+                      String(us),
+                    );
+                  } catch (e) {}
+
+                  console.log('LCQ-Startup: TOTAL_APP_START_TO_JS_TTI_US', us);
+                } catch (_e) {}
+              }
+
+              console.log('LCQ-Startup: END: RN_FIRST_NAV_TTI', Date.now());
+            } catch (e) {}
+          })();
+        }, 0);
+      });
+    };
+    try {
+      const { InteractionManager } = require('react-native');
+      InteractionManager.runAfterInteractions(endNavTTI);
+    } catch (_e) {
+      endNavTTI();
+    }
+  }
 };
 
 /**

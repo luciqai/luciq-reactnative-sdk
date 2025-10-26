@@ -51,6 +51,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                                         public void run() {
                                             try {
                                                 APM.endAppLaunch();
+                                                Log.i("LCQ-Startup", "END: APP_LAUNCH " + System.currentTimeMillis());
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
@@ -65,6 +66,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                                     public void run() {
                                         try {
                                             APM.startFlow("RN_JS_BUNDLE");
+                                            Log.i("LCQ-Startup", "START: RN_JS_BUNDLE " + System.currentTimeMillis());
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
@@ -78,6 +80,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                                     public void run() {
                                         try {
                                             APM.endFlow("RN_JS_BUNDLE");
+                                            Log.i("LCQ-Startup", "END: RN_JS_BUNDLE " + System.currentTimeMillis());
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
@@ -92,6 +95,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                                         public void run() {
                                             try {
                                                 APM.startFlow(flowNameStart);
+                                                Log.i("LCQ-Startup", "START: " + flowNameStart + " " + System.currentTimeMillis());
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
@@ -107,6 +111,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                                         public void run() {
                                             try {
                                                 APM.endFlow(flowNameEnd);
+                                            Log.i("LCQ-Startup", "END: " + flowNameEnd + " " + System.currentTimeMillis());
                                             } catch (Exception e) {
                                                 e.printStackTrace();
                                             }
@@ -207,6 +212,19 @@ public class RNLuciqAPMModule extends EventEmitterModule {
     @ReactMethod
     public void setDetailedStartupFlowsEnabled(final boolean isEnabled) {
         sDetailedStartupFlowsEnabled = isEnabled;
+    }
+
+    /**
+     * Returns elapsed microseconds since process start using monotonic clock.
+     */
+    @ReactMethod
+    public void getElapsedSinceAppStartMicros(Promise promise) {
+        try {
+            long us = RNLuciqStartupProvider.getElapsedMicrosSinceStart();
+            promise.resolve((double) us);
+        } catch (Throwable t) {
+            promise.reject("LCQ_APM_TIME_ERROR", t);
+        }
     }
 
     /**
