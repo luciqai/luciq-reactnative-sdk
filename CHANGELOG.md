@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.0.0...dev)
+## [18.0.1] (https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.0.1...18.0.0) (October 27, 2025)
 
 ### Added
 
