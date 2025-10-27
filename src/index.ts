@@ -10,6 +10,10 @@ import * as FeatureRequests from './modules/FeatureRequests';
 import * as Luciq from './modules/Luciq';
 import * as NetworkLogger from './modules/NetworkLogger';
 import type { NetworkData, NetworkDataObfuscationHandler } from './modules/NetworkLogger';
+import {
+  createProactiveReportingConfig,
+  type ProactiveReportingConfigOptions,
+} from './models/ProactiveReportingConfigs';
 import * as Replies from './modules/Replies';
 import type { Survey } from './modules/Surveys';
 import * as Surveys from './modules/Surveys';
@@ -27,6 +31,8 @@ export {
   SessionReplay,
   Replies,
   Surveys,
+  ProactiveReportingConfigOptions,
+  createProactiveReportingConfig,
 };
 export type {
   LuciqConfig,

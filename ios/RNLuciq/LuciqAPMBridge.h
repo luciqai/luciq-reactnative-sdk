@@ -21,6 +21,4 @@
 - (void)startUITrace:(NSString *)name;
 - (void)endUITrace;
 
-extern NSMutableDictionary *traces;
-
 @end

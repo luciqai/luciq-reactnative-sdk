@@ -24,6 +24,7 @@ const mockBugReporting: BugReportingNativeModule = {
   setDisclaimerText: jest.fn(),
   setCommentMinimumCharacterCount: jest.fn(),
   addUserConsent: jest.fn(),
+  setProactiveReportingConfigurations: jest.fn(),
 };
 
 export default mockBugReporting;
