@@ -276,4 +276,17 @@ describe('Testing BugReporting Module', () => {
     expect(NativeBugReporting.setProactiveReportingConfigurations).toBeCalledTimes(1);
     expect(NativeBugReporting.setProactiveReportingConfigurations).toBeCalledWith(true, 24, 20);
   });
+
+  it('should call the native method setProactiveReportingConfigurations With paramters', () => {
+    const configs = createProactiveReportingConfig({
+      gapBetweenModals: 0,
+      modalDelayAfterDetection: 0,
+      enabled: false,
+    });
+
+    BugReporting.setProactiveReportingConfigurations(configs);
+
+    expect(NativeBugReporting.setProactiveReportingConfigurations).toBeCalledTimes(1);
+    expect(NativeBugReporting.setProactiveReportingConfigurations).toBeCalledWith(false, 0, 0);
+  });
 });
