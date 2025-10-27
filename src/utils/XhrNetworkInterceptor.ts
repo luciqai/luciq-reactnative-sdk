@@ -275,11 +275,15 @@ export default {
                 cloneNetwork.gqlQueryName = '';
               }
               if (cloneNetwork.responseBody) {
-                const responseObj = JSON.parse(cloneNetwork.responseBody);
+                try {
+                  const responseObj = JSON.parse(cloneNetwork.responseBody);
 
-                if (responseObj.errors) {
-                  cloneNetwork.serverErrorMessage = 'GraphQLError';
-                } else {
+                  if (responseObj.errors) {
+                    cloneNetwork.serverErrorMessage = 'GraphQLError';
+                  } else {
+                    cloneNetwork.serverErrorMessage = '';
+                  }
+                } catch (_error) {
                   cloneNetwork.serverErrorMessage = '';
                 }
               }
