@@ -4,6 +4,7 @@ orbs:
   android: circleci/android@2.5.0
   advanced-checkout: vsco/advanced-checkout@1.1.0
   node: circleci/node@5.2.0
+  ios: circleci/macos@2.5.4
 
 references:
   release_dependencies: &release_dependencies
