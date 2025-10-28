@@ -310,7 +310,11 @@ jobs:
           command: echo 'export PATH="$PATH:$HOME/.maestro/bin"' >> $BASH_ENV
       # This is a workaround until the iOS SDK is updated to prioritize the custom
       # Luciq.plist over the internal Config.plist.
-
+      - run:
+          name: Metro start
+          working_directory: examples/default
+          command: yarn start
+          background: true
       - ios/preboot-simulator:
           version: "18.0"
           device: "iPhone 16 Pro"
@@ -332,7 +336,7 @@ jobs:
       - run:
           name: Maestro - Run E2E Tests
           working_directory: examples/default
-          command: maestro test ./e2e/main-flow.yaml
+          command: maestro test e2e/bug-reporting-flow.yaml
 
   e2e_android:
     parameters:
@@ -362,6 +366,11 @@ jobs:
           avd-name: Nexus_6P_API_27
           install: true
           system-image: system-images;android-27;default;x86
+      - run:
+          name: Metro start
+          working_directory: examples/default
+          command: yarn start
+          background: true
 
       - android/start-emulator:
           avd-name: Nexus_6P_API_27
@@ -374,7 +383,7 @@ jobs:
       - run:
           name: Maestro - Run E2E Tests
           working_directory: examples/default
-          command: maestro test ./e2e/main-flow.yaml
+          command: maestro test e2e/bug-reporting-flow.yaml
 
   release_custom_package:
     parameters:
