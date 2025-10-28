@@ -118,7 +118,6 @@ commands:
           replace: 'ai.luciq.library-<< parameters.android_package >>:luciq:'
           working_directory: << parameters.working_directory >>
 
-
   notify_github:
     parameters:
       data:
@@ -316,8 +315,8 @@ jobs:
           command: yarn start
           background: true
       - ios/preboot-simulator:
-          version: "18.0"
-          device: "iPhone 16 Pro"
+          version: '18.0'
+          device: 'iPhone 16 Pro'
       - ios/wait-until-simulator-booted
       - ios/wait-until-simulator-booted
       - run:
@@ -551,5 +550,3 @@ workflows:
                 api_endpoint: st001013mec1.instabug.com
           api_endpoint: st001013mec1.instabug.com
           dashboard_token_env: INJAZAT_TOKEN
-
-

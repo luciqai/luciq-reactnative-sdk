@@ -1,40 +1,41 @@
 appId: com.luciqexample
 ---
-# Maestro Configuration
-# This file contains platform-specific configurations and shared test flows
+# Maestro test flow for both iOS and Android
 
-# iOS specific test flow
-- when:
-    platform: ios
-  then:
-    - launchApp
-    - tapOn:
-        id: "IBGFloatingButtonAccessibilityIdentifier"
-    - assertVisible: "Report a bug"
-    - tapOn: "Report a bug"
-    - tapOn:
-        id: "IBGBugInputViewEmailFieldAccessibilityIdentifier"
-    - inputText: "rn_e2e@luciq.ai"
-    - tapOn:
-        id: "IBGBugInputViewCommentFieldAccessibilityIdentifier"
-    - inputText: "This is a test bug"
-    - tapOn:
-        id: "IBGBugVCNextButtonAccessibilityIdentifier"
-    - assertVisible: "Thank you"
+- launchApp
 
-# Android specific test flow
-- when:
-    platform: android
-  then:
-    - launchApp
-    - tapOn:
-        id: "instabug_floating_button"
-    - assertVisible: "Report a bug"
-    - tapOn: "Report a bug"
-    - tapOn:
-        id: "instabug_edit_text_email"
-    - inputText: "rn_e2e@luciq.ai"
-    - pressKey: Back
-    - tapOn:
-        id: "instabug_bugreporting_send"
-    - assertVisible: "Thank you!"
+# iOS flow
+- run:
+    when:
+      platform: ios
+    steps:
+      - tapOn:
+          id: IBGFloatingButtonAccessibilityIdentifier
+      - assertVisible: "Report a bug"
+      - tapOn: "Report a bug"
+      - tapOn:
+          id: IBGBugInputViewEmailFieldAccessibilityIdentifier
+      - inputText: "rn_e2e@luciq.ai"
+      - tapOn:
+          id: IBGBugInputViewCommentFieldAccessibilityIdentifier
+      - inputText: "This is a test bug"
+      - tapOn:
+          id: IBGBugVCNextButtonAccessibilityIdentifier
+      - assertVisible: "Thank you"
+
+# Android flow
+- run:
+    when:
+      platform: android
+    steps:
+      - tapOn:
+          id: instabug_floating_button
+      - assertVisible: "Report a bug"
+      - tapOn: "Report a bug"
+      - tapOn:
+          id: instabug_edit_text_email
+      - inputText: "rn_e2e@luciq.ai"
+      - pressKey: Back
+      - tapOn:
+          id: instabug_bugreporting_send
+      - assertVisible: "Thank you!"
