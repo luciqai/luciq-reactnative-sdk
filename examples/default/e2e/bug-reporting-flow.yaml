@@ -5,14 +5,14 @@ appId: ai.luciq.react.example
 - launchApp
 - tapOn:
     id: IBGFloatingButtonAccessibilityIdentifier
-- assertVisible: "Report a bug"
-- tapOn: "Report a bug"
+- assertVisible: 'Report a bug'
+- tapOn: 'Report a bug'
 - tapOn:
     id: IBGBugInputViewEmailFieldAccessibilityIdentifier
-- inputText: "rn_e2e@luciq.ai"
+- inputText: 'rn_e2e@luciq.ai'
 - tapOn:
     id: IBGBugInputViewCommentFieldAccessibilityIdentifier
-- inputText: "This is a test bug"
+- inputText: 'This is a test bug'
 - tapOn:
     id: IBGBugVCNextButtonAccessibilityIdentifier
-- assertVisible: "Thank you"
+- assertVisible: 'Thank you'
