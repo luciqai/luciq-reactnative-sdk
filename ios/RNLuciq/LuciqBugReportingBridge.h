@@ -57,4 +57,6 @@
                       checked:(BOOL)checked
                    actionType:(id)actionType;
 
+- (void)setProactiveReportingConfigurations:(BOOL)enabled gap:(NSNumber* )gap model:(NSNumber* )modal;
+
 @end

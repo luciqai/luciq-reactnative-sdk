@@ -72,6 +72,31 @@ export const NonFatalCrashesScreen: React.FC<
     }
   }
 
+  function throwUnhandledChainingException(error: Error, isPromise: boolean = false) {
+    const appName = 'Luciq Test App';
+    const rejectionType = isPromise ? 'Promise Rejection ' : '';
+    const errorMessage = `Unhandled ${rejectionType}${error.name} from ${appName}`;
+
+    if (!error.message) {
+      console.log(`LCQ-CRSH | Error message: ${error.message}`);
+      error.message = errorMessage;
+    }
+
+    if (isPromise) {
+      console.log('LCQ-CRSH | Promise');
+      Promise.reject(error).then(() =>
+        Alert.alert(`Promise Rejection Crash report for ${error.name} is Sent!`),
+      );
+    } else {
+      try {
+        throw ReferenceError();
+      } catch (e) {
+        error.cause = e;
+        throw error;
+      }
+    }
+  }
+
   return (
     <ScrollView>
       <Screen>
@@ -100,6 +125,10 @@ export const NonFatalCrashesScreen: React.FC<
             title="Throw Handled URIError Exception"
             onPress={() => throwHandledException(new URIError())}
             testID="id_throw_handled_uri_error_exception"
+          />
+          <ListTile
+            title="Throw Unhandled Chaining Exception"
+            onPress={() => throwUnhandledChainingException(new SyntaxError('level 1 SyntaxError'))}
           />
           <ListTile
             title="Throw Handled Native Exception"

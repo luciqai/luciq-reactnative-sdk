@@ -1,7 +1,7 @@
 import { Platform } from 'react-native';
 
 import { NativeBugReporting, NativeEvents, emitter } from '../native/NativeBugReporting';
-
+import type { ProactiveReportingConfigOptions } from '../models/ProactiveReportingConfigs';
 import type {
   DismissType,
   ExtendedBugReportMode,
@@ -251,4 +251,16 @@ export const setCommentMinimumCharacterCount = (limit: number, reportTypes?: Rep
   if (Platform.OS === 'ios') {
     NativeBugReporting.setCommentMinimumCharacterCount(limit, reportTypes ?? []);
   }
+};
+
+/**
+ ** prompts end users to submit their feedback after our SDK automatically detects a frustrating experience.
+ * @param config configuration of proActive  bug report.
+ */
+export const setProactiveReportingConfigurations = (config: ProactiveReportingConfigOptions) => {
+  NativeBugReporting.setProactiveReportingConfigurations(
+    config.enabled,
+    config.gapBetweenModals,
+    config.modalDelayAfterDetection,
+  );
 };

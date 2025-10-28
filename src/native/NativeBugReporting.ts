@@ -57,6 +57,12 @@ export interface BugReportingNativeModule extends NativeModule {
     checked: boolean,
     actionType?: userConsentActionType,
   ): void;
+
+  setProactiveReportingConfigurations(
+    enabled: boolean,
+    gapBetweenModals: number,
+    modalDelayAfterDetection: number,
+  ): void;
 }
 
 export const NativeBugReporting = NativeModules.LCQBugReporting;
