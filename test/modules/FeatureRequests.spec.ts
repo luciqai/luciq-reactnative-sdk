@@ -19,10 +19,16 @@ describe('Feature Requests Module', () => {
     expect(NativeFeatureRequests.show).toBeCalledTimes(1);
   });
 
-  it('should call the native method setEnabled', () => {
+  it('should call the native method setEnabled with true', () => {
     FeatureRequests.setEnabled(true);
 
     expect(NativeFeatureRequests.setEnabled).toBeCalledTimes(1);
     expect(NativeFeatureRequests.setEnabled).toBeCalledWith(true);
+  });
+  it('should call the native method setEnabled with false', () => {
+    FeatureRequests.setEnabled(false);
+
+    expect(NativeFeatureRequests.setEnabled).toBeCalledTimes(1);
+    expect(NativeFeatureRequests.setEnabled).toBeCalledWith(false);
   });
 });

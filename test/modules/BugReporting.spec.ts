@@ -277,7 +277,7 @@ describe('Testing BugReporting Module', () => {
     expect(NativeBugReporting.setProactiveReportingConfigurations).toBeCalledWith(true, 24, 20);
   });
 
-  it('should call the native method setProactiveReportingConfigurations With paramters', () => {
+  it('should call the native method setProactiveReportingConfigurations With parameters', () => {
     const configs = createProactiveReportingConfig({
       gapBetweenModals: 2,
       modalDelayAfterDetection: 2,
