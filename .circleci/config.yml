@@ -382,7 +382,7 @@ jobs:
       - run:
           name: Maestro - Run E2E Tests
           working_directory: examples/default
-          command: maestro test e2e/bug-reporting-flow.yaml
+          command: maestro test e2e/bug-reporting-flow-android.yaml
 
   release_custom_package:
     parameters:
