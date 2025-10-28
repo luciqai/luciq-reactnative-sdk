@@ -579,7 +579,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.luciq.react.example;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.luciq.react.example;
 				PRODUCT_NAME = LuciqExample;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -605,7 +605,7 @@
 					"-ObjC",
 					"-lc++",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.luciq.react.example;
+				PRODUCT_BUNDLE_IDENTIFIER = ai.luciq.react.example;
 				PRODUCT_NAME = LuciqExample;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
