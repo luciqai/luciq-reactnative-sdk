@@ -189,7 +189,10 @@ describe('ProactiveReportingConfigs', () => {
         });
         expect(Logger.warn).toHaveBeenCalledTimes(2);
         expect(Logger.warn).toHaveBeenNthCalledWith(1, LuciqConstants.GAP_MODEL_ERROR_MESSAGE);
-        expect(Logger.warn).toHaveBeenNthCalledWith(2, LuciqConstants.MODAL_DETECTION_ERROR_MESSAGE);
+        expect(Logger.warn).toHaveBeenNthCalledWith(
+          2,
+          LuciqConstants.MODAL_DETECTION_ERROR_MESSAGE,
+        );
       });
     });
 
