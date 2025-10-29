@@ -4,7 +4,6 @@ orbs:
   android: circleci/android@2.5.0
   advanced-checkout: vsco/advanced-checkout@1.1.0
   node: circleci/node@5.2.0
-  ios: circleci/macos@2.5.4
 
 references:
   release_dependencies: &release_dependencies
@@ -288,7 +287,7 @@ jobs:
         type: steps
         default: []
     macos:
-      xcode: 16.0.0
+      xcode: 15.4.0
     resource_class: macos.m1.medium.gen1
     environment:
       LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
@@ -307,13 +306,6 @@ jobs:
       - run:
           name: Add Maestro to PATH
           command: echo 'export PATH="$PATH:$HOME/.maestro/bin"' >> $BASH_ENV
-      # This is a workaround until the iOS SDK is updated to prioritize the custom
-      # Luciq.plist over the internal Config.plist.
-      - run:
-          name: Metro start
-          working_directory: examples/default
-          command: yarn start
-          background: true
       - ios/preboot-simulator:
           version: '18.0'
           device: 'iPhone 16 Pro'
@@ -331,7 +323,9 @@ jobs:
       - run:
           name: Build iOS App
           working_directory: examples/default
-          command: yarn e2e:ios:build
+          command: |
+            yarn e2e:ios:build
+            yarn e2e:ios:install
       - run:
           name: Maestro - Run E2E Tests
           working_directory: examples/default
@@ -365,12 +359,6 @@ jobs:
           avd-name: Nexus_6P_API_27
           install: true
           system-image: system-images;android-27;default;x86
-      - run:
-          name: Metro start
-          working_directory: examples/default
-          command: yarn start
-          background: true
-
       - android/start-emulator:
           avd-name: Nexus_6P_API_27
           no-window: true
