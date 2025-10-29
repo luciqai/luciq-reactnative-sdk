@@ -288,7 +288,7 @@ jobs:
         type: steps
         default: []
     macos:
-      xcode: 15.4.0
+      xcode: 16.0.0
     resource_class: macos.m1.medium.gen1
     environment:
       LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
