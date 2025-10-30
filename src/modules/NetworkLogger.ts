@@ -84,6 +84,14 @@ export const setEnabled = (isEnabled: boolean) => {
           }
 
           if (network.requestBody && isContentTypeNotAllowed(network.requestContentType)) {
+            Logger.log('LCQ-RN: Request body omitted - unsupported content type', {
+              url: network.url,
+              method: network.method,
+              responseCode: network.responseCode,
+              requestContentType: network.requestContentType,
+              requestHeaderKeys: Object.keys(network.requestHeaders ?? {}),
+              requestBodyPreview: network.requestBody?.substring(0, 200) ?? '',
+            });
             network.requestBody = `Body is omitted because content type ${network.requestContentType} isn't supported`;
             Logger.warn(
               `LCQ-RN: The request body for the network request with URL ${network.url} has been omitted because the content type ${network.requestContentType} isn't supported.`,
@@ -91,6 +99,14 @@ export const setEnabled = (isEnabled: boolean) => {
           }
 
           if (network.responseBody && isContentTypeNotAllowed(network.contentType)) {
+            Logger.log('LCQ-RN: Response body omitted - unsupported content type', {
+              url: network.url,
+              method: network.method,
+              responseCode: network.responseCode,
+              contentType: network.contentType,
+              responseHeaderKeys: Object.keys(network.responseHeaders ?? {}),
+              responseBodyPreview: network.responseBody?.substring(0, 200) ?? '',
+            });
             network.responseBody = `Body is omitted because content type ${network.contentType} isn't supported`;
             Logger.warn(
               `LCQ-RN: The response body for the network request with URL ${network.url} has been omitted because the content type ${network.contentType} isn't supported.`,
