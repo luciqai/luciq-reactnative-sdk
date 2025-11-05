@@ -23,6 +23,4 @@
 
 - (void)setScreenRenderingEnabled:(BOOL)isEnabled;
 
-extern NSMutableDictionary *traces;
-
 @end

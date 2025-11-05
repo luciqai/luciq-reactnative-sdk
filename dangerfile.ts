@@ -1,4 +1,4 @@
-import collectCoverage, { ReportType } from '@luciq/danger-plugin-coverage';
+import collectCoverage, { ReportType } from '@instabug/danger-plugin-coverage';
 import { danger, fail, schedule, warn } from 'danger';
 
 const hasSourceChanges = danger.git.modified_files.some((file) => file.startsWith('src/'));

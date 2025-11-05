@@ -19,7 +19,7 @@ import type { HomeStackParamList } from '../../navigation/HomeStack';
 import { BugReportingState } from './BugReportingStateScreen';
 import { ExtendedBugReportState } from './ExtendedBugReportStateScreen';
 import { useCallbackHandlers } from '../../contexts/callbackContext';
-
+import { createProactiveReportingConfig } from '@luciq/react-native';
 export const BugReportingScreen: React.FC<
   NativeStackScreenProps<HomeStackParamList, 'BugReporting'>
 > = ({ navigation }) => {
@@ -264,6 +264,15 @@ export const BugReportingScreen: React.FC<
         <ListTile
           title="Welcome message Live"
           onPress={() => Luciq.showWelcomeMessage(WelcomeMessageMode.live)}
+        />
+
+        <ListTile
+          title="Set proactive bugReporting"
+          onPress={() => {
+            const config = createProactiveReportingConfig();
+
+            BugReporting.setProactiveReportingConfigurations(config);
+          }}
         />
 
         <Divider my={5} />
