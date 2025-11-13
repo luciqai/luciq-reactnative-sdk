@@ -27,13 +27,14 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES"
-      codeCoverageEnabled = "YES">
+      codeCoverageEnabled = "YES"
+      onlyGenerateCoverageForSpecifiedTargets = "YES">
       <CodeCoverageTargets>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "50FE5EF73DC8C0767F7FABB1748BACBE"
-            BuildableName = "libRNInstabug.a"
-            BlueprintName = "RNInstabug"
+            BlueprintIdentifier = "A90F30BB46C06F4D6BA3F83DA8212D11"
+            BuildableName = "libRNLuciq.a"
+            BlueprintName = "RNLuciq"
             ReferencedContainer = "container:Pods/Pods.xcodeproj">
          </BuildableReference>
       </CodeCoverageTargets>
