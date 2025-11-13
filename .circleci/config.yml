@@ -268,6 +268,7 @@ jobs:
                 -scheme LuciqExample \
                 -resultBundlePath coverage/result.xcresult \
                 -sdk iphonesimulator \
+                -enableCodeCoverage YES \
                 -destination 'platform=iOS Simulator,name=iPhone 15 Pro Max,OS=17.5' \
                 test | xcpretty
       - when:
