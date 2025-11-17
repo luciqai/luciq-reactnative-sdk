@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.0.1...dev)
+
+### Added
+
+- Replace jcenter with mavencentral. ([#10](https://github.com/luciqai/luciq-reactnative-sdk/pull/10))
+
 ## [18.0.1] (https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.0.1...18.0.0) (October 27, 2025)
 
 ### Added
