@@ -31,7 +31,7 @@ PODS:
   - hermes-engine (0.75.4):
     - hermes-engine/Pre-built (= 0.75.4)
   - hermes-engine/Pre-built (0.75.4)
-  - Luciq (18.0.40)
+  - Luciq (19.1.47)
   - OCMock (3.9.4)
   - RCT-Folly (2024.01.01.00):
     - boost
@@ -1625,8 +1625,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNLuciq (18.0.0):
-    - Luciq (= 18.0.40)
+  - RNLuciq (18.0.1):
+    - Luciq (= 19.1.47)
     - React-Core
   - RNReanimated (3.16.1):
     - DoubleConversion
@@ -1770,7 +1770,7 @@ DEPENDENCIES:
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
   - hermes-engine (from `../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec`)
-  - Luciq (from `https://ios-releases.luciq.ai/custom/faeture-screen_rendering-release/18.0.40/Luciq.podspec`)
+  - Luciq (from `https://ios-releases.luciq.ai/custom/faeture-screen_rendering-release/19.1.47/Luciq.podspec`)
   - OCMock
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
@@ -1869,7 +1869,7 @@ EXTERNAL SOURCES:
     :podspec: "../node_modules/react-native/sdks/hermes-engine/hermes-engine.podspec"
     :tag: hermes-2024-08-15-RNv0.75.1-4b3bf912cc0f705b51b71ce1a5b8bd79b93a451b
   Luciq:
-    :podspec: https://ios-releases.luciq.ai/custom/faeture-screen_rendering-release/18.0.40/Luciq.podspec
+    :podspec: https://ios-releases.luciq.ai/custom/faeture-screen_rendering-release/19.1.47/Luciq.podspec
   RCT-Folly:
     :podspec: "../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec"
   RCTDeprecation:
@@ -2024,7 +2024,7 @@ SPEC CHECKSUMS:
   Google-Maps-iOS-Utils: f77eab4c4326d7e6a277f8e23a0232402731913a
   GoogleMaps: 032f676450ba0779bd8ce16840690915f84e57ac
   hermes-engine: ea92f60f37dba025e293cbe4b4a548fd26b610a0
-  Luciq: f68989674cd5555440a38fb8c3d0aaf5fde522b2
+  Luciq: a837c576cd42c7e68c296b51ff9c6898b47683a8
   OCMock: 589f2c84dacb1f5aaf6e4cec1f292551fe748e74
   RCT-Folly: 34124ae2e667a0e5f0ea378db071d27548124321
   RCTDeprecation: 726d24248aeab6d7180dac71a936bbca6a994ed1
@@ -2092,7 +2092,7 @@ SPEC CHECKSUMS:
   ReactCommon: 36d48f542b4010786d6b2bcee615fe5f906b7105
   RNCClipboard: 7c3e3b5f71d84ef61690ad377b6c50cf27864ff5
   RNGestureHandler: 27a63f2218affdf1a426d56682f9b174904838b3
-  RNLuciq: ed92235c819f2b63f4c6ff1d425b89a1b3b0f2f1
+  RNLuciq: 4ed23ddc48768aaae8f7391d1eb2fe0804a1c63a
   RNReanimated: 8bf536bd3964d10a9bacabf179897e79f6bea34f
   RNScreens: 35bb8e81aeccf111baa0ea01a54231390dbbcfd9
   RNSVG: 8542aa11770b27563714bbd8494a8436385fc85f
@@ -2100,6 +2100,6 @@ SPEC CHECKSUMS:
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Yoga: 055f92ad73f8c8600a93f0e25ac0b2344c3b07e6
 
-PODFILE CHECKSUM: 5903f54e4316f8d4a5cc0f3116a50190422a25fd
+PODFILE CHECKSUM: 115e25993d6e886258e03ee672e671dba8016732
 
 COCOAPODS: 1.16.2
