@@ -28,6 +28,7 @@ commands:
           node-version: 'v20.11.1'
       - node/install-packages:
           pkg-manager: yarn
+          cache-version: v2
           # Network concurrency is set to 1 for installation from GitHub to work.
           override-ci-command: yarn install --frozen-lockfile --network-concurrency 1
           app-dir: << parameters.app-dir >>
