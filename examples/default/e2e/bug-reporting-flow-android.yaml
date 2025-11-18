@@ -1,0 +1,16 @@
+appId: ai.luciq.react.example
+---
+# Maestro test flow for both iOS and Android
+
+- launchApp
+- tapOn:
+    id: instabug_floating_button
+- assertVisible: 'Report a bug'
+- tapOn: 'Report a bug'
+- tapOn:
+    id: instabug_edit_text_email
+- inputText: 'rn_e2e@luciq.ai'
+- pressKey: Back
+- tapOn:
+    id: instabug_bugreporting_send
+- assertVisible: 'Thank you!'
