@@ -1,0 +1,20 @@
+appId: ai.luciq.react.example
+---
+# Maestro test flow for both iOS and Android
+
+- launchApp
+- tapOn:
+    id: IBGFloatingButtonAccessibilityIdentifier
+- tapOn: 'Report a bug'
+- tapOn:
+    id: IBGBugInputViewEmailFieldAccessibilityIdentifier
+- eraseText
+- inputText: 'rn_e2e@luciq.ai'
+- tapOn:
+    id: IBGBugInputViewCommentFieldAccessibilityIdentifier
+- inputText: 'This is a test bug'
+- tapOn:
+    id: IBGBugVCNextButtonAccessibilityIdentifier
+# bugReporting page has been closed
+- assertNotVisible:
+    id: IBGReportBugPromptOptionAccessibilityIdentifier
