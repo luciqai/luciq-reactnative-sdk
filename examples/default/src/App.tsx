@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import { SessionMetadata, WelcomeMessageMode } from '@luciq/react-native';
 import Luciq, {
   APM,
   CrashReporting,
@@ -12,7 +13,6 @@ import Luciq, {
   NetworkInterceptionMode,
   NetworkLogger,
   ReproStepsMode,
-  type SessionMetadata,
   SessionReplay,
   OverAirUpdateServices,
 } from '@luciq/react-native';
@@ -57,6 +57,7 @@ export const App: React.FC = () => {
       });
 
       CrashReporting.setNDKCrashesEnabled(true);
+      Luciq.setWelcomeMessageMode(WelcomeMessageMode.disabled);
       Luciq.setReproStepsConfig({ all: ReproStepsMode.enabled });
     } catch (error) {
       console.error('Luciq initialization failed:', error);
