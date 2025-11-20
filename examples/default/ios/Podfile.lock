@@ -1625,7 +1625,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNLuciq (18.0.1):
+  - RNLuciq (18.2.0):
     - Luciq (= 19.1.47)
     - React-Core
   - RNReanimated (3.16.1):
@@ -2092,7 +2092,7 @@ SPEC CHECKSUMS:
   ReactCommon: 36d48f542b4010786d6b2bcee615fe5f906b7105
   RNCClipboard: 7c3e3b5f71d84ef61690ad377b6c50cf27864ff5
   RNGestureHandler: 27a63f2218affdf1a426d56682f9b174904838b3
-  RNLuciq: 4ed23ddc48768aaae8f7391d1eb2fe0804a1c63a
+  RNLuciq: 1d4505ab3d88a383b9665ce2f7979ebdd63748b8
   RNReanimated: 8bf536bd3964d10a9bacabf179897e79f6bea34f
   RNScreens: 35bb8e81aeccf111baa0ea01a54231390dbbcfd9
   RNSVG: 8542aa11770b27563714bbd8494a8436385fc85f
