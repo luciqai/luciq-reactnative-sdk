@@ -9,6 +9,7 @@ import {
   InvocationOption,
   RecordingButtonPosition,
   ReportType,
+  userConsentActionType,
 } from '../../src';
 import { createProactiveReportingConfig } from '../../src';
 
@@ -288,5 +289,30 @@ describe('Testing BugReporting Module', () => {
 
     expect(NativeBugReporting.setProactiveReportingConfigurations).toBeCalledTimes(1);
     expect(NativeBugReporting.setProactiveReportingConfigurations).toBeCalledWith(false, 2, 2);
+  });
+
+  it('should call the native method addUserConsent with all parameters', () => {
+    const key = 'consent_key';
+    const description = 'User consent description';
+    const mandatory = true;
+    const checked = false;
+
+    BugReporting.addUserConsent(key, description, mandatory, checked);
+
+    expect(NativeBugReporting.addUserConsent).toBeCalledTimes(1);
+    expect(NativeBugReporting.addUserConsent).toBeCalledWith(key, description, mandatory, checked, undefined);
+  });
+
+  it('should call the native method addUserConsent with actionType parameter', () => {
+    const key = 'consent_key';
+    const description = 'User consent description';
+    const mandatory = true;
+    const checked = false;
+    const actionType = userConsentActionType.noAutomaticBugGrouping;
+
+    BugReporting.addUserConsent(key, description, mandatory, checked, actionType);
+
+    expect(NativeBugReporting.addUserConsent).toBeCalledTimes(1);
+    expect(NativeBugReporting.addUserConsent).toBeCalledWith(key, description, mandatory, checked, actionType);
   });
 });
