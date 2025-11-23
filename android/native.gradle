@@ -1,5 +1,6 @@
 project.ext.luciq = [
-    version: '18.2.0'
+    // Using snapshot version for testing new user consent action type
+    version: '18.0.1.7408772-SNAPSHOT'
 ]
 
 dependencies {

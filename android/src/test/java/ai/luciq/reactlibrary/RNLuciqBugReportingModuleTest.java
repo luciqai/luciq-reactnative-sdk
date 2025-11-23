@@ -404,4 +404,45 @@ public class RNLuciqBugReportingModuleTest {
 
 
         }
+
+    @Test
+    public void testAddUserConsentWithNoAutomaticBugGroupingActionType() {
+        // given
+        final String key = "no_grouping_consent";
+        final String description = "Disable automatic bug grouping";
+        final boolean mandatory = false;
+        final boolean checked = true;
+        final String inputAction = "noAutomaticBugGrouping";
+
+        // Use ArgsRegistry to get the expected mapped action (simulating real code path)
+        final String expectedMappedAction = ArgsRegistry.userConsentActionType.get(inputAction);
+
+        // when
+        bugReportingModule.addUserConsent(key, description, mandatory, checked, inputAction);
+
+        // then
+        verify(BugReporting.class, VerificationModeFactory.times(1));
+        BugReporting.addUserConsent(key, description, mandatory, checked, expectedMappedAction);
+    }
+
+    @Test
+    public void testAddUserConsentMappingForAllActionTypes() {
+        // given - verify that all action types in registry are properly mapped
+        final Map<String, String> allActionTypes = ArgsRegistry.userConsentActionType;
+
+        for (Map.Entry<String, String> entry : allActionTypes.entrySet()) {
+            String reactNativeKey = entry.getKey();
+            String expectedNativeConstant = entry.getValue();
+
+            String key = "consent_" + reactNativeKey;
+            String description = "Test for " + reactNativeKey;
+
+            // when
+            bugReportingModule.addUserConsent(key, description, true, false, reactNativeKey);
+
+            // then - verify the correct native constant was used
+            verify(BugReporting.class, VerificationModeFactory.times(1));
+            BugReporting.addUserConsent(key, description, true, false, expectedNativeConstant);
+        }
+    }
 }

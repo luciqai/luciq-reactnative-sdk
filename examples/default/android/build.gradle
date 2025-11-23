@@ -34,12 +34,22 @@ allprojects {
             url("$rootDir/../node_modules/detox/Detox-android")
         }
 
-         maven { url "https://mvn.luciq.ai/nexus/repository/luciq-internal/"
-                    credentials {
-                        username "luciq"
-                password System.getenv("LUCIQ_REPOSITORY_PASSWORD")
-                    }
-             }
+        // Custom snapshot repository for testing new user consent action type
+        maven {
+            url "https://mvn.luciq.ai/nexus/repository/luciq-internal/"
+            credentials {
+                username "luciq"
+                password "YrCYo6GitsFtG3Ca4g6b9WqreEr*W8"
+            }
+        }
+
+        maven { 
+            url "https://mvn.luciq.ai/nexus/repository/luciq-internal/"
+            credentials {
+                username "luciq"
+                password "YrCYo6GitsFtG3Ca4g6b9WqreEr*W8"
+            }
+        }
 
     }
 }
