@@ -12,6 +12,7 @@
 #import <LuciqSDK/LCQTypes.h>
 #import "LuciqSDK/LuciqSDK.h"
 #import "LCQConstants.h"
+#import "ArgsRegistry.h"
 
 @interface LuciqBugReportingTests : XCTestCase
 @property (nonatomic, retain) LuciqBugReportingBridge *luciqBridge;
@@ -220,6 +221,39 @@
              [config.gapBetweenModals isEqualToNumber:gap] &&
              [config.modalDelayAfterDetection isEqualToNumber:delay];
     }]]);
+}
+
+- (void)testAddUserConsentWithNoAutomaticBugGroupingActionType {
+  id mock = OCMClassMock([LCQBugReporting class]);
+
+  NSString *key = @"no_grouping_consent";
+  NSString *description = @"Disable automatic bug grouping";
+  BOOL mandatory = NO;
+  BOOL checked = YES;
+  
+  // Use ArgsRegistry to get the mapped action type (same as real code path)
+  NSString *inputActionKey = @"noAutomaticBugGrouping";
+  NSDictionary *userConsentActionTypes = [ArgsRegistry userConsentActionTypes];
+  NSNumber *actionType = userConsentActionTypes[inputActionKey];
+  LCQConsentAction mappedActionType = (LCQConsentAction)[actionType integerValue];
+
+  OCMStub([mock addUserConsentWithKey:key
+                           description:description
+                             mandatory:mandatory
+                               checked:checked
+                            actionType:mappedActionType]);
+
+  [self.luciqBridge addUserConsent:key
+                        description:description
+                          mandatory:mandatory
+                            checked:checked
+                         actionType:actionType];
+
+  OCMVerify([mock addUserConsentWithKey:key
+                             description:description
+                               mandatory:mandatory
+                                 checked:checked
+                              actionType:mappedActionType]);
 }
 @end
 
