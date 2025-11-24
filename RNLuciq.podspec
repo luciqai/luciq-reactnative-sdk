@@ -16,6 +16,6 @@ Pod::Spec.new do |s|
   s.source_files = "ios/**/*.{h,m,mm}"
 
   s.dependency 'React-Core'
-  use_luciq!(s)
-
+  # use_luciq!(s)
+  s.dependency 'Luciq'
 end
