@@ -300,7 +300,13 @@ describe('Testing BugReporting Module', () => {
     BugReporting.addUserConsent(key, description, mandatory, checked);
 
     expect(NativeBugReporting.addUserConsent).toBeCalledTimes(1);
-    expect(NativeBugReporting.addUserConsent).toBeCalledWith(key, description, mandatory, checked, undefined);
+    expect(NativeBugReporting.addUserConsent).toBeCalledWith(
+      key,
+      description,
+      mandatory,
+      checked,
+      undefined,
+    );
   });
 
   it('should call the native method addUserConsent with actionType parameter', () => {
@@ -313,6 +319,12 @@ describe('Testing BugReporting Module', () => {
     BugReporting.addUserConsent(key, description, mandatory, checked, actionType);
 
     expect(NativeBugReporting.addUserConsent).toBeCalledTimes(1);
-    expect(NativeBugReporting.addUserConsent).toBeCalledWith(key, description, mandatory, checked, actionType);
+    expect(NativeBugReporting.addUserConsent).toBeCalledWith(
+      key,
+      description,
+      mandatory,
+      checked,
+      actionType,
+    );
   });
 });

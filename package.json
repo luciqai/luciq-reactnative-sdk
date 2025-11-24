@@ -23,7 +23,7 @@
     "reporting",
     "feedback"
   ],
-  "scripts": {
+  "scriptsf": {
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "yarn lint --fix",
     "lint:ci": "yarn lint --max-warnings=0",
