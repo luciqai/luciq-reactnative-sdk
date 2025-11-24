@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.2.0...dev)
+
+### Added
+
+- Add support for Screen Rendering ([#4](https://github.com/luciqai/luciq-reactnative-sdk/pull/4)).
+
 ## [18.2.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.2.0...18.0.1)
 
 ### Changed
