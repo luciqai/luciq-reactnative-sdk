@@ -11,9 +11,11 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		20E556262AC55766007416B1 /* LuciqSessionReplayTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 20E556252AC55766007416B1 /* LuciqSessionReplayTests.m */; };
+		8141ED756E88DF004ABF2EA4 /* libPods-LuciqExample-LuciqTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 61951AD65449193F63CC6CC5 /* libPods-LuciqExample-LuciqTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
 		AF8A18C6FA80B2BFE6006C9E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = C4E7796400B3B360DD0B6E73 /* PrivacyInfo.xcprivacy */; };
 		BEAADDD92E81ABC80007D980 /* LuciqConfig.plist in Resources */ = {isa = PBXBuildFile; fileRef = BEAADDD82E81ABC80007D980 /* LuciqConfig.plist */; };
+		C1B778442011991457E0AF88 /* libPods-LuciqExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B4CEF2A2DB7DF18C81581A97 /* libPods-LuciqExample.a */; };
 		C3C8CCF379347A4DF9D2A39D /* CrashReportingExampleModule.m in Sources */ = {isa = PBXBuildFile; fileRef = C3C8C24386310A3120006604 /* CrashReportingExampleModule.m */; };
 		CC3DF88E2A1DFC9A003E9914 /* LuciqCrashReportingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC3DF8852A1DFC99003E9914 /* LuciqCrashReportingTests.m */; };
 		CC3DF88F2A1DFC9A003E9914 /* LuciqBugReportingTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC3DF8862A1DFC99003E9914 /* LuciqBugReportingTests.m */; };
@@ -24,8 +26,6 @@
 		CC3DF8942A1DFC9A003E9914 /* LuciqAPMTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CC3DF88C2A1DFC99003E9914 /* LuciqAPMTests.m */; };
 		CC3DF8952A1DFC9A003E9914 /* LCQConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = CC3DF88D2A1DFC9A003E9914 /* LCQConstants.m */; };
 		CCF1E4092B022CF20024802D /* RNLuciqTests.m in Sources */ = {isa = PBXBuildFile; fileRef = CCF1E4082B022CF20024802D /* RNLuciqTests.m */; };
-		CD36F4707EA1F435D2CC7A15 /* libPods-LuciqExample-LuciqTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3AF7A6E02D40E0CEEA833CC4 /* libPods-LuciqExample-LuciqTests.a */; };
-		F7BF47401EF3A435254C97BB /* libPods-LuciqExample.a in Frameworks */ = {isa = PBXBuildFile; fileRef = BAED0D0441A708AE2390E153 /* libPods-LuciqExample.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,6 +41,7 @@
 /* Begin PBXFileReference section */
 		00E356EE1AD99517003FC87E /* LuciqTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LuciqTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		0D31AB970D5AD6A5EC2EFFE6 /* Pods-LuciqExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LuciqExample.debug.xcconfig"; path = "Target Support Files/Pods-LuciqExample/Pods-LuciqExample.debug.xcconfig"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* LuciqExample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LuciqExample.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FAF1A68108700A75B9A /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = LuciqExample/AppDelegate.h; sourceTree = "<group>"; };
 		13B07FB01A68108700A75B9A /* AppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = AppDelegate.mm; path = LuciqExample/AppDelegate.mm; sourceTree = "<group>"; };
@@ -48,12 +49,12 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = LuciqExample/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = LuciqExample/main.m; sourceTree = "<group>"; };
 		20E556252AC55766007416B1 /* LuciqSessionReplayTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuciqSessionReplayTests.m; sourceTree = "<group>"; };
-		3AF7A6E02D40E0CEEA833CC4 /* libPods-LuciqExample-LuciqTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LuciqExample-LuciqTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4FC6A9E6B294FF9929A1423D /* Pods-LuciqExample-LuciqTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LuciqExample-LuciqTests.debug.xcconfig"; path = "Target Support Files/Pods-LuciqExample-LuciqTests/Pods-LuciqExample-LuciqTests.debug.xcconfig"; sourceTree = "<group>"; };
+		4CCAB601927842DC6F69B636 /* Pods-LuciqExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LuciqExample.release.xcconfig"; path = "Target Support Files/Pods-LuciqExample/Pods-LuciqExample.release.xcconfig"; sourceTree = "<group>"; };
+		61951AD65449193F63CC6CC5 /* libPods-LuciqExample-LuciqTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LuciqExample-LuciqTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = LuciqExample/LaunchScreen.storyboard; sourceTree = "<group>"; };
-		9A3D962AB03F97E25566779F /* Pods-LuciqExample.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LuciqExample.debug.xcconfig"; path = "Target Support Files/Pods-LuciqExample/Pods-LuciqExample.debug.xcconfig"; sourceTree = "<group>"; };
-		BAED0D0441A708AE2390E153 /* libPods-LuciqExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LuciqExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		BD54B44E2DF85672BB2D4DEE /* Pods-LuciqExample.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LuciqExample.release.xcconfig"; path = "Target Support Files/Pods-LuciqExample/Pods-LuciqExample.release.xcconfig"; sourceTree = "<group>"; };
+		A13C71118F1D1BBC9F8CAF06 /* Pods-LuciqExample-LuciqTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LuciqExample-LuciqTests.release.xcconfig"; path = "Target Support Files/Pods-LuciqExample-LuciqTests/Pods-LuciqExample-LuciqTests.release.xcconfig"; sourceTree = "<group>"; };
+		ADF18B412E5943F0E9B5A523 /* Pods-LuciqExample-LuciqTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LuciqExample-LuciqTests.debug.xcconfig"; path = "Target Support Files/Pods-LuciqExample-LuciqTests/Pods-LuciqExample-LuciqTests.debug.xcconfig"; sourceTree = "<group>"; };
+		B4CEF2A2DB7DF18C81581A97 /* libPods-LuciqExample.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-LuciqExample.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE3328762BDACE030078249A /* LCQCrashReporting+CP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "LCQCrashReporting+CP.h"; sourceTree = "<group>"; };
 		BEAADDD82E81ABC80007D980 /* LuciqConfig.plist */ = {isa = PBXFileReference; lastKnownFileType = file.bplist; path = LuciqConfig.plist; sourceTree = "<group>"; };
 		C3C8C24386310A3120006604 /* CrashReportingExampleModule.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CrashReportingExampleModule.m; sourceTree = "<group>"; };
@@ -69,7 +70,6 @@
 		CC3DF88C2A1DFC99003E9914 /* LuciqAPMTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuciqAPMTests.m; sourceTree = "<group>"; };
 		CC3DF88D2A1DFC9A003E9914 /* LCQConstants.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LCQConstants.m; sourceTree = "<group>"; };
 		CCF1E4082B022CF20024802D /* RNLuciqTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RNLuciqTests.m; sourceTree = "<group>"; };
-		DBCB1B1D023646D84146C91E /* Pods-LuciqExample-LuciqTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-LuciqExample-LuciqTests.release.xcconfig"; path = "Target Support Files/Pods-LuciqExample-LuciqTests/Pods-LuciqExample-LuciqTests.release.xcconfig"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -78,7 +78,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CD36F4707EA1F435D2CC7A15 /* libPods-LuciqExample-LuciqTests.a in Frameworks */,
+				8141ED756E88DF004ABF2EA4 /* libPods-LuciqExample-LuciqTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -86,7 +86,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F7BF47401EF3A435254C97BB /* libPods-LuciqExample.a in Frameworks */,
+				C1B778442011991457E0AF88 /* libPods-LuciqExample.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -141,8 +141,8 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				BAED0D0441A708AE2390E153 /* libPods-LuciqExample.a */,
-				3AF7A6E02D40E0CEEA833CC4 /* libPods-LuciqExample-LuciqTests.a */,
+				B4CEF2A2DB7DF18C81581A97 /* libPods-LuciqExample.a */,
+				61951AD65449193F63CC6CC5 /* libPods-LuciqExample-LuciqTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -181,10 +181,10 @@
 		BBD78D7AC51CEA395F1C20DB /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				9A3D962AB03F97E25566779F /* Pods-LuciqExample.debug.xcconfig */,
-				BD54B44E2DF85672BB2D4DEE /* Pods-LuciqExample.release.xcconfig */,
-				4FC6A9E6B294FF9929A1423D /* Pods-LuciqExample-LuciqTests.debug.xcconfig */,
-				DBCB1B1D023646D84146C91E /* Pods-LuciqExample-LuciqTests.release.xcconfig */,
+				0D31AB970D5AD6A5EC2EFFE6 /* Pods-LuciqExample.debug.xcconfig */,
+				4CCAB601927842DC6F69B636 /* Pods-LuciqExample.release.xcconfig */,
+				ADF18B412E5943F0E9B5A523 /* Pods-LuciqExample-LuciqTests.debug.xcconfig */,
+				A13C71118F1D1BBC9F8CAF06 /* Pods-LuciqExample-LuciqTests.release.xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -213,12 +213,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 00E357021AD99517003FC87E /* Build configuration list for PBXNativeTarget "LuciqTests" */;
 			buildPhases = (
-				4DE333F1038E813908FD6E02 /* [CP] Check Pods Manifest.lock */,
+				5B3024EDA97D943EDCF41D69 /* [CP] Check Pods Manifest.lock */,
 				00E356EA1AD99517003FC87E /* Sources */,
 				00E356EB1AD99517003FC87E /* Frameworks */,
 				00E356EC1AD99517003FC87E /* Resources */,
-				B77A7BA143DBD17E8AAFD0B4 /* [CP] Embed Pods Frameworks */,
-				1B716B93CEB36F7B6BF97196 /* [CP] Copy Pods Resources */,
+				EAB881C6216C9102E13F3A9C /* [CP] Embed Pods Frameworks */,
+				B1A710AAAEC44AFEF8BC6DCC /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -234,15 +234,15 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "LuciqExample" */;
 			buildPhases = (
-				8A0C035CDD1B88604A0FAD14 /* [CP] Check Pods Manifest.lock */,
+				A62B557B3CA847862B79F31D /* [CP] Check Pods Manifest.lock */,
 				FD10A7F022414F080027D42C /* Start Packager */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
-				9B6F0E9077EA2ACF0B8BD0D4 /* [CP] Embed Pods Frameworks */,
-				949A70D67C81681F83D686C1 /* [CP] Copy Pods Resources */,
-				B36AC0FB2D0AD9C221259F14 /* [CP-User] [@luciq/react-native] Upload Sourcemap */,
+				C1D7A270D0A797CF6F02EC52 /* [CP] Embed Pods Frameworks */,
+				D3802FFD94FE08F135714E3F /* [CP] Copy Pods Resources */,
+				E4E671859CFEF944C26C68EF /* [CP-User] [@luciq/react-native] Upload Sourcemap */,
 			);
 			buildRules = (
 			);
@@ -327,24 +327,7 @@
 			shellPath = /bin/sh;
 			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"../node_modules/react-native/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"../node_modules/react-native/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
 		};
-		1B716B93CEB36F7B6BF97196 /* [CP] Copy Pods Resources */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-LuciqExample-LuciqTests/Pods-LuciqExample-LuciqTests-resources-${CONFIGURATION}-input-files.xcfilelist",
-			);
-			name = "[CP] Copy Pods Resources";
-			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-LuciqExample-LuciqTests/Pods-LuciqExample-LuciqTests-resources-${CONFIGURATION}-output-files.xcfilelist",
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LuciqExample-LuciqTests/Pods-LuciqExample-LuciqTests-resources.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
-		4DE333F1038E813908FD6E02 /* [CP] Check Pods Manifest.lock */ = {
+		5B3024EDA97D943EDCF41D69 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -366,7 +349,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		8A0C035CDD1B88604A0FAD14 /* [CP] Check Pods Manifest.lock */ = {
+		A62B557B3CA847862B79F31D /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -388,24 +371,24 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		949A70D67C81681F83D686C1 /* [CP] Copy Pods Resources */ = {
+		B1A710AAAEC44AFEF8BC6DCC /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			inputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-LuciqExample/Pods-LuciqExample-resources-${CONFIGURATION}-input-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-LuciqExample-LuciqTests/Pods-LuciqExample-LuciqTests-resources-${CONFIGURATION}-input-files.xcfilelist",
 			);
 			name = "[CP] Copy Pods Resources";
 			outputFileListPaths = (
-				"${PODS_ROOT}/Target Support Files/Pods-LuciqExample/Pods-LuciqExample-resources-${CONFIGURATION}-output-files.xcfilelist",
+				"${PODS_ROOT}/Target Support Files/Pods-LuciqExample-LuciqTests/Pods-LuciqExample-LuciqTests-resources-${CONFIGURATION}-output-files.xcfilelist",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LuciqExample/Pods-LuciqExample-resources.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LuciqExample-LuciqTests/Pods-LuciqExample-LuciqTests-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		9B6F0E9077EA2ACF0B8BD0D4 /* [CP] Embed Pods Frameworks */ = {
+		C1D7A270D0A797CF6F02EC52 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -422,7 +405,24 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LuciqExample/Pods-LuciqExample-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		B36AC0FB2D0AD9C221259F14 /* [CP-User] [@luciq/react-native] Upload Sourcemap */ = {
+		D3802FFD94FE08F135714E3F /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-LuciqExample/Pods-LuciqExample-resources-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Copy Pods Resources";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-LuciqExample/Pods-LuciqExample-resources-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-LuciqExample/Pods-LuciqExample-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		E4E671859CFEF944C26C68EF /* [CP-User] [@luciq/react-native] Upload Sourcemap */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -432,7 +432,7 @@
 			shellPath = /bin/sh;
 			shellScript = "#!/bin/sh\n\n\nexport SOURCEMAP_FILE=\"$DERIVED_FILE_DIR/main.jsbundle.map\"\n\nmain() {\n  # Read environment variables from ios/.xcode.env if it exists\n  env_path=\"$PODS_ROOT/../.xcode.env\"\n  if [ -f \"$env_path\" ]; then\n      source \"$env_path\"\n  fi\n\n  # Read environment variables from ios/.xcode.env.local if it exists\n  local_env_path=\"${ENV_PATH}.local\"\n  if [ -f \"$local_env_path\" ]; then\n      source \"$local_env_path\"\n  fi\n\n  # Check both LUCIQ and INSTABUG environment variables for sourcemaps upload disable\n  local luciq_disable=\"${LUCIQ_SOURCEMAPS_UPLOAD_DISABLE}\"\n  local instabug_disable=\"${INSTABUG_SOURCEMAPS_UPLOAD_DISABLE}\"\n  \n  if [[ \"$luciq_disable\" = true ]] || [[ \"$instabug_disable\" = true ]]; then\n    echo \"[Info] Sourcemaps upload was disabled via environment variable, skipping sourcemaps upload...\"\n    exit 0\n  fi\n\n  if [[ \"$CONFIGURATION\" = \"Debug\" ]]; then\n    echo \"[Info] Building in debug mode, skipping sourcemaps upload...\"\n    exit 0\n  fi\n\n  if [[ -z \"$INFOPLIST_FILE\" ]] || [[ -z \"$PROJECT_DIR\" ]]; then\n    echo \"[Error] Luciq sourcemaps script must be invoked by Xcode\"\n    exit 0\n  fi\n\n\nlocal sourcemap_file=\"\"\n  # Use existing sourcemap if available\n  if [[ -f \"$SOURCEMAP_FILE\" ]]; then\n    sourcemap_file=\"$SOURCEMAP_FILE\"\n  else\n   sourcemap_file=$(generate_sourcemaps | tail -n 1)\nfi\n\n  local js_project_dir=\"$PROJECT_DIR/..\"\n  local luciq_dir=$(dirname $(node -p \"require.resolve('@luciq/react-native/package.json')\"))\n  local inferred_token=$(cd $js_project_dir && node $luciq_dir/scripts/find-token.js)\n  local app_token=$(resolve_var \"App Token\" \"LUCIQ_APP_TOKEN\" \"$inferred_token\" | tail -n 1)\n\n  local inferred_name=$(/usr/libexec/PlistBuddy -c 'print CFBundleShortVersionString' \"$PROJECT_DIR/$INFOPLIST_FILE\")\n  local version_name=$(resolve_var \"Version Name\" \"LUCIQ_APP_VERSION_NAME\" \"$inferred_name\" | tail -n 1)\n\n  local inferred_code=$(/usr/libexec/PlistBuddy -c 'print CFBundleVersion' \"$PROJECT_DIR/$INFOPLIST_FILE\")\n  local version_code=$(resolve_var \"Version Code\" \"LUCIQ_APP_VERSION_CODE\" \"$inferred_code\" | tail -n 1)\n\nif [ -n \"$sourcemap_file\" ]; then\n  node $luciq_dir/bin/index.js upload-sourcemaps \\\n      --platform ios \\\n      --file $sourcemap_file \\\n      --token $app_token \\\n      --name $version_name \\\n      --code $version_code\n      fi\n}\n\ngenerate_sourcemaps() {\n  local react_native_dir=$(dirname $(node -p \"require.resolve('react-native/package.json')\"))\n\n  # Fixes an issue with react-native prior to v0.67.0\n  # For more info: https://github.com/facebook/react-native/issues/32168\n  export RN_DIR=$react_native_dir\n\n  # Used withing `react-native-xcode.sh` to generate sourcemap file\n  export SOURCEMAP_FILE=\"$(pwd)/main.jsbundle.map\";\n\n  source \"$react_native_dir/scripts/react-native-xcode.sh\"\n\n  if [[ ! -f \"$SOURCEMAP_FILE\" ]]; then\n    echo \"[Error] Unable to find source map file at: $SOURCEMAP_FILE\"\n    exit 0\n  fi\n\n  echo $SOURCEMAP_FILE\n}\n\nresolve_var() {\n  local name=$1\n  local env_key=$2\n  local default_value=$3\n\n  # First try LUCIQ environment variable\n  local luciq_env_key=\"$env_key\"\n  local luciq_env_value=\"${!luciq_env_key}\"\n  \n  # Then try INSTABUG environment variable as fallback\n  local instabug_env_key=\"${env_key/LUCIQ_/INSTABUG_}\"\n  local instabug_env_value=\"${!instabug_env_key}\"\n  \n  # Use LUCIQ value if available, otherwise use INSTABUG value\n  local env_value=\"${luciq_env_value:-$instabug_env_value}\"\n\n  if [[ -n \"$env_value\" ]] &&  [[ -n \"$default_value\" ]]  && [[ \"$env_value\" != \"$default_value\" ]]; then\n    echo \"[Warning] Environment variable \\`$env_key\\` might have incorrect value, make sure this was intentional:\"\n    echo \"   Environment Value: $env_value\"\n    echo \"   Default Value: $default_value\"\n  fi\n\n  local value=\"${env_value:-$default_value}\"\n\n  if [[ -z \"$value\" ]]; then\n    echo \"[Error] Unable to find $name! Set the environment variable \\`$env_key\\` or \\`$instabug_env_key\\` and try again.\"\n    exit 0\n  fi\n\n  echo $value\n}\n\nmain \"$@\"; exit\n";
 		};
-		B77A7BA143DBD17E8AAFD0B4 /* [CP] Embed Pods Frameworks */ = {
+		EAB881C6216C9102E13F3A9C /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -511,7 +511,7 @@
 /* Begin XCBuildConfiguration section */
 		00E356F61AD99517003FC87E /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 4FC6A9E6B294FF9929A1423D /* Pods-LuciqExample-LuciqTests.debug.xcconfig */;
+			baseConfigurationReference = ADF18B412E5943F0E9B5A523 /* Pods-LuciqExample-LuciqTests.debug.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -538,7 +538,7 @@
 		};
 		00E356F71AD99517003FC87E /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = DBCB1B1D023646D84146C91E /* Pods-LuciqExample-LuciqTests.release.xcconfig */;
+			baseConfigurationReference = A13C71118F1D1BBC9F8CAF06 /* Pods-LuciqExample-LuciqTests.release.xcconfig */;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COPY_PHASE_STRIP = NO;
@@ -562,7 +562,7 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 9A3D962AB03F97E25566779F /* Pods-LuciqExample.debug.xcconfig */;
+			baseConfigurationReference = 0D31AB970D5AD6A5EC2EFFE6 /* Pods-LuciqExample.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -589,7 +589,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = BD54B44E2DF85672BB2D4DEE /* Pods-LuciqExample.release.xcconfig */;
+			baseConfigurationReference = 4CCAB601927842DC6F69B636 /* Pods-LuciqExample.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
