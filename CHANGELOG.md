@@ -19,6 +19,7 @@
 - Add support for proactive bug-reporting ([#2](https://github.com/luciqai/luciq-reactnative-sdk/pull/2))
 -
 - Add support for chaining errors. ([#3](https://github.com/luciqai/luciq-reactnative-sdk/pull/3))
+- Add new action type "no_automatic_bug_grouping" in user consent api". ([#4](https://github.com/luciqai/luciq-reactnative-sdk/pull/16))
 
 ### Changed
 
