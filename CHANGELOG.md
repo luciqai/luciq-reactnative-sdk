@@ -5,6 +5,13 @@
 ### Added
 
 - Add support for Screen Rendering ([#4](https://github.com/luciqai/luciq-reactnative-sdk/pull/4)).
+- **Custom Spans**: New feature to manually instrument code paths for performance tracking
+  - `APM.startCustomSpan(name)` - Start a custom span and return a span object
+  - `CustomSpan.end()` - End the span and report to SDK
+  - `APM.addCompletedCustomSpan(name, startDate, endDate)` - Record a pre-completed span
+  - Support for up to 100 concurrent spans
+  - Comprehensive validation (name length, empty checks, timestamp validation)
+  - Feature flag support to enable/disable custom spans
 
 ## [18.2.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.2.0...18.0.1)
 
