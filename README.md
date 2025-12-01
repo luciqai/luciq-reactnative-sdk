@@ -189,12 +189,15 @@ await APM.addCompletedCustomSpan('Cache Lookup', start, end);
 Starts a custom span for performance tracking.
 
 **Parameters:**
+
 - `name` (string): The name of the span. Cannot be empty. Max 150 characters.
 
 **Returns:**
+
 - `Promise<CustomSpan | null>`: The span object to end later, or `null` if the span could not be created.
 
 **Example:**
+
 ```javascript
 const span = await APM.startCustomSpan('Database Query');
 if (span) {
@@ -212,11 +215,13 @@ Ends the custom span and reports it to the SDK. This method is idempotent.
 Records a completed custom span with pre-recorded timestamps.
 
 **Parameters:**
+
 - `name` (string): The name of the span. Cannot be empty. Max 150 characters.
 - `startDate` (Date): The start time of the operation.
 - `endDate` (Date): The end time of the operation (must be after startDate).
 
 **Example:**
+
 ```javascript
 const start = new Date(Date.now() - 1500);
 const end = new Date();

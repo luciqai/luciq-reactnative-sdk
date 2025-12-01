@@ -2,7 +2,11 @@ import { Platform } from 'react-native';
 
 import { NativeAPM } from '../native/NativeAPM';
 import { NativeLuciq } from '../native/NativeLuciq';
-import { CustomSpan } from '../models/CustomSpan';
+import {
+  startCustomSpan as startCustomSpanInternal,
+  addCompletedCustomSpan as addCompletedCustomSpanInternal,
+} from '../utils/CustomSpansManager';
+import type { CustomSpan } from '../models/CustomSpan';
 
 /**
  * Enables or disables APM
@@ -125,20 +129,6 @@ export const setScreenRenderingEnabled = (isEnabled: boolean) => {
   NativeAPM.setScreenRenderingEnabled(isEnabled);
 };
 
-// Add at the end of the file (after existing exports)
-
-/**
- * Active custom spans tracking
- * @internal
- */
-export const _activeSpans = new Set<CustomSpan>();
-
-/**
- * Maximum concurrent custom spans allowed
- * @internal
- */
-const MAX_CONCURRENT_SPANS = 100;
-
 /**
  * Starts a custom span for performance tracking.
  *
@@ -169,59 +159,7 @@ const MAX_CONCURRENT_SPANS = 100;
  * ```
  */
 export const startCustomSpan = async (name: string): Promise<CustomSpan | null> => {
-  try {
-    // Validate name
-    const trimmedName = name.trim();
-    if (trimmedName.length === 0) {
-      console.error('[CustomSpan] Name cannot be empty');
-      return null;
-    }
-
-    // Check SDK initialization
-    const isInitialized = await NativeLuciq.isBuilt();
-    if (!isInitialized) {
-      console.error('[CustomSpan] SDK is not initialized');
-      return null;
-    }
-
-    // Check APM enabled
-    const isAPMEnabled = await NativeAPM.isAPMEnabled();
-    if (!isAPMEnabled) {
-      console.log('[CustomSpan] APM is disabled');
-      return null;
-    }
-
-    // Check custom spans enabled
-    const isCustomSpanEnabled = await NativeAPM.isCustomSpanEnabled();
-    if (!isCustomSpanEnabled) {
-      console.log('[CustomSpan] Custom spans feature is disabled');
-      return null;
-    }
-
-    // Check concurrent span limit
-    if (_activeSpans.size >= MAX_CONCURRENT_SPANS) {
-      console.error(
-        `[CustomSpan] Maximum number of concurrent custom spans (${MAX_CONCURRENT_SPANS}) reached. ` +
-          'Please end some spans before starting new ones.',
-      );
-      return null;
-    }
-
-    // Truncate name if needed
-    let spanName = trimmedName;
-    if (spanName.length > 150) {
-      spanName = spanName.substring(0, 150);
-      console.log('[CustomSpan] Name truncated to 150 characters');
-    }
-
-    // Create and register span with callbacks
-    const span = new CustomSpan(spanName, _unregisterSpan, _syncCustomSpan);
-    _activeSpans.add(span);
-    return span;
-  } catch (error) {
-    console.error('[CustomSpan] Error starting span:', error);
-    return null;
-  }
+  return startCustomSpanInternal(name);
 };
 
 /**
@@ -255,93 +193,5 @@ export const addCompletedCustomSpan = async (
   startDate: Date,
   endDate: Date,
 ): Promise<void> => {
-  try {
-    // Validate name
-    const trimmedName = name.trim();
-    if (trimmedName.length === 0) {
-      console.error('[CustomSpan] Name cannot be empty');
-      return;
-    }
-
-    // Validate timestamps
-    if (endDate <= startDate) {
-      console.error('[CustomSpan] End date must be after start date');
-      return;
-    }
-
-    // Check SDK initialization
-    const isInitialized = await NativeLuciq.isBuilt();
-    if (!isInitialized) {
-      console.error('[CustomSpan] SDK is not initialized');
-      return;
-    }
-
-    // Check APM enabled
-    const isAPMEnabled = await NativeAPM.isAPMEnabled();
-    if (!isAPMEnabled) {
-      console.log('[CustomSpan] APM is disabled');
-      return;
-    }
-
-    // Check custom spans enabled
-    const isCustomSpanEnabled = await NativeAPM.isCustomSpanEnabled();
-    if (!isCustomSpanEnabled) {
-      console.log('[CustomSpan] Custom spans feature is disabled');
-      return;
-    }
-
-    // Truncate name if needed
-    let spanName = trimmedName;
-    if (spanName.length > 150) {
-      spanName = spanName.substring(0, 150);
-      console.log('[CustomSpan] Name truncated to 150 characters');
-    }
-
-    // Convert to microseconds
-    const startMicros = startDate.getTime() * 1000;
-    const endMicros = endDate.getTime() * 1000;
-
-    // Send to native SDK
-    await _syncCustomSpan(spanName, startMicros, endMicros);
-  } catch (error) {
-    console.error('[CustomSpan] Error adding completed span:', error);
-  }
-};
-
-/**
- * Internal method to unregister a span from active tracking
- * @internal
- */
-export const _unregisterSpan = (span: CustomSpan): void => {
-  _activeSpans.delete(span);
-};
-
-/**
- * Internal method to sync custom span data to native SDK
- * @internal
- */
-export const _syncCustomSpan = async (
-  name: string,
-  startTimestamp: number,
-  endTimestamp: number,
-): Promise<void> => {
-  // Validate inputs (safety net)
-  if (!name || name.trim().length === 0) {
-    console.error('[CustomSpan] Internal error: Name cannot be empty');
-    return;
-  }
-
-  if (endTimestamp <= startTimestamp) {
-    console.error('[CustomSpan] Internal error: End timestamp must be after start timestamp');
-    return;
-  }
-
-  // Truncate name if needed (safety net)
-  let spanName = name.trim();
-  if (spanName.length > 150) {
-    spanName = spanName.substring(0, 150);
-  }
-
-  // Send to native bridge
-  await NativeAPM.syncCustomSpan(spanName, startTimestamp, endTimestamp);
+  return addCompletedCustomSpanInternal(name, startDate, endDate);
 };
