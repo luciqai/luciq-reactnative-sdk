@@ -45,4 +45,24 @@ export interface LuciqConfig {
    * An optional over air service update version to be used for all reports.
    */
   overAirVersion?: OverAirUpdate;
+
+  /**
+   * An optional APM configuration for performance monitoring features.
+   */
+  apm?: {
+    /**
+     * Whether app launch tracking is enabled.
+     */
+    appLaunchEnabled?: boolean;
+
+    /**
+     * Whether screen loading measurement is enabled.
+     */
+    screenLoadingEnabled?: boolean;
+
+    /**
+     * Whether automatic screen loading measurement is enabled for React Navigation.
+     */
+    autoScreenLoadingEnabled?: boolean;
+  };
 }

@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 
 import { NativeAPM } from '../native/NativeAPM';
 import { NativeLuciq } from '../native/NativeLuciq';
+import type { ScreenLoadingMetric } from '../models/ScreenLoadingMetric';
 
 /**
  * Enables or disables APM
@@ -122,4 +123,84 @@ export const _lcqSleep = () => {
  */
 export const setScreenRenderingEnabled = (isEnabled: boolean) => {
   NativeAPM.setScreenRenderingEnabled(isEnabled);
+};
+
+// Module-level state for screen loading
+let screenLoadingEnabled = false;
+const activeScreens = new Map<string, { ttidStartTime: number }>();
+
+/**
+ * Enables or disables Screen Loading feature
+ * @param isEnabled
+ */
+export const setScreenLoadingEnabled = (isEnabled: boolean) => {
+  screenLoadingEnabled = isEnabled;
+  NativeAPM.setScreenLoadingEnabled(isEnabled);
+};
+
+/**
+ * Returns whether Screen Loading feature is enabled
+ */
+export const isScreenLoadingEnabled = () => screenLoadingEnabled;
+
+/**
+ * Starts screen loading measurement for the specified screen
+ * @param screenName
+ */
+export const startScreenLoading = (screenName: string) => {
+  if (!screenLoadingEnabled) {
+    return;
+  }
+
+  activeScreens.set(screenName, {
+    ttidStartTime: Date.now(),
+  });
+
+  NativeAPM.startScreenLoading(screenName);
+};
+
+/**
+ * Ends screen loading measurement for the specified screen
+ * @param screenName
+ */
+export const endScreenLoading = (screenName: string) => {
+  if (!screenLoadingEnabled) {
+    return;
+  }
+
+  const screen = activeScreens.get(screenName);
+  if (screen) {
+    const duration = Date.now() - screen.ttidStartTime;
+    NativeAPM.endScreenLoading(screenName, duration);
+    activeScreens.delete(screenName);
+  }
+};
+
+// Internal APIs for components
+export const _reportScreenLoadingMetric = (metric: ScreenLoadingMetric) => {
+  if (!screenLoadingEnabled) {
+    return;
+  }
+
+  // Store TTID for TTFD dependency check
+  if (metric.type === 'initial_display') {
+    activeScreens.set(metric.screenName, {
+      ttidStartTime: metric.startTime,
+    });
+  }
+
+  NativeAPM.reportScreenLoadingMetric(
+    metric.type,
+    metric.screenName,
+    metric.duration,
+    metric.startTime,
+    metric.endTime,
+  );
+};
+
+export const _hasInitialDisplayForScreen = (screenName?: string): boolean => {
+  if (!screenName) {
+    return false;
+  }
+  return activeScreens.has(screenName);
 };

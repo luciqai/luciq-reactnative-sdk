@@ -15,6 +15,10 @@ const mockAPM: ApmNativeModule = {
   lcqSleep: jest.fn(),
   networkLogAndroid: jest.fn(),
   setScreenRenderingEnabled: jest.fn(),
+  setScreenLoadingEnabled: jest.fn(),
+  reportScreenLoadingMetric: jest.fn(),
+  endScreenLoading: jest.fn(),
+  startScreenLoading: jest.fn(),
 };
 
 export default mockAPM;

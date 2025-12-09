@@ -24,6 +24,7 @@ import { navigationTheme } from './theme/navigationTheme';
 
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { CallbackHandlersProvider } from './contexts/callbackContext';
+import LuciqScreenLoading from '../../../src/components/LuciqScreenLoading';
 
 const queryClient = new QueryClient();
 
@@ -81,17 +82,19 @@ export const App: React.FC = () => {
   }, [navigationRef]);
 
   return (
-    <GestureHandlerRootView style={styles.root}>
-      <NativeBaseProvider theme={nativeBaseTheme}>
-        <QueryClientProvider client={queryClient}>
-          <NavigationContainer onStateChange={Luciq.onStateChange} theme={navigationTheme}>
-            <CallbackHandlersProvider>
-              <RootTabNavigator />
-            </CallbackHandlersProvider>
-          </NavigationContainer>
-        </QueryClientProvider>
-      </NativeBaseProvider>
-    </GestureHandlerRootView>
+    <LuciqScreenLoading.InitialDisplay onMeasured={}>
+      <GestureHandlerRootView style={styles.root}>
+        <NativeBaseProvider theme={nativeBaseTheme}>
+          <QueryClientProvider client={queryClient}>
+            <NavigationContainer onStateChange={Luciq.onStateChange} theme={navigationTheme}>
+              <CallbackHandlersProvider>
+                <RootTabNavigator />
+              </CallbackHandlersProvider>
+            </NavigationContainer>
+          </QueryClientProvider>
+        </NativeBaseProvider>
+      </GestureHandlerRootView>
+    </LuciqScreenLoading.InitialDisplay>
   );
 };
 

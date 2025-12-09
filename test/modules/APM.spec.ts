@@ -108,4 +108,92 @@ describe('APM Module', () => {
     expect(NativeAPM.setScreenRenderingEnabled).toBeCalledTimes(1);
     expect(NativeAPM.setScreenRenderingEnabled).toBeCalledWith(true);
   });
+
+  describe('Screen Loading', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('should enable screen loading when setScreenLoadingEnabled is called', () => {
+      APM.setScreenLoadingEnabled(true);
+
+      expect(NativeAPM.setScreenLoadingEnabled).toHaveBeenCalledTimes(1);
+      expect(NativeAPM.setScreenLoadingEnabled).toHaveBeenCalledWith(true);
+      expect(APM.isScreenLoadingEnabled()).toBe(true);
+    });
+
+    it('should start screen loading measurement', () => {
+      APM.setScreenLoadingEnabled(true);
+      APM.startScreenLoading('HomeScreen');
+
+      expect(NativeAPM.startScreenLoading).toHaveBeenCalledTimes(1);
+      expect(NativeAPM.startScreenLoading).toHaveBeenCalledWith('HomeScreen');
+    });
+
+    it('should not start measurement when disabled', () => {
+      APM.setScreenLoadingEnabled(false);
+      APM.startScreenLoading('HomeScreen');
+
+      expect(NativeAPM.startScreenLoading).not.toHaveBeenCalled();
+    });
+
+    it('should end screen loading measurement with duration', () => {
+      APM.setScreenLoadingEnabled(true);
+      APM.startScreenLoading('HomeScreen');
+
+      // Simulate some time passing
+      jest.spyOn(Date, 'now').mockReturnValueOnce(1000).mockReturnValueOnce(1250);
+
+      APM.endScreenLoading('HomeScreen');
+
+      expect(NativeAPM.endScreenLoading).toHaveBeenCalledTimes(1);
+      expect(NativeAPM.endScreenLoading).toHaveBeenCalledWith('HomeScreen', 250);
+    });
+
+    it('should track TTID for TTFD dependency', () => {
+      APM.setScreenLoadingEnabled(true);
+      APM._reportScreenLoadingMetric({
+        type: 'initial_display',
+        screenName: 'TestScreen',
+        duration: 250,
+        startTime: 1000,
+        endTime: 1250,
+      });
+
+      expect(APM._hasInitialDisplayForScreen('TestScreen')).toBe(true);
+    });
+
+    it('should report screen loading metrics to native', () => {
+      APM.setScreenLoadingEnabled(true);
+      APM._reportScreenLoadingMetric({
+        type: 'initial_display',
+        screenName: 'TestScreen',
+        duration: 250,
+        startTime: 1000,
+        endTime: 1250,
+      });
+
+      expect(NativeAPM.reportScreenLoadingMetric).toHaveBeenCalledTimes(1);
+      expect(NativeAPM.reportScreenLoadingMetric).toHaveBeenCalledWith(
+        'initial_display',
+        'TestScreen',
+        250,
+        1000,
+        1250,
+      );
+    });
+
+    it('should not report metrics when disabled', () => {
+      APM.setScreenLoadingEnabled(false);
+      APM._reportScreenLoadingMetric({
+        type: 'initial_display',
+        screenName: 'TestScreen',
+        duration: 250,
+        startTime: 1000,
+        endTime: 1250,
+      });
+
+      expect(NativeAPM.reportScreenLoadingMetric).not.toHaveBeenCalled();
+    });
+  });
 });

@@ -408,4 +408,83 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 }
             });
         }
+
+        // Screen Loading Methods
+
+        /**
+         * Enables or disables screen loading measurement.
+         *
+         * @param isEnabled boolean indicating enabled or disabled.
+         */
+        @ReactMethod
+        public void setScreenLoadingEnabled(final boolean isEnabled) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        APM.setScreenLoadingEnabled(isEnabled);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
+
+        /**
+         * Starts screen loading measurement for a specific screen.
+         *
+         * @param screenName the name of the screen to track.
+         */
+        @ReactMethod
+        public void startScreenLoading(final String screenName) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    android.util.Log.d("RNLuciqAPMModule", "startScreenLoading called with screenName: " + screenName);
+                }
+            });
+        }
+
+        /**
+         * Ends screen loading measurement for a specific screen.
+         *
+         * @param screenName the name of the screen to track.
+         * @param duration the duration of the screen loading in milliseconds.
+         */
+        @ReactMethod
+        public void endScreenLoading(final String screenName, final double duration) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    android.util.Log.d("RNLuciqAPMModule", "endScreenLoading called with screenName: " + screenName + ", duration: " + duration);
+                }
+            });
+        }
+
+        /**
+         * Reports a screen loading metric with detailed timing information.
+         *
+         * @param type the type of display metric (initial_display or full_display).
+         * @param screenName the name of the screen.
+         * @param duration the duration of the screen loading.
+         * @param startTime the start time of the measurement.
+         * @param endTime the end time of the measurement.
+         */
+        @ReactMethod
+        public void reportScreenLoadingMetric(final String type,
+                                             final String screenName,
+                                             final double duration,
+                                             final double startTime,
+                                             final double endTime) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    android.util.Log.d("RNLuciqAPMModule", "reportScreenLoadingMetric called with type: " + type
+                            + ", screenName: " + screenName
+                            + ", duration: " + duration
+                            + ", startTime: " + startTime
+                            + ", endTime: " + endTime);
+                }
+            });
+        }
 }

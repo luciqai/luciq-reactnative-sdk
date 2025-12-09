@@ -39,6 +39,7 @@ export const APMScreen: React.FC<NativeStackScreenProps<HomeStackParamList, 'APM
       <ListTile title="WebViews" onPress={() => navigation.navigate('WebViews')} />
       <ListTile title="Complex Views" onPress={() => navigation.navigate('ComplexViews')} />
       <ListTile title="Screen Rendering" onPress={() => navigation.navigate('ScreenRender')} />
+      <ListTile title="Screen Loading" onPress={() => navigation.navigate('ScreenLoadingScreen')} />
     </Screen>
   );
 };

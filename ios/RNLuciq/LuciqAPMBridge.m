@@ -90,6 +90,33 @@ RCT_EXPORT_METHOD(setScreenRenderingEnabled:(BOOL)isEnabled) {
     LCQAPM.screenRenderingEnabled = isEnabled;
 }
 
+// Screen Loading Methods
+
+// Enables or disables screen loading measurement.
+RCT_EXPORT_METHOD(setScreenLoadingEnabled:(BOOL)isEnabled) {
+    LCQAPM.screenLoadingEnabled = isEnabled;
+}
+
+// Starts screen loading measurement for a specific screen.
+RCT_EXPORT_METHOD(startScreenLoading:(NSString *)screenName) {
+    NSLog(@"[RNLuciq] startScreenLoading called with screenName: %@", screenName);
+}
+
+// Ends screen loading measurement for a specific screen.
+RCT_EXPORT_METHOD(endScreenLoading:(NSString *)screenName
+                  duration:(nonnull NSNumber *)duration) {
+    NSLog(@"[RNLuciq] endScreenLoading called with screenName: %@, duration: %@", screenName, duration);
+}
+
+// Reports a screen loading metric with detailed timing information.
+RCT_EXPORT_METHOD(reportScreenLoadingMetric:(NSString *)type
+                  screenName:(NSString *)screenName
+                  duration:(nonnull NSNumber *)duration
+                  startTime:(nonnull NSNumber *)startTime
+                  endTime:(nonnull NSNumber *)endTime) {
+    NSLog(@"[RNLuciq] reportScreenLoadingMetric called with type: %@, screenName: %@, duration: %@, startTime: %@, endTime: %@", type, screenName, duration, startTime, endTime);
+}
+
 
 
 @synthesize description;

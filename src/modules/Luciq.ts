@@ -38,6 +38,7 @@ import { LuciqRNConfig } from '../utils/config';
 import { Logger } from '../utils/logger';
 import type { OverAirUpdate } from '../models/OverAirUpdate';
 import type { ThemeConfig } from '../models/ThemeConfig';
+import * as APM from './APM';
 
 let _currentScreen: string | null = null;
 let _lastScreen: string | null = null;
@@ -48,12 +49,28 @@ let isNativeInterceptionFeatureEnabled = false; // Checks the value of "cp_nativ
 let hasAPMNetworkPlugin = false; // Android only: checks if the APM plugin is installed.
 let shouldEnableNativeInterception = false; // For Android: used to disable APM logging inside reportNetworkLog() -> NativeAPM.networkLogAndroid(), For iOS: used to control native interception (true == enabled , false == disabled)
 
+// Screen loading tracking state
+let autoScreenLoadingEnabled = false;
+let activeScreenLoadingMeasurement: {
+  screenName: string;
+  startTime: number;
+} | null = null;
+
 /**
  * Enables or disables Luciq functionality.
  * @param isEnabled A boolean to enable/disable Luciq.
  */
 export const setEnabled = (isEnabled: boolean) => {
   NativeLuciq.setEnabled(isEnabled);
+};
+
+/**
+ * Enables or disables automatic screen loading measurement.
+ * @param isEnabled A boolean to enable/disable automatic screen loading tracking.
+ */
+export const setAutoScreenLoadingEnabled = (isEnabled: boolean) => {
+  autoScreenLoadingEnabled = isEnabled;
+  APM.setScreenLoadingEnabled(isEnabled);
 };
 
 /**
@@ -112,6 +129,14 @@ export const init = (config: LuciqConfig) => {
   _currentScreen = firstScreen;
 
   LuciqRNConfig.debugLogsLevel = config.debugLogsLevel ?? LogLevel.error;
+
+  // Configure APM settings if provided
+  if (config.apm?.screenLoadingEnabled) {
+    APM.setScreenLoadingEnabled(true);
+  }
+  if (config.apm?.autoScreenLoadingEnabled) {
+    setAutoScreenLoadingEnabled(true);
+  }
 
   reportCurrentViewForAndroid(firstScreen);
   setTimeout(() => {
@@ -762,6 +787,22 @@ export const onStateChange = (state?: NavigationStateV5) => {
   }
 
   const currentScreen = LuciqUtils.getFullRoute(state);
+
+  // Start screen loading measurement
+  if (autoScreenLoadingEnabled && currentScreen !== _currentScreen) {
+    // End previous screen measurement if exists
+    if (activeScreenLoadingMeasurement) {
+      APM.endScreenLoading(activeScreenLoadingMeasurement.screenName);
+    }
+
+    // Start new measurement
+    activeScreenLoadingMeasurement = {
+      screenName: currentScreen,
+      startTime: Date.now(),
+    };
+    APM.startScreenLoading(currentScreen);
+  }
+
   reportCurrentViewForAndroid(currentScreen);
   if (_currentScreen !== null && _currentScreen !== firstScreen) {
     NativeLuciq.reportScreenChange(_currentScreen);

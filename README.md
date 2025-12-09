@@ -135,6 +135,71 @@ Alternatively, you can report your screen changes manually using the following A
 Luciq.reportScreenChange('screenName');
 ```
 
+## Screen Loading
+
+Track how long it takes for your screens to load and become interactive.
+
+### Automatic Instrumentation
+
+Enable automatic screen loading measurement for React Navigation (v5+):
+
+```javascript
+Luciq.init({
+  token: 'YOUR_TOKEN',
+  invocationEvents: [Luciq.invocationEvent.shake],
+  apm: {
+    screenLoadingEnabled: true,
+    autoScreenLoadingEnabled: true, // Automatic measurement
+  },
+});
+
+// For React Navigation v5+
+import { NavigationContainer } from '@react-navigation/native';
+
+<NavigationContainer onStateChange={Luciq.onStateChange}>
+  {/* Your navigation */}
+</NavigationContainer>
+```
+
+### Manual Instrumentation
+
+For custom screens, modals, or complex loading scenarios:
+
+```javascript
+import LuciqScreenLoading from '@luciq/react-native/lib/components/ScreenLoading';
+
+function MyScreen() {
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  return (
+    <View>
+      {/* Measures Time To Initial Display */}
+      <LuciqScreenLoading.InitialDisplay screenName="MyScreen" />
+
+      {/* Your screen content */}
+
+      {/* Measures Time To Full Display when data is loaded */}
+      <LuciqScreenLoading.FullDisplay
+        screenName="MyScreen"
+        record={isDataLoaded}
+      />
+    </View>
+  );
+}
+```
+
+### Configuration
+
+- **Default Apdex threshold**: 250ms (configurable in dashboard)
+- **Supported React Navigation versions**: v5 and above
+- **Architecture support**: Both old (bridge) and new (Fabric) architectures
+
+### Known Limitations
+
+- TabNavigator on Android may not report correctly with automatic instrumentation
+- TTFD requires TTID to be measured first
+- React Navigation v4 is not supported for automatic instrumentation
+
 You can disable Repro Steps using the following API:
 
 ```javascript

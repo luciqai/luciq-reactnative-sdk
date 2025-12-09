@@ -19,6 +19,7 @@ import type { Survey } from './modules/Surveys';
 import * as Surveys from './modules/Surveys';
 import * as SessionReplay from './modules/SessionReplay';
 import type { SessionMetadata } from './models/SessionMetadata';
+import * as LuciqScreenLoading from './components/LuciqScreenLoading';
 
 export * from './utils/Enums';
 export {
@@ -33,6 +34,7 @@ export {
   Surveys,
   ProactiveReportingConfigOptions,
   createProactiveReportingConfig,
+  LuciqScreenLoading,
 };
 export type {
   LuciqConfig,
