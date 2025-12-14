@@ -14,6 +14,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import ai.luciq.apm.APM;
+import ai.luciq.apm.InternalAPM;
 import ai.luciq.apm.networking.APMNetworkLogger;
 import ai.luciq.apm.networkinterception.cp.APMCPNetworkLog;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
@@ -479,6 +480,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
             MainThreadHandler.runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
+//                    InternalAPM._reportScreenLoadingCP(startTimeStampMicro, durationMicro, uiTraceId);
                     android.util.Log.d("RNLuciqAPMModule", "reportScreenLoadingMetric called with type: " + type
                             + ", screenName: " + screenName
                             + ", duration: " + duration

@@ -57,7 +57,7 @@ export interface ApmNativeModule extends NativeModule {
     screenName: string,
     duration: number,
     startTime: number,
-    endTime: number
+    endTime: number,
   ): void;
 }
 

@@ -90,6 +90,10 @@ import {
   type UserStepsStateScreenProp,
 } from '../screens/settings/UserStepsStateScreen';
 import ScreenLoadingScreen from '../screens/apm/ScreenLoadingScreen';
+import HookBasedScreenLoadingScreen from '../screens/apm/HookBasedScreenLoadingScreen';
+import StateBasedScreenLoadingScreen from '../screens/apm/StateBasedScreenLoadingScreen';
+import HOCBasedScreenLoadingScreen from '../screens/apm/HOCBasedScreenLoadingScreen';
+import SlowLoadingScreen from '../screens/apm/SlowLoadingScreen';
 
 export type HomeStackParamList = {
   Home: undefined;
@@ -144,6 +148,11 @@ export type HomeStackParamList = {
   ScreenRender: undefined;
   CallbackScreen: undefined;
   ScreenLoadingScreen: undefined;
+  // Screen Loading Examples
+  HookBasedScreenLoading: undefined;
+  StateBasedScreenLoading: undefined;
+  HOCBasedScreenLoading: undefined;
+  SlowLoadingScreen: undefined;
 };
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
@@ -345,6 +354,27 @@ export const HomeStackNavigator: React.FC = () => {
         name="ScreenLoadingScreen"
         component={ScreenLoadingScreen}
         options={{ title: 'Screen Loading' }}
+      />
+      {/* Screen Loading Examples */}
+      <HomeStack.Screen
+        name="HookBasedScreenLoading"
+        component={HookBasedScreenLoadingScreen}
+        options={{ title: 'Hook-Based Loading' }}
+      />
+      <HomeStack.Screen
+        name="StateBasedScreenLoading"
+        component={StateBasedScreenLoadingScreen}
+        options={{ title: 'State-Based Loading' }}
+      />
+      <HomeStack.Screen
+        name="HOCBasedScreenLoading"
+        component={HOCBasedScreenLoadingScreen as React.ComponentType<any>}
+        options={{ title: 'HOC-Based Loading' }}
+      />
+      <HomeStack.Screen
+        name="SlowLoadingScreen"
+        component={SlowLoadingScreen}
+        options={{ title: 'Slow Loading' }}
       />
     </HomeStack.Navigator>
   );

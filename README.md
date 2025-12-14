@@ -158,7 +158,7 @@ import { NavigationContainer } from '@react-navigation/native';
 
 <NavigationContainer onStateChange={Luciq.onStateChange}>
   {/* Your navigation */}
-</NavigationContainer>
+</NavigationContainer>;
 ```
 
 ### Manual Instrumentation
@@ -179,10 +179,7 @@ function MyScreen() {
       {/* Your screen content */}
 
       {/* Measures Time To Full Display when data is loaded */}
-      <LuciqScreenLoading.FullDisplay
-        screenName="MyScreen"
-        record={isDataLoaded}
-      />
+      <LuciqScreenLoading.FullDisplay screenName="MyScreen" record={isDataLoaded} />
     </View>
   );
 }

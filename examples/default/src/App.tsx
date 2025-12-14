@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
+import { NavigationContainer } from '@react-navigation/native';
 import { SessionMetadata, WelcomeMessageMode } from '@luciq/react-native';
 import Luciq, {
   APM,
@@ -15,6 +15,8 @@ import Luciq, {
   ReproStepsMode,
   SessionReplay,
   OverAirUpdateServices,
+  LuciqNavigationContainer,
+  createScreenLoadingConfig,
 } from '@luciq/react-native';
 import { NativeBaseProvider } from 'native-base';
 
@@ -24,9 +26,22 @@ import { navigationTheme } from './theme/navigationTheme';
 
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { CallbackHandlersProvider } from './contexts/callbackContext';
-import LuciqScreenLoading from '../../../src/components/LuciqScreenLoading';
 
 const queryClient = new QueryClient();
+
+/**
+ * Screen loading configuration for the example app.
+ * Demonstrates the new createScreenLoadingConfig helper.
+ */
+const screenLoadingConfig = createScreenLoadingConfig({
+  enabled: true,
+  autoTrackingEnabled: true,
+  excludedScreens: ['SplashScreen'], // Example: exclude specific screens from tracking
+  slowLoadingThreshold: 2000, // Warn when screen takes > 2 seconds to load
+  onSlowLoading: (screenName, duration) => {
+    console.warn(`[ScreenLoading] Slow load detected: ${screenName} took ${duration}ms`);
+  },
+});
 
 export const App: React.FC = () => {
   const shouldSyncSession = (data: SessionMetadata) => {
@@ -41,8 +56,6 @@ export const App: React.FC = () => {
     }
     return false;
   };
-
-  const navigationRef = useNavigationContainerRef();
 
   const initializeLuciq = () => {
     try {
@@ -74,27 +87,38 @@ export const App: React.FC = () => {
     });
   });
 
-  useEffect(() => {
-    // @ts-ignore
-    const unregisterListener = Luciq.setNavigationListener(navigationRef);
-
-    return unregisterListener;
-  }, [navigationRef]);
-
   return (
-    <LuciqScreenLoading.InitialDisplay onMeasured={}>
-      <GestureHandlerRootView style={styles.root}>
-        <NativeBaseProvider theme={nativeBaseTheme}>
-          <QueryClientProvider client={queryClient}>
-            <NavigationContainer onStateChange={Luciq.onStateChange} theme={navigationTheme}>
-              <CallbackHandlersProvider>
-                <RootTabNavigator />
-              </CallbackHandlersProvider>
-            </NavigationContainer>
-          </QueryClientProvider>
-        </NativeBaseProvider>
-      </GestureHandlerRootView>
-    </LuciqScreenLoading.InitialDisplay>
+    <GestureHandlerRootView style={styles.root}>
+      <NativeBaseProvider theme={nativeBaseTheme}>
+        <QueryClientProvider client={queryClient}>
+          {/*
+           * LuciqNavigationContainer is a drop-in replacement for NavigationContainer
+           * that automatically sets up:
+           * - Screen change reporting for repro steps
+           * - Navigation timing context for accurate screen loading measurement
+           * - Automatic TTID/TTFD measurement when enabled
+           */}
+          <LuciqNavigationContainer
+            NavigationContainer={NavigationContainer as any}
+            enableScreenTracking={true}
+            enableScreenLoading={true}
+            screenLoadingConfig={screenLoadingConfig}
+            theme={navigationTheme}
+            screenNameExtractor={(route) => {
+              // Custom screen name extraction example
+              // You can include params in screen names for more detailed analytics
+              if (route.name === 'Product' && route.params?.id) {
+                return `Product-${route.params.id}`;
+              }
+              return route.name;
+            }}>
+            <CallbackHandlersProvider>
+              <RootTabNavigator />
+            </CallbackHandlersProvider>
+          </LuciqNavigationContainer>
+        </QueryClientProvider>
+      </NativeBaseProvider>
+    </GestureHandlerRootView>
   );
 };
 
