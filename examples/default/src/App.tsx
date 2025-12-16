@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { SessionMetadata, WelcomeMessageMode } from '@luciq/react-native';
 import Luciq, {
+  APM,
   CrashReporting,
   InvocationEvent,
   LaunchType,
@@ -65,6 +66,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     initializeLuciq();
+    APM.setScreenRenderingEnabled(true);
     NetworkLogger.setNetworkDataObfuscationHandler(async (networkData) => {
       networkData.url = `${networkData.url}/JS/Obfuscated`;
       return networkData;
