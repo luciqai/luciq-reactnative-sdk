@@ -43,21 +43,53 @@ Task createUploadSourcemapsTask(String flavor, String defaultVersionName, String
                 def appDir = appProject.projectDir
                 def sourceMapFile = getSourceMapFile(appDir, flavor,task)
 
-                def jsProjectDir = rootDir.parentFile
-                def luciqDir = new File(['node', '-p', 'require.resolve("@luciq/react-native/package.json")'].execute(null, rootDir).text.trim()).getParentFile()
-
-              def tokenJsFile = new File(luciqDir, 'scripts/find-token.js')
-              def inferredToken = executeNodeScript(tokenJsFile, jsProjectDir)
-
-
-                def appToken = resolveVar('App Token', 'LUCIQ_APP_TOKEN', inferredToken)
-
-                if (!appToken) {
-                    throw new GradleException("❌ Unable to infer Luciq token from script: ${tokenShellFile.absolutePath}")
+                if (!sourceMapFile) {
+                    project.logger.warn "⚠️  Source map file not found. Skipping sourcemap upload."
+                    return
                 }
 
-                def versionName = resolveVar('Version Name', 'LUCIQ_VERSION_NAME', defaultVersionName)
-                def versionCode = resolveVar('Version Code', 'LUCIQ_VERSION_CODE', defaultVersionCode)
+                def jsProjectDir = rootDir.parentFile
+                def luciqPackagePath = ['node', '-p', 'require.resolve("@luciq/react-native/package.json")'].execute(null, rootDir).text.trim()
+                if (!luciqPackagePath) {
+                    project.logger.warn "⚠️  Unable to resolve @luciq/react-native package path. Skipping sourcemap upload."
+                    return
+                }
+                def luciqPackageFile = new File(luciqPackagePath)
+                if (!luciqPackageFile.exists()) {
+                    project.logger.warn "⚠️  Luciq package file not found at: ${luciqPackagePath}. Skipping sourcemap upload."
+                    return
+                }
+                def luciqDir = luciqPackageFile.getParentFile()
+                if (!luciqDir || !luciqDir.exists()) {
+                    project.logger.warn "⚠️  Luciq directory not found. Package path: ${luciqPackagePath}. Skipping sourcemap upload."
+                    return
+                }
+
+                def tokenJsFile = new File(luciqDir, 'scripts/find-token.js')
+                def inferredToken = executeNodeScript(tokenJsFile, jsProjectDir)
+
+                def appToken
+                try {
+                    appToken = resolveVar('App Token', 'LUCIQ_APP_TOKEN', inferredToken)
+                } catch (Exception e) {
+                    project.logger.warn "⚠️  ${e.message}. Skipping sourcemap upload."
+                    return
+                }
+
+                if (!appToken) {
+                    project.logger.warn "⚠️  Unable to infer Luciq token from script: ${tokenJsFile.absolutePath}. Skipping sourcemap upload."
+                    return
+                }
+
+                def versionName
+                def versionCode
+                try {
+                    versionName = resolveVar('Version Name', 'LUCIQ_VERSION_NAME', defaultVersionName)
+                    versionCode = resolveVar('Version Code', 'LUCIQ_VERSION_CODE', defaultVersionCode)
+                } catch (Exception e) {
+                    project.logger.warn "⚠️  ${e.message}. Skipping sourcemap upload."
+                    return
+                }
 
                 println "📦 Uploading with versionName=${versionName}, versionCode=${versionCode}, appToken=${appToken.take(5)}..."
 
@@ -75,10 +107,7 @@ Task createUploadSourcemapsTask(String flavor, String defaultVersionName, String
                     commandLine(*osCompatibility, *args)
                 }
             } catch (exception) {
-                project.logger.error "Failed to upload source map file.\n" +
-                        "Reason: ${exception.message}"
-                           throw exception
-
+                project.logger.warn "⚠️  Failed to upload source map file. Reason: ${exception.message}. Build will continue."
             }
         }
     }
