@@ -7,27 +7,27 @@
       "searchReplace": [
         {
           "search": "com\\.instabug\\.library:instabug:[0-9]+\\.[0-9]+\\.[0-9]+",
-          "replacement": "ai.luciq.library:luciq:18.2.0",
+          "replacement": "ai.luciq.library:luciq:19.0.0",
           "isRegex": true
         },
         {
           "search": "com\\.instabug\\.library:instabug:[0-9]+\\.[0-9]+\\.[0-9]+-.*",
-          "replacement": "ai.luciq.library:luciq:18.2.0",
+          "replacement": "ai.luciq.library:luciq:19.0.0",
           "isRegex": true
         },
         {
           "search": "com\\.instabug\\.library:instabug:[0-9]+\\.[0-9]+\\.[0-9]+-SNAPSHOT",
-          "replacement": "ai.luciq.library:luciq:18.2.0",
+          "replacement": "ai.luciq.library:luciq:19.0.0",
           "isRegex": true
         },
         {
           "search": "\"instabug-react-native\":\\s*\"[^\"]+\"",
-          "replacement": "\"@luciq/react-native\": \"^18.2.0\"",
+          "replacement": "\"@luciq/react-native\": \"^19.0.0\"",
           "isRegex": true
         },
         {
           "search": "'instabug-react-native':\\s*'[^']+'",
-          "replacement": "'@luciq/react-native': '^18.2.0'",
+          "replacement": "'@luciq/react-native': '^19.0.0'",
           "isRegex": true
         }
       ],
