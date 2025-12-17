@@ -6,7 +6,7 @@ orbs:
   node: circleci/node@5.2.0
   ios: circleci/macos@2.5.4
   slack: circleci/slack@5.1.1
-  
+
 references:
   release_dependencies: &release_dependencies
     - danger
@@ -131,35 +131,39 @@ commands:
           command: ./scripts/notify-github.sh "<< parameters.data >>"
 
   notify_slack_with_release:
+    parameters:
+      channel:
+        type: string
+        default: C08F3Q30U7Q
     steps:
       - slack/notify:
-          channel: C8PDY2Q8H
+          channel: <<parameters.channel>>
           event: pass
           custom: |
             {
             	"blocks": [
-            		    {
-                        "type": "section",
-                        "text": {
-                            "type": "mrkdwn",
-                            "text": ":react: React Native `v$(./scripts/releases/get_sdk_version.sh)` is released by <@$(./scripts/releases/get_job_approver.sh)> 🚀"
-                        }
-                    },
-            		    {
-                        "type": "section",
-                        "text": {
-                          "type": "mrkdwn",
-                          "text": "$(./scripts/releases/get_release_notes.sh)"
-                        }
-                    },
-                    {
-                        "type": "section",
-                        "text": {
-                          "type": "mrkdwn",
-                          "text": "cc: <@U5697F4EL> @support_team <@ULDFCC09J>"
-                        }
-                    }
-                ]
+            		{
+                  "type": "section",
+                  "text": {
+                      "type": "mrkdwn",
+                      "text": ":react: React Native `v$(./scripts/releases/get_sdk_version.sh)` is released by <@$(./scripts/releases/get_job_approver.sh)> 🚀"
+                  }
+                },
+            		{
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "$(./scripts/releases/get_release_notes.sh)"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "cc: <@U5697F4EL> @support_team <@ULDFCC09J>"
+                  }
+                }
+              ]
             }
 
 jobs:
@@ -499,11 +503,16 @@ jobs:
           data: "$(jq -Rcs '{ body: . }' scripts/snapshot-comment.md)"
 
   release_slack_notification:
+    parameters:
+      channel:
+        type: string
+        default: C08F3Q30U7Q
     docker:
       - image: cimg/base:current
     steps:
       - advanced-checkout/shallow-checkout
-      - notify_slack_with_release
+      - notify_slack_with_release:
+          channel: <<parameters.channel>>
 
 workflows:
   publish:
@@ -598,4 +607,4 @@ workflows:
       - release_slack_notification:
           requires:
             - hold_slack_notification
-          context: slack-app   
+          context: slack-app
