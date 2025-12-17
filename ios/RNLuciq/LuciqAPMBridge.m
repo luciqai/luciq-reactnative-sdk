@@ -85,7 +85,10 @@ RCT_EXPORT_METHOD(endUITrace) {
     [LCQAPM endUITrace];
 }
 
-
+// Enables or disables screen render.
+RCT_EXPORT_METHOD(setScreenRenderingEnabled:(BOOL)isEnabled) {
+    LCQAPM.screenRenderingEnabled = isEnabled;
+}
 
 
 
