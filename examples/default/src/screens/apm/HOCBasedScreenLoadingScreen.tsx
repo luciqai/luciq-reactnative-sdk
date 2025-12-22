@@ -18,14 +18,12 @@ type ProfileScreenProps = ProfileScreenBaseProps & Partial<WithScreenLoadingInje
  * ProfileScreenComponent - The base screen component before HOC wrapping.
  *
  * This component receives screen loading utilities via props:
- * - reportFullDisplay: Function to report TTFD
  * - reportStage: Function to report custom stages
  * - screenLoadingScreenName: The tracked screen name
  * - getElapsedTime: Function to get elapsed time
  */
 const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({
   userId = '123',
-  reportFullDisplay,
   reportStage,
   screenLoadingScreenName,
   getElapsedTime,
@@ -80,16 +78,16 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({
         posts_loaded: getElapsedTime?.() || 0,
       }));
 
-      // All data loaded - report TTFD
-      reportFullDisplay?.();
+      // All data loaded - report complete stage
+      reportStage?.('all_data_loaded');
       setLoadingStages((prev) => ({
         ...prev,
-        full_display: getElapsedTime?.() || 0,
+        all_data_loaded: getElapsedTime?.() || 0,
       }));
     };
 
     loadProfile();
-  }, [userId, reportFullDisplay, reportStage, getElapsedTime]);
+  }, [userId, reportStage, getElapsedTime]);
 
   return (
     <ScrollView style={styles.container}>
@@ -110,7 +108,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({
         {Object.entries(loadingStages).map(([stage, time], index) => (
           <View key={stage} style={styles.timelineItem}>
             <View
-              style={[styles.timelineDot, stage === 'full_display' && styles.timelineDotSuccess]}
+              style={[styles.timelineDot, stage === 'all_data_loaded' && styles.timelineDotSuccess]}
             />
             {index < Object.entries(loadingStages).length - 1 && (
               <View style={styles.timelineLine} />
@@ -122,7 +120,7 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({
               <Text
                 style={[
                   styles.timelineTime,
-                  stage === 'full_display' && styles.timelineTimeSuccess,
+                  stage === 'all_data_loaded' && styles.timelineTimeSuccess,
                 ]}>
                 {time}ms
               </Text>
@@ -212,7 +210,6 @@ const ProfileScreenComponent: React.FC<ProfileScreenProps> = ({
         <Text style={styles.codeText}>{`// Define your component
 const ProfileScreen = ({
   userId,
-  reportFullDisplay, // Injected by HOC
   reportStage,       // Injected by HOC
 }) => {
   useEffect(() => {
@@ -221,7 +218,7 @@ const ProfileScreen = ({
     });
     
     fetchAllData().then(() => {
-      reportFullDisplay(); // Report TTFD
+      reportStage('all_data_loaded');
     });
   }, []);
   
@@ -234,10 +231,6 @@ export default withScreenLoading(
   {
     screenName: 'ProfileScreen',
     autoReportTTID: true,
-    autoReportTTFD: false, // Manual control
-    attributes: {
-      source: 'deep_link',
-    },
   }
 );`}</Text>
       </View>
@@ -255,11 +248,11 @@ export default withScreenLoading(
         </View>
         <View style={styles.useCaseItem}>
           <Text style={styles.useCaseIcon}>✅</Text>
-          <Text style={styles.useCaseText}>Quick setup with default TTID on mount</Text>
+          <Text style={styles.useCaseText}>Quick setup with automatic TTID on mount</Text>
         </View>
         <View style={styles.useCaseItem}>
           <Text style={styles.useCaseIcon}>✅</Text>
-          <Text style={styles.useCaseText}>Static screens (set autoReportTTFD: true)</Text>
+          <Text style={styles.useCaseText}>Track custom loading stages with reportStage()</Text>
         </View>
       </View>
 
@@ -274,17 +267,10 @@ export default withScreenLoading(
  * Options:
  * - screenName: The name for tracking (defaults to component name)
  * - autoReportTTID: Automatically report TTID on mount (default: true)
- * - autoReportTTFD: Automatically report TTFD on mount (default: false)
- * - attributes: Custom attributes to attach to measurements
  */
 const HOCBasedScreenLoadingScreen = withScreenLoading(ProfileScreenComponent, {
   screenName: 'HOCBasedExample',
   autoReportTTID: true,
-  autoReportTTFD: false, // We'll manually report when all data is loaded
-  attributes: {
-    approach: 'hoc_based',
-    component_type: 'profile',
-  },
 });
 
 const styles = StyleSheet.create({

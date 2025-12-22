@@ -26,16 +26,11 @@ const HookBasedScreenLoadingScreen: React.FC = () => {
   const [measurements, setMeasurements] = useState<Record<string, number>>({});
 
   // useScreenLoading hook provides manual control over measurements
-  const { reportInitialDisplay, reportFullDisplay, reportStage, screenName, getElapsedTime } =
-    useScreenLoading({
-      screenName: 'HookBasedExample',
-      autoStart: true, // Automatically start measurement on mount
-      useDispatchTime: true, // Use navigation dispatch time as start time
-      attributes: {
-        approach: 'hook_based',
-        version: '2.0',
-      },
-    });
+  const { reportInitialDisplay, reportStage, screenName, getElapsedTime } = useScreenLoading({
+    screenName: 'HookBasedExample',
+    autoStart: true, // Automatically start measurement on mount
+    useDispatchTime: true, // Use navigation dispatch time as start time
+  });
 
   // Report TTID immediately when component mounts
   useEffect(() => {
@@ -80,14 +75,14 @@ const HookBasedScreenLoadingScreen: React.FC = () => {
       reportStage('comments_loaded');
       setMeasurements((prev) => ({ ...prev, comments_loaded: getElapsedTime() }));
 
-      // All data loaded - report TTFD
+      // All data loaded - report complete stage
       setLoadingStage('complete');
-      reportFullDisplay();
-      setMeasurements((prev) => ({ ...prev, ttfd: getElapsedTime() }));
+      reportStage('all_data_loaded');
+      setMeasurements((prev) => ({ ...prev, all_data_loaded: getElapsedTime() }));
     };
 
     loadData();
-  }, [reportStage, reportFullDisplay, getElapsedTime]);
+  }, [reportStage, getElapsedTime]);
 
   const handleReload = useCallback(() => {
     // Reset state and trigger a reload
@@ -117,12 +112,12 @@ const HookBasedScreenLoadingScreen: React.FC = () => {
       setCommentsData([{ id: 1, text: 'Reloaded comment' }]);
 
       setLoadingStage('complete');
-      reportFullDisplay();
-      setMeasurements((prev) => ({ ...prev, ttfd_reload: getElapsedTime() }));
+      reportStage('all_data_loaded_reload');
+      setMeasurements((prev) => ({ ...prev, all_data_loaded_reload: getElapsedTime() }));
     };
 
     reload();
-  }, [reportInitialDisplay, reportStage, reportFullDisplay, getElapsedTime]);
+  }, [reportInitialDisplay, reportStage, getElapsedTime]);
 
   const getStageIcon = (stage: string) => {
     switch (stage) {
@@ -209,7 +204,7 @@ const HookBasedScreenLoadingScreen: React.FC = () => {
               style={[
                 styles.measurementValue,
                 key === 'ttid' && styles.measurementValueTTID,
-                key === 'ttfd' && styles.measurementValueTTFD,
+                key.includes('all_data') && styles.measurementValueComplete,
               ]}>
               {value}ms
             </Text>
@@ -266,12 +261,10 @@ const HookBasedScreenLoadingScreen: React.FC = () => {
         <Text style={styles.codeTitle}>Code Example</Text>
         <Text style={styles.codeText}>{`const { 
   reportInitialDisplay, 
-  reportFullDisplay, 
   reportStage,
   getElapsedTime
 } = useScreenLoading({
   screenName: 'MyScreen',
-  attributes: { source: 'deep_link' }
 });
 
 // Report TTID on mount
@@ -283,8 +276,10 @@ useEffect(() => {
 useEffect(() => {
   fetchUser().then(() => reportStage('user_loaded'));
   fetchPosts().then(() => reportStage('posts_loaded'));
-  // Report TTFD when all data loaded
-  Promise.all([...]).then(reportFullDisplay);
+  // Report completion when all data loaded
+  Promise.all([...]).then(() => 
+    reportStage('all_data_loaded')
+  );
 }, []);`}</Text>
       </View>
 
@@ -416,7 +411,7 @@ const styles = StyleSheet.create({
   measurementValueTTID: {
     color: '#007AFF',
   },
-  measurementValueTTFD: {
+  measurementValueComplete: {
     color: '#34C759',
   },
   noMeasurements: {

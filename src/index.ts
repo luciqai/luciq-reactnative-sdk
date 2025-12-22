@@ -24,7 +24,7 @@ import type { Survey } from './modules/Surveys';
 import * as Surveys from './modules/Surveys';
 import * as SessionReplay from './modules/SessionReplay';
 import type { SessionMetadata } from './models/SessionMetadata';
-import * as LuciqScreenLoading from './components/LuciqScreenLoading';
+import LuciqScreenLoading from './components/LuciqScreenLoading';
 import type { ScreenLoadingProps } from './components/LuciqScreenLoading';
 // Navigation Timing
 import {

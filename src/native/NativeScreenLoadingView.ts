@@ -1,7 +1,7 @@
 import type { ViewProps } from 'react-native';
 
 export interface ScreenLoadingEvent {
-  type: 0 | 1; // 0 = initial display, 1 = full display
+  type: 0; // 0 = initial display
   screenName: string;
   startTime: number;
   endTime: number;
@@ -9,7 +9,7 @@ export interface ScreenLoadingEvent {
 }
 
 export interface NativeScreenLoadingViewProps extends ViewProps {
-  displayType: 'initialDisplay' | 'fullDisplay';
+  displayType: 'initialDisplay';
   record: boolean;
   screenName?: string;
   onDisplay?: (event: { nativeEvent: ScreenLoadingEvent }) => void;

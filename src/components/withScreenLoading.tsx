@@ -16,24 +16,12 @@ export interface WithScreenLoadingOptions extends Omit<UseScreenLoadingOptions, 
    * Automatically report TTID on mount (default: true)
    */
   autoReportTTID?: boolean;
-
-  /**
-   * Automatically report TTFD on mount (default: false - usually need to wait for data)
-   * Set to true only if the wrapped component is fully loaded on mount.
-   */
-  autoReportTTFD?: boolean;
 }
 
 /**
  * Props injected into the wrapped component by withScreenLoading
  */
 export interface WithScreenLoadingInjectedProps {
-  /**
-   * Report that the full display is ready (TTFD)
-   * Call this when your component has finished loading all data
-   */
-  reportFullDisplay: () => void;
-
   /**
    * Report a custom loading stage
    * @param stageName - Name of the stage (e.g., 'data_loaded', 'images_ready')
@@ -55,8 +43,7 @@ export interface WithScreenLoadingInjectedProps {
  * Higher-order component that adds screen loading measurement to a screen component.
  *
  * This HOC provides a declarative way to add screen loading tracking to your screens.
- * It automatically reports TTID on mount and provides a function to report TTFD
- * when your component is fully loaded.
+ * It automatically reports TTID on mount and provides functions to report custom stages.
  *
  * For class components or when you need a simple wrapper approach.
  * For functional components with more control, consider using {@link useScreenLoading} hook directly.
@@ -74,54 +61,26 @@ export interface WithScreenLoadingInjectedProps {
  * ```
  *
  * @example
- * With manual TTFD reporting when data loads:
+ * With custom stages for data loading:
  * ```tsx
  * interface ProfileScreenProps extends WithScreenLoadingInjectedProps {
  *   userId: string;
  * }
  *
  * const ProfileScreen = withScreenLoading(
- *   function ProfileScreen({ userId, reportFullDisplay }: ProfileScreenProps) {
+ *   function ProfileScreen({ userId, reportStage }: ProfileScreenProps) {
  *     const [data, setData] = useState(null);
  *
  *     useEffect(() => {
  *       fetchProfile(userId).then((result) => {
  *         setData(result);
- *         reportFullDisplay(); // Report TTFD when data is ready
+ *         reportStage('data_loaded'); // Report custom stage
  *       });
- *     }, [userId, reportFullDisplay]);
+ *     }, [userId, reportStage]);
  *
  *     return <ProfileContent data={data} />;
  *   },
  *   { screenName: 'ProfileScreen' }
- * );
- * ```
- *
- * @example
- * With custom attributes:
- * ```tsx
- * const ProductScreen = withScreenLoading(
- *   ProductScreenComponent,
- *   {
- *     screenName: 'ProductScreen',
- *     attributes: {
- *       source: 'deep_link',
- *       category: 'electronics',
- *     },
- *   }
- * );
- * ```
- *
- * @example
- * Auto-report both TTID and TTFD (for static screens):
- * ```tsx
- * const StaticInfoScreen = withScreenLoading(
- *   StaticInfoComponent,
- *   {
- *     screenName: 'StaticInfo',
- *     autoReportTTID: true,
- *     autoReportTTFD: true, // Screen is considered fully loaded on mount
- *   }
  * );
  * ```
  *
@@ -134,24 +93,16 @@ export function withScreenLoading<P extends object>(
   options: WithScreenLoadingOptions = {},
 ): ComponentType<Omit<P, keyof WithScreenLoadingInjectedProps>> {
   const displayName = WrappedComponent.displayName || WrappedComponent.name || 'Component';
-  const {
-    screenName: configuredScreenName,
-    autoReportTTID = true,
-    autoReportTTFD = false,
-    useDispatchTime,
-    attributes,
-  } = options;
+  const { screenName: configuredScreenName, autoReportTTID = true, useDispatchTime } = options;
 
   function WithScreenLoadingComponent(
     props: Omit<P, keyof WithScreenLoadingInjectedProps>,
   ): JSX.Element {
-    const { reportInitialDisplay, reportFullDisplay, reportStage, screenName, getElapsedTime } =
-      useScreenLoading({
-        screenName: configuredScreenName || displayName,
-        autoStart: true,
-        useDispatchTime,
-        attributes,
-      });
+    const { reportInitialDisplay, reportStage, screenName, getElapsedTime } = useScreenLoading({
+      screenName: configuredScreenName || displayName,
+      autoStart: true,
+      useDispatchTime,
+    });
 
     // Auto-report TTID on mount
     useEffect(() => {
@@ -160,16 +111,8 @@ export function withScreenLoading<P extends object>(
       }
     }, [reportInitialDisplay]);
 
-    // Auto-report TTFD if configured (for static screens that are fully loaded on mount)
-    useEffect(() => {
-      if (autoReportTTFD) {
-        reportFullDisplay();
-      }
-    }, [reportFullDisplay]);
-
     // Inject screen loading props into the wrapped component
     const injectedProps: WithScreenLoadingInjectedProps = {
-      reportFullDisplay,
       reportStage,
       screenLoadingScreenName: screenName,
       getElapsedTime,

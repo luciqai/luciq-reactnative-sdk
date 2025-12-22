@@ -15,8 +15,8 @@ import type { HomeStackParamList } from '../../navigation/HomeStack';
 type NavigationProp = NativeStackNavigationProp<HomeStackParamList>;
 
 /**
- * ScreenLoadingScreen demonstrates the new Screen Loading APIs including:
- * - Component-based measurement with LuciqScreenLoading.InitialDisplay/FullDisplay
+ * ScreenLoadingScreen demonstrates the Screen Loading APIs including:
+ * - Component-based measurement with LuciqScreenLoading
  * - Navigation timing context integration
  * - Custom attributes for measurements
  * - Manual measurement APIs
@@ -26,7 +26,6 @@ const ScreenLoadingScreen: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [ttidDuration, setTtidDuration] = useState<number | null>(null);
-  const [ttfdDuration, setTtfdDuration] = useState<number | null>(null);
 
   // Access navigation timing context to show timing information
   const navigationTiming = useNavigationTiming();
@@ -67,7 +66,6 @@ const ScreenLoadingScreen: React.FC = () => {
     setIsLoading(true);
     setData(null);
     setTtidDuration(null);
-    setTtfdDuration(null);
 
     // Reload data after a short delay
     setTimeout(() => {
@@ -89,21 +87,19 @@ const ScreenLoadingScreen: React.FC = () => {
        * Place this at the top of your screen to capture when the initial UI is visible.
        * It uses navigation dispatch time as the start time for accurate measurement.
        */}
-      <LuciqScreenLoading.InitialDisplay
+      <LuciqScreenLoading
         screenName="ScreenLoadingExample"
         onMeasured={(duration) => {
           console.log(`TTID: ${duration}ms`);
           setTtidDuration(duration);
         }}
-        attributes={{
-          screen_type: 'demo',
-          measurement_approach: 'component_based',
-        }}
       />
 
       <View style={styles.header}>
         <Text style={styles.title}>Screen Loading Demo</Text>
-        <Text style={styles.subtitle}>Demonstrating TTID and TTFD measurements</Text>
+        <Text style={styles.subtitle}>
+          Demonstrating Time To Initial Display (TTID) measurements
+        </Text>
       </View>
 
       {/* Navigation Timing Context Display */}
@@ -131,16 +127,6 @@ const ScreenLoadingScreen: React.FC = () => {
           <Text style={styles.metricValue}>{ttidDuration}ms</Text>
           <Text style={styles.metricDescription}>
             Time from navigation dispatch to initial UI render
-          </Text>
-        </View>
-      )}
-
-      {ttfdDuration !== null && (
-        <View style={[styles.metricCard, styles.metricCardSuccess]}>
-          <Text style={styles.metricTitle}>Time To Full Display (TTFD)</Text>
-          <Text style={[styles.metricValue, styles.metricValueSuccess]}>{ttfdDuration}ms</Text>
-          <Text style={styles.metricDescription}>
-            Time from navigation dispatch to full content load
           </Text>
         </View>
       )}
@@ -212,35 +198,16 @@ const ScreenLoadingScreen: React.FC = () => {
           <Text style={styles.loadingText}>Loading data...</Text>
         </View>
       ) : (
-        <>
-          {/*
-           * TTFD - Measures Time To Full Display
-           * Place this where your screen is fully loaded (after async data loads).
-           * Note: TTFD requires TTID to be measured first for the same screen.
-           */}
-          <LuciqScreenLoading.FullDisplay
-            screenName="ScreenLoadingExample"
-            onMeasured={(duration) => {
-              console.log(`TTFD: ${duration}ms`);
-              setTtfdDuration(duration);
-            }}
-            attributes={{
-              items_count: String(data?.items.length || 0),
-              data_source: 'simulated',
-            }}
-          />
-
-          <View style={styles.dataContainer}>
-            <Text style={styles.dataSectionTitle}>Loaded Data ({data?.items.length} items)</Text>
-            {data?.items.slice(0, 5).map((item: any) => (
-              <View key={item.id} style={styles.item}>
-                <Text style={styles.itemTitle}>{item.title}</Text>
-                <Text style={styles.itemDescription}>{item.description}</Text>
-              </View>
-            ))}
-            <Text style={styles.moreText}>... and {data?.items.length - 5} more items</Text>
-          </View>
-        </>
+        <View style={styles.dataContainer}>
+          <Text style={styles.dataSectionTitle}>Loaded Data ({data?.items.length} items)</Text>
+          {data?.items.slice(0, 5).map((item: any) => (
+            <View key={item.id} style={styles.item}>
+              <Text style={styles.itemTitle}>{item.title}</Text>
+              <Text style={styles.itemDescription}>{item.description}</Text>
+            </View>
+          ))}
+          <Text style={styles.moreText}>... and {data?.items.length - 5} more items</Text>
+        </View>
       )}
 
       {/* Information Section */}
@@ -256,13 +223,6 @@ const ScreenLoadingScreen: React.FC = () => {
         <View style={styles.infoItem}>
           <Text style={styles.infoBullet}>•</Text>
           <Text style={styles.infoText}>
-            <Text style={styles.bold}>TTFD</Text>: Time To Full Display - measures when all content
-            is loaded and displayed
-          </Text>
-        </View>
-        <View style={styles.infoItem}>
-          <Text style={styles.infoBullet}>•</Text>
-          <Text style={styles.infoText}>
             Measurements start from navigation dispatch time (not component mount) for accurate
             timing
           </Text>
@@ -270,7 +230,7 @@ const ScreenLoadingScreen: React.FC = () => {
         <View style={styles.infoItem}>
           <Text style={styles.infoBullet}>•</Text>
           <Text style={styles.infoText}>
-            Custom attributes can be attached to measurements for better analysis
+            Use custom stages via reportStage() to track specific loading milestones
           </Text>
         </View>
       </View>
@@ -279,13 +239,8 @@ const ScreenLoadingScreen: React.FC = () => {
         <Text style={styles.apiReferenceTitle}>API Reference</Text>
 
         <View style={styles.apiItem}>
-          <Text style={styles.apiName}>LuciqScreenLoading.InitialDisplay</Text>
+          <Text style={styles.apiName}>LuciqScreenLoading</Text>
           <Text style={styles.apiDescription}>Component for measuring TTID</Text>
-        </View>
-
-        <View style={styles.apiItem}>
-          <Text style={styles.apiName}>LuciqScreenLoading.FullDisplay</Text>
-          <Text style={styles.apiDescription}>Component for measuring TTFD</Text>
         </View>
 
         <View style={styles.apiItem}>
@@ -297,7 +252,7 @@ const ScreenLoadingScreen: React.FC = () => {
 
         <View style={styles.apiItem}>
           <Text style={styles.apiName}>useScreenLoadingState(options)</Text>
-          <Text style={styles.apiDescription}>Hook that auto-reports based on isReady state</Text>
+          <Text style={styles.apiDescription}>Hook that auto-reports TTID on mount</Text>
         </View>
 
         <View style={styles.apiItem}>
@@ -374,9 +329,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: '#007AFF',
   },
-  metricCardSuccess: {
-    borderLeftColor: '#34C759',
-  },
   metricTitle: {
     fontSize: 12,
     color: '#8E8E93',
@@ -389,9 +341,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#007AFF',
     marginTop: 4,
-  },
-  metricValueSuccess: {
-    color: '#34C759',
   },
   metricDescription: {
     fontSize: 13,

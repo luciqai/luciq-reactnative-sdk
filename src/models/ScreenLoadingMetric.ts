@@ -1,5 +1,5 @@
 export interface ScreenLoadingMetric {
-  type: 'initial_display' | 'full_display';
+  type: 'initial_display';
   screenName: string;
   duration: number;
   startTime: number;

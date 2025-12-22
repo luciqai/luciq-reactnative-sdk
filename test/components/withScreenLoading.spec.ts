@@ -34,40 +34,19 @@ describe('withScreenLoading HOC Options', () => {
     it('should have correct default values structure', () => {
       const defaultOptions: WithScreenLoadingOptions = {
         autoReportTTID: true,
-        autoReportTTFD: false,
       };
 
       expect(defaultOptions.autoReportTTID).toBe(true);
-      expect(defaultOptions.autoReportTTFD).toBe(false);
       expect(defaultOptions.screenName).toBeUndefined();
-      expect(defaultOptions.attributes).toBeUndefined();
     });
 
     it('should allow custom screen name', () => {
       const options: WithScreenLoadingOptions = {
         screenName: 'CustomScreenName',
         autoReportTTID: true,
-        autoReportTTFD: false,
       };
 
       expect(options.screenName).toBe('CustomScreenName');
-    });
-
-    it('should allow custom attributes', () => {
-      const options: WithScreenLoadingOptions = {
-        screenName: 'ProductScreen',
-        attributes: {
-          product_id: '123',
-          category: 'electronics',
-        },
-        autoReportTTID: true,
-        autoReportTTFD: false,
-      };
-
-      expect(options.attributes).toEqual({
-        product_id: '123',
-        category: 'electronics',
-      });
     });
 
     it('should allow useDispatchTime configuration', () => {
@@ -85,32 +64,12 @@ describe('withScreenLoading HOC Options', () => {
       expect(optionsWithoutDispatchTime.useDispatchTime).toBe(false);
     });
 
-    it('should allow auto TTFD for static screens', () => {
-      const staticScreenOptions: WithScreenLoadingOptions = {
-        screenName: 'AboutScreen',
-        autoReportTTID: true,
-        autoReportTTFD: true, // Static screens can auto-report TTFD
-      };
-
-      expect(staticScreenOptions.autoReportTTFD).toBe(true);
-    });
-
     it('should allow all optional props to be undefined', () => {
       const minimalOptions: WithScreenLoadingOptions = {};
 
       expect(minimalOptions.screenName).toBeUndefined();
       expect(minimalOptions.autoReportTTID).toBeUndefined();
-      expect(minimalOptions.autoReportTTFD).toBeUndefined();
       expect(minimalOptions.useDispatchTime).toBeUndefined();
-      expect(minimalOptions.attributes).toBeUndefined();
-    });
-
-    it('should handle empty attributes object', () => {
-      const options: WithScreenLoadingOptions = {
-        attributes: {},
-      };
-
-      expect(options.attributes).toEqual({});
     });
   });
 
@@ -118,24 +77,14 @@ describe('withScreenLoading HOC Options', () => {
     it('should define expected injected prop types', () => {
       // Verify the interface shape
       const mockInjectedProps: WithScreenLoadingInjectedProps = {
-        reportFullDisplay: jest.fn(),
         reportStage: jest.fn(),
         screenLoadingScreenName: 'TestScreen',
         getElapsedTime: jest.fn().mockReturnValue(100),
       };
 
-      expect(typeof mockInjectedProps.reportFullDisplay).toBe('function');
       expect(typeof mockInjectedProps.reportStage).toBe('function');
       expect(mockInjectedProps.screenLoadingScreenName).toBe('TestScreen');
       expect(typeof mockInjectedProps.getElapsedTime).toBe('function');
-    });
-
-    it('should have callable reportFullDisplay', () => {
-      const reportFullDisplay = jest.fn();
-
-      reportFullDisplay();
-
-      expect(reportFullDisplay).toHaveBeenCalled();
     });
 
     it('should have callable reportStage with stage name', () => {
@@ -296,7 +245,6 @@ describe('withScreenLoading Auto-Report Logic', () => {
   it('should report TTID when autoReportTTID is true', () => {
     const options: WithScreenLoadingOptions = {
       autoReportTTID: true,
-      autoReportTTFD: false,
     };
 
     const reportInitialDisplay = jest.fn();
@@ -312,7 +260,6 @@ describe('withScreenLoading Auto-Report Logic', () => {
   it('should not report TTID when autoReportTTID is false', () => {
     const options: WithScreenLoadingOptions = {
       autoReportTTID: false,
-      autoReportTTFD: false,
     };
 
     const reportInitialDisplay = jest.fn();
@@ -323,38 +270,6 @@ describe('withScreenLoading Auto-Report Logic', () => {
     }
 
     expect(reportInitialDisplay).not.toHaveBeenCalled();
-  });
-
-  it('should report TTFD when autoReportTTFD is true', () => {
-    const options: WithScreenLoadingOptions = {
-      autoReportTTID: true,
-      autoReportTTFD: true,
-    };
-
-    const reportFullDisplay = jest.fn();
-
-    // Simulate useEffect behavior
-    if (options.autoReportTTFD) {
-      reportFullDisplay();
-    }
-
-    expect(reportFullDisplay).toHaveBeenCalled();
-  });
-
-  it('should not report TTFD when autoReportTTFD is false', () => {
-    const options: WithScreenLoadingOptions = {
-      autoReportTTID: true,
-      autoReportTTFD: false,
-    };
-
-    const reportFullDisplay = jest.fn();
-
-    // Simulate useEffect behavior
-    if (options.autoReportTTFD) {
-      reportFullDisplay();
-    }
-
-    expect(reportFullDisplay).not.toHaveBeenCalled();
   });
 
   it('should handle undefined autoReportTTID with default behavior', () => {
@@ -369,71 +284,47 @@ describe('withScreenLoading Auto-Report Logic', () => {
 
     expect(reportInitialDisplay).toHaveBeenCalled();
   });
-
-  it('should handle undefined autoReportTTFD with default behavior', () => {
-    const options: WithScreenLoadingOptions = {};
-    const autoReportTTFD = options.autoReportTTFD ?? false; // Default to false
-
-    const reportFullDisplay = jest.fn();
-
-    if (autoReportTTFD) {
-      reportFullDisplay();
-    }
-
-    expect(reportFullDisplay).not.toHaveBeenCalled();
-  });
 });
 
 describe('withScreenLoading Integration Patterns', () => {
   describe('Static Screen Pattern', () => {
-    it('should auto-report both TTID and TTFD for static screens', () => {
+    it('should auto-report TTID for static screens', () => {
       const options: WithScreenLoadingOptions = {
         screenName: 'AboutScreen',
         autoReportTTID: true,
-        autoReportTTFD: true, // No async data needed
       };
 
       const reportInitialDisplay = jest.fn();
-      const reportFullDisplay = jest.fn();
 
       // Simulate mount
       if (options.autoReportTTID) {
         reportInitialDisplay();
       }
-      if (options.autoReportTTFD) {
-        reportFullDisplay();
-      }
 
       expect(reportInitialDisplay).toHaveBeenCalledTimes(1);
-      expect(reportFullDisplay).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('Dynamic Screen Pattern', () => {
-    it('should auto-report TTID but require manual TTFD for dynamic screens', () => {
+    it('should auto-report TTID and allow custom stages for dynamic screens', () => {
       const options: WithScreenLoadingOptions = {
         screenName: 'ProductListScreen',
         autoReportTTID: true,
-        autoReportTTFD: false, // Async data, will call manually
       };
 
       const reportInitialDisplay = jest.fn();
-      const reportFullDisplay = jest.fn();
+      const reportStage = jest.fn();
 
       // Simulate mount - TTID reported automatically
       if (options.autoReportTTID) {
         reportInitialDisplay();
       }
-      if (options.autoReportTTFD) {
-        reportFullDisplay();
-      }
 
       expect(reportInitialDisplay).toHaveBeenCalledTimes(1);
-      expect(reportFullDisplay).not.toHaveBeenCalled();
 
-      // Simulate data loaded - TTFD reported manually
-      reportFullDisplay();
-      expect(reportFullDisplay).toHaveBeenCalledTimes(1);
+      // Simulate data loaded - report custom stage
+      reportStage('data_loaded');
+      expect(reportStage).toHaveBeenCalledWith('data_loaded');
     });
   });
 
@@ -441,7 +332,6 @@ describe('withScreenLoading Integration Patterns', () => {
     it('should provide props compatible with class component usage', () => {
       // Simulate what a class component would receive
       const injectedProps: WithScreenLoadingInjectedProps = {
-        reportFullDisplay: jest.fn(),
         reportStage: jest.fn(),
         screenLoadingScreenName: 'ClassScreen',
         getElapsedTime: jest.fn().mockReturnValue(0),
@@ -450,59 +340,13 @@ describe('withScreenLoading Integration Patterns', () => {
       // Class component would use in componentDidMount
       injectedProps.reportStage('component_mounted');
 
-      // And when data loads
-      injectedProps.reportFullDisplay();
-
       expect(injectedProps.reportStage).toHaveBeenCalledWith('component_mounted');
-      expect(injectedProps.reportFullDisplay).toHaveBeenCalled();
-    });
-  });
-
-  describe('Attributes Usage', () => {
-    it('should support static attributes', () => {
-      const options: WithScreenLoadingOptions = {
-        screenName: 'CategoryScreen',
-        attributes: {
-          category: 'electronics',
-          view_type: 'grid',
-        },
-      };
-
-      expect(options.attributes!.category).toBe('electronics');
-      expect(options.attributes!.view_type).toBe('grid');
-    });
-
-    it('should support many attributes', () => {
-      const options: WithScreenLoadingOptions = {
-        screenName: 'AnalyticsScreen',
-        attributes: {
-          attr1: 'value1',
-          attr2: 'value2',
-          attr3: 'value3',
-          attr4: 'value4',
-          attr5: 'value5',
-        },
-      };
-
-      expect(Object.keys(options.attributes!).length).toBe(5);
     });
   });
 });
 
 describe('withScreenLoading Edge Cases', () => {
   describe('Timing Edge Cases', () => {
-    it('should handle immediate TTFD after TTID', () => {
-      const reportInitialDisplay = jest.fn();
-      const reportFullDisplay = jest.fn();
-
-      // Both called immediately
-      reportInitialDisplay();
-      reportFullDisplay();
-
-      expect(reportInitialDisplay).toHaveBeenCalled();
-      expect(reportFullDisplay).toHaveBeenCalled();
-    });
-
     it('should handle getElapsedTime at zero', () => {
       const getElapsedTime = jest.fn().mockReturnValue(0);
 
@@ -575,28 +419,22 @@ describe('withScreenLoading Type Safety', () => {
     const options: WithScreenLoadingOptions = {
       screenName: 'TypedScreen',
       autoReportTTID: true,
-      autoReportTTFD: false,
       useDispatchTime: true,
-      attributes: { key: 'value' },
     };
 
     // TypeScript would catch type errors here
     expect(typeof options.screenName).toBe('string');
     expect(typeof options.autoReportTTID).toBe('boolean');
-    expect(typeof options.autoReportTTFD).toBe('boolean');
     expect(typeof options.useDispatchTime).toBe('boolean');
-    expect(typeof options.attributes).toBe('object');
   });
 
   it('should enforce correct injected prop types', () => {
     const props: WithScreenLoadingInjectedProps = {
-      reportFullDisplay: () => {},
       reportStage: (_stageName: string) => {},
       screenLoadingScreenName: 'Screen',
       getElapsedTime: () => 0,
     };
 
-    expect(typeof props.reportFullDisplay).toBe('function');
     expect(typeof props.reportStage).toBe('function');
     expect(typeof props.screenLoadingScreenName).toBe('string');
     expect(typeof props.getElapsedTime).toBe('function');

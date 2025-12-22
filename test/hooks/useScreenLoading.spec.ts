@@ -113,24 +113,6 @@ describe('Screen Loading APM Integration', () => {
       );
     });
 
-    it('should report full display metric', () => {
-      APM._reportScreenLoadingMetric({
-        type: 'full_display',
-        screenName: 'HomeScreen',
-        duration: 500,
-        startTime: 1000,
-        endTime: 1500,
-      });
-
-      expect(NativeAPM.reportScreenLoadingMetric).toHaveBeenCalledWith(
-        'full_display',
-        'HomeScreen',
-        500,
-        1000,
-        1500,
-      );
-    });
-
     it('should not report metrics when disabled', () => {
       APM.setScreenLoadingEnabled(false);
       jest.clearAllMocks();
@@ -144,30 +126,6 @@ describe('Screen Loading APM Integration', () => {
       });
 
       expect(NativeAPM.reportScreenLoadingMetric).not.toHaveBeenCalled();
-    });
-
-    it('should track TTID for TTFD dependency check', () => {
-      APM._reportScreenLoadingMetric({
-        type: 'initial_display',
-        screenName: 'TrackedScreen',
-        duration: 100,
-        startTime: 1000,
-        endTime: 1100,
-      });
-
-      expect(APM._hasInitialDisplayForScreen('TrackedScreen')).toBe(true);
-    });
-
-    it('should return false for untracked screen', () => {
-      expect(APM._hasInitialDisplayForScreen('UntrackedScreen')).toBe(false);
-    });
-
-    it('should return false for undefined screen name', () => {
-      expect(APM._hasInitialDisplayForScreen(undefined)).toBe(false);
-    });
-
-    it('should return false for empty screen name', () => {
-      expect(APM._hasInitialDisplayForScreen('')).toBe(false);
     });
   });
 
@@ -260,69 +218,6 @@ describe('Screen Loading Hook Logic Simulation', () => {
     });
   });
 
-  describe('reportFullDisplay simulation', () => {
-    it('should report TTFD after TTID', () => {
-      const screenName = 'SimulatedScreen';
-      const startTime = 1000;
-
-      // First report TTID
-      APM._reportScreenLoadingMetric({
-        type: 'initial_display',
-        screenName,
-        duration: 100,
-        startTime,
-        endTime: startTime + 100,
-      });
-
-      // Then report TTFD
-      const ttfdEndTime = startTime + 500;
-      APM._reportScreenLoadingMetric({
-        type: 'full_display',
-        screenName,
-        duration: 500,
-        startTime,
-        endTime: ttfdEndTime,
-      });
-
-      expect(NativeAPM.reportScreenLoadingMetric).toHaveBeenCalledTimes(2);
-      expect(NativeAPM.reportScreenLoadingMetric).toHaveBeenLastCalledWith(
-        'full_display',
-        screenName,
-        500,
-        startTime,
-        ttfdEndTime,
-      );
-    });
-
-    it('should simulate TTFD warning when TTID not reported', () => {
-      const screenName = 'NoTTIDScreen';
-      const hasReportedTTID = false;
-      const warnings: string[] = [];
-
-      const reportFullDisplay = () => {
-        if (!hasReportedTTID) {
-          warnings.push(
-            `[useScreenLoading] Attempting to report TTFD before TTID for "${screenName}".`,
-          );
-          return;
-        }
-        APM._reportScreenLoadingMetric({
-          type: 'full_display',
-          screenName,
-          duration: 500,
-          startTime: 1000,
-          endTime: 1500,
-        });
-      };
-
-      reportFullDisplay();
-
-      expect(warnings.length).toBe(1);
-      expect(warnings[0]).toContain('Attempting to report TTFD before TTID');
-      expect(NativeAPM.reportScreenLoadingMetric).not.toHaveBeenCalled();
-    });
-  });
-
   describe('reportStage simulation', () => {
     it('should report stage as flow attribute', () => {
       const screenName = 'SimulatedScreen';
@@ -376,47 +271,6 @@ describe('Screen Loading Hook Logic Simulation', () => {
     });
   });
 
-  describe('Custom attributes simulation', () => {
-    it('should apply custom attributes to screen', () => {
-      const screenName = 'ProductScreen';
-      const attributes = { product_id: '123', source: 'search' };
-
-      // Simulate applying attributes
-      Object.entries(attributes).forEach(([key, value]) => {
-        APM.setFlowAttribute(screenName, key, value);
-      });
-
-      expect(NativeAPM.setFlowAttribute).toHaveBeenCalledWith('ProductScreen', 'product_id', '123');
-      expect(NativeAPM.setFlowAttribute).toHaveBeenCalledWith('ProductScreen', 'source', 'search');
-    });
-
-    it('should handle empty attributes object', () => {
-      const screenName = 'EmptyAttrsScreen';
-      const attributes: Record<string, string> = {};
-
-      Object.entries(attributes).forEach(([key, value]) => {
-        APM.setFlowAttribute(screenName, key, value);
-      });
-
-      expect(NativeAPM.setFlowAttribute).not.toHaveBeenCalled();
-    });
-
-    it('should handle attributes with special characters', () => {
-      const screenName = 'SpecialScreen';
-      const attributes = {
-        'key-with-dash': 'value',
-        key_with_underscore: 'value2',
-        'key.with.dot': 'value3',
-      };
-
-      Object.entries(attributes).forEach(([key, value]) => {
-        APM.setFlowAttribute(screenName, key, value);
-      });
-
-      expect(NativeAPM.setFlowAttribute).toHaveBeenCalledTimes(3);
-    });
-  });
-
   describe('Elapsed time calculation', () => {
     it('should calculate elapsed time correctly', () => {
       const startTime = 1000;
@@ -466,9 +320,7 @@ describe('Screen Loading Hook Logic Simulation', () => {
         endTime: 2200,
       });
 
-      expect(APM._hasInitialDisplayForScreen('ScreenA')).toBe(true);
-      expect(APM._hasInitialDisplayForScreen('ScreenB')).toBe(true);
-      expect(APM._hasInitialDisplayForScreen('ScreenC')).toBe(false);
+      expect(NativeAPM.reportScreenLoadingMetric).toHaveBeenCalledTimes(2);
     });
 
     it('should handle rapid screen transitions', () => {
@@ -585,71 +437,6 @@ describe('useScreenLoadingState Hook Simulation', () => {
     });
   });
 
-  describe('Auto-report on isReady', () => {
-    it('should report TTFD when isReady becomes true', () => {
-      const startTime = Date.now();
-      const hasReportedTTID = { current: false };
-      const hasReportedTTFD = { current: false };
-      let isReady = false;
-
-      // Simulate TTID report
-      if (!hasReportedTTID.current) {
-        hasReportedTTID.current = true;
-        APM._reportScreenLoadingMetric({
-          type: 'initial_display',
-          screenName: 'ReadyScreen',
-          duration: 50,
-          startTime,
-          endTime: startTime + 50,
-        });
-      }
-
-      // Simulate data loading complete
-      isReady = true;
-
-      // Simulate TTFD report when isReady
-      if (isReady && !hasReportedTTFD.current && hasReportedTTID.current) {
-        hasReportedTTFD.current = true;
-        APM._reportScreenLoadingMetric({
-          type: 'full_display',
-          screenName: 'ReadyScreen',
-          duration: 500,
-          startTime,
-          endTime: startTime + 500,
-        });
-      }
-
-      expect(NativeAPM.reportScreenLoadingMetric).toHaveBeenCalledTimes(2);
-      expect(NativeAPM.reportScreenLoadingMetric).toHaveBeenLastCalledWith(
-        'full_display',
-        'ReadyScreen',
-        500,
-        expect.any(Number),
-        expect.any(Number),
-      );
-    });
-
-    it('should not report TTFD if isReady is initially true but TTID not reported', () => {
-      const hasReportedTTID = { current: false };
-      const hasReportedTTFD = { current: false };
-      const isReady = true;
-
-      // Attempt TTFD report without TTID
-      if (isReady && !hasReportedTTFD.current && hasReportedTTID.current) {
-        hasReportedTTFD.current = true;
-        APM._reportScreenLoadingMetric({
-          type: 'full_display',
-          screenName: 'NoTTIDScreen',
-          duration: 500,
-          startTime: 1000,
-          endTime: 1500,
-        });
-      }
-
-      expect(NativeAPM.reportScreenLoadingMetric).not.toHaveBeenCalled();
-    });
-  });
-
   describe('Callbacks', () => {
     it('should call onTTID callback with duration', () => {
       const onTTID = jest.fn();
@@ -670,35 +457,6 @@ describe('useScreenLoadingState Hook Simulation', () => {
 
       expect(onTTID).toHaveBeenCalledWith(100);
     });
-
-    it('should call onTTFD callback with duration', () => {
-      const onTTFD = jest.fn();
-      const startTime = 1000;
-      const ttfdEndTime = 1500;
-
-      // Report TTID first
-      APM._reportScreenLoadingMetric({
-        type: 'initial_display',
-        screenName: 'CallbackScreen',
-        duration: 100,
-        startTime,
-        endTime: startTime + 100,
-      });
-
-      // Report TTFD
-      APM._reportScreenLoadingMetric({
-        type: 'full_display',
-        screenName: 'CallbackScreen',
-        duration: ttfdEndTime - startTime,
-        startTime,
-        endTime: ttfdEndTime,
-      });
-
-      // Simulate callback
-      onTTFD(ttfdEndTime - startTime);
-
-      expect(onTTFD).toHaveBeenCalledWith(500);
-    });
   });
 });
 
@@ -713,26 +471,22 @@ describe('Hook Type Exports', () => {
       screenName: 'TestScreen',
       autoStart: true,
       useDispatchTime: true,
-      attributes: { key: 'value' },
     };
 
     expect(options.screenName).toBe('TestScreen');
     expect(options.autoStart).toBe(true);
     expect(options.useDispatchTime).toBe(true);
-    expect(options.attributes).toEqual({ key: 'value' });
   });
 
   it('should have UseScreenLoadingReturn type structure', () => {
     const returnValue = {
       reportInitialDisplay: jest.fn(),
-      reportFullDisplay: jest.fn(),
       reportStage: jest.fn(),
       screenName: 'TestScreen',
       getElapsedTime: jest.fn().mockReturnValue(100),
     };
 
     expect(typeof returnValue.reportInitialDisplay).toBe('function');
-    expect(typeof returnValue.reportFullDisplay).toBe('function');
     expect(typeof returnValue.reportStage).toBe('function');
     expect(returnValue.screenName).toBe('TestScreen');
     expect(returnValue.getElapsedTime()).toBe(100);
@@ -741,15 +495,11 @@ describe('Hook Type Exports', () => {
   it('should have UseScreenLoadingStateOptions type structure', () => {
     const options = {
       screenName: 'TestScreen',
-      isReady: false,
       onTTID: jest.fn(),
-      onTTFD: jest.fn(),
     };
 
     expect(options.screenName).toBe('TestScreen');
-    expect(options.isReady).toBe(false);
     expect(typeof options.onTTID).toBe('function');
-    expect(typeof options.onTTFD).toBe('function');
   });
 });
 
@@ -868,18 +618,15 @@ describe('Edge Cases and Error Handling', () => {
     it('should support resetting state when screen changes', () => {
       let lastScreenName = 'ScreenA';
       let hasReportedTTID = true;
-      let hasReportedTTFD = true;
 
       // Simulate screen change
       const newScreenName = 'ScreenB';
       if (lastScreenName !== newScreenName) {
         hasReportedTTID = false;
-        hasReportedTTFD = false;
         lastScreenName = newScreenName;
       }
 
       expect(hasReportedTTID).toBe(false);
-      expect(hasReportedTTFD).toBe(false);
       expect(lastScreenName).toBe('ScreenB');
     });
 

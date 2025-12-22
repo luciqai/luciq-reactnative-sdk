@@ -11,7 +11,7 @@ const NativeScreenLoadingView =
   requireNativeComponent<NativeScreenLoadingViewProps>('LCQScreenLoadingView');
 
 /**
- * Props for screen loading measurement components
+ * Props for screen loading measurement component
  */
 export interface ScreenLoadingProps {
   /** Whether to record this measurement (default: true) */
@@ -28,10 +28,6 @@ export interface ScreenLoadingProps {
    * Default: true when provider is available
    */
   useDispatchTime?: boolean;
-  /**
-   * Custom attributes to attach to this measurement
-   */
-  attributes?: Record<string, string>;
 }
 
 /**
@@ -42,9 +38,9 @@ interface ScreenLoadingClassProps extends ScreenLoadingProps {
 }
 
 /**
- * State interface for InitialDisplay class component
+ * State interface for ScreenLoadingClass component
  */
-interface InitialDisplayState {
+interface ScreenLoadingState {
   hasReported: boolean;
 }
 
@@ -54,7 +50,7 @@ interface InitialDisplayState {
  * Place this at the top of your screen component to measure when
  * the initial UI becomes visible to the user.
  */
-class InitialDisplayClass extends React.Component<ScreenLoadingClassProps, InitialDisplayState> {
+class ScreenLoadingClass extends React.Component<ScreenLoadingClassProps, ScreenLoadingState> {
   private dispatchTimeRef: number | null = null;
   private lastScreenName: string = '';
   private lastDispatchTime: number | null = null;
@@ -68,7 +64,7 @@ class InitialDisplayClass extends React.Component<ScreenLoadingClassProps, Initi
   constructor(props: ScreenLoadingClassProps) {
     super(props);
     this.constructorTime = Date.now();
-    console.log('[InitialDisplayClass] Constructor called - component is being constructed', {
+    console.log('[LuciqScreenLoading] Constructor called - component is being constructed', {
       timestamp: this.constructorTime,
     });
 
@@ -87,7 +83,7 @@ class InitialDisplayClass extends React.Component<ScreenLoadingClassProps, Initi
   componentWillMount(): void {
     this.willMountTime = Date.now();
     const durationSinceConstructor = this.willMountTime - this.constructorTime;
-    console.log('[InitialDisplayClass] componentWillMount - component is about to mount', {
+    console.log('[LuciqScreenLoading] componentWillMount - component is about to mount', {
       timestamp: this.willMountTime,
       durationSinceConstructor: `${durationSinceConstructor}ms`,
     });
@@ -97,7 +93,7 @@ class InitialDisplayClass extends React.Component<ScreenLoadingClassProps, Initi
     this.didMountTime = Date.now();
     const durationSinceWillMount = this.didMountTime - this.willMountTime;
     const durationSinceConstructor = this.didMountTime - this.constructorTime;
-    console.log('[InitialDisplayClass] componentDidMount - component has mounted', {
+    console.log('[LuciqScreenLoading] componentDidMount - component has mounted', {
       timestamp: this.didMountTime,
       durationSinceWillMount: `${durationSinceWillMount}ms`,
       totalMountDuration: `${durationSinceConstructor}ms`,
@@ -108,16 +104,16 @@ class InitialDisplayClass extends React.Component<ScreenLoadingClassProps, Initi
   layoutDidChange(): void {
     const now = Date.now();
     const durationSinceLastUpdate = now - this.lastUpdateTime;
-    console.log('[InitialDisplayClass] layoutDidChange - component layout has changed', {
+    console.log('[LuciqScreenLoading] layoutDidChange - component layout has changed', {
       timestamp: now,
       durationSinceLastUpdate: `${durationSinceLastUpdate}ms`,
     });
   }
 
-  componentDidUpdate(prevProps: ScreenLoadingClassProps, prevState: InitialDisplayState): void {
+  componentDidUpdate(prevProps: ScreenLoadingClassProps, prevState: ScreenLoadingState): void {
     const now = Date.now();
     const durationSinceLastUpdate = now - this.lastUpdateTime;
-    console.log('[InitialDisplayClass] componentDidUpdate - component has updated', {
+    console.log('[LuciqScreenLoading] componentDidUpdate - component has updated', {
       timestamp: now,
       durationSinceLastUpdate: `${durationSinceLastUpdate}ms`,
       prevProps: {
@@ -156,7 +152,7 @@ class InitialDisplayClass extends React.Component<ScreenLoadingClassProps, Initi
     const now = Date.now();
     const durationSinceLastUpdate = now - this.lastUpdateTime;
     const totalLifetime = now - this.constructorTime;
-    console.log('[InitialDisplayClass] componentWillUnmount - component is about to unmount', {
+    console.log('[LuciqScreenLoading] componentWillUnmount - component is about to unmount', {
       timestamp: now,
       durationSinceLastUpdate: `${durationSinceLastUpdate}ms`,
       totalLifetime: `${totalLifetime}ms`,
@@ -168,20 +164,14 @@ class InitialDisplayClass extends React.Component<ScreenLoadingClassProps, Initi
       return;
     }
 
-    const {
-      navigationTiming,
-      screenName,
-      useDispatchTime = true,
-      attributes,
-      onMeasured,
-    } = this.props;
+    const { navigationTiming, screenName, useDispatchTime = true, onMeasured } = this.props;
     const effectiveScreenName = screenName || navigationTiming.currentScreenName || '';
 
     this.setState({ hasReported: true });
 
     // Calculate duration from dispatch time if available and enabled
-    let duration = event.nativeEvent.duration;
-    let startTime = event.nativeEvent.startTime;
+    let duration = this.constructorTime - event.nativeEvent.endTime;
+    let startTime = this.constructorTime;
 
     if (useDispatchTime && this.dispatchTimeRef) {
       startTime = this.dispatchTimeRef;
@@ -197,18 +187,20 @@ class InitialDisplayClass extends React.Component<ScreenLoadingClassProps, Initi
       endTime: event.nativeEvent.endTime,
     });
 
-    // Report custom attributes if provided
-    if (attributes) {
-      Object.entries(attributes).forEach(([key, value]) => {
-        //todo: replace with screen loading
-        APM.setFlowAttribute(effectiveScreenName, key, value);
-      });
-    }
-
     onMeasured?.(duration);
   };
 
   render(): React.ReactElement {
+    const renderTime = Date.now();
+    const durationSinceLastUpdate = renderTime - (this.lastUpdateTime || this.constructorTime);
+    const durationSinceConstructor = renderTime - this.constructorTime;
+    console.log('[LuciqScreenLoading] render - component is rendering', {
+      timestamp: renderTime,
+      durationSinceLastUpdate: `${durationSinceLastUpdate}ms`,
+      totalSinceConstructor: `${durationSinceConstructor}ms`,
+      hasReported: this.state.hasReported,
+    });
+
     const { children, record = true, screenName, navigationTiming } = this.props;
     const effectiveScreenName = screenName || navigationTiming.currentScreenName || '';
 
@@ -240,212 +232,6 @@ class InitialDisplayClass extends React.Component<ScreenLoadingClassProps, Initi
 }
 
 /**
- * State interface for FullDisplay class component
- */
-interface FullDisplayState {
-  hasReported: boolean;
-}
-
-/**
- * Class component for measuring Time To Full Display (TTFD)
- *
- * Place this where your screen is fully loaded, typically after
- * async data has been fetched and rendered.
- */
-class FullDisplayClass extends React.Component<ScreenLoadingClassProps, FullDisplayState> {
-  private dispatchTimeRef: number | null = null;
-  private lastScreenName: string = '';
-  private lastDispatchTime: number | null = null;
-
-  // Lifecycle timing tracking
-  private constructorTime: number = 0;
-  private willMountTime: number = 0;
-  private didMountTime: number = 0;
-  private lastUpdateTime: number = 0;
-
-  constructor(props: ScreenLoadingClassProps) {
-    super(props);
-    this.constructorTime = Date.now();
-    console.log('[FullDisplayClass] Constructor called - component is being constructed', {
-      timestamp: this.constructorTime,
-    });
-
-    const { navigationTiming, useDispatchTime = true, screenName } = props;
-    const effectiveScreenName = screenName || navigationTiming.currentScreenName || '';
-
-    this.state = {
-      hasReported: false,
-    };
-
-    this.dispatchTimeRef = useDispatchTime ? navigationTiming.dispatchTime : null;
-    this.lastScreenName = effectiveScreenName;
-    this.lastDispatchTime = navigationTiming.dispatchTime;
-  }
-
-  componentWillMount(): void {
-    this.willMountTime = Date.now();
-    const durationSinceConstructor = this.willMountTime - this.constructorTime;
-    console.log('[FullDisplayClass] componentWillMount - component is about to mount', {
-      timestamp: this.willMountTime,
-      durationSinceConstructor: `${durationSinceConstructor}ms`,
-    });
-  }
-
-  componentDidMount(): void {
-    this.didMountTime = Date.now();
-    const durationSinceWillMount = this.didMountTime - this.willMountTime;
-    const durationSinceConstructor = this.didMountTime - this.constructorTime;
-    console.log('[FullDisplayClass] componentDidMount - component has mounted', {
-      timestamp: this.didMountTime,
-      durationSinceWillMount: `${durationSinceWillMount}ms`,
-      totalMountDuration: `${durationSinceConstructor}ms`,
-    });
-    this.lastUpdateTime = this.didMountTime;
-  }
-
-  layoutDidChange(): void {
-    const now = Date.now();
-    const durationSinceLastUpdate = now - this.lastUpdateTime;
-    console.log('[FullDisplayClass] layoutDidChange - component layout has changed', {
-      timestamp: now,
-      durationSinceLastUpdate: `${durationSinceLastUpdate}ms`,
-    });
-  }
-
-  componentDidUpdate(prevProps: ScreenLoadingClassProps, prevState: FullDisplayState): void {
-    const now = Date.now();
-    const durationSinceLastUpdate = now - this.lastUpdateTime;
-    console.log('[FullDisplayClass] componentDidUpdate - component has updated', {
-      timestamp: now,
-      durationSinceLastUpdate: `${durationSinceLastUpdate}ms`,
-      prevProps: {
-        screenName: prevProps.screenName,
-        record: prevProps.record,
-        useDispatchTime: prevProps.useDispatchTime,
-      },
-      currentProps: {
-        screenName: this.props.screenName,
-        record: this.props.record,
-        useDispatchTime: this.props.useDispatchTime,
-      },
-      prevState,
-      currentState: this.state,
-    });
-    this.lastUpdateTime = now;
-
-    const { navigationTiming, useDispatchTime = true, screenName } = this.props;
-    const effectiveScreenName = screenName || navigationTiming.currentScreenName || '';
-
-    const screenNameChanged = this.lastScreenName !== effectiveScreenName;
-    const dispatchTimeChanged =
-      useDispatchTime &&
-      navigationTiming.dispatchTime !== null &&
-      this.lastDispatchTime !== navigationTiming.dispatchTime;
-
-    if (screenNameChanged || dispatchTimeChanged) {
-      this.setState({ hasReported: false });
-      this.dispatchTimeRef = useDispatchTime ? navigationTiming.dispatchTime : null;
-      this.lastScreenName = effectiveScreenName;
-      this.lastDispatchTime = navigationTiming.dispatchTime;
-    }
-  }
-
-  componentWillUnmount(): void {
-    const now = Date.now();
-    const durationSinceLastUpdate = now - this.lastUpdateTime;
-    const totalLifetime = now - this.constructorTime;
-    console.log('[FullDisplayClass] componentWillUnmount - component is about to unmount', {
-      timestamp: now,
-      durationSinceLastUpdate: `${durationSinceLastUpdate}ms`,
-      totalLifetime: `${totalLifetime}ms`,
-    });
-  }
-
-  private handleDisplay = (event: { nativeEvent: ScreenLoadingEvent }): void => {
-    if (this.state.hasReported) {
-      return;
-    }
-
-    const {
-      navigationTiming,
-      screenName,
-      useDispatchTime = true,
-      attributes,
-      onMeasured,
-    } = this.props;
-    const effectiveScreenName = screenName || navigationTiming.currentScreenName || '';
-
-    // Check if TTID exists for this screen
-    if (!APM._hasInitialDisplayForScreen(effectiveScreenName)) {
-      console.warn(
-        `[LuciqScreenLoading] No initial display found for screen "${effectiveScreenName}". ` +
-          'TTFD requires TTID to be measured first. ' +
-          'Make sure to place InitialDisplay component before FullDisplay.',
-      );
-      return;
-    }
-
-    this.setState({ hasReported: true });
-
-    // Calculate duration from dispatch time if available and enabled
-    let duration = event.nativeEvent.duration;
-    let startTime = event.nativeEvent.startTime;
-
-    if (useDispatchTime && this.dispatchTimeRef) {
-      startTime = this.dispatchTimeRef;
-      duration = event.nativeEvent.endTime - startTime;
-    }
-
-    APM._reportScreenLoadingMetric({
-      type: 'full_display',
-      screenName: effectiveScreenName,
-      duration,
-      startTime,
-      endTime: event.nativeEvent.endTime,
-    });
-
-    // Report custom attributes if provided
-    if (attributes) {
-      Object.entries(attributes).forEach(([key, value]) => {
-        //todo: replace with screen loading
-        APM.setFlowAttribute(effectiveScreenName, key, value);
-      });
-    }
-
-    onMeasured?.(duration);
-  };
-
-  render(): React.ReactElement {
-    const { children, record = true, screenName, navigationTiming } = this.props;
-    const effectiveScreenName = screenName || navigationTiming.currentScreenName || '';
-
-    if (!APM.isScreenLoadingEnabled()) {
-      return <>{children}</>;
-    }
-
-    const style: ViewStyle = {
-      position: 'absolute',
-      width: 0,
-      height: 0,
-      overflow: 'hidden',
-    };
-
-    return (
-      <>
-        <NativeScreenLoadingView
-          style={style}
-          displayType="fullDisplay"
-          record={record}
-          screenName={effectiveScreenName}
-          onDisplay={this.handleDisplay}
-        />
-        {children}
-      </>
-    );
-  }
-}
-
-/**
  * Component for measuring Time To Initial Display (TTID)
  *
  * Place this at the top of your screen component to measure when
@@ -457,7 +243,7 @@ class FullDisplayClass extends React.Component<ScreenLoadingClassProps, FullDisp
  * function HomeScreen() {
  *   return (
  *     <View>
- *       <LuciqScreenLoading.InitialDisplay />
+ *       <LuciqScreenLoading />
  *       <Text>Home Screen Content</Text>
  *     </View>
  *   );
@@ -467,7 +253,7 @@ class FullDisplayClass extends React.Component<ScreenLoadingClassProps, FullDisp
  * function ProfileScreen() {
  *   return (
  *     <View>
- *       <LuciqScreenLoading.InitialDisplay
+ *       <LuciqScreenLoading
  *         screenName="ProfileScreen"
  *         onMeasured={(duration) => console.log(`TTID: ${duration}ms`)}
  *       />
@@ -475,93 +261,11 @@ class FullDisplayClass extends React.Component<ScreenLoadingClassProps, FullDisp
  *     </View>
  *   );
  * }
- *
- * // With custom attributes
- * function ProductScreen({ productId }) {
- *   return (
- *     <View>
- *       <LuciqScreenLoading.InitialDisplay
- *         screenName="ProductScreen"
- *         attributes={{ product_id: productId, source: 'search' }}
- *       />
- *       <ProductContent />
- *     </View>
- *   );
- * }
  * ```
  */
-export function InitialDisplay(props: ScreenLoadingProps): React.ReactElement {
+function LuciqScreenLoading(props: ScreenLoadingProps): React.ReactElement {
   const navigationTiming = useNavigationTiming();
-  return <InitialDisplayClass {...props} navigationTiming={navigationTiming} />;
+  return <ScreenLoadingClass {...props} navigationTiming={navigationTiming} />;
 }
-
-/**
- * Component for measuring Time To Full Display (TTFD)
- *
- * Place this where your screen is fully loaded, typically after
- * async data has been fetched and rendered. This component must be
- * rendered after InitialDisplay has been measured for the same screen.
- *
- * @example
- * ```tsx
- * function ProductListScreen() {
- *   const [products, setProducts] = useState(null);
- *   const [isLoading, setIsLoading] = useState(true);
- *
- *   useEffect(() => {
- *     fetchProducts().then((data) => {
- *       setProducts(data);
- *       setIsLoading(false);
- *     });
- *   }, []);
- *
- *   return (
- *     <View>
- *       <LuciqScreenLoading.InitialDisplay />
- *
- *       {isLoading ? (
- *         <ActivityIndicator />
- *       ) : (
- *         <>
- *           <LuciqScreenLoading.FullDisplay />
- *           <ProductList products={products} />
- *         </>
- *       )}
- *     </View>
- *   );
- * }
- *
- * // With custom attributes
- * function SearchResultsScreen({ query, results }) {
- *   return (
- *     <View>
- *       <LuciqScreenLoading.InitialDisplay screenName="SearchResults" />
- *       {results && (
- *         <>
- *           <LuciqScreenLoading.FullDisplay
- *             screenName="SearchResults"
- *             attributes={{
- *               query: query,
- *               result_count: String(results.length),
- *             }}
- *           />
- *           <ResultsList results={results} />
- *         </>
- *       )}
- *     </View>
- *   );
- * }
- * ```
- */
-export function FullDisplay(props: ScreenLoadingProps): React.ReactElement {
-  const navigationTiming = useNavigationTiming();
-  return <FullDisplayClass {...props} navigationTiming={navigationTiming} />;
-}
-
-// Export as namespace for clean API
-const LuciqScreenLoading = {
-  InitialDisplay,
-  FullDisplay,
-};
 
 export default LuciqScreenLoading;

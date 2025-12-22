@@ -176,13 +176,13 @@ export const endScreenLoading = (screenName: string) => {
   }
 };
 
-// Internal APIs for components
+// Internal API for components
 export const _reportScreenLoadingMetric = (metric: ScreenLoadingMetric) => {
   if (!screenLoadingEnabled) {
     return;
   }
 
-  // Store TTID for TTFD dependency check
+  // Store screen timing for tracking purposes
   if (metric.type === 'initial_display') {
     activeScreens.set(metric.screenName, {
       ttidStartTime: metric.startTime,
@@ -196,11 +196,4 @@ export const _reportScreenLoadingMetric = (metric: ScreenLoadingMetric) => {
     metric.startTime,
     metric.endTime,
   );
-};
-
-export const _hasInitialDisplayForScreen = (screenName?: string): boolean => {
-  if (!screenName) {
-    return false;
-  }
-  return activeScreens.has(screenName);
 };
