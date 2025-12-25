@@ -123,39 +123,39 @@
   }
 
 - (void)testSetCapturingModeNavigation {
-  [self.bridge setCapturingMode:LCQCapturingModeNavigation];
+  [self.bridge setCapturingMode:LCQScreenshotCapturingModeNavigation];
 
-  OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQCapturingModeNavigation]);
+  OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQScreenshotCapturingModeNavigation]);
 }
 
 - (void)testSetCapturingModeInteractions {
-  [self.bridge setCapturingMode:LCQCapturingModeInteractions];
+  [self.bridge setCapturingMode:LCQScreenshotCapturingModeInteraction];
 
-  OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQCapturingModeInteractions]);
+  OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQScreenshotCapturingModeInteraction]);
 }
 
 - (void)testSetCapturingModeFrequency {
-  [self.bridge setCapturingMode:LCQCapturingModeFrequency];
+  [self.bridge setCapturingMode:LCQScreenshotCapturingModeFrequency];
 
-  OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQCapturingModeFrequency]);
+  OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQScreenshotCapturingModeFrequency]);
 }
 
 - (void)testSetScreenshotQualityHigh {
-  [self.bridge setScreenshotQuality:LCQScreenshotQualityHigh];
+  [self.bridge setScreenshotQuality:LCQScreenshotQualityModeHigh];
 
-  OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityHigh]);
+  OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityModeHigh]);
 }
 
 - (void)testSetScreenshotQualityNormal {
-  [self.bridge setScreenshotQuality:LCQScreenshotQualityNormal];
+  [self.bridge setScreenshotQuality:LCQScreenshotQualityModeNormal];
 
-  OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityNormal]);
+  OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityModeNormal]);
 }
 
 - (void)testSetScreenshotQualityGreyscale {
-  [self.bridge setScreenshotQuality:LCQScreenshotQualityGreyscale];
+  [self.bridge setScreenshotQuality:LCQScreenshotQualityModeGreyScale];
 
-  OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityGreyscale]);
+  OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityModeGreyScale]);
 }
 
 - (void)testSetScreenshotCaptureInterval {

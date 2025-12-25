@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.0.0...dev)
+
+### Added
+
+- Add support session replay Video-Like. ([#19](https://github.com/luciqai/luciq-reactnative-sdk/pull/19))
+
 ## [19.0.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.0.0...dev)
 
 ### Added
