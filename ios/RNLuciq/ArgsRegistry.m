@@ -118,7 +118,8 @@
     return @{
         @"dropAutoCapturedMedia": @(LCQConsentActionDropAutoCapturedMedia),
         @"dropLogs": @(LCQConsentActionDropLogs),
-        @"noChat": @(LCQConsentActionNoChat)
+        @"noChat": @(LCQConsentActionNoChat),
+        @"noAutomaticBugGrouping": @(LCQConsentActionNoAutomaticBugGrouping),
     };
 }
 + (ArgsDictionary *) extendedBugReportStates {

@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased](https://github.com/luciqai/luciq-flutter-sdk/compare/v18.2.1...dev)
+
+### Added
+
+- Add new UserConsentActionType - noAutomaticBugGrouping.
+
 ## [18.2.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.2.0...18.0.1)
 
 ### Changed

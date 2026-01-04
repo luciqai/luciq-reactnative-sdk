@@ -28,6 +28,7 @@ interface NativeUserConsentActionType {
   dropAutoCapturedMedia: any;
   dropLogs: any;
   noChat: any;
+  noAutomaticBugGrouping: any;
 }
 interface NativeInvocationEvent {
   invocationEventNone: any;
