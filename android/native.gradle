@@ -1,5 +1,5 @@
 project.ext.luciq = [
-    version: '18.2.0.7301540-SNAPSHOT'
+    version: '19.0.0'
 ]
 
 dependencies {
