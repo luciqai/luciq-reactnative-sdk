@@ -6,6 +6,7 @@ import { NavigationContainer, useNavigationContainerRef } from '@react-navigatio
 import { SessionMetadata, WelcomeMessageMode } from '@luciq/react-native';
 import Luciq, {
   APM,
+  CapturingMode,
   CrashReporting,
   InvocationEvent,
   LaunchType,
@@ -13,6 +14,7 @@ import Luciq, {
   NetworkInterceptionMode,
   NetworkLogger,
   ReproStepsMode,
+  ScreenshotQuality,
   SessionReplay,
   OverAirUpdateServices,
 } from '@luciq/react-native';
@@ -45,6 +47,11 @@ export const App: React.FC = () => {
 
   const initializeLuciq = () => {
     try {
+      // Configure video-like session replay (before SDK init for best results)
+      SessionReplay.setCapturingMode(CapturingMode.interactions);
+      SessionReplay.setScreenshotCaptureInterval(1000); // 1 FPS
+      SessionReplay.setScreenshotQuality(ScreenshotQuality.greyscale);
+
       SessionReplay.setSyncCallback((data) => shouldSyncSession(data));
 
       Luciq.init({

@@ -95,6 +95,17 @@ RCT_EXPORT_METHOD(evaluateSync:(BOOL)result) {
     }
 }
 
+RCT_EXPORT_METHOD(setCapturingMode:(LCQScreenshotCapturingMode)mode) {
+    LCQSessionReplay.screenshotCapturingMode = mode;
+}
+
+RCT_EXPORT_METHOD(setScreenshotQuality:(LCQScreenshotQualityMode)quality) {
+    LCQSessionReplay.screenshotQualityMode = quality;
+}
+
+RCT_EXPORT_METHOD(setScreenshotCaptureInterval:(NSInteger)intervalMs) {
+    LCQSessionReplay.screenshotCaptureInterval = intervalMs;
+}
 
 @synthesize description;
 

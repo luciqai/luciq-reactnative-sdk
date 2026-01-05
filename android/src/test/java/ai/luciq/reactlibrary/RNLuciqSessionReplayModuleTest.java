@@ -176,4 +176,82 @@ public class RNLuciqSessionReplayModuleTest {
             mockCountDownLatch.close();
     }
 
+    @Test
+    public void testSetCapturingModeNavigation() {
+        sessionReplayModule.setCapturingMode("capturingModeNavigation");
+
+        mockSessionReplay.verify(() -> SessionReplay.setCapturingMode(ai.luciq.library.sessionreplay.CapturingMode.NAVIGATION));
+        mockSessionReplay.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testSetCapturingModeInteractions() {
+        sessionReplayModule.setCapturingMode("capturingModeInteractions");
+
+        mockSessionReplay.verify(() -> SessionReplay.setCapturingMode(ai.luciq.library.sessionreplay.CapturingMode.INTERACTIONS));
+        mockSessionReplay.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testSetCapturingModeFrequency() {
+        sessionReplayModule.setCapturingMode("capturingModeFrequency");
+
+        mockSessionReplay.verify(() -> SessionReplay.setCapturingMode(ai.luciq.library.sessionreplay.CapturingMode.FREQUENCY));
+        mockSessionReplay.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testSetScreenshotQualityHigh() {
+        sessionReplayModule.setScreenshotQuality("screenshotQualityHigh");
+
+        mockSessionReplay.verify(() -> SessionReplay.setScreenshotQuality(ai.luciq.library.sessionreplay.ScreenshotQuality.HIGH));
+        mockSessionReplay.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testSetScreenshotQualityNormal() {
+        sessionReplayModule.setScreenshotQuality("screenshotQualityNormal");
+
+        mockSessionReplay.verify(() -> SessionReplay.setScreenshotQuality(ai.luciq.library.sessionreplay.ScreenshotQuality.NORMAL));
+        mockSessionReplay.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testSetScreenshotQualityGreyscale() {
+        sessionReplayModule.setScreenshotQuality("screenshotQualityGreyscale");
+
+        mockSessionReplay.verify(() -> SessionReplay.setScreenshotQuality(ai.luciq.library.sessionreplay.ScreenshotQuality.GREYSCALE));
+        mockSessionReplay.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testSetScreenshotCaptureInterval() {
+        sessionReplayModule.setScreenshotCaptureInterval(1000);
+
+        mockSessionReplay.verify(() -> SessionReplay.setScreenshotCaptureInterval(1000));
+        mockSessionReplay.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testSetScreenshotCaptureIntervalMinimum() {
+        sessionReplayModule.setScreenshotCaptureInterval(500);
+
+        mockSessionReplay.verify(() -> SessionReplay.setScreenshotCaptureInterval(500));
+        mockSessionReplay.verifyNoMoreInteractions();
+    }
+
+    @Test
+    public void testSetCapturingModeInvalid() {
+        sessionReplayModule.setCapturingMode("invalidMode");
+
+        mockSessionReplay.verifyNoInteractions();
+    }
+
+    @Test
+    public void testSetScreenshotQualityInvalid() {
+        sessionReplayModule.setScreenshotQuality("invalidQuality");
+
+        mockSessionReplay.verifyNoInteractions();
+    }
+
 }
