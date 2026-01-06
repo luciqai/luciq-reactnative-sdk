@@ -1,10 +1,16 @@
 # Changelog
 
-## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.0.0...dev)
+## [19.1.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.3.0...19.0.0)
 
 ### Added
 
 - Add support session replay Video-Like. ([#19](https://github.com/luciqai/luciq-reactnative-sdk/pull/19))
+
+### Changed
+
+- Bump Luciq iOS SDK to v19.3.0 ([#22](https://github.com/luciqai/luciq-reactnative-sdk/pull/22)). [See release notes](https://github.com/luciqai/Luciq-iOS-sdk/releases/tag/19.3.0).
+
+- Bump Luciq Android SDK to v19.1.0 ([#22](https://github.com/luciqai/luciq-reactnative-sdk/pull/22)). [See release notes](https://github.com/luciqai/Luciq-Android-sdk/releases/tag/v19.1.0).
 
 ## [19.0.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.0.0...dev)
 
