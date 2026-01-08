@@ -7,6 +7,7 @@ import { NativeEvents, NativeReplies, emitter } from '../native/NativeReplies';
  * @param isEnabled
  */
 export const setEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] Replies.setEnabled called', { isEnabled });
   NativeReplies.setEnabled(isEnabled);
 };
 
@@ -14,6 +15,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * Tells whether the user has chats already or not.
  */
 export const hasChats = async (): Promise<boolean> => {
+  console.log('[LCQ-RN] Replies.hasChats called');
   const result = await NativeReplies.hasChats();
 
   return result;
@@ -23,6 +25,7 @@ export const hasChats = async (): Promise<boolean> => {
  * Manual invocation for replies.
  */
 export const show = () => {
+  console.log('[LCQ-RN] Replies.show called');
   NativeReplies.show();
 };
 
@@ -31,6 +34,7 @@ export const show = () => {
  * @param handler A callback that gets executed when a new message is received.
  */
 export const setOnNewReplyReceivedHandler = (handler: () => void) => {
+  console.log('[LCQ-RN] Replies.setOnNewReplyReceivedHandler called');
   emitter.addListener(NativeEvents.ON_REPLY_RECEIVED_HANDLER, handler);
   NativeReplies.setOnNewReplyReceivedHandler(handler);
 };
@@ -42,6 +46,7 @@ export const setOnNewReplyReceivedHandler = (handler: () => void) => {
  * Notifications count, or -1 in case the SDK has not been initialized.
  */
 export const getUnreadRepliesCount = async (): Promise<number> => {
+  console.log('[LCQ-RN] Replies.getUnreadRepliesCount called');
   const count = await NativeReplies.getUnreadRepliesCount();
 
   return count;
@@ -54,6 +59,7 @@ export const getUnreadRepliesCount = async (): Promise<number> => {
  * notifications are enabled or disabled.
  */
 export const setInAppNotificationsEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] Replies.setInAppNotificationsEnabled called', { isEnabled });
   NativeReplies.setInAppNotificationEnabled(isEnabled);
 };
 
@@ -65,6 +71,7 @@ export const setInAppNotificationsEnabled = (isEnabled: boolean) => {
  * @param isEnabled desired state of conversation sounds
  */
 export const setInAppNotificationSound = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] Replies.setInAppNotificationSound called', { isEnabled });
   if (Platform.OS === 'android') {
     NativeReplies.setInAppNotificationSound(isEnabled);
   }
@@ -76,6 +83,7 @@ export const setInAppNotificationSound = (isEnabled: boolean) => {
  * @param isEnabled A boolean to indicate whether push notifications are enabled or disabled.
  */
 export const setPushNotificationsEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] Replies.setPushNotificationsEnabled called', { isEnabled });
   NativeReplies.setPushNotificationsEnabled(isEnabled);
 };
 
@@ -85,6 +93,7 @@ export const setPushNotificationsEnabled = (isEnabled: boolean) => {
  * @param token the GCM registration token
  */
 export const setPushNotificationRegistrationTokenAndroid = (token: string) => {
+  console.log('[LCQ-RN] Replies.setPushNotificationRegistrationTokenAndroid called', { token });
   if (Platform.OS === 'android') {
     NativeReplies.setPushNotificationRegistrationToken(token);
   }
@@ -96,6 +105,7 @@ export const setPushNotificationRegistrationTokenAndroid = (token: string) => {
  * @param data the data bundle related to Luciq
  */
 export const showNotificationAndroid = (data: Record<string, string>) => {
+  console.log('[LCQ-RN] Replies.showNotificationAndroid called', { data });
   if (Platform.OS === 'android') {
     NativeReplies.showNotification(data);
   }
@@ -107,6 +117,7 @@ export const showNotificationAndroid = (data: Record<string, string>) => {
  * @param resourceId the notification icon resource ID
  */
 export const setNotificationIconAndroid = (resourceId: number) => {
+  console.log('[LCQ-RN] Replies.setNotificationIconAndroid called', { resourceId });
   if (Platform.OS === 'android') {
     NativeReplies.setNotificationIcon(resourceId);
   }
@@ -119,6 +130,7 @@ export const setNotificationIconAndroid = (resourceId: number) => {
  * @param id an id to a notification channel that notifications
  */
 export const setPushNotificationChannelIdAndroid = (id: string) => {
+  console.log('[LCQ-RN] Replies.setPushNotificationChannelIdAndroid called', { id });
   if (Platform.OS === 'android') {
     NativeReplies.setPushNotificationChannelId(id);
   }
@@ -131,6 +143,7 @@ export const setPushNotificationChannelIdAndroid = (id: string) => {
  * @param isEnabled desired state of conversation sounds
  */
 export const setSystemReplyNotificationSoundEnabledAndroid = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] Replies.setSystemReplyNotificationSoundEnabledAndroid called', { isEnabled });
   if (Platform.OS === 'android') {
     NativeReplies.setSystemReplyNotificationSoundEnabled(isEnabled);
   }

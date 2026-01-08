@@ -8,6 +8,7 @@ import { NativeLuciq } from '../native/NativeLuciq';
  * @param isEnabled
  */
 export const setEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] APM.setEnabled called', { isEnabled });
   NativeAPM.setEnabled(isEnabled);
 };
 
@@ -17,6 +18,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * @param isEnabled
  */
 export const setAppLaunchEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] APM.setAppLaunchEnabled called', { isEnabled });
   NativeAPM.setAppLaunchEnabled(isEnabled);
 };
 
@@ -26,6 +28,7 @@ export const setAppLaunchEnabled = (isEnabled: boolean) => {
  * You can then view this data with the automatic cold app launch.
  */
 export const endAppLaunch = () => {
+  console.log('[LCQ-RN] APM.endAppLaunch called');
   NativeAPM.endAppLaunch();
 };
 
@@ -34,6 +37,7 @@ export const endAppLaunch = () => {
  * @param isEnabled - a boolean indicates either iOS monitoring is enabled or disabled.
  */
 export const setNetworkEnabledIOS = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] APM.setNetworkEnabledIOS called', { isEnabled });
   if (Platform.OS === 'ios') {
     NativeLuciq.setNetworkLoggingEnabled(isEnabled);
   }
@@ -44,6 +48,7 @@ export const setNetworkEnabledIOS = (isEnabled: boolean) => {
  * @param isEnabled
  */
 export const setAutoUITraceEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] APM.setAutoUITraceEnabled called', { isEnabled });
   NativeAPM.setAutoUITraceEnabled(isEnabled);
 };
 
@@ -59,6 +64,7 @@ export const setAutoUITraceEnabled = (isEnabled: boolean) => {
  *               and the Luciq SDK is initialized.
  */
 export const startFlow = (name: string) => {
+  console.log('[LCQ-RN] APM.startFlow called', { name });
   NativeAPM.startFlow(name);
 };
 
@@ -68,6 +74,7 @@ export const startFlow = (name: string) => {
  * @param name - The name of the AppFlow to end. It cannot be an empty string or null.
  */
 export const endFlow = (name: string) => {
+  console.log('[LCQ-RN] APM.endFlow called', { name });
   NativeAPM.endFlow(name);
 };
 
@@ -89,6 +96,7 @@ export const endFlow = (name: string) => {
  */
 
 export const setFlowAttribute = (name: string, key: string, value?: string | null) => {
+  console.log('[LCQ-RN] APM.setFlowAttribute called', { name, key, value });
   NativeAPM.setFlowAttribute(name, key, value);
 };
 
@@ -99,6 +107,7 @@ export const setFlowAttribute = (name: string, key: string, value?: string | nul
  * the specific UI trace within the application.
  */
 export const startUITrace = (name: string) => {
+  console.log('[LCQ-RN] APM.startUITrace called', { name });
   NativeAPM.startUITrace(name);
 };
 
@@ -106,6 +115,7 @@ export const startUITrace = (name: string) => {
  * Ends the currently running custom trace.
  */
 export const endUITrace = () => {
+  console.log('[LCQ-RN] APM.endUITrace called');
   NativeAPM.endUITrace();
 };
 
@@ -113,6 +123,7 @@ export const endUITrace = () => {
  * Used for internal testing.
  */
 export const _lcqSleep = () => {
+  console.log('[LCQ-RN] APM._lcqSleep called');
   NativeAPM.lcqSleep();
 };
 
@@ -121,5 +132,6 @@ export const _lcqSleep = () => {
  * @param isEnabled
  */
 export const setScreenRenderingEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] APM.setScreenRenderingEnabled called', { isEnabled });
   NativeAPM.setScreenRenderingEnabled(isEnabled);
 };

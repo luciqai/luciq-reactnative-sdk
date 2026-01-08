@@ -53,6 +53,7 @@ let shouldEnableNativeInterception = false; // For Android: used to disable APM 
  * @param isEnabled A boolean to enable/disable Luciq.
  */
 export const setEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] Luciq.setEnabled called', { isEnabled });
   NativeLuciq.setEnabled(isEnabled);
 };
 
@@ -81,6 +82,7 @@ function reportCurrentViewForAndroid(screenName: string | null) {
  * @param config SDK configurations. See {@link LuciqConfig} for more info.
  */
 export const init = (config: LuciqConfig) => {
+  console.log('[LCQ-RN] Luciq.init called', { config });
   if (Platform.OS === 'android') {
     // Add android feature flags listener for android
     registerFeatureFlagsListener();
@@ -127,6 +129,7 @@ export const init = (config: LuciqConfig) => {
  * @param appVariant the current App variant name
  */
 export const setAppVariant = (appVariant: string) => {
+  console.log('[LCQ-RN] Luciq.setAppVariant called', { appVariant });
   NativeLuciq.setAppVariant(appVariant);
 };
 
@@ -328,6 +331,7 @@ function addOnFeatureUpdatedListener(config: LuciqConfig) {
  * @deprecated Use {@link setOverAirVersion} instead.
  */
 export const setCodePushVersion = (version: string) => {
+  console.log('[LCQ-RN] Luciq.setCodePushVersion called', { version });
   NativeLuciq.setCodePushVersion(version);
 };
 
@@ -337,6 +341,7 @@ export const setCodePushVersion = (version: string) => {
  *
  */
 export const setOverAirVersion = (OTAserviceVersion: OverAirUpdate) => {
+  console.log('[LCQ-RN] Luciq.setOverAirVersion called', { OTAserviceVersion });
   NativeLuciq.setOverAirVersion(OTAserviceVersion);
 };
 
@@ -347,6 +352,7 @@ export const setOverAirVersion = (OTAserviceVersion: OverAirUpdate) => {
  * @param data A string to be attached to each report, with a maximum size of 1,000 characters.
  */
 export const setUserData = (data: string) => {
+  console.log('[LCQ-RN] Luciq.setUserData called', { data });
   NativeLuciq.setUserData(data);
 };
 
@@ -358,6 +364,7 @@ export const setUserData = (data: string) => {
  * @param isEnabled A boolean to set user steps tracking to being enabled or disabled.
  */
 export const setTrackUserSteps = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] Luciq.setTrackUserSteps called', { isEnabled });
   if (Platform.OS === 'ios') {
     NativeLuciq.setTrackUserSteps(isEnabled);
   }
@@ -369,6 +376,7 @@ export const setTrackUserSteps = (isEnabled: boolean) => {
  * Xcode's console is enabled or not.
  */
 export const setLCQLogPrintsToConsole = (printsToConsole: boolean) => {
+  console.log('[LCQ-RN] Luciq.setLCQLogPrintsToConsole called', { printsToConsole });
   if (Platform.OS === 'ios') {
     NativeLuciq.setLCQLogPrintsToConsole(printsToConsole);
   }
@@ -380,6 +388,7 @@ export const setLCQLogPrintsToConsole = (printsToConsole: boolean) => {
  * @param isEnabled A boolean parameter to enable or disable the feature.
  */
 export const setSessionProfilerEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] Luciq.setSessionProfilerEnabled called', { isEnabled });
   NativeLuciq.setSessionProfilerEnabled(isEnabled);
 };
 
@@ -390,6 +399,7 @@ export const setSessionProfilerEnabled = (isEnabled: boolean) => {
  * @param sdkLocale A locale to set the SDK to.
  */
 export const setLocale = (sdkLocale: Locale) => {
+  console.log('[LCQ-RN] Luciq.setLocale called', { sdkLocale });
   NativeLuciq.setLocale(sdkLocale);
 };
 
@@ -398,6 +408,7 @@ export const setLocale = (sdkLocale: Locale) => {
  * @param sdkTheme
  */
 export const setColorTheme = (sdkTheme: ColorTheme) => {
+  console.log('[LCQ-RN] Luciq.setColorTheme called', { sdkTheme });
   NativeLuciq.setColorTheme(sdkTheme);
 };
 
@@ -410,6 +421,7 @@ export const setColorTheme = (sdkTheme: ColorTheme) => {
  * @deprecated Please migrate to the new UI customization API: {@link setTheme}
  */
 export const setPrimaryColor = (color: string) => {
+  console.log('[LCQ-RN] Luciq.setPrimaryColor called', { color });
   NativeLuciq.setTheme({ primaryColor: color });
 };
 
@@ -419,6 +431,7 @@ export const setPrimaryColor = (color: string) => {
  * @param tags An array of tags to append to current tags.
  */
 export const appendTags = (tags: string[]) => {
+  console.log('[LCQ-RN] Luciq.appendTags called', { tags });
   NativeLuciq.appendTags(tags);
 };
 
@@ -426,6 +439,7 @@ export const appendTags = (tags: string[]) => {
  * Manually removes all tags of reported feedback, bug or crash.
  */
 export const resetTags = () => {
+  console.log('[LCQ-RN] Luciq.resetTags called');
   NativeLuciq.resetTags();
 };
 
@@ -433,6 +447,7 @@ export const resetTags = () => {
  * Gets all tags of reported feedback, bug or crash.
  */
 export const getTags = async (): Promise<string[] | null> => {
+  console.log('[LCQ-RN] Luciq.getTags called');
   const tags = await NativeLuciq.getTags();
 
   return tags;
@@ -445,6 +460,7 @@ export const getTags = async (): Promise<string[] | null> => {
  * @param string String value to override the default one.
  */
 export const setString = (key: StringKey, string: string) => {
+  console.log('[LCQ-RN] Luciq.setString called', { key, string });
   // Suffix the repro steps list item numbering title with a # to unify the string key's
   // behavior between Android and iOS
   if (Platform.OS === 'android' && key === StringKey.reproStepsListItemNumberingTitle) {
@@ -464,6 +480,7 @@ export const setString = (key: StringKey, string: string) => {
  * @param [id] ID of the user to be set.
  */
 export const identifyUser = (email: string, name: string, id?: string) => {
+  console.log('[LCQ-RN] Luciq.identifyUser called', { email, name, id });
   NativeLuciq.identifyUser(email, name, id);
 };
 
@@ -473,6 +490,7 @@ export const identifyUser = (email: string, name: string, id?: string) => {
  * It also reset the chats on device and removes user attributes, user data and completed surveys.
  */
 export const logOut = () => {
+  console.log('[LCQ-RN] Luciq.logOut called');
   NativeLuciq.logOut();
 };
 
@@ -482,6 +500,7 @@ export const logOut = () => {
  * @param name Event name.
  */
 export const logUserEvent = (name: string) => {
+  console.log('[LCQ-RN] Luciq.logUserEvent called', { name });
   NativeLuciq.logUserEvent(name);
 };
 
@@ -496,6 +515,7 @@ export const logUserEvent = (name: string) => {
  * @param message the message
  */
 export const logVerbose = (message: string) => {
+  console.log('[LCQ-RN] Luciq.logVerbose called', { message });
   if (!message) {
     return;
   }
@@ -514,6 +534,7 @@ export const logVerbose = (message: string) => {
  * @param message the message
  */
 export const logInfo = (message: string) => {
+  console.log('[LCQ-RN] Luciq.logInfo called', { message });
   if (!message) {
     return;
   }
@@ -532,6 +553,7 @@ export const logInfo = (message: string) => {
  * @param message the message
  */
 export const logDebug = (message: string) => {
+  console.log('[LCQ-RN] Luciq.logDebug called', { message });
   if (!message) {
     return;
   }
@@ -550,6 +572,7 @@ export const logDebug = (message: string) => {
  * @param message the message
  */
 export const logError = (message: string) => {
+  console.log('[LCQ-RN] Luciq.logError called', { message });
   if (!message) {
     return;
   }
@@ -568,6 +591,7 @@ export const logError = (message: string) => {
  * @param message the message
  */
 export const logWarn = (message: string) => {
+  console.log('[LCQ-RN] Luciq.logWarn called', { message });
   if (!message) {
     return;
   }
@@ -579,6 +603,7 @@ export const logWarn = (message: string) => {
  * Clear all Luciq logs, console logs, network logs and user steps.
  */
 export const clearLogs = () => {
+  console.log('[LCQ-RN] Luciq.clearLogs called');
   NativeLuciq.clearLogs();
 };
 
@@ -597,6 +622,7 @@ export const clearLogs = () => {
  * ```
  */
 export const setReproStepsConfig = (config: ReproConfig) => {
+  console.log('[LCQ-RN] Luciq.setReproStepsConfig called', { config });
   let bug = config.bug ?? ReproStepsMode.enabled;
   let crash = config.crash ?? ReproStepsMode.enabledWithNoScreenshots;
   let sessionReplay = config.sessionReplay ?? ReproStepsMode.enabled;
@@ -617,6 +643,7 @@ export const setReproStepsConfig = (config: ReproConfig) => {
  * @param value the value
  */
 export const setUserAttribute = (key: string, value: string) => {
+  console.log('[LCQ-RN] Luciq.setUserAttribute called', { key, value });
   if (!key || typeof key !== 'string' || typeof value !== 'string') {
     Logger.error(LuciqConstants.SET_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE);
     return;
@@ -630,6 +657,7 @@ export const setUserAttribute = (key: string, value: string) => {
  * @param key The attribute key as string
  */
 export const getUserAttribute = async (key: string): Promise<string | null> => {
+  console.log('[LCQ-RN] Luciq.getUserAttribute called', { key });
   const attribute = await NativeLuciq.getUserAttribute(key);
 
   return attribute;
@@ -642,6 +670,7 @@ export const getUserAttribute = async (key: string): Promise<string | null> => {
  * @see {@link setUserAttribute}
  */
 export const removeUserAttribute = (key: string) => {
+  console.log('[LCQ-RN] Luciq.removeUserAttribute called', { key });
   if (!key || typeof key !== 'string') {
     Logger.error(LuciqConstants.REMOVE_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE);
 
@@ -655,6 +684,7 @@ export const removeUserAttribute = (key: string) => {
  * set user attributes, or an empty dictionary if no user attributes have been set.
  */
 export const getAllUserAttributes = async (): Promise<Record<string, string>> => {
+  console.log('[LCQ-RN] Luciq.getAllUserAttributes called');
   const attributes = await NativeLuciq.getAllUserAttributes();
 
   return attributes;
@@ -664,6 +694,7 @@ export const getAllUserAttributes = async (): Promise<Record<string, string>> =>
  * Clears all user attributes if exists.
  */
 export const clearAllUserAttributes = () => {
+  console.log('[LCQ-RN] Luciq.clearAllUserAttributes called');
   NativeLuciq.clearAllUserAttributes();
 };
 
@@ -672,6 +703,7 @@ export const clearAllUserAttributes = () => {
  * @param mode An enum to set the welcome message mode to live, or beta.
  */
 export const showWelcomeMessage = (mode: WelcomeMessageMode) => {
+  console.log('[LCQ-RN] Luciq.showWelcomeMessage called', { mode });
   NativeLuciq.showWelcomeMessageWithMode(mode);
 };
 
@@ -680,6 +712,7 @@ export const showWelcomeMessage = (mode: WelcomeMessageMode) => {
  * @param mode An enum to set the welcome message mode to live, beta or disabled.
  */
 export const setWelcomeMessageMode = (mode: WelcomeMessageMode) => {
+  console.log('[LCQ-RN] Luciq.setWelcomeMessageMode called', { mode });
   NativeLuciq.setWelcomeMessageMode(mode);
 };
 
@@ -689,6 +722,7 @@ export const setWelcomeMessageMode = (mode: WelcomeMessageMode) => {
  * @param fileName
  */
 export const addFileAttachment = (filePath: string, fileName: string) => {
+  console.log('[LCQ-RN] Luciq.addFileAttachment called', { filePath, fileName });
   if (Platform.OS === 'android') {
     NativeLuciq.setFileAttachment(filePath, fileName);
   } else {
@@ -701,6 +735,7 @@ export const addFileAttachment = (filePath: string, fileName: string) => {
  * @param viewRef the ref of the component to hide
  */
 export const addPrivateView = (viewRef: number | React.Component | React.ComponentClass) => {
+  console.log('[LCQ-RN] Luciq.addPrivateView called', { viewRef });
   const nativeTag = findNodeHandle(viewRef);
   NativeLuciq.addPrivateView(nativeTag);
 };
@@ -711,6 +746,7 @@ export const addPrivateView = (viewRef: number | React.Component | React.Compone
  * @param viewRef the ref of the component to remove from hidden views
  */
 export const removePrivateView = (viewRef: number | React.Component | React.ComponentClass) => {
+  console.log('[LCQ-RN] Luciq.removePrivateView called', { viewRef });
   const nativeTag = findNodeHandle(viewRef);
   NativeLuciq.removePrivateView(nativeTag);
 };
@@ -719,10 +755,12 @@ export const removePrivateView = (viewRef: number | React.Component | React.Comp
  * Shows default Luciq prompt.
  */
 export const show = () => {
+  console.log('[LCQ-RN] Luciq.show called');
   NativeLuciq.show();
 };
 
 export const onReportSubmitHandler = (handler?: (report: Report) => void) => {
+  console.log('[LCQ-RN] Luciq.onReportSubmitHandler called');
   emitter.addListener(NativeEvents.PRESENDING_HANDLER, (report) => {
     const { tags, consoleLogs, luciqLogs, userAttributes, fileAttachments } = report;
     const reportObj = new Report(tags, consoleLogs, luciqLogs, userAttributes, fileAttachments);
@@ -737,6 +775,7 @@ export const onNavigationStateChange = (
   currentState: NavigationStateV4,
   _action: NavigationAction,
 ) => {
+  console.log('[LCQ-RN] Luciq.onNavigationStateChange called', { prevState, currentState, _action });
   const currentScreen = LuciqUtils.getActiveRouteName(currentState);
   const prevScreen = LuciqUtils.getActiveRouteName(prevState);
 
@@ -757,6 +796,7 @@ export const onNavigationStateChange = (
 };
 
 export const onStateChange = (state?: NavigationStateV5) => {
+  console.log('[LCQ-RN] Luciq.onStateChange called', { state });
   if (!state) {
     return;
   }
@@ -785,12 +825,14 @@ export const onStateChange = (state?: NavigationStateV5) => {
 export const setNavigationListener = (
   navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
 ) => {
+  console.log('[LCQ-RN] Luciq.setNavigationListener called', { navigationRef });
   return navigationRef.addListener('state', () => {
     onStateChange(navigationRef.getRootState());
   });
 };
 
 export const reportScreenChange = (screenName: string) => {
+  console.log('[LCQ-RN] Luciq.reportScreenChange called', { screenName });
   NativeLuciq.reportScreenChange(screenName);
 };
 
@@ -799,6 +841,7 @@ export const reportScreenChange = (screenName: string) => {
  * @param featureFlags An array of feature flags to add to the next report.
  */
 export const addFeatureFlags = (featureFlags: FeatureFlag[]) => {
+  console.log('[LCQ-RN] Luciq.addFeatureFlags called', { featureFlags });
   const entries = featureFlags.map((item) => [item.name, item.variant || '']);
   const flags = Object.fromEntries(entries);
   NativeLuciq.addFeatureFlags(flags);
@@ -808,6 +851,7 @@ export const addFeatureFlags = (featureFlags: FeatureFlag[]) => {
  * Add a feature flag to the to next report.
  */
 export const addFeatureFlag = (featureFlag: FeatureFlag) => {
+  console.log('[LCQ-RN] Luciq.addFeatureFlag called', { featureFlag });
   addFeatureFlags([featureFlag]);
 };
 
@@ -816,6 +860,7 @@ export const addFeatureFlag = (featureFlag: FeatureFlag) => {
  * @param featureFlags An array of  feature flags to remove from the next report.
  */
 export const removeFeatureFlags = (featureFlags: string[]) => {
+  console.log('[LCQ-RN] Luciq.removeFeatureFlags called', { featureFlags });
   NativeLuciq.removeFeatureFlags(featureFlags);
 };
 
@@ -824,6 +869,7 @@ export const removeFeatureFlags = (featureFlags: string[]) => {
  * @param name the name of the feature flag to remove from the next report.
  */
 export const removeFeatureFlag = (name: string) => {
+  console.log('[LCQ-RN] Luciq.removeFeatureFlag called', { name });
   removeFeatureFlags([name]);
 };
 
@@ -831,6 +877,7 @@ export const removeFeatureFlag = (name: string) => {
  * Clear all feature flags
  */
 export const removeAllFeatureFlags = () => {
+  console.log('[LCQ-RN] Luciq.removeAllFeatureFlags called');
   NativeLuciq.removeAllFeatureFlags();
 };
 
@@ -838,6 +885,7 @@ export const removeAllFeatureFlags = () => {
  * This API has to be call when using custom app rating prompt
  */
 export const willRedirectToStore = () => {
+  console.log('[LCQ-RN] Luciq.willRedirectToStore called');
   NativeLuciq.willRedirectToStore();
 };
 
@@ -845,10 +893,12 @@ export const willRedirectToStore = () => {
  * This API has be called when changing the default Metro server port (8081) to exclude the DEV URL from network logging.
  */
 export const setMetroDevServerPort = (port: number) => {
+  console.log('[LCQ-RN] Luciq.setMetroDevServerPort called', { port });
   LuciqRNConfig.metroDevServerPort = port.toString();
 };
 
 export const componentDidAppearListener = (event: ComponentDidAppearEvent) => {
+  console.log('[LCQ-RN] Luciq.componentDidAppearListener called', { event });
   if (_isFirstScreen) {
     _lastScreen = event.componentName;
     _isFirstScreen = false;
@@ -872,6 +922,7 @@ export const _registerFeatureFlagsChangeListener = (
     networkBodyLimit: number;
   }) => void,
 ) => {
+  console.log('[LCQ-RN] Luciq._registerFeatureFlagsChangeListener called');
   emitter.addListener(NativeEvents.ON_FEATURE_FLAGS_CHANGE, (payload) => {
     handler(payload);
   });
@@ -883,6 +934,7 @@ export const _registerFeatureFlagsChangeListener = (
  * @param autoMaskingTypes The masking type to be applied.
  */
 export const enableAutoMasking = (autoMaskingTypes: AutoMaskingType[]) => {
+  console.log('[LCQ-RN] Luciq.enableAutoMasking called', { autoMaskingTypes });
   NativeLuciq.enableAutoMasking(autoMaskingTypes);
 };
 
@@ -921,6 +973,7 @@ export const enableAutoMasking = (autoMaskingTypes: AutoMaskingType[]) => {
  * ```
  */
 export const setTheme = (theme: ThemeConfig) => {
+  console.log('[LCQ-RN] Luciq.setTheme called', { theme });
   NativeLuciq.setTheme(theme);
 };
 /**
@@ -928,6 +981,7 @@ export const setTheme = (theme: ThemeConfig) => {
  * @param isEnabled A boolean to enable/disable setFullscreen.
  */
 export const setFullscreen = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] Luciq.setFullscreen called', { isEnabled });
   if (Platform.OS === 'android') {
     NativeLuciq.setFullscreen(isEnabled);
   }
