@@ -40,7 +40,7 @@ export const App: React.FC = () => {
     if (data.OS === 'OS Level 34') {
       return true;
     }
-    return false;
+    return true;
   };
 
   const navigationRef = useNavigationContainerRef();
