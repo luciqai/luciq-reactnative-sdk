@@ -20,7 +20,10 @@ export const setEnabled = (isEnabled: boolean) => {
  * @param types An enum that indicates which action types will have the isEmailFieldRequired
  */
 export const setEmailFieldRequired = (isEmailFieldRequired: boolean, type: ActionType) => {
-  console.log('[LCQ-RN] FeatureRequests.setEmailFieldRequired called', { isEmailFieldRequired, type });
+  console.log('[LCQ-RN] FeatureRequests.setEmailFieldRequired called', {
+    isEmailFieldRequired,
+    type,
+  });
   NativeFeatureRequests.setEmailFieldRequiredForFeatureRequests(isEmailFieldRequired, [
     type,
   ] as ActionType[]);

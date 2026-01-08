@@ -172,7 +172,9 @@ export const setAutoScreenRecordingDurationIOS = (maxDuration: number) => {
 export const setVideoRecordingFloatingButtonPosition = (
   buttonPosition: RecordingButtonPosition,
 ) => {
-  console.log('[LCQ-RN] BugReporting.setVideoRecordingFloatingButtonPosition called', { buttonPosition });
+  console.log('[LCQ-RN] BugReporting.setVideoRecordingFloatingButtonPosition called', {
+    buttonPosition,
+  });
   NativeBugReporting.setVideoRecordingFloatingButtonPosition(buttonPosition);
 };
 
@@ -200,7 +202,13 @@ export const addUserConsent = (
   checked: boolean,
   actionType?: userConsentActionType,
 ) => {
-  console.log('[LCQ-RN] BugReporting.addUserConsent called', { key, description, mandatory, checked, actionType });
+  console.log('[LCQ-RN] BugReporting.addUserConsent called', {
+    key,
+    description,
+    mandatory,
+    checked,
+    actionType,
+  });
   NativeBugReporting.addUserConsent(key, description, mandatory, checked, actionType);
 };
 /**
@@ -243,7 +251,12 @@ export const setEnabledAttachmentTypes = (
   galleryImage: boolean,
   screenRecording: boolean,
 ) => {
-  console.log('[LCQ-RN] BugReporting.setEnabledAttachmentTypes called', { screenshot, extraScreenshot, galleryImage, screenRecording });
+  console.log('[LCQ-RN] BugReporting.setEnabledAttachmentTypes called', {
+    screenshot,
+    extraScreenshot,
+    galleryImage,
+    screenRecording,
+  });
   NativeBugReporting.setEnabledAttachmentTypes(
     screenshot,
     extraScreenshot,
@@ -268,7 +281,10 @@ export const setDisclaimerText = (text: string) => {
  * @platform iOS
  */
 export const setCommentMinimumCharacterCount = (limit: number, reportTypes?: ReportType[]) => {
-  console.log('[LCQ-RN] BugReporting.setCommentMinimumCharacterCount called', { limit, reportTypes });
+  console.log('[LCQ-RN] BugReporting.setCommentMinimumCharacterCount called', {
+    limit,
+    reportTypes,
+  });
   if (Platform.OS === 'ios') {
     NativeBugReporting.setCommentMinimumCharacterCount(limit, reportTypes ?? []);
   }

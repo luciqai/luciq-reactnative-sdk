@@ -143,7 +143,9 @@ export const setPushNotificationChannelIdAndroid = (id: string) => {
  * @param isEnabled desired state of conversation sounds
  */
 export const setSystemReplyNotificationSoundEnabledAndroid = (isEnabled: boolean) => {
-  console.log('[LCQ-RN] Replies.setSystemReplyNotificationSoundEnabledAndroid called', { isEnabled });
+  console.log('[LCQ-RN] Replies.setSystemReplyNotificationSoundEnabledAndroid called', {
+    isEnabled,
+  });
   if (Platform.OS === 'android') {
     NativeReplies.setSystemReplyNotificationSoundEnabled(isEnabled);
   }

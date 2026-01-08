@@ -775,7 +775,11 @@ export const onNavigationStateChange = (
   currentState: NavigationStateV4,
   _action: NavigationAction,
 ) => {
-  console.log('[LCQ-RN] Luciq.onNavigationStateChange called', { prevState, currentState, _action });
+  console.log('[LCQ-RN] Luciq.onNavigationStateChange called', {
+    prevState,
+    currentState,
+    _action,
+  });
   const currentScreen = LuciqUtils.getActiveRouteName(currentState);
   const prevScreen = LuciqUtils.getActiveRouteName(prevState);
 
