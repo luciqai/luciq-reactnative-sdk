@@ -1,6 +1,6 @@
 # Changelog
 
-## [19.1.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.3.0...19.0.0)
+## [19.1.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.1.0...19.0.0)
 
 ### Added
 
