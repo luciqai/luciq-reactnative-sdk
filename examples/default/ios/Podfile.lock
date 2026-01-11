@@ -31,7 +31,7 @@ PODS:
   - hermes-engine (0.75.4):
     - hermes-engine/Pre-built (= 0.75.4)
   - hermes-engine/Pre-built (0.75.4)
-  - Luciq (19.1.0)
+  - Luciq (19.3.0)
   - OCMock (3.9.4)
   - RCT-Folly (2024.01.01.00):
     - boost
@@ -1626,7 +1626,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - RNLuciq (18.2.0):
-    - Luciq (= 19.1.0)
+    - Luciq (= 19.3.0)
     - React-Core
   - RNReanimated (3.16.1):
     - DoubleConversion
@@ -2022,7 +2022,7 @@ SPEC CHECKSUMS:
   Google-Maps-iOS-Utils: f77eab4c4326d7e6a277f8e23a0232402731913a
   GoogleMaps: 032f676450ba0779bd8ce16840690915f84e57ac
   hermes-engine: ea92f60f37dba025e293cbe4b4a548fd26b610a0
-  Luciq: 361dd60882645e0c431a005a7512ea137181d21b
+  Luciq: 284cbf278a471929c2080547ee521dc06bf7f32c
   OCMock: 589f2c84dacb1f5aaf6e4cec1f292551fe748e74
   RCT-Folly: 4464f4d875961fce86008d45f4ecf6cef6de0740
   RCTDeprecation: 726d24248aeab6d7180dac71a936bbca6a994ed1
