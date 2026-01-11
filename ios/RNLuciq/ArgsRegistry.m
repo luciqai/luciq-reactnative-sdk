@@ -25,6 +25,8 @@
 
     [all addEntriesFromDictionary:ArgsRegistry.autoMaskingTypes];
     [all addEntriesFromDictionary:ArgsRegistry.userConsentActionTypes];
+    [all addEntriesFromDictionary:ArgsRegistry.capturingModes];
+    [all addEntriesFromDictionary:ArgsRegistry.screenshotQualities];
 
     return all;
 }
@@ -272,6 +274,22 @@
         @"textInputs" : @(LCQAutoMaskScreenshotOptionTextInputs),
         @"media" : @(LCQAutoMaskScreenshotOptionMedia),
         @"none" : @(LCQAutoMaskScreenshotOptionMaskNothing)
+    };
+}
+
++ (ArgsDictionary *)capturingModes {
+    return @{
+        @"capturingModeNavigation" : @(LCQScreenshotCapturingModeNavigation),
+        @"capturingModeInteractions" : @(LCQScreenshotCapturingModeInteraction),
+        @"capturingModeFrequency" : @(LCQScreenshotCapturingModeFrequency)
+    };
+}
+
++ (ArgsDictionary *)screenshotQualities {
+    return @{
+        @"screenshotQualityHigh" : @(LCQScreenshotQualityModeHigh),
+        @"screenshotQualityNormal" : @(LCQScreenshotQualityModeNormal),
+        @"screenshotQualityGreyscale" : @(LCQScreenshotQualityModeGreyScale)
     };
 }
 @end

@@ -130,6 +130,22 @@
   OCMVerify([mock endUITrace]);
 }
 
+- (void) testSetScreenRenderEnabled {
+    id mock = OCMClassMock([LCQAPM class]);
+    BOOL isEnabled = YES;
 
+    [self.luciqBridge setScreenRenderingEnabled:isEnabled];
+
+    OCMVerify([mock setScreenRenderingEnabled:YES]);
+}
+
+- (void) testSetScreenRenderDisabled {
+    id mock = OCMClassMock([LCQAPM class]);
+    BOOL isEnabled = NO;
+
+    [self.luciqBridge setScreenRenderingEnabled:isEnabled];
+
+    OCMVerify([mock setScreenRenderingEnabled:NO]);
+}
 
 @end

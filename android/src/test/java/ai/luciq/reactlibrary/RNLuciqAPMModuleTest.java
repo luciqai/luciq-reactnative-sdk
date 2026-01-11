@@ -166,5 +166,13 @@ public class RNLuciqAPMModuleTest {
         APM.endUITrace();
     }
 
+    @Test
+    public void given$setScreenRenderEnabled_whenQuery_thenShouldCallNativeApiWithEnabled() {
+        apmModule.setScreenRenderingEnabled(true);
+        // then
+        verify(APM.class, times(1));
+        APM.setScreenRenderingEnabled(true);
+    }
+
 
 }

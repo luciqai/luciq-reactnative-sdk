@@ -21,4 +21,6 @@
 - (void)startUITrace:(NSString *)name;
 - (void)endUITrace;
 
+- (void)setScreenRenderingEnabled:(BOOL)isEnabled;
+
 @end

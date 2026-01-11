@@ -115,3 +115,11 @@ export const endUITrace = () => {
 export const _lcqSleep = () => {
   NativeAPM.lcqSleep();
 };
+
+/**
+ * Enables or disables Screen Render feature
+ * @param isEnabled
+ */
+export const setScreenRenderingEnabled = (isEnabled: boolean) => {
+  NativeAPM.setScreenRenderingEnabled(isEnabled);
+};

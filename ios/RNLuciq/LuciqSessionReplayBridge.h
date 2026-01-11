@@ -25,6 +25,12 @@
 
 - (void)evaluateSync:(BOOL)result;
 
+- (void)setCapturingMode:(LCQScreenshotCapturingMode)mode;
+
+- (void)setScreenshotQuality:(LCQScreenshotQualityMode)quality;
+
+- (void)setScreenshotCaptureInterval:(NSInteger)intervalMs;
+
 @property (atomic, copy) SessionEvaluationCompletion sessionEvaluationCompletion;
 
 @end

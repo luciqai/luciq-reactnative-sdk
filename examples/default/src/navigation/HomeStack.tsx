@@ -55,6 +55,8 @@ import {
 import { GoogleMapsScreen } from '../screens/user-steps/GoogleMapsScreen';
 import { LargeImageListScreen } from '../screens/user-steps/LargeImageListScreen';
 import { APMScreen } from '../screens/apm/APMScreen';
+import { CustomUITraceScreen } from '../screens/apm/CustomUITraceScreen';
+import { NetworkScreen } from '../screens/apm/network/NetworkScreen';
 import { FlowsScreen } from '../screens/apm/FlowsScreen';
 import { SessionReplayScreen } from '../screens/SessionReplayScreen';
 import { LegacyModeScreen } from '../screens/LegacyModeScreen';
@@ -62,6 +64,8 @@ import { HttpScreen } from '../screens/apm/HttpScreen';
 import { WebViewsScreen } from '../screens/apm/webViews/WebViewsScreen';
 import { FullWebViewsScreen } from '../screens/apm/webViews/FullWebViewsScreen';
 import { PartialWebViewsScreen } from '../screens/apm/webViews/PartialWebViewsScreen';
+import ScreenRender from '../screens/apm/ScreenRender';
+
 import {
   InvocationEventsScreen,
   type InvocationEventsScreenProp,
@@ -85,7 +89,6 @@ import {
   UserStepsStateScreen,
   type UserStepsStateScreenProp,
 } from '../screens/settings/UserStepsStateScreen';
-import { NetworkScreen } from '../screens/apm/network/NetworkScreen';
 
 export type HomeStackParamList = {
   Home: undefined;
@@ -117,7 +120,7 @@ export type HomeStackParamList = {
   BasicComponents: undefined;
   ScrollView: undefined;
   FlatList: undefined;
-  ComplexViews: undefined;
+  ComplexViews: { initialDepth?: number; initialBreadth?: number } | undefined;
   SectionList: undefined;
   Gestures: undefined;
   GoogleMapsScreen: undefined;
@@ -130,14 +133,14 @@ export type HomeStackParamList = {
   // APM //
   APM: undefined;
   NetworkTraces: undefined;
-  ExecutionTraces: undefined;
+  CustomUITraces: undefined;
   AppFlows: undefined;
   WebViews: undefined;
   FullWebViews: undefined;
   PartialWebViews: undefined;
   NetworkState: NetworkStateScreenProp;
   UserStepsState: UserStepsStateScreenProp;
-
+  ScreenRender: undefined;
   CallbackScreen: undefined;
 };
 
@@ -293,6 +296,7 @@ export const HomeStackNavigator: React.FC = () => {
       <HomeStack.Screen name="Gestures" component={GesturesScreen} />
       <HomeStack.Screen name="APM" component={APMScreen} />
       <HomeStack.Screen name="NetworkTraces" component={NetworkScreen} />
+      <HomeStack.Screen name="CustomUITraces" component={CustomUITraceScreen} />
       <HomeStack.Screen name="AppFlows" component={FlowsScreen} />
       <HomeStack.Screen
         name="LegacyMode"
@@ -320,7 +324,11 @@ export const HomeStackNavigator: React.FC = () => {
         component={CallbackScreen}
         options={{ title: 'callbackHandler' }}
       />
-
+      <HomeStack.Screen
+        name="ScreenRender"
+        component={ScreenRender}
+        options={{ title: 'ScreenRender' }}
+      />
       <HomeStack.Screen
         name="NetworkState"
         component={NetworkStateScreen}

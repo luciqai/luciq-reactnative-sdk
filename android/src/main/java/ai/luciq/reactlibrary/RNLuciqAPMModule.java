@@ -1,6 +1,8 @@
 
 package ai.luciq.reactlibrary;
 
+import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
+
 import android.os.SystemClock;
 import android.util.Log;
 
@@ -18,7 +20,6 @@ import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 import java.lang.reflect.Method;
-
 import java.util.HashMap;
 
 import javax.annotation.Nonnull;
@@ -389,4 +390,22 @@ public class RNLuciqAPMModule extends EventEmitterModule {
             e.printStackTrace();
         }
     }
+        /**
+         * Enables or disables screen rendering
+         *
+         * @param isEnabled boolean indicating enabled or disabled.
+         */
+        @ReactMethod
+        public void setScreenRenderingEnabled(boolean isEnabled) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        APM.setScreenRenderingEnabled(isEnabled);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
 }
