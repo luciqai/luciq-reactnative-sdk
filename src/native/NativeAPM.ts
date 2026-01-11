@@ -44,6 +44,9 @@ export interface ApmNativeModule extends NativeModule {
   startUITrace(name: string): void;
   endUITrace(): void;
   lcqSleep(): void;
+
+  // Screen Rendering //
+  setScreenRenderingEnabled(isEnabled: boolean): void;
 }
 
 export const NativeAPM = NativeModules.LCQAPM;

@@ -5,6 +5,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { SessionMetadata, WelcomeMessageMode } from '@luciq/react-native';
 import Luciq, {
+  APM,
+  CapturingMode,
   CrashReporting,
   InvocationEvent,
   LaunchType,
@@ -12,6 +14,7 @@ import Luciq, {
   NetworkInterceptionMode,
   NetworkLogger,
   ReproStepsMode,
+  ScreenshotQuality,
   SessionReplay,
   OverAirUpdateServices,
 } from '@luciq/react-native';
@@ -37,13 +40,18 @@ export const App: React.FC = () => {
     if (data.OS === 'OS Level 34') {
       return true;
     }
-    return false;
+    return true;
   };
 
   const navigationRef = useNavigationContainerRef();
 
   const initializeLuciq = () => {
     try {
+      // Configure video-like session replay (before SDK init for best results)
+      SessionReplay.setCapturingMode(CapturingMode.interactions);
+      SessionReplay.setScreenshotCaptureInterval(1000); // 1 FPS
+      SessionReplay.setScreenshotQuality(ScreenshotQuality.greyscale);
+
       SessionReplay.setSyncCallback((data) => shouldSyncSession(data));
 
       Luciq.init({
@@ -65,6 +73,7 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     initializeLuciq();
+    APM.setScreenRenderingEnabled(true);
     NetworkLogger.setNetworkDataObfuscationHandler(async (networkData) => {
       networkData.url = `${networkData.url}/JS/Obfuscated`;
       return networkData;

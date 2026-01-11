@@ -18,6 +18,7 @@ import ai.luciq.library.sessionreplay.SessionReplay;
 import ai.luciq.library.sessionreplay.model.SessionMetadata;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
+import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -208,6 +209,56 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
         }
     }
 
+    @ReactMethod
+    public void setCapturingMode(final String mode) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Integer capturingMode = ArgsRegistry.capturingModes.get(mode);
+                    if (capturingMode != null) {
+                        SessionReplay.setCapturingMode(capturingMode);
+                    } else {
+                        Log.w("LCQSessionReplay", "Invalid capturing mode: " + mode);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
+    @ReactMethod
+    public void setScreenshotQuality(final String quality) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Integer screenshotQuality = ArgsRegistry.screenshotQualities.get(quality);
+                    if (screenshotQuality != null) {
+                        SessionReplay.setScreenshotQuality(screenshotQuality);
+                    } else {
+                        Log.w("LCQSessionReplay", "Invalid screenshot quality: " + quality);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    @ReactMethod
+    public void setScreenshotCaptureInterval(final int intervalMs) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    SessionReplay.setScreenshotCaptureInterval(intervalMs);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
 }

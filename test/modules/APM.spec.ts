@@ -101,4 +101,11 @@ describe('APM Module', () => {
     expect(NativeAPM.lcqSleep).toBeCalledTimes(1);
     expect(NativeAPM.lcqSleep).toBeCalledWith();
   });
+
+  it('should call the native method setScreenRenderEnabled', () => {
+    APM.setScreenRenderingEnabled(true);
+
+    expect(NativeAPM.setScreenRenderingEnabled).toBeCalledTimes(1);
+    expect(NativeAPM.setScreenRenderingEnabled).toBeCalledWith(true);
+  });
 });

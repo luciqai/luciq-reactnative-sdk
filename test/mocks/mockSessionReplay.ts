@@ -10,6 +10,9 @@ const mockSessionReplay: SessionReplayNativeModule = {
   getSessionReplayLink: jest.fn().mockReturnValue('link'),
   setSyncCallback: jest.fn(),
   evaluateSync: jest.fn(),
+  setCapturingMode: jest.fn(),
+  setScreenshotQuality: jest.fn(),
+  setScreenshotCaptureInterval: jest.fn(),
 };
 
 export default mockSessionReplay;
