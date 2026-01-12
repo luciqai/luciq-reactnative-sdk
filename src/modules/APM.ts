@@ -2,6 +2,12 @@ import { Platform } from 'react-native';
 
 import { NativeAPM } from '../native/NativeAPM';
 import { NativeLuciq } from '../native/NativeLuciq';
+import { ScreenLoadingManager } from './apm/ScreenLoadingManager';
+
+// Initialize Screen Loading on module load
+ScreenLoadingManager.initialize().catch((error) => {
+  console.error('[APM] Failed to initialize Screen Loading:', error);
+});
 
 /**
  * Enables or disables APM
@@ -123,3 +129,32 @@ export const _lcqSleep = () => {
 export const setScreenRenderingEnabled = (isEnabled: boolean) => {
   NativeAPM.setScreenRenderingEnabled(isEnabled);
 };
+
+/**
+ * Export Screen Loading functionality
+ */
+export { ScreenLoadingManager };
+
+/**
+ * Check if Screen Loading feature is enabled
+ * @returns Promise that resolves to true if the feature is enabled
+ */
+export async function isScreenLoadingEnabled(): Promise<boolean> {
+  return ScreenLoadingManager.isFeatureEnabled();
+}
+
+/**
+ * Exclude specific routes from automatic screen loading measurement
+ * @param routes Array of route names to exclude
+ */
+export function excludeScreenLoadingRoutes(routes: string[]): void {
+  ScreenLoadingManager.excludeRoutes(routes);
+}
+
+/**
+ * Include previously excluded routes back into screen loading measurement
+ * @param routes Array of route names to include (or empty to clear all exclusions)
+ */
+export function includeScreenLoadingRoutes(routes?: string[]): void {
+  ScreenLoadingManager.includeRoutes(routes);
+}

@@ -1,0 +1,197 @@
+import { NativeAPM } from '../../native/NativeAPM';
+
+export interface ScreenLoadingSpan {
+  spanId: string;
+  screenName: string;
+  startTimestamp: number;
+  endTimestamp?: number;
+  ttid?: number;
+  status: 'pending' | 'measuring' | 'completed' | 'error';
+  isManual: boolean;
+  attributes: Record<string, any>;
+}
+
+class ScreenLoadingManagerClass {
+  private activeSpans: Map<string, ScreenLoadingSpan> = new Map();
+  private isInitialized: boolean = false;
+  private isEnabled: boolean = false;
+  private maxConcurrentSpans: number = 50;
+  private excludedRoutes: Set<string> = new Set();
+
+  async initialize(): Promise<void> {
+    if (this.isInitialized) {
+      return;
+    }
+
+    try {
+      // Check feature flag
+      this.isEnabled = await NativeAPM.isScreenLoadingEnabled();
+
+      if (this.isEnabled) {
+        await NativeAPM.initScreenFrameTracking();
+        this.isInitialized = true;
+        console.log('[ScreenLoading] Manager initialized, feature enabled');
+      } else {
+        console.log('[ScreenLoading] Feature disabled by flag');
+      }
+    } catch (error) {
+      console.error('[ScreenLoading] Failed to initialize:', error);
+      this.isEnabled = false;
+    }
+  }
+
+  /**
+   * Exclude specific routes from automatic screen loading measurement
+   * @param routes Array of route names to exclude
+   */
+  excludeRoutes(routes: string[]): void {
+    routes.forEach((route) => this.excludedRoutes.add(route));
+    console.log('[ScreenLoading] Excluded routes:', Array.from(this.excludedRoutes));
+  }
+
+  /**
+   * Include previously excluded routes back into screen loading measurement
+   * @param routes Array of route names to include (or empty to clear all exclusions)
+   */
+  includeRoutes(routes?: string[]): void {
+    if (!routes || routes.length === 0) {
+      this.excludedRoutes.clear();
+      console.log('[ScreenLoading] Cleared all route exclusions');
+    } else {
+      routes.forEach((route) => this.excludedRoutes.delete(route));
+      console.log('[ScreenLoading] Removed exclusions for:', routes);
+    }
+  }
+
+  /**
+   * Check if a route is excluded from measurement
+   */
+  isRouteExcluded(routeName: string): boolean {
+    return this.excludedRoutes.has(routeName);
+  }
+
+  createSpan(screenName: string, isManual: boolean = false): ScreenLoadingSpan | null {
+    if (!this.isEnabled) {
+      return null;
+    }
+
+    // Check if route is excluded (only for automatic tracking)
+    if (!isManual && this.isRouteExcluded(screenName)) {
+      console.log(`[ScreenLoading] Route "${screenName}" is excluded from automatic measurement`);
+      return null;
+    }
+
+    // Cleanup if exceeding capacity
+    if (this.activeSpans.size >= this.maxConcurrentSpans) {
+      this.cleanupOldestSpans();
+    }
+
+    const spanId = Date.now().toString();
+    const startTimestamp = Date.now() * 1000; // Convert to microseconds
+
+    const span: ScreenLoadingSpan = {
+      spanId,
+      screenName,
+      startTimestamp,
+      status: 'pending',
+      isManual,
+      attributes: {},
+    };
+
+    this.activeSpans.set(spanId, span);
+
+    // Register with native for frame tracking
+    NativeAPM.setActiveScreenSpanId(spanId);
+    span.status = 'measuring';
+
+    console.log(
+      `[ScreenLoading] Created span ${spanId} for screen "${screenName}" (${isManual ? 'manual' : 'automatic'})`,
+    );
+
+    return span;
+  }
+
+  async endSpan(spanId: string): Promise<void> {
+    if (!this.isEnabled) {
+      return;
+    }
+
+    const span = this.activeSpans.get(spanId);
+    if (!span || span.status === 'completed') {
+      return;
+    }
+
+    try {
+      // Get frame timestamp from native
+      const frameTimestamp = await NativeAPM.getScreenTimeToDisplay(spanId);
+
+      if (frameTimestamp) {
+        span.endTimestamp = frameTimestamp;
+        span.ttid = frameTimestamp - span.startTimestamp;
+        span.status = 'completed';
+
+        // Log the measurement
+        this.logScreenLoading(span);
+      } else {
+        span.status = 'error';
+        console.warn(`[ScreenLoading] No frame timestamp available for span ${spanId}`);
+      }
+    } catch (error) {
+      span.status = 'error';
+      console.error(`[ScreenLoading] Failed to get timestamp for span ${spanId}:`, error);
+    }
+
+    // Cleanup after a delay
+    setTimeout(() => {
+      this.activeSpans.delete(spanId);
+    }, 5000);
+  }
+
+  private logScreenLoading(span: ScreenLoadingSpan): void {
+    const logData = {
+      type: 'screen_loading',
+      span_id: span.spanId,
+      screen_name: span.screenName,
+      start_timestamp_us: span.startTimestamp,
+      end_timestamp_us: span.endTimestamp,
+      ttid_us: span.ttid,
+      ttid_ms: span.ttid ? span.ttid / 1000 : undefined,
+      is_manual: span.isManual,
+      attributes: span.attributes,
+    };
+
+    console.log('[ScreenLoading] Measurement:', JSON.stringify(logData, null, 2));
+  }
+
+  getActiveSpan(spanId: string): ScreenLoadingSpan | undefined {
+    return this.activeSpans.get(spanId);
+  }
+
+  getAllActiveSpans(): ScreenLoadingSpan[] {
+    return Array.from(this.activeSpans.values());
+  }
+
+  addSpanAttribute(spanId: string, key: string, value: any): void {
+    const span = this.activeSpans.get(spanId);
+    if (span) {
+      span.attributes[key] = value;
+    }
+  }
+
+  private cleanupOldestSpans(): void {
+    const sortedSpans = Array.from(this.activeSpans.entries()).sort(
+      (a, b) => a[1].startTimestamp - b[1].startTimestamp,
+    );
+
+    const toRemove = Math.max(0, sortedSpans.length - 30);
+    for (let i = 0; i < toRemove; i++) {
+      this.activeSpans.delete(sortedSpans[i][0]);
+    }
+  }
+
+  isFeatureEnabled(): boolean {
+    return this.isEnabled;
+  }
+}
+
+export const ScreenLoadingManager = new ScreenLoadingManagerClass();
