@@ -8,6 +8,7 @@
 #import <LuciqSDK/LCQTypes.h>
 #import <React/RCTUIManager.h>
 #import "Util/LCQAPM+PrivateAPIs.h"
+#import "LuciqScreenLoadingFrameTracker.h"
 
 @implementation LuciqAPMBridge
 
@@ -88,6 +89,43 @@ RCT_EXPORT_METHOD(endUITrace) {
 // Enables or disables screen render.
 RCT_EXPORT_METHOD(setScreenRenderingEnabled:(BOOL)isEnabled) {
     LCQAPM.screenRenderingEnabled = isEnabled;
+}
+
+// Screen Loading methods
+RCT_EXPORT_METHOD(initScreenFrameTracking:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[LuciqScreenLoadingFrameTracker sharedInstance] initializeFrameTracking];
+        resolve(nil);
+    });
+}
+
+RCT_EXPORT_METHOD(setActiveScreenSpanId:(NSString *)spanId)
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[LuciqScreenLoadingFrameTracker sharedInstance] startTrackingForSpanId:spanId];
+    });
+}
+
+RCT_EXPORT_METHOD(getScreenTimeToDisplay:(NSString *)spanId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSNumber *timestamp = [[LuciqScreenLoadingFrameTracker sharedInstance] getFrameTimestampForSpanId:spanId];
+        resolve(timestamp);
+    });
+}
+
+RCT_EXPORT_METHOD(isScreenLoadingEnabled:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        // Check native feature flag (coordinate with native SDK team)
+        BOOL enabled = YES; // TODO: Query actual native flag
+        resolve(@(enabled));
+    });
 }
 
 

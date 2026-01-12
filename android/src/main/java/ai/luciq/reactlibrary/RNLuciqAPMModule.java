@@ -18,6 +18,7 @@ import ai.luciq.apm.networking.APMNetworkLogger;
 import ai.luciq.apm.networkinterception.cp.APMCPNetworkLog;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
+import ai.luciq.reactlibrary.LuciqScreenLoadingFrameTracker;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -405,6 +406,69 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                }
+            });
+        }
+
+        /**
+         * Initialize screen frame tracking for Screen Loading feature
+         */
+        @ReactMethod
+        public void initScreenFrameTracking(Promise promise) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    LuciqScreenLoadingFrameTracker.getInstance().initializeFrameTracking();
+                    promise.resolve(null);
+                }
+            });
+        }
+
+        /**
+         * Set the active screen span ID for frame tracking
+         *
+         * @param spanId the span ID to track
+         */
+        @ReactMethod
+        public void setActiveScreenSpanId(String spanId) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    LuciqScreenLoadingFrameTracker.getInstance().startTrackingForSpanId(spanId);
+                }
+            });
+        }
+
+        /**
+         * Get the frame timestamp for a given span ID
+         *
+         * @param spanId the span ID to retrieve the timestamp for
+         * @param promise promise to resolve with the timestamp
+         */
+        @ReactMethod
+        public void getScreenTimeToDisplay(String spanId, Promise promise) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    Long timestamp = LuciqScreenLoadingFrameTracker.getInstance().getFrameTimestampForSpanId(spanId);
+                    promise.resolve(timestamp != null ? timestamp.doubleValue() : null);
+                }
+            });
+        }
+
+        /**
+         * Check if Screen Loading feature is enabled
+         *
+         * @param promise promise to resolve with enabled status
+         */
+        @ReactMethod
+        public void isScreenLoadingEnabled(Promise promise) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    // Check native feature flag (coordinate with native SDK team)
+                    boolean enabled = true; // TODO: Query actual native flag
+                    promise.resolve(enabled);
                 }
             });
         }
