@@ -43,4 +43,8 @@ export type {
   ThemeConfig,
 };
 
+// Screen Loading Component
+export { LuciqScreenLoading } from './components/LuciqScreenLoading';
+export type { LuciqScreenLoadingProps } from './components/LuciqScreenLoading';
+
 export default Luciq;
