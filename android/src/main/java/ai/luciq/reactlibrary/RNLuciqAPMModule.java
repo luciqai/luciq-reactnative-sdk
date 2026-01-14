@@ -429,16 +429,6 @@ public class RNLuciqAPMModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
-                    // Log the span data for verification (native SDK not ready yet)
-                    long duration = (long) (endTimestamp - startTimestamp);
-                    Log.d("IB-CP-Bridge", String.format(
-                            "Syncing span - name: %s, start: %.0f μs, end: %.0f μs, duration: %d μs",
-                            name,
-                            startTimestamp,
-                            endTimestamp,
-                            duration
-                    ));
-
                     // Convert microseconds to milliseconds for Date objects
                     Date startDate = new Date((long) (startTimestamp / 1000));
                     Date endDate = new Date((long) (endTimestamp / 1000));

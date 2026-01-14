@@ -105,13 +105,6 @@ RCT_EXPORT_METHOD(syncCustomSpan:(NSString *)name
         NSDate *startDate = [NSDate dateWithTimeIntervalSince1970:startSeconds];
         NSDate *endDate   = [NSDate dateWithTimeIntervalSince1970:endSeconds];
 
-        // Log for verification (native SDK not ready yet)
-        NSLog(@"[CustomSpan] Syncing span - name: %@, start: %.0f μs, end: %.0f μs, duration: %.0f μs",
-              name,
-              startTimestamp,
-              endTimestamp,
-              (endTimestamp - startTimestamp));
-
         // Add completed span to APM
         [LCQAPM addCompletedCustomSpanWithName:name
                                      startDate:startDate
