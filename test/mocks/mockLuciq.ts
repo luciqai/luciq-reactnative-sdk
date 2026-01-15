@@ -78,6 +78,7 @@ const mockLuciq: LuciqNativeModule = {
   getNetworkBodyMaxSize: jest.fn().mockResolvedValue(10240), // 10 KB
   setTheme: jest.fn(),
   setFullscreen: jest.fn(),
+  isBuilt: jest.fn().mockResolvedValue(true),
 };
 
 export default mockLuciq;

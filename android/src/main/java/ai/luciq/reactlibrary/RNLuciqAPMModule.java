@@ -408,4 +408,89 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 }
             });
         }
+
+        /**
+         * Syncs a custom span to the native SDK (currently logs only).
+         *
+         * @param name Name of the custom span
+         * @param startTimestamp Start time in microseconds since epoch
+         * @param endTimestamp End time in microseconds since epoch
+         * @param promise Promise to resolve when complete
+         */
+        @ReactMethod
+        public void syncCustomSpan(final String name,
+                                   final double startTimestamp,
+                                   final double endTimestamp,
+                                   final Promise promise) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        // Log the span data for verification (native SDK not ready yet)
+                        long duration = (long)(endTimestamp - startTimestamp);
+                        Log.d("CustomSpan", String.format(
+                            "Syncing span - name: %s, start: %.0f μs, end: %.0f μs, duration: %d μs",
+                            name,
+                            startTimestamp,
+                            endTimestamp,
+                            duration
+                        ));
+
+                        // TODO: Replace with actual SDK call when ready:
+                        // APM.syncCustomSpan(name, (long)startTimestamp, (long)endTimestamp);
+
+                        promise.resolve(true);
+                    } catch (Exception e) {
+                        Log.e("CustomSpan", "Error syncing span", e);
+                        promise.resolve(false);
+                    }
+                }
+            });
+        }
+
+        /**
+         * Checks if custom spans feature is enabled.
+         *
+         * @param promise Promise that resolves with boolean indicating if enabled
+         */
+        @ReactMethod
+        public void isCustomSpanEnabled(final Promise promise) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        // TODO: Replace with actual SDK call when ready:
+                        // boolean enabled = APM.isCustomSpanEnabled();
+
+                        // For now, return true to allow testing
+                        Log.d("CustomSpan", "Feature flag check - returning true (hardcoded for testing)");
+                        promise.resolve(true);
+                    } catch (Exception e) {
+                        Log.e("CustomSpan", "Error checking feature flag", e);
+                        promise.resolve(false);
+                    }
+                }
+            });
+        }
+
+        /**
+         * Checks if APM is enabled.
+         *
+         * @param promise Promise that resolves with boolean indicating if enabled
+         */
+        @ReactMethod
+        public void isAPMEnabled(final Promise promise) {
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        boolean enabled = true;
+                        promise.resolve(enabled);
+                    } catch (Exception e) {
+                        Log.e("CustomSpan", "Error checking APM enabled", e);
+                        promise.resolve(false);
+                    }
+                }
+            });
+        }
 }

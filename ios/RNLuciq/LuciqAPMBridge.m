@@ -90,6 +90,53 @@ RCT_EXPORT_METHOD(setScreenRenderingEnabled:(BOOL)isEnabled) {
     LCQAPM.screenRenderingEnabled = isEnabled;
 }
 
+// Syncs a custom span to the native SDK (currently logs only)
+RCT_EXPORT_METHOD(syncCustomSpan:(NSString *)name
+                  startTimestamp:(double)startTimestamp
+                  endTimestamp:(double)endTimestamp
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    // Log the span data for verification (native SDK not ready yet)
+    NSLog(@"[CustomSpan] Syncing span - name: %@, start: %.0f μs, end: %.0f μs, duration: %.0f μs",
+          name,
+          startTimestamp,
+          endTimestamp,
+          (endTimestamp - startTimestamp));
+
+    // TODO: Replace with actual SDK call when ready:
+    // [LCQAPM syncCustomSpanWithName:name startTimestamp:startTimestamp endTimestamp:endTimestamp];
+
+    resolve(@YES);
+}
+
+// Checks if custom spans feature is enabled
+RCT_EXPORT_METHOD(isCustomSpanEnabled:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    @try {
+        // TODO: Replace with actual SDK call when ready:
+        // BOOL enabled = LCQAPM.customSpansEnabled;
+
+        // For now, return true to allow testing
+        NSLog(@"[CustomSpan] Feature flag check - returning true (hardcoded for testing)");
+        resolve(@YES);
+    } @catch (NSException *exception) {
+        NSLog(@"[CustomSpan] Error checking feature flag: %@", exception);
+        resolve(@NO);
+    }
+}
+
+// Checks if APM is enabled
+RCT_EXPORT_METHOD(isAPMEnabled:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    @try {
+        BOOL enabled = LCQAPM.enabled;
+        resolve(@(enabled));
+    } @catch (NSException *exception) {
+        NSLog(@"[CustomSpan] Error checking APM enabled: %@", exception);
+        resolve(@NO);
+    }
+}
+
 
 
 @synthesize description;
