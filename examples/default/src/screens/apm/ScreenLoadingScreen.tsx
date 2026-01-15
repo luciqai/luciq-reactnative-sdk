@@ -8,7 +8,6 @@ import { showNotification } from '../../utils/showNotification';
 
 export const ScreenLoadingScreen: React.FC = () => {
   const [screenLoadingEnabled, setScreenLoadingEnabled] = useState(false);
-  // @ts-ignore
   const [normalTtid, setNormalTtid] = useState<number | null>(null);
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
   const [bottomSheetTtid, setBottomSheetTtid] = useState<number | null>(null);
@@ -33,7 +32,7 @@ export const ScreenLoadingScreen: React.FC = () => {
           console.log('[Test] Normal component TTID:', ttid, 'ms');
           setComponentTtid(ttid);
           setNormalTtid(ttid);
-          showNotification('Normal Component', `TTID: ${ttid.toFixed(2)}ms`);
+          showNotification('Normal Component', `TTID: ${normalTtid.toFixed(2)}ms`);
         }}
         style={styles.testContainer}>
         <Text style={styles.testTitle}>Normal Component Test</Text>
@@ -161,12 +160,11 @@ export const ScreenLoadingScreen: React.FC = () => {
 
     useEffect(() => {
       // Simulate heavy computation
-      // @ts-ignore
       let sum = 0;
       for (let i = 0; i < 10000000; i++) {
-        // @ts-ignore
         sum += Math.sqrt(i);
       }
+      console.log('[Test] Heavy Component result:', sum);
       setComputed(true);
     }, []);
 

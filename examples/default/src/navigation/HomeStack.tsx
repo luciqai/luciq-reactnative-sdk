@@ -89,6 +89,7 @@ import {
   UserStepsStateScreen,
   type UserStepsStateScreenProp,
 } from '../screens/settings/UserStepsStateScreen';
+import { ScreenLoadingScreen } from '../screens/apm/ScreenLoadingScreen';
 
 export type HomeStackParamList = {
   Home: undefined;
@@ -142,6 +143,7 @@ export type HomeStackParamList = {
   UserStepsState: UserStepsStateScreenProp;
   ScreenRender: undefined;
   CallbackScreen: undefined;
+  ScreenLoading: undefined;
 };
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
@@ -328,6 +330,11 @@ export const HomeStackNavigator: React.FC = () => {
         name="ScreenRender"
         component={ScreenRender}
         options={{ title: 'ScreenRender' }}
+      />
+      <HomeStack.Screen
+        name="ScreenLoading"
+        component={ScreenLoadingScreen}
+        options={{ title: 'ScreenLoading' }}
       />
       <HomeStack.Screen
         name="NetworkState"

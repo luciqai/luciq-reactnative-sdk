@@ -1,8 +1,8 @@
-import { ScreenLoadingManager } from '../ScreenLoadingManager';
-import { NativeAPM } from '../../../native/NativeAPM';
+import { ScreenLoadingManager } from '../../../src/modules/apm/ScreenLoadingManager';
+import { NativeAPM } from '../../../src/native/NativeAPM';
 
 // Mock NativeAPM
-jest.mock('../../../native/NativeAPM', () => ({
+jest.mock('../../../src/native/NativeAPM', () => ({
   NativeAPM: {
     initScreenFrameTracking: jest.fn().mockResolvedValue(undefined),
     setActiveScreenSpanId: jest.fn(),
@@ -201,8 +201,8 @@ describe('ScreenLoadingManager', () => {
       const activeSpans = ScreenLoadingManager.getAllActiveSpans();
 
       // Just verify that both spans exist in the active spans list
-      const hasSpan1 = activeSpans.some(s => s.spanId === span1?.spanId);
-      const hasSpan2 = activeSpans.some(s => s.spanId === span2?.spanId);
+      const hasSpan1 = activeSpans.some((s) => s.spanId === span1?.spanId);
+      const hasSpan2 = activeSpans.some((s) => s.spanId === span2?.spanId);
       expect(hasSpan1).toBe(true);
       expect(hasSpan2).toBe(true);
 
