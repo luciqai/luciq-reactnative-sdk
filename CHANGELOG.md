@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased](https://github.com/luciqai/luciq-flutter-sdk/compare/v19.1.0...dev)
+
+### Added
+
+- dded support for handling aborted and canceled Axios network requests. ([#36](https://github.com/luciqai/luciq-reactnative-sdk/pull/36))
+
 ## [19.1.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.1.0...19.0.0)
 
 ### Added
