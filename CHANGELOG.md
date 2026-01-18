@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.0.0...dev)
+## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.1.0...dev)
 
 ### Added
 
@@ -11,6 +11,18 @@
   - Support for up to 100 concurrent spans
   - Comprehensive validation (name length, empty checks, timestamp validation)
   - Feature flag support to enable/disable custom spans
+
+## [19.1.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.1.0...19.0.0)
+
+### Added
+
+- Add support session replay Video-Like. ([#19](https://github.com/luciqai/luciq-reactnative-sdk/pull/19))
+
+### Changed
+
+- Bump Luciq iOS SDK to v19.3.0 ([#22](https://github.com/luciqai/luciq-reactnative-sdk/pull/22)). [See release notes](https://github.com/luciqai/Luciq-iOS-sdk/releases/tag/19.3.0).
+
+- Bump Luciq Android SDK to v19.1.0 ([#22](https://github.com/luciqai/luciq-reactnative-sdk/pull/22)). [See release notes](https://github.com/luciqai/Luciq-Android-sdk/releases/tag/v19.1.0).
 
 ## [19.0.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.0.0...dev)
 
@@ -56,4 +68,4 @@
 
 ## [18.0.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.0.0...dev) (September 24, 2025)
 
-- SDK rebranded from Luciq to Luciq.
+- SDK rebranded from Instabug to Luciq.

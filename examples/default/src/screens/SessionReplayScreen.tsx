@@ -1,13 +1,29 @@
 import React, { useState } from 'react';
 
-import { SessionReplay } from '@luciq/react-native';
-import { useToast } from 'native-base';
+import { SessionReplay, CapturingMode, ScreenshotQuality } from '@luciq/react-native';
+import { useToast, VStack } from 'native-base';
 
 import { ListTile } from '../components/ListTile';
 import { Screen } from '../components/Screen';
+import { Section } from '../components/Section';
+import { Select } from '../components/Select';
+import { InputField } from '../components/InputField';
+import { CustomButton } from '../components/CustomButton';
 import { UserStepsState } from './settings/UserStepsStateScreen';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { HomeStackParamList } from '../navigation/HomeStack';
+
+const capturingModeItems = [
+  { label: 'Navigation', value: CapturingMode.navigation, isInitial: true },
+  { label: 'Interactions', value: CapturingMode.interactions },
+  { label: 'Frequency', value: CapturingMode.frequency },
+];
+
+const screenshotQualityItems = [
+  { label: 'High', value: ScreenshotQuality.high },
+  { label: 'Normal', value: ScreenshotQuality.normal, isInitial: true },
+  { label: 'Greyscale', value: ScreenshotQuality.greyscale },
+];
 
 export const SessionReplayScreen: React.FC<
   NativeStackScreenProps<HomeStackParamList, 'SessionReplay'>
@@ -18,6 +34,7 @@ export const SessionReplayScreen: React.FC<
   const [isSessionNetworkLogsEnabled, setIsSessionNetworkLogsEnabled] = useState<boolean>(true);
   const [isSessionLuciqLogsEnabled, setIsSessionLuciqLogsEnabled] = useState<boolean>(true);
   const [isSessionUserStepsEnabled, setIsSessionUSerStepsEnabled] = useState<boolean>(true);
+  const [captureInterval, setCaptureInterval] = useState<string>('1000');
 
   return (
     <Screen>
@@ -104,6 +121,61 @@ export const SessionReplayScreen: React.FC<
         }}
         testID="id_steps_replay_usersteps_state"
       />
+
+      <Section title="Video-like Session Replay">
+        <VStack space={3}>
+          <Select
+            label="Capturing Mode"
+            items={capturingModeItems}
+            onValueChange={(mode) => {
+              SessionReplay.setCapturingMode(mode);
+              toast.show({
+                description: 'Capturing mode set',
+              });
+            }}
+            testID="id_capturing_mode"
+          />
+
+          <Select
+            label="Screenshot Quality"
+            items={screenshotQualityItems}
+            onValueChange={(quality) => {
+              SessionReplay.setScreenshotQuality(quality);
+              toast.show({
+                description: 'Screenshot quality set',
+              });
+            }}
+            testID="id_screenshot_quality"
+          />
+
+          <InputField
+            placeholder="Capture Interval (ms) - min 500"
+            value={captureInterval}
+            keyboardType="numeric"
+            onChangeText={(text) => {
+              setCaptureInterval(text);
+            }}
+            testID="id_capture_interval"
+          />
+
+          <CustomButton
+            title="Set Capture Interval"
+            onPress={() => {
+              const interval = parseInt(captureInterval, 10);
+              if (!isNaN(interval) && interval >= 500) {
+                SessionReplay.setScreenshotCaptureInterval(interval);
+                toast.show({
+                  description: 'Capture interval set to ' + interval + 'ms',
+                });
+              } else {
+                toast.show({
+                  description: 'Invalid interval. Minimum is 500ms',
+                });
+              }
+            }}
+          />
+        </VStack>
+      </Section>
     </Screen>
   );
 };

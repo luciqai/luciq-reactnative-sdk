@@ -1,5 +1,6 @@
 import * as SessionReplay from '../../src/modules/SessionReplay';
 import { NativeSessionReplay, emitter, NativeEvents } from '../../src/native/NativeSessionReplay';
+import { CapturingMode, ScreenshotQuality } from '../../src/utils/Enums';
 
 describe('Session Replay Module', () => {
   it('should call the native method setEnabled', () => {
@@ -48,5 +49,61 @@ describe('Session Replay Module', () => {
     expect(emitter.listenerCount(NativeEvents.SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION)).toBe(1);
     expect(NativeSessionReplay.evaluateSync).toBeCalledTimes(1);
     expect(NativeSessionReplay.evaluateSync).toBeCalledWith(shouldSync);
+  });
+
+  it('should call the native method setCapturingMode with navigation', () => {
+    SessionReplay.setCapturingMode(CapturingMode.navigation);
+
+    expect(NativeSessionReplay.setCapturingMode).toBeCalledTimes(1);
+    expect(NativeSessionReplay.setCapturingMode).toBeCalledWith(CapturingMode.navigation);
+  });
+
+  it('should call the native method setCapturingMode with interactions', () => {
+    SessionReplay.setCapturingMode(CapturingMode.interactions);
+
+    expect(NativeSessionReplay.setCapturingMode).toBeCalledTimes(1);
+    expect(NativeSessionReplay.setCapturingMode).toBeCalledWith(CapturingMode.interactions);
+  });
+
+  it('should call the native method setCapturingMode with frequency', () => {
+    SessionReplay.setCapturingMode(CapturingMode.frequency);
+
+    expect(NativeSessionReplay.setCapturingMode).toBeCalledTimes(1);
+    expect(NativeSessionReplay.setCapturingMode).toBeCalledWith(CapturingMode.frequency);
+  });
+
+  it('should call the native method setScreenshotQuality with high', () => {
+    SessionReplay.setScreenshotQuality(ScreenshotQuality.high);
+
+    expect(NativeSessionReplay.setScreenshotQuality).toBeCalledTimes(1);
+    expect(NativeSessionReplay.setScreenshotQuality).toBeCalledWith(ScreenshotQuality.high);
+  });
+
+  it('should call the native method setScreenshotQuality with normal', () => {
+    SessionReplay.setScreenshotQuality(ScreenshotQuality.normal);
+
+    expect(NativeSessionReplay.setScreenshotQuality).toBeCalledTimes(1);
+    expect(NativeSessionReplay.setScreenshotQuality).toBeCalledWith(ScreenshotQuality.normal);
+  });
+
+  it('should call the native method setScreenshotQuality with greyscale', () => {
+    SessionReplay.setScreenshotQuality(ScreenshotQuality.greyscale);
+
+    expect(NativeSessionReplay.setScreenshotQuality).toBeCalledTimes(1);
+    expect(NativeSessionReplay.setScreenshotQuality).toBeCalledWith(ScreenshotQuality.greyscale);
+  });
+
+  it('should call the native method setScreenshotCaptureInterval', () => {
+    SessionReplay.setScreenshotCaptureInterval(1000);
+
+    expect(NativeSessionReplay.setScreenshotCaptureInterval).toBeCalledTimes(1);
+    expect(NativeSessionReplay.setScreenshotCaptureInterval).toBeCalledWith(1000);
+  });
+
+  it('should call the native method setScreenshotCaptureInterval with minimum value', () => {
+    SessionReplay.setScreenshotCaptureInterval(500);
+
+    expect(NativeSessionReplay.setScreenshotCaptureInterval).toBeCalledTimes(1);
+    expect(NativeSessionReplay.setScreenshotCaptureInterval).toBeCalledWith(500);
   });
 });
