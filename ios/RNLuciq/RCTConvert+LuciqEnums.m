@@ -123,5 +123,19 @@ RCT_ENUM_CONVERTER(
   integerValue
 );
 
+RCT_ENUM_CONVERTER(
+  LCQScreenshotCapturingMode,
+  ArgsRegistry.capturingModes,
+  LCQScreenshotCapturingModeNavigation,
+  integerValue
+);
+
+RCT_ENUM_CONVERTER(
+  LCQScreenshotQualityMode,
+  ArgsRegistry.screenshotQualities,
+  LCQScreenshotQualityModeNormal,
+  integerValue
+);
+
 @end
 

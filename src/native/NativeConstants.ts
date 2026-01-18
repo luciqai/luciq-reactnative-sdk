@@ -16,7 +16,9 @@ export type NativeConstants = NativeSdkDebugLogsLevel &
   NativeLaunchType &
   NativeOverAirUpdateServices &
   NativeAutoMaskingType &
-  NativeUserConsentActionType;
+  NativeUserConsentActionType &
+  NativeCapturingMode &
+  NativeScreenshotQuality;
 
 interface NativeSdkDebugLogsLevel {
   sdkDebugLogsLevelVerbose: any;
@@ -212,4 +214,16 @@ interface NativeAutoMaskingType {
   textInputs: any;
   media: any;
   none: any;
+}
+
+interface NativeCapturingMode {
+  capturingModeNavigation: any;
+  capturingModeInteractions: any;
+  capturingModeFrequency: any;
+}
+
+interface NativeScreenshotQuality {
+  screenshotQualityHigh: any;
+  screenshotQualityNormal: any;
+  screenshotQualityGreyscale: any;
 }

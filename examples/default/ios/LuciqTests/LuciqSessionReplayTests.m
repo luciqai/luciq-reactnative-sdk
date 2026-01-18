@@ -122,5 +122,56 @@
     XCTAssertEqual(actualValue, expectedValue);
   }
 
+- (void)testSetCapturingModeNavigation {
+  [self.bridge setCapturingMode:LCQScreenshotCapturingModeNavigation];
+
+  OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQScreenshotCapturingModeNavigation]);
+}
+
+- (void)testSetCapturingModeInteractions {
+  [self.bridge setCapturingMode:LCQScreenshotCapturingModeInteraction];
+
+  OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQScreenshotCapturingModeInteraction]);
+}
+
+- (void)testSetCapturingModeFrequency {
+  [self.bridge setCapturingMode:LCQScreenshotCapturingModeFrequency];
+
+  OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQScreenshotCapturingModeFrequency]);
+}
+
+- (void)testSetScreenshotQualityHigh {
+  [self.bridge setScreenshotQuality:LCQScreenshotQualityModeHigh];
+
+  OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityModeHigh]);
+}
+
+- (void)testSetScreenshotQualityNormal {
+  [self.bridge setScreenshotQuality:LCQScreenshotQualityModeNormal];
+
+  OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityModeNormal]);
+}
+
+- (void)testSetScreenshotQualityGreyscale {
+  [self.bridge setScreenshotQuality:LCQScreenshotQualityModeGreyScale];
+
+  OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityModeGreyScale]);
+}
+
+- (void)testSetScreenshotCaptureInterval {
+  NSInteger interval = 1000;
+
+  [self.bridge setScreenshotCaptureInterval:interval];
+
+  OCMVerify([self.mSessionReplay setScreenshotCaptureInterval:interval]);
+}
+
+- (void)testSetScreenshotCaptureIntervalMinimum {
+  NSInteger interval = 500;
+
+  [self.bridge setScreenshotCaptureInterval:interval];
+
+  OCMVerify([self.mSessionReplay setScreenshotCaptureInterval:interval]);
+}
 
 @end
