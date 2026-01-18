@@ -8,6 +8,7 @@
 
 #import <XCTest/XCTest.h>
 #import "OCMock/OCMock.h"
+#import <React/RCTBridgeModule.h>
 #import "LuciqAPMBridge.h"
 #import <LuciqSDK/LCQTypes.h>
 #import <LuciqSDK/LCQAPM.h>
@@ -146,6 +147,197 @@
     [self.luciqBridge setScreenRenderingEnabled:isEnabled];
 
     OCMVerify([mock setScreenRenderingEnabled:NO]);
+}
+
+/*
++------------------------------------------------------------------------+
+|                        Custom Span Tests                               |
++------------------------------------------------------------------------+
+*/
+
+- (void) testSyncCustomSpan {
+    id mock = OCMClassMock([LCQAPM class]);
+    NSString *spanName = @"TestCustomSpan";
+    double startTimestamp = 1000000.0;  // 1 second in microseconds
+    double endTimestamp = 2000000.0;    // 2 seconds in microseconds
+
+    __block BOOL resolveWasCalled = NO;
+    __block id resolvedValue = nil;
+
+    RCTPromiseResolveBlock resolve = ^(id result) {
+        resolveWasCalled = YES;
+        resolvedValue = result;
+    };
+
+    RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {
+        XCTFail(@"Reject should not be called");
+    };
+
+    [self.luciqBridge syncCustomSpan:spanName
+                      startTimestamp:startTimestamp
+                        endTimestamp:endTimestamp
+                            resolver:resolve
+                            rejecter:reject];
+
+    OCMVerify([mock addCompletedCustomSpanWithName:spanName
+                                         startDate:[OCMArg any]
+                                           endDate:[OCMArg any]]);
+
+    XCTAssertTrue(resolveWasCalled);
+    XCTAssertEqualObjects(resolvedValue, @YES);
+}
+
+- (void) testSyncCustomSpanWithCorrectTimestampConversion {
+    id mock = OCMClassMock([LCQAPM class]);
+    NSString *spanName = @"TimestampConversionSpan";
+    // 1609459200 seconds = Jan 1, 2021 00:00:00 UTC
+    double startTimestamp = 1609459200000000.0;  // in microseconds
+    double endTimestamp = 1609459205000000.0;    // 5 seconds later in microseconds
+
+    __block NSDate *capturedStartDate = nil;
+    __block NSDate *capturedEndDate = nil;
+
+    OCMStub([mock addCompletedCustomSpanWithName:[OCMArg any]
+                                       startDate:[OCMArg checkWithBlock:^BOOL(NSDate *date) {
+        capturedStartDate = date;
+        return YES;
+    }]
+                                         endDate:[OCMArg checkWithBlock:^BOOL(NSDate *date) {
+        capturedEndDate = date;
+        return YES;
+    }]]);
+
+    RCTPromiseResolveBlock resolve = ^(id result) {};
+    RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
+
+    [self.luciqBridge syncCustomSpan:spanName
+                      startTimestamp:startTimestamp
+                        endTimestamp:endTimestamp
+                            resolver:resolve
+                            rejecter:reject];
+
+    // Verify the timestamp conversion (microseconds to seconds)
+    XCTAssertEqualWithAccuracy([capturedStartDate timeIntervalSince1970], 1609459200.0, 0.001);
+    XCTAssertEqualWithAccuracy([capturedEndDate timeIntervalSince1970], 1609459205.0, 0.001);
+}
+
+- (void) testSyncCustomSpanWithZeroTimestamps {
+    id mock = OCMClassMock([LCQAPM class]);
+    NSString *spanName = @"ZeroTimestampSpan";
+    double startTimestamp = 0.0;
+    double endTimestamp = 0.0;
+
+    __block BOOL resolveWasCalled = NO;
+
+    RCTPromiseResolveBlock resolve = ^(id result) {
+        resolveWasCalled = YES;
+    };
+
+    RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
+
+    [self.luciqBridge syncCustomSpan:spanName
+                      startTimestamp:startTimestamp
+                        endTimestamp:endTimestamp
+                            resolver:resolve
+                            rejecter:reject];
+
+    OCMVerify([mock addCompletedCustomSpanWithName:spanName
+                                         startDate:[OCMArg any]
+                                           endDate:[OCMArg any]]);
+
+    XCTAssertTrue(resolveWasCalled);
+}
+
+- (void) testIsCustomSpanEnabledReturnsTrue {
+    id mock = OCMClassMock([LCQAPM class]);
+
+    OCMStub([mock customSpansEnabled]).andReturn(YES);
+
+    __block BOOL resolveWasCalled = NO;
+    __block id resolvedValue = nil;
+
+    RCTPromiseResolveBlock resolve = ^(id result) {
+        resolveWasCalled = YES;
+        resolvedValue = result;
+    };
+
+    RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {
+        XCTFail(@"Reject should not be called");
+    };
+
+    [self.luciqBridge isCustomSpanEnabled:resolve rejecter:reject];
+
+    XCTAssertTrue(resolveWasCalled);
+    XCTAssertEqualObjects(resolvedValue, @YES);
+}
+
+- (void) testIsCustomSpanEnabledReturnsFalse {
+    id mock = OCMClassMock([LCQAPM class]);
+
+    OCMStub([mock customSpansEnabled]).andReturn(NO);
+
+    __block BOOL resolveWasCalled = NO;
+    __block id resolvedValue = nil;
+
+    RCTPromiseResolveBlock resolve = ^(id result) {
+        resolveWasCalled = YES;
+        resolvedValue = result;
+    };
+
+    RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {
+        XCTFail(@"Reject should not be called");
+    };
+
+    [self.luciqBridge isCustomSpanEnabled:resolve rejecter:reject];
+
+    XCTAssertTrue(resolveWasCalled);
+    XCTAssertEqualObjects(resolvedValue, @NO);
+}
+
+- (void) testIsAPMEnabledReturnsTrue {
+    id mock = OCMClassMock([LCQAPM class]);
+
+    OCMStub([mock enabled]).andReturn(YES);
+
+    __block BOOL resolveWasCalled = NO;
+    __block id resolvedValue = nil;
+
+    RCTPromiseResolveBlock resolve = ^(id result) {
+        resolveWasCalled = YES;
+        resolvedValue = result;
+    };
+
+    RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {
+        XCTFail(@"Reject should not be called");
+    };
+
+    [self.luciqBridge isAPMEnabled:resolve rejecter:reject];
+
+    XCTAssertTrue(resolveWasCalled);
+    XCTAssertEqualObjects(resolvedValue, @YES);
+}
+
+- (void) testIsAPMEnabledReturnsFalse {
+    id mock = OCMClassMock([LCQAPM class]);
+
+    OCMStub([mock enabled]).andReturn(NO);
+
+    __block BOOL resolveWasCalled = NO;
+    __block id resolvedValue = nil;
+
+    RCTPromiseResolveBlock resolve = ^(id result) {
+        resolveWasCalled = YES;
+        resolvedValue = result;
+    };
+
+    RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {
+        XCTFail(@"Reject should not be called");
+    };
+
+    [self.luciqBridge isAPMEnabled:resolve rejecter:reject];
+
+    XCTAssertTrue(resolveWasCalled);
+    XCTAssertEqualObjects(resolvedValue, @NO);
 }
 
 @end

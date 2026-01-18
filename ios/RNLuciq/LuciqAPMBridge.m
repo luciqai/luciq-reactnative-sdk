@@ -95,30 +95,38 @@ RCT_EXPORT_METHOD(syncCustomSpan:(NSString *)name
                   startTimestamp:(double)startTimestamp
                   endTimestamp:(double)endTimestamp
                   resolver:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
-    // Log the span data for verification (native SDK not ready yet)
-    NSLog(@"[CustomSpan] Syncing span - name: %@, start: %.0f μs, end: %.0f μs, duration: %.0f μs",
-          name,
-          startTimestamp,
-          endTimestamp,
-          (endTimestamp - startTimestamp));
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    @try {
+        // Convert microseconds → seconds (NSDate uses seconds)
+        NSTimeInterval startSeconds = startTimestamp / 1e6;
+        NSTimeInterval endSeconds   = endTimestamp / 1e6;
 
-    // TODO: Replace with actual SDK call when ready:
-    // [LCQAPM syncCustomSpanWithName:name startTimestamp:startTimestamp endTimestamp:endTimestamp];
+        NSDate *startDate = [NSDate dateWithTimeIntervalSince1970:startSeconds];
+        NSDate *endDate   = [NSDate dateWithTimeIntervalSince1970:endSeconds];
 
-    resolve(@YES);
+        // Add completed span to APM
+        [LCQAPM addCompletedCustomSpanWithName:name
+                                     startDate:startDate
+                                       endDate:endDate];
+
+        resolve(@YES);
+    }
+    @catch (NSException *exception) {
+        reject(
+            @"SYNC_CUSTOM_SPAN_ERROR",
+            exception.reason ?: @"Failed to sync custom span",
+            nil
+        );
+    }
 }
 
 // Checks if custom spans feature is enabled
 RCT_EXPORT_METHOD(isCustomSpanEnabled:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
     @try {
-        // TODO: Replace with actual SDK call when ready:
-        // BOOL enabled = LCQAPM.customSpansEnabled;
-
-        // For now, return true to allow testing
-        NSLog(@"[CustomSpan] Feature flag check - returning true (hardcoded for testing)");
-        resolve(@YES);
+        BOOL enabled = LCQAPM.customSpansEnabled;
+        resolve(@(enabled));
     } @catch (NSException *exception) {
         NSLog(@"[CustomSpan] Error checking feature flag: %@", exception);
         resolve(@NO);

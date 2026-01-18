@@ -13,18 +13,20 @@ import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
+
+import java.lang.reflect.Method;
+import java.util.Date;
+
+import javax.annotation.Nonnull;
+
 import ai.luciq.apm.APM;
+import ai.luciq.apm.InternalAPM;
+import ai.luciq.apm.configuration.cp.APMFeature;
+import ai.luciq.apm.configuration.cp.FeatureAvailabilityCallback;
 import ai.luciq.apm.networking.APMNetworkLogger;
 import ai.luciq.apm.networkinterception.cp.APMCPNetworkLog;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
-
-import java.lang.reflect.Method;
-import java.util.HashMap;
-
-import javax.annotation.Nonnull;
-
-import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
 public class RNLuciqAPMModule extends EventEmitterModule {
 
@@ -240,73 +242,73 @@ public class RNLuciqAPMModule extends EventEmitterModule {
         });
     }
 
- /**
-  * The `networkLogAndroid` function logs network-related information using APMNetworkLogger in a React
-  * Native module.
-  *
-  * @param requestStartTime The `requestStartTime` parameter in the `networkLogAndroid` method
-  * represents the timestamp when the network request started. It is of type `double` and is passed as
-  * a parameter to log network-related information.
-  * @param requestDuration The `requestDuration` parameter in the `networkLogAndroid` method represents
-  * the duration of the network request in milliseconds. It indicates the time taken for the request to
-  * complete from the moment it was initiated until the response was received. This parameter helps in
-  * measuring the performance of network requests and identifying any potential
-  * @param requestHeaders requestHeaders is a string parameter that contains the headers of the network
-  * request. It typically includes information such as the content type, authorization token, and any
-  * other headers that were sent with the request.
-  * @param requestBody The `requestBody` parameter in the `networkLogAndroid` method represents the
-  * body of the HTTP request being logged. It contains the data that is sent as part of the request to
-  * the server. This could include form data, JSON payload, XML data, or any other content that is
-  * being transmitted
-  * @param requestBodySize The `requestBodySize` parameter in the `networkLogAndroid` method represents
-  * the size of the request body in bytes. It is a double value that indicates the size of the request
-  * body being sent in the network request. This parameter is used to log information related to the
-  * network request, including details
-  * @param requestMethod The `requestMethod` parameter in the `networkLogAndroid` method represents the
-  * HTTP method used in the network request, such as GET, POST, PUT, DELETE, etc. It indicates the type
-  * of operation that the client is requesting from the server.
-  * @param requestUrl The `requestUrl` parameter in the `networkLogAndroid` method represents the URL
-  * of the network request being logged. It typically contains the address of the server to which the
-  * request is being made, along with any additional path or query parameters required for the request.
-  * This URL is essential for identifying the
-  * @param requestContentType The `requestContentType` parameter in the `networkLogAndroid` method
-  * represents the content type of the request being made. This could be values like
-  * "application/json", "application/xml", "text/plain", etc., indicating the format of the data being
-  * sent in the request body. It helps in specifying
-  * @param responseHeaders The `responseHeaders` parameter in the `networkLogAndroid` method represents
-  * the headers of the response received from a network request. These headers typically include
-  * information such as content type, content length, server information, and any other metadata
-  * related to the response. The `responseHeaders` parameter is expected to
-  * @param responseBody The `responseBody` parameter in the `networkLogAndroid` method represents the
-  * body of the response received from a network request. It contains the data or content sent back by
-  * the server in response to the request made by the client. This could be in various formats such as
-  * JSON, XML, HTML
-  * @param responseBodySize The `responseBodySize` parameter in the `networkLogAndroid` method
-  * represents the size of the response body in bytes. It is a double value that indicates the size of
-  * the response body received from the network request. This parameter is used to log information
-  * related to the network request and response, including
-  * @param statusCode The `statusCode` parameter in the `networkLogAndroid` method represents the HTTP
-  * status code of the network request/response. It indicates the status of the HTTP response, such as
-  * success (200), redirection (3xx), client errors (4xx), or server errors (5xx). This parameter is
-  * @param responseContentType The `responseContentType` parameter in the `networkLogAndroid` method
-  * represents the content type of the response received from the network request. It indicates the
-  * format of the data in the response, such as JSON, XML, HTML, etc. This information is useful for
-  * understanding how to parse and handle the
-  * @param errorDomain The `errorDomain` parameter in the `networkLogAndroid` method is used to specify
-  * the domain of an error, if any occurred during the network request. If there was no error, this
-  * parameter will be `null`.
-  * @param w3cAttributes The `w3cAttributes` parameter in the `networkLogAndroid` method is a
-  * ReadableMap object that contains additional attributes related to W3C external trace. It may
-  * include the following key-value pairs:
-  * @param gqLCQueryName The `gqLCQueryName` parameter in the `networkLogAndroid` method represents the
-  * name of the GraphQL query being executed. It is a nullable parameter, meaning it can be null if no
-  * GraphQL query name is provided. This parameter is used to log information related to GraphQL
-  * queries in the network logging
-  * @param serverErrorMessage The `serverErrorMessage` parameter in the `networkLogAndroid` method is
-  * used to pass any error message received from the server during network communication. This message
-  * can provide additional details about any errors that occurred on the server side, helping in
-  * debugging and troubleshooting network-related issues.
-  */
+    /**
+     * The `networkLogAndroid` function logs network-related information using APMNetworkLogger in a React
+     * Native module.
+     *
+     * @param requestStartTime    The `requestStartTime` parameter in the `networkLogAndroid` method
+     *                            represents the timestamp when the network request started. It is of type `double` and is passed as
+     *                            a parameter to log network-related information.
+     * @param requestDuration     The `requestDuration` parameter in the `networkLogAndroid` method represents
+     *                            the duration of the network request in milliseconds. It indicates the time taken for the request to
+     *                            complete from the moment it was initiated until the response was received. This parameter helps in
+     *                            measuring the performance of network requests and identifying any potential
+     * @param requestHeaders      requestHeaders is a string parameter that contains the headers of the network
+     *                            request. It typically includes information such as the content type, authorization token, and any
+     *                            other headers that were sent with the request.
+     * @param requestBody         The `requestBody` parameter in the `networkLogAndroid` method represents the
+     *                            body of the HTTP request being logged. It contains the data that is sent as part of the request to
+     *                            the server. This could include form data, JSON payload, XML data, or any other content that is
+     *                            being transmitted
+     * @param requestBodySize     The `requestBodySize` parameter in the `networkLogAndroid` method represents
+     *                            the size of the request body in bytes. It is a double value that indicates the size of the request
+     *                            body being sent in the network request. This parameter is used to log information related to the
+     *                            network request, including details
+     * @param requestMethod       The `requestMethod` parameter in the `networkLogAndroid` method represents the
+     *                            HTTP method used in the network request, such as GET, POST, PUT, DELETE, etc. It indicates the type
+     *                            of operation that the client is requesting from the server.
+     * @param requestUrl          The `requestUrl` parameter in the `networkLogAndroid` method represents the URL
+     *                            of the network request being logged. It typically contains the address of the server to which the
+     *                            request is being made, along with any additional path or query parameters required for the request.
+     *                            This URL is essential for identifying the
+     * @param requestContentType  The `requestContentType` parameter in the `networkLogAndroid` method
+     *                            represents the content type of the request being made. This could be values like
+     *                            "application/json", "application/xml", "text/plain", etc., indicating the format of the data being
+     *                            sent in the request body. It helps in specifying
+     * @param responseHeaders     The `responseHeaders` parameter in the `networkLogAndroid` method represents
+     *                            the headers of the response received from a network request. These headers typically include
+     *                            information such as content type, content length, server information, and any other metadata
+     *                            related to the response. The `responseHeaders` parameter is expected to
+     * @param responseBody        The `responseBody` parameter in the `networkLogAndroid` method represents the
+     *                            body of the response received from a network request. It contains the data or content sent back by
+     *                            the server in response to the request made by the client. This could be in various formats such as
+     *                            JSON, XML, HTML
+     * @param responseBodySize    The `responseBodySize` parameter in the `networkLogAndroid` method
+     *                            represents the size of the response body in bytes. It is a double value that indicates the size of
+     *                            the response body received from the network request. This parameter is used to log information
+     *                            related to the network request and response, including
+     * @param statusCode          The `statusCode` parameter in the `networkLogAndroid` method represents the HTTP
+     *                            status code of the network request/response. It indicates the status of the HTTP response, such as
+     *                            success (200), redirection (3xx), client errors (4xx), or server errors (5xx). This parameter is
+     * @param responseContentType The `responseContentType` parameter in the `networkLogAndroid` method
+     *                            represents the content type of the response received from the network request. It indicates the
+     *                            format of the data in the response, such as JSON, XML, HTML, etc. This information is useful for
+     *                            understanding how to parse and handle the
+     * @param errorDomain         The `errorDomain` parameter in the `networkLogAndroid` method is used to specify
+     *                            the domain of an error, if any occurred during the network request. If there was no error, this
+     *                            parameter will be `null`.
+     * @param w3cAttributes       The `w3cAttributes` parameter in the `networkLogAndroid` method is a
+     *                            ReadableMap object that contains additional attributes related to W3C external trace. It may
+     *                            include the following key-value pairs:
+     * @param gqLCQueryName       The `gqLCQueryName` parameter in the `networkLogAndroid` method represents the
+     *                            name of the GraphQL query being executed. It is a nullable parameter, meaning it can be null if no
+     *                            GraphQL query name is provided. This parameter is used to log information related to GraphQL
+     *                            queries in the network logging
+     * @param serverErrorMessage  The `serverErrorMessage` parameter in the `networkLogAndroid` method is
+     *                            used to pass any error message received from the server during network communication. This message
+     *                            can provide additional details about any errors that occurred on the server side, helping in
+     *                            debugging and troubleshooting network-related issues.
+     */
     @ReactMethod
     private void networkLogAndroid(final double requestStartTime,
                                    final double requestDuration,
@@ -325,15 +327,15 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                                    @Nullable final ReadableMap w3cAttributes,
                                    @Nullable final String gqLCQueryName,
                                    @Nullable final String serverErrorMessage
-                                   ) {
+    ) {
         try {
             APMNetworkLogger networkLogger = new APMNetworkLogger();
 
             final boolean hasError = errorDomain != null && !errorDomain.isEmpty();
             final String errorMessage = hasError ? errorDomain : null;
-            Boolean isW3cHeaderFound=false;
-            Long partialId=null;
-            Long networkStartTimeInSeconds=null;
+            Boolean isW3cHeaderFound = false;
+            Long partialId = null;
+            Long networkStartTimeInSeconds = null;
 
 
             try {
@@ -342,7 +344,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 }
 
                 if (!w3cAttributes.isNull("partialId")) {
-                    partialId =(long) w3cAttributes.getDouble("partialId");
+                    partialId = (long) w3cAttributes.getDouble("partialId");
                     networkStartTimeInSeconds = (long) w3cAttributes.getDouble("networkStartTimeInSeconds");
                 }
 
@@ -360,137 +362,135 @@ public class RNLuciqAPMModule extends EventEmitterModule {
             try {
                 Method method = getMethod(Class.forName("ai.luciq.apm.networking.APMNetworkLogger"), "log", long.class, long.class, String.class, String.class, long.class, String.class, String.class, String.class, String.class, String.class, long.class, int.class, String.class, String.class, String.class, String.class, APMCPNetworkLog.W3CExternalTraceAttributes.class);
                 if (method != null) {
-                        method.invoke(
-                                networkLogger,
-                                (long) requestStartTime * 1000,
-                                (long) requestDuration,
-                                requestHeaders,
-                                requestBody,
-                                (long)  requestBodySize,
-                                requestMethod,
-                                requestUrl,
-                                requestContentType,
-                                responseHeaders,
-                                responseBody,
-                                (long)responseBodySize,
-                                (int) statusCode,
-                                responseContentType,
-                                errorMessage,
-                                gqLCQueryName,
-                                serverErrorMessage,
-                                w3cExternalTraceAttributes
-                        );
+                    method.invoke(
+                            networkLogger,
+                            (long) requestStartTime * 1000,
+                            (long) requestDuration,
+                            requestHeaders,
+                            requestBody,
+                            (long) requestBodySize,
+                            requestMethod,
+                            requestUrl,
+                            requestContentType,
+                            responseHeaders,
+                            responseBody,
+                            (long) responseBodySize,
+                            (int) statusCode,
+                            responseContentType,
+                            errorMessage,
+                            gqLCQueryName,
+                            serverErrorMessage,
+                            w3cExternalTraceAttributes
+                    );
                 } else {
                     Log.e("IB-CP-Bridge", "APMNetworkLogger.log was not found by reflection");
                 }
             } catch (Throwable e) {
                 e.printStackTrace();
             }
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
-        /**
-         * Enables or disables screen rendering
-         *
-         * @param isEnabled boolean indicating enabled or disabled.
-         */
-        @ReactMethod
-        public void setScreenRenderingEnabled(boolean isEnabled) {
-            MainThreadHandler.runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        APM.setScreenRenderingEnabled(isEnabled);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+
+    /**
+     * Enables or disables screen rendering
+     *
+     * @param isEnabled boolean indicating enabled or disabled.
+     */
+    @ReactMethod
+    public void setScreenRenderingEnabled(boolean isEnabled) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    APM.setScreenRenderingEnabled(isEnabled);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            });
-        }
+            }
+        });
+    }
 
-        /**
-         * Syncs a custom span to the native SDK (currently logs only).
-         *
-         * @param name Name of the custom span
-         * @param startTimestamp Start time in microseconds since epoch
-         * @param endTimestamp End time in microseconds since epoch
-         * @param promise Promise to resolve when complete
-         */
-        @ReactMethod
-        public void syncCustomSpan(final String name,
-                                   final double startTimestamp,
-                                   final double endTimestamp,
-                                   final Promise promise) {
-            MainThreadHandler.runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        // Log the span data for verification (native SDK not ready yet)
-                        long duration = (long)(endTimestamp - startTimestamp);
-                        Log.d("CustomSpan", String.format(
-                            "Syncing span - name: %s, start: %.0f μs, end: %.0f μs, duration: %d μs",
-                            name,
-                            startTimestamp,
-                            endTimestamp,
-                            duration
-                        ));
+    /**
+     * Syncs a custom span to the native SDK (currently logs only).
+     *
+     * @param name           Name of the custom span
+     * @param startTimestamp Start time in microseconds since epoch
+     * @param endTimestamp   End time in microseconds since epoch
+     * @param promise        Promise to resolve when complete
+     */
+    @ReactMethod
+    public void syncCustomSpan(final String name,
+                               final double startTimestamp,
+                               final double endTimestamp,
+                               final Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Convert microseconds to milliseconds for Date objects
+                    Date startDate = new Date((long) (startTimestamp / 1000));
+                    Date endDate = new Date((long) (endTimestamp / 1000));
 
-                        // TODO: Replace with actual SDK call when ready:
-                        // APM.syncCustomSpan(name, (long)startTimestamp, (long)endTimestamp);
+                    APM.addCompletedCustomSpan(name, startDate, endDate);
 
-                        promise.resolve(true);
-                    } catch (Exception e) {
-                        Log.e("CustomSpan", "Error syncing span", e);
-                        promise.resolve(false);
-                    }
+                    promise.resolve(true);
+                } catch (Exception e) {
+                    Log.e("IB-CP-Bridge", "Error syncing span", e);
+                    promise.resolve(false);
                 }
-            });
-        }
+            }
+        });
+    }
 
-        /**
-         * Checks if custom spans feature is enabled.
-         *
-         * @param promise Promise that resolves with boolean indicating if enabled
-         */
-        @ReactMethod
-        public void isCustomSpanEnabled(final Promise promise) {
-            MainThreadHandler.runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        // TODO: Replace with actual SDK call when ready:
-                        // boolean enabled = APM.isCustomSpanEnabled();
-
-                        // For now, return true to allow testing
-                        Log.d("CustomSpan", "Feature flag check - returning true (hardcoded for testing)");
-                        promise.resolve(true);
-                    } catch (Exception e) {
-                        Log.e("CustomSpan", "Error checking feature flag", e);
-                        promise.resolve(false);
-                    }
+    /**
+     * Checks if custom spans feature is enabled.
+     *
+     * @param promise Promise that resolves with boolean indicating if enabled
+     */
+    @ReactMethod
+    public void isCustomSpanEnabled(final Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    InternalAPM._isFeatureEnabledCP(APMFeature.CUSTOM_SPANS, "LuciqCustomSpan", new FeatureAvailabilityCallback() {
+                        @Override
+                        public void invoke(boolean isEnabled) {
+                            promise.resolve(isEnabled);
+                        }
+                    });
+                } catch (Exception e) {
+                    Log.e("IB-CP-Bridge", "Error checking feature flag", e);
+                    promise.resolve(false);
                 }
-            });
-        }
+            }
+        });
+    }
 
-        /**
-         * Checks if APM is enabled.
-         *
-         * @param promise Promise that resolves with boolean indicating if enabled
-         */
-        @ReactMethod
-        public void isAPMEnabled(final Promise promise) {
-            MainThreadHandler.runOnMainThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        boolean enabled = true;
-                        promise.resolve(enabled);
-                    } catch (Exception e) {
-                        Log.e("CustomSpan", "Error checking APM enabled", e);
-                        promise.resolve(false);
-                    }
+    /**
+     * Checks if APM is enabled.
+     *
+     * @param promise Promise that resolves with boolean indicating if enabled
+     */
+    @ReactMethod
+    public void isAPMEnabled(final Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    InternalAPM._isFeatureEnabledCP(APMFeature.APM, "APM", new FeatureAvailabilityCallback() {
+                        @Override
+                        public void invoke(boolean isEnabled) {
+                            promise.resolve(isEnabled);
+                        }
+                    });
+                } catch (Exception e) {
+                    Log.e("IB-CP-Bridge", "Error checking APM enabled", e);
+                    promise.resolve(false);
                 }
-            });
-        }
+            }
+        });
+    }
 }
