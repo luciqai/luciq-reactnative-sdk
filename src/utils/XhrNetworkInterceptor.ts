@@ -330,10 +330,6 @@ export default {
           cloneNetwork.errorCode = clientErrorCode;
           cloneNetwork.errorDomain = 'cancelled';
           cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
-
-          // if (onDoneCallback) {
-          //   onDoneCallback(cloneNetwork);
-          // }
         });
       }
 
