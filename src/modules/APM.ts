@@ -131,17 +131,19 @@ export const setScreenRenderingEnabled = (isEnabled: boolean) => {
 };
 
 /**
- * Export Screen Loading functionality
+ * Enables or disables Screen Loading feature
+ * @param isEnabled
  */
-export { ScreenLoadingManager };
+export const setScreenLoadingEnabled = (isEnabled: boolean) => {
+  NativeAPM.setScreenLoadingEnabled(isEnabled);
+};
 
 /**
- * Check if Screen Loading feature is enabled
- * @returns Promise that resolves to true if the feature is enabled
+ * Ends the currently running screen loading custom trace.
  */
-export async function isScreenLoadingEnabled(): Promise<boolean> {
-  return ScreenLoadingManager.isFeatureEnabled();
-}
+export const endScreenLoading = (timeStampMicro: number, uiTraceId: number) => {
+  ScreenLoadingManager.endScreenLoading(timeStampMicro, uiTraceId);
+};
 
 /**
  * Exclude specific routes from automatic screen loading measurement

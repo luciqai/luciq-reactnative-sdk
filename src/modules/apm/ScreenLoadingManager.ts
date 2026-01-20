@@ -15,6 +15,7 @@ class ScreenLoadingManagerClass {
   private activeSpans: Map<string, ScreenLoadingSpan> = new Map();
   private isInitialized: boolean = false;
   private isEnabled: boolean = false;
+  private isEndScreenLoadingEnabled: boolean = false;
   private maxConcurrentSpans: number = 50;
   private excludedRoutes: Set<string> = new Set();
 
@@ -26,7 +27,7 @@ class ScreenLoadingManagerClass {
     try {
       // Check feature flag
       this.isEnabled = await NativeAPM.isScreenLoadingEnabled();
-
+      this.isEndScreenLoadingEnabled = await NativeAPM.isEndScreenLoadingEnabled();
       if (this.isEnabled) {
         await NativeAPM.initScreenFrameTracking();
         this.isInitialized = true;
@@ -70,6 +71,12 @@ class ScreenLoadingManagerClass {
     return this.excludedRoutes.has(routeName);
   }
 
+  /**
+   * Create a new screen loading span
+   * @param screenName Name of the screen
+   * @param isManual Whether the span is manual (not automatically created)
+   * @returns The created span or null if the feature is not enabled
+   */
   createSpan(screenName: string, isManual: boolean = false): ScreenLoadingSpan | null {
     if (!this.isEnabled) {
       return null;
@@ -111,6 +118,10 @@ class ScreenLoadingManagerClass {
     return span;
   }
 
+  /**
+   * End a screen loading span
+   * @param spanId The ID of the span to end
+   */
   async endSpan(spanId: string): Promise<void> {
     if (!this.isEnabled) {
       return;
@@ -147,6 +158,10 @@ class ScreenLoadingManagerClass {
     }, 5000);
   }
 
+  /**
+   * Log a screen loading span
+   * @param span The span to log
+   */
   private logScreenLoading(span: ScreenLoadingSpan): void {
     const logData = {
       type: 'screen_loading',
@@ -161,6 +176,32 @@ class ScreenLoadingManagerClass {
     };
 
     console.log('[ScreenLoading] Measurement:', JSON.stringify(logData, null, 2));
+
+    // Sync screen loading data to native layer
+    NativeAPM.syncScreenLoading(
+      Number(span.spanId),
+      span.screenName,
+      span.startTimestamp,
+      span.ttid!,
+      span.attributes,
+    );
+  }
+
+  /**
+   * End a screen loading span
+   * @param timeStampMicro The timestamp in microseconds
+   * @param uiTraceId The UI trace ID
+   */
+  endScreenLoading(timeStampMicro: number, uiTraceId: number): void {
+    if (!this.isEndScreenLoadingFeatureEnabled()) {
+      console.warn('[ScreenLoading] End screen loading feature is not enabled');
+      return;
+    }
+    try {
+      NativeAPM.endScreenLoading(timeStampMicro, uiTraceId);
+    } catch (error) {
+      console.error('[ScreenLoading] Failed to end screen loading:', error);
+    }
   }
 
   getActiveSpan(spanId: string): ScreenLoadingSpan | undefined {
@@ -191,6 +232,10 @@ class ScreenLoadingManagerClass {
 
   isFeatureEnabled(): boolean {
     return this.isEnabled;
+  }
+
+  isEndScreenLoadingFeatureEnabled(): boolean {
+    return this.isEnabled && this.isEndScreenLoadingEnabled;
   }
 }
 

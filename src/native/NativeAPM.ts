@@ -53,6 +53,16 @@ export interface ApmNativeModule extends NativeModule {
   setActiveScreenSpanId(spanId: string): void;
   getScreenTimeToDisplay(spanId: string): Promise<number | null>;
   isScreenLoadingEnabled(): Promise<boolean>;
+  isEndScreenLoadingEnabled(): Promise<boolean>;
+  endScreenLoading(timeStampMicro: number, uiTraceId: number): void;
+  setScreenLoadingEnabled(isEnabled: boolean): void;
+  syncScreenLoading(
+    spanId: number,
+    screenName: string,
+    startTimestamp: number,
+    durationUS: number,
+    attributes: Record<string, any>,
+  ): void;
 }
 
 export const NativeAPM = NativeModules.LCQAPM;

@@ -119,16 +119,38 @@ RCT_EXPORT_METHOD(getScreenTimeToDisplay:(NSString *)spanId
 }
 
 RCT_EXPORT_METHOD(isScreenLoadingEnabled:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject)
-{
-    dispatch_async(dispatch_get_main_queue(), ^{
-        // Check native feature flag (coordinate with native SDK team)
-        BOOL enabled = YES; // TODO: Query actual native flag
-        resolve(@(enabled));
-    });
+                  rejecter:(RCTPromiseRejectBlock)reject){
+   
+    BOOL isScreenLoadingEnabled = LCQAPM.screenLoadingEnabled;
+    resolve(@(isScreenLoadingEnabled));
 }
 
+RCT_EXPORT_METHOD(isEndScreenLoadingEnabled:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject){
+   
+//    BOOL isEndScreenLoadingEnabled = LCQAPM.endScreenLoadingEnabled;
+    BOOL isEndScreenLoadingEnabled = @(YES);
+    resolve(@(isEndScreenLoadingEnabled));
+}
 
+RCT_EXPORT_METHOD(endScreenLoading:(double)timeStampMicro
+                  uiTraceId:(double)uiTraceId){
+//    [LCQAPM endScreenLoadingWithTimeStampMicro:timeStampMicro uiTraceId:uiTraceId];
+}
+
+RCT_EXPORT_METHOD(setScreenLoadingEnabled:(BOOL)isEnabled){
+    LCQAPM.screenLoadingEnabled = isEnabled;
+}
+
+// Syncs screen loading data to native layer for reporting
+RCT_EXPORT_METHOD(syncScreenLoading:(double)spanId
+                  screenName:(NSString *)screenName
+                  startTimestamp:(double)startTimestamp
+                  ttid_us:(double)ttid_us
+                  attributes:(NSDictionary *)attributes){
+    NSLog(@"[ScreenLoading] syncScreenLoading - spanId: %.0f, screenName: %@, startTimestamp: %f, ttid_us: %f, attributes: %@",
+          spanId, screenName, startTimestamp, ttid_us, attributes);
+}
 
 @synthesize description;
 
