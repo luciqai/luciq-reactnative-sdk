@@ -83,5 +83,9 @@ dependencies {
 rootProject.allprojects {
 	repositories {
 		google()
-        mavenCentral()	}
+        mavenCentral()
+        maven {
+            url "https://central.sonatype.com/repository/maven-snapshots/"
+        } 
+    }
 }
