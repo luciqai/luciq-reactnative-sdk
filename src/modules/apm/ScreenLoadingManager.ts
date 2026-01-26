@@ -1,4 +1,5 @@
 import { NativeAPM } from '../../native/NativeAPM';
+import { Logger } from '../../utils/logger';
 
 export interface ScreenLoadingSpan {
   spanId: string;
@@ -8,7 +9,7 @@ export interface ScreenLoadingSpan {
   ttid?: number;
   status: 'pending' | 'measuring' | 'completed' | 'error';
   isManual: boolean;
-  attributes: Record<string, any>;
+  attributes: Map<string, number>;
 }
 
 class ScreenLoadingManagerClass {
@@ -31,12 +32,12 @@ class ScreenLoadingManagerClass {
       if (this.isEnabled) {
         await NativeAPM.initScreenFrameTracking();
         this.isInitialized = true;
-        console.log('[ScreenLoading] Manager initialized, feature enabled');
+        Logger.log('[ScreenLoading] Manager initialized, feature enabled');
       } else {
-        console.log('[ScreenLoading] Feature disabled by flag');
+        Logger.log('[ScreenLoading] Feature disabled by flag');
       }
     } catch (error) {
-      console.error('[ScreenLoading] Failed to initialize:', error);
+      Logger.error('[ScreenLoading] Failed to initialize:', error);
       this.isEnabled = false;
     }
   }
@@ -47,7 +48,7 @@ class ScreenLoadingManagerClass {
    */
   excludeRoutes(routes: string[]): void {
     routes.forEach((route) => this.excludedRoutes.add(route));
-    console.log('[ScreenLoading] Excluded routes:', Array.from(this.excludedRoutes));
+    Logger.log('[ScreenLoading] Excluded routes:', Array.from(this.excludedRoutes));
   }
 
   /**
@@ -57,10 +58,10 @@ class ScreenLoadingManagerClass {
   includeRoutes(routes?: string[]): void {
     if (!routes || routes.length === 0) {
       this.excludedRoutes.clear();
-      console.log('[ScreenLoading] Cleared all route exclusions');
+      Logger.log('[ScreenLoading] Cleared all route exclusions');
     } else {
       routes.forEach((route) => this.excludedRoutes.delete(route));
-      console.log('[ScreenLoading] Removed exclusions for:', routes);
+      Logger.log('[ScreenLoading] Removed exclusions for:', routes);
     }
   }
 
@@ -84,7 +85,7 @@ class ScreenLoadingManagerClass {
 
     // Check if route is excluded (only for automatic tracking)
     if (!isManual && this.isRouteExcluded(screenName)) {
-      console.log(`[ScreenLoading] Route "${screenName}" is excluded from automatic measurement`);
+      Logger.log(`[ScreenLoading] Route "${screenName}" is excluded from automatic measurement`);
       return null;
     }
 
@@ -102,7 +103,7 @@ class ScreenLoadingManagerClass {
       startTimestamp,
       status: 'pending',
       isManual,
-      attributes: {},
+      attributes: new Map<string, number>(),
     };
 
     this.activeSpans.set(spanId, span);
@@ -111,7 +112,7 @@ class ScreenLoadingManagerClass {
     NativeAPM.setActiveScreenSpanId(spanId);
     span.status = 'measuring';
 
-    console.log(
+    Logger.log(
       `[ScreenLoading] Created span ${spanId} for screen "${screenName}" (${isManual ? 'manual' : 'automatic'})`,
     );
 
@@ -133,8 +134,26 @@ class ScreenLoadingManagerClass {
     }
 
     try {
-      // Get frame timestamp from native
-      const frameTimestamp = await NativeAPM.getScreenTimeToDisplay(spanId);
+      // Get frame timestamp from native with retry logic
+      // The native frame callback (CADisplayLink/Choreographer) may not have executed yet
+      // if endSpan is called very quickly after createSpan. Retry up to 3 times with
+      // a delay of ~20ms (slightly more than one frame at 60fps) between attempts.
+      const maxRetries = 3;
+      const retryDelayMs = 20;
+      let frameTimestamp: number | null = null;
+
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        frameTimestamp = await NativeAPM.getScreenTimeToDisplay(spanId);
+
+        if (frameTimestamp) {
+          break;
+        }
+
+        // Wait for next frame before retrying (only if not last attempt)
+        if (attempt < maxRetries - 1) {
+          await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+        }
+      }
 
       if (frameTimestamp) {
         span.endTimestamp = frameTimestamp;
@@ -145,11 +164,11 @@ class ScreenLoadingManagerClass {
         this.logScreenLoading(span);
       } else {
         span.status = 'error';
-        console.warn(`[ScreenLoading] No frame timestamp available for span ${spanId}`);
+        Logger.warn(`[ScreenLoading] No frame timestamp available for span ${spanId}`);
       }
     } catch (error) {
       span.status = 'error';
-      console.error(`[ScreenLoading] Failed to get timestamp for span ${spanId}:`, error);
+      Logger.error(`[ScreenLoading] Failed to get timestamp for span ${spanId}:`, error);
     }
 
     // Cleanup after a delay
@@ -163,6 +182,9 @@ class ScreenLoadingManagerClass {
    * @param span The span to log
    */
   private logScreenLoading(span: ScreenLoadingSpan): void {
+    // Convert Map to plain object for JSON serialization (JSON.stringify cannot serialize Maps)
+    const attributesObject = Object.fromEntries(span.attributes);
+
     const logData = {
       type: 'screen_loading',
       span_id: span.spanId,
@@ -172,18 +194,18 @@ class ScreenLoadingManagerClass {
       ttid_us: span.ttid,
       ttid_ms: span.ttid ? span.ttid / 1000 : undefined,
       is_manual: span.isManual,
-      attributes: span.attributes,
+      attributes: attributesObject,
     };
 
-    console.log('[ScreenLoading] Measurement:', JSON.stringify(logData, null, 2));
+    Logger.log('[ScreenLoading] Measurement:', JSON.stringify(logData, null, 2));
 
-    // Sync screen loading data to native layer
+    // Sync screen loading data to native layer (also pass converted object)
     NativeAPM.syncScreenLoading(
       Number(span.spanId),
       span.screenName,
       span.startTimestamp,
       span.ttid!,
-      span.attributes,
+      attributesObject,
     );
   }
 
@@ -194,13 +216,13 @@ class ScreenLoadingManagerClass {
    */
   endScreenLoading(timeStampMicro: number, uiTraceId: number): void {
     if (!this.isEndScreenLoadingFeatureEnabled()) {
-      console.warn('[ScreenLoading] End screen loading feature is not enabled');
+      Logger.warn('[ScreenLoading] End screen loading feature is not enabled');
       return;
     }
     try {
       NativeAPM.endScreenLoading(timeStampMicro, uiTraceId);
     } catch (error) {
-      console.error('[ScreenLoading] Failed to end screen loading:', error);
+      Logger.error('[ScreenLoading] Failed to end screen loading:', error);
     }
   }
 
@@ -212,10 +234,10 @@ class ScreenLoadingManagerClass {
     return Array.from(this.activeSpans.values());
   }
 
-  addSpanAttribute(spanId: string, key: string, value: any): void {
+  addSpanAttribute(spanId: string, key: string, value: number): void {
     const span = this.activeSpans.get(spanId);
     if (span) {
-      span.attributes[key] = value;
+      span.attributes.set(key, value);
     }
   }
 

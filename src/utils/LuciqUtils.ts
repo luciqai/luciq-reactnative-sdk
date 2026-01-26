@@ -420,6 +420,22 @@ export function updateNetworkLogSnapshot(networkSnapshot: NetworkData) {
   );
 }
 
+/**
+ * @internal
+ * This method is for internal use only.
+ *
+ * Parses a string value to an integer, returning null if the value is null or cannot be parsed.
+ * @param value The string value to parse
+ * @returns The parsed integer or null
+ */
+export function getIntValue(value: string | null): number | null {
+  if (value === null) {
+    return null;
+  }
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? null : parsed;
+}
+
 export default {
   parseErrorStack,
   captureJsErrors,
@@ -427,6 +443,7 @@ export default {
   getFullRoute,
   getStackTrace,
   stringifyIfNotString,
+  getIntValue,
   sendCrashReport,
   reportNetworkLog,
   generateTracePartialId,

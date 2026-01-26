@@ -1,11 +1,12 @@
 #import "LuciqScreenLoadingFrameTracker.h"
-#import <QuartzCore/CADisplayLink.h>
+#import <LuciqSDK/LCQAPM.h>
+#import "Util/LCQAPM+PrivateAPIs.h"
 
 @interface LuciqScreenLoadingFrameTracker ()
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSNumber *> *spanIdToTimestamp;
 @property (nonatomic, strong) NSMutableSet<NSString *> *activeSpanIds;
-@property (nonatomic, strong) CADisplayLink *displayLink;
 @property (nonatomic, assign) NSInteger maxStorageCapacity;
+@property (nonatomic, assign) BOOL isTracking;
 @end
 
 @implementation LuciqScreenLoadingFrameTracker
@@ -24,31 +25,39 @@
         self.spanIdToTimestamp = [NSMutableDictionary dictionary];
         self.activeSpanIds = [NSMutableSet set];
         self.maxStorageCapacity = 50;
+        self.isTracking = NO;
     }
     return self;
 }
 
 - (void)initializeFrameTracking {
-    if (!self.displayLink) {
-        self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(frameRendered:)];
-        [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+    if (self.isTracking) {
+        return;
     }
+
+    __weak typeof(self) weakSelf = self;
+    [LCQAPM startObservingDisplayLinkWithCallback:^(NSTimeInterval currentTimestamp, NSTimeInterval targetTimestamp) {
+        [weakSelf frameRenderedWithTimestamp:currentTimestamp];
+    }];
+    self.isTracking = YES;
 }
 
-- (void)frameRendered:(CADisplayLink *)displayLink {
+- (void)frameRenderedWithTimestamp:(NSTimeInterval)timestamp {
     if (self.activeSpanIds.count > 0) {
-        NSTimeInterval timestampMicroseconds = [[NSDate date] timeIntervalSince1970] * 1000000;
-        NSNumber *timestamp = @(timestampMicroseconds);
+        // Convert to epoch-based microseconds for consistency with previous behavior
+        // Note: CADisplayLink timestamps are relative to device boot, not epoch
+        NSTimeInterval epochTimestampMicroseconds = [[NSDate date] timeIntervalSince1970] * 1000000;
+        NSNumber *timestampNumber = @(epochTimestampMicroseconds);
 
         for (NSString *spanId in self.activeSpanIds) {
-            self.spanIdToTimestamp[spanId] = timestamp;
-            NSLog(@"[ScreenLoading] Frame rendered for span %@ at %@μs", spanId, timestamp);
+            self.spanIdToTimestamp[spanId] = timestampNumber;
+            NSLog(@"[ScreenLoading] Frame rendered for span %@ at %@μs", spanId, timestampNumber);
         }
         [self.activeSpanIds removeAllObjects];
 
         // Cleanup if exceeding capacity
         if (self.spanIdToTimestamp.count > self.maxStorageCapacity) {
-            [self cleanup];
+            [self cleanupStorage];
         }
     }
 }
@@ -68,6 +77,15 @@
 }
 
 - (void)cleanup {
+    if (self.isTracking) {
+        [LCQAPM stopObservingDisplayLink];
+        self.isTracking = NO;
+    }
+    [self.spanIdToTimestamp removeAllObjects];
+    [self.activeSpanIds removeAllObjects];
+}
+
+- (void)cleanupStorage {
     NSArray *sortedKeys = [self.spanIdToTimestamp keysSortedByValueUsingComparator:^NSComparisonResult(NSNumber *obj1, NSNumber *obj2) {
         return [obj1 compare:obj2];
     }];

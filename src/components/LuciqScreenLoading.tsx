@@ -1,6 +1,14 @@
-import React, { useState, useRef, useEffect, useContext, useCallback } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useLayoutEffect,
+  useContext,
+  useCallback,
+} from 'react';
 import { View, ViewProps } from 'react-native';
 import { ScreenLoadingManager } from '../modules/apm/ScreenLoadingManager';
+import { Logger } from '../utils/logger';
 
 // Context to handle nested components
 const ScreenLoadingContext = React.createContext<boolean>(false);
@@ -18,14 +26,22 @@ export function LuciqScreenLoading(props: LuciqScreenLoadingProps) {
 
   // Refs for timestamps (these don't need to trigger re-renders)
   const constructorTimestampRef = useRef<number>(Date.now() * 1000); // microseconds
-  const componentDidMountTimestampRef = useRef<number | undefined>(undefined);
   const renderStartTimestampRef = useRef<number | undefined>(undefined);
   const renderEndTimestampRef = useRef<number | undefined>(undefined);
+  const mountTimestampRef = useRef<number | undefined>(undefined);
 
-  // Initialize span - runs once like constructor (lazy initialization)
+  // Guards to ensure single execution
   const initializedRef = useRef(false);
+  const hasFirstRenderCompletedRef = useRef(false);
+  const attributesRecordedRef = useRef(false);
   const initialSpanIdRef = useRef<string | null>(null);
 
+  // Capture render start timestamp ONLY on first render
+  if (!hasFirstRenderCompletedRef.current) {
+    renderStartTimestampRef.current = Date.now() * 1000;
+  }
+
+  // Initialize span - runs once like constructor (lazy initialization)
   if (!initializedRef.current) {
     initializedRef.current = true;
     // Initialize span if conditions are met
@@ -33,8 +49,7 @@ export function LuciqScreenLoading(props: LuciqScreenLoadingProps) {
       const span = ScreenLoadingManager.createSpan(screenName, true);
       if (span) {
         initialSpanIdRef.current = span.spanId;
-        ScreenLoadingManager.addSpanAttribute(span.spanId, 'component', 'LuciqScreenLoading');
-        console.log(`[LuciqScreenLoading] Span ${span.spanId} created in constructor`);
+        Logger.log(`[LuciqScreenLoading] Span ${span.spanId} created in constructor`);
       }
     }
   }
@@ -55,39 +70,73 @@ export function LuciqScreenLoading(props: LuciqScreenLoadingProps) {
     isMeasuredRef.current = isMeasured;
   }, [isMeasured]);
 
-  // componentDidMount equivalent
+  // Handle nested component detection
   useEffect(() => {
-    componentDidMountTimestampRef.current = Date.now() * 1000;
-
     // Check if we're nested and should ignore this component
     if (isNested && initialSpanIdRef.current) {
-      console.log(
+      Logger.log(
         `[LuciqScreenLoading] Nested component detected, ignoring span ${initialSpanIdRef.current}`,
       );
       // Cancel the span
       setSpanId(null);
-      return;
-    }
-
-    // Calculate and add lifecycle durations
-    if (initialSpanIdRef.current) {
-      const constructorDuration =
-        (componentDidMountTimestampRef.current - constructorTimestampRef.current) / 1000; // ms
-
-      ScreenLoadingManager.addSpanAttribute(initialSpanIdRef.current, 'lifecycle_durations', {
-        constructor_ms: constructorDuration,
-        componentDidMount_timestamp_us: componentDidMountTimestampRef.current,
-      });
-
-      console.log(
-        `[LuciqScreenLoading] Lifecycle measurements for span ${initialSpanIdRef.current}:`,
-        {
-          constructor_ms: constructorDuration,
-        },
-      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty deps = componentDidMount
+
+  // Record lifecycle timestamps after first render completes (synchronous)
+  // useLayoutEffect fires synchronously after DOM mutations but before browser paint
+  useLayoutEffect(() => {
+    // Skip if no span, already recorded, or nested
+    if (!spanId || attributesRecordedRef.current || isNested) {
+      return;
+    }
+
+    attributesRecordedRef.current = true;
+    mountTimestampRef.current = Date.now() * 1000;
+
+    // Record all timestamps
+    ScreenLoadingManager.addSpanAttribute(spanId, 'cnst_mus_st', constructorTimestampRef.current);
+
+    if (renderStartTimestampRef.current) {
+      ScreenLoadingManager.addSpanAttribute(spanId, 'rnd_mus_st', renderStartTimestampRef.current);
+    }
+
+    ScreenLoadingManager.addSpanAttribute(spanId, 'mnt_mus_st', mountTimestampRef.current);
+
+    // Record all durations
+    if (renderStartTimestampRef.current) {
+      // Constructor duration: time from component init to first render start
+      const constructorDuration = renderStartTimestampRef.current - constructorTimestampRef.current;
+      ScreenLoadingManager.addSpanAttribute(spanId, 'cnst_mus', constructorDuration);
+    }
+
+    if (renderEndTimestampRef.current && renderStartTimestampRef.current) {
+      // Render duration: time spent creating JSX
+      const renderDuration = renderEndTimestampRef.current - renderStartTimestampRef.current;
+      ScreenLoadingManager.addSpanAttribute(spanId, 'rnd_mus', renderDuration);
+    }
+
+    if (mountTimestampRef.current && renderEndTimestampRef.current) {
+      // Mount duration: time from render complete to effect execution
+      const mountDuration = mountTimestampRef.current - renderEndTimestampRef.current;
+      ScreenLoadingManager.addSpanAttribute(spanId, 'mnt_mus', mountDuration);
+    }
+
+    Logger.log(`[LuciqScreenLoading] Lifecycle measurements for span ${spanId}:`, {
+      constructor_us: renderStartTimestampRef.current
+        ? renderStartTimestampRef.current - constructorTimestampRef.current
+        : undefined,
+      render_us:
+        renderEndTimestampRef.current && renderStartTimestampRef.current
+          ? renderEndTimestampRef.current - renderStartTimestampRef.current
+          : undefined,
+      mount_us:
+        mountTimestampRef.current && renderEndTimestampRef.current
+          ? mountTimestampRef.current - renderEndTimestampRef.current
+          : undefined,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [spanId]); // Run when spanId is set
 
   // componentWillUnmount equivalent
   useEffect(() => {
@@ -95,7 +144,7 @@ export function LuciqScreenLoading(props: LuciqScreenLoadingProps) {
       // Cleanup on unmount if not measured
       if (spanIdRef.current && !isMeasuredRef.current) {
         ScreenLoadingManager.endSpan(spanIdRef.current).catch((error) => {
-          console.warn('[LuciqScreenLoading] Failed to end span on unmount:', error);
+          Logger.warn('[LuciqScreenLoading] Failed to end span on unmount:', error);
         });
       }
     };
@@ -104,32 +153,22 @@ export function LuciqScreenLoading(props: LuciqScreenLoadingProps) {
   const handleLayout = useCallback(
     async (event: any) => {
       if (spanIdRef.current && !isMeasuredRef.current) {
+        const layoutTimestamp = Date.now() * 1000;
         setIsMeasured(true);
+
+        // Record layout timestamp
+        ScreenLoadingManager.addSpanAttribute(spanIdRef.current, 'layout_mus_st', layoutTimestamp);
+
+        // Calculate layout duration (time from mount to layout)
+        if (mountTimestampRef.current) {
+          const layoutDuration = layoutTimestamp - mountTimestampRef.current;
+          ScreenLoadingManager.addSpanAttribute(spanIdRef.current, 'layout_mus', layoutDuration);
+        }
 
         // Small delay to ensure frame is actually rendered
         setTimeout(async () => {
           const currentSpanId = spanIdRef.current;
           if (currentSpanId) {
-            // Add final render timestamp
-            const layoutTimestamp = Date.now() * 1000;
-            ScreenLoadingManager.addSpanAttribute(
-              currentSpanId,
-              'layout_timestamp_us',
-              layoutTimestamp,
-            );
-
-            // Calculate render duration if we have the timestamps
-            if (renderStartTimestampRef.current && renderEndTimestampRef.current) {
-              const renderDuration =
-                (renderEndTimestampRef.current - renderStartTimestampRef.current) / 1000; // ms
-
-              // Update lifecycle durations with render time
-              const span = ScreenLoadingManager.getActiveSpan(currentSpanId);
-              if (span?.attributes.lifecycle_durations) {
-                span.attributes.lifecycle_durations.render_ms = renderDuration;
-              }
-            }
-
             await ScreenLoadingManager.endSpan(currentSpanId);
 
             // Get the completed span to retrieve TTID
@@ -149,9 +188,7 @@ export function LuciqScreenLoading(props: LuciqScreenLoadingProps) {
     [onLayout, onMeasured],
   );
 
-  // Track render start
-  renderStartTimestampRef.current = Date.now() * 1000;
-
+  // Create the JSX result
   const result = (
     <ScreenLoadingContext.Provider value={spanId !== null}>
       <View {...viewProps} onLayout={handleLayout}>
@@ -160,18 +197,10 @@ export function LuciqScreenLoading(props: LuciqScreenLoadingProps) {
     </ScreenLoadingContext.Provider>
   );
 
-  // Track render end
-  renderEndTimestampRef.current = Date.now() * 1000;
-
-  // Calculate render duration
-  if (spanId && renderStartTimestampRef.current && renderEndTimestampRef.current) {
-    const renderDuration = (renderEndTimestampRef.current - renderStartTimestampRef.current) / 1000; // ms
-
-    // Store render duration
-    ScreenLoadingManager.addSpanAttribute(spanId, 'lifecycle_durations', {
-      ...ScreenLoadingManager.getActiveSpan(spanId)?.attributes.lifecycle_durations,
-      render_ms: renderDuration,
-    });
+  // Capture render end timestamp ONLY on first render (after JSX creation)
+  if (!hasFirstRenderCompletedRef.current) {
+    renderEndTimestampRef.current = Date.now() * 1000;
+    hasFirstRenderCompletedRef.current = true;
   }
 
   return result;

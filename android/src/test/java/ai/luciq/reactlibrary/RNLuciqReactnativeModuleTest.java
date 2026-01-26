@@ -529,7 +529,7 @@ public class RNLuciqReactnativeModuleTest {
     @Test
     public void givenString$reportScreenChange_whenQuery_thenShouldCallNativeApiWithString() throws Exception {
         // when
-        rnModule.reportScreenChange("screen");
+        rnModule.reportScreenChange("screen", null);
         Method privateStringMethod = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class);
         privateStringMethod.setAccessible(true);
 

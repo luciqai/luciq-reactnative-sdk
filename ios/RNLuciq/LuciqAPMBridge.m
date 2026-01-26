@@ -128,14 +128,13 @@ RCT_EXPORT_METHOD(isScreenLoadingEnabled:(RCTPromiseResolveBlock)resolve
 RCT_EXPORT_METHOD(isEndScreenLoadingEnabled:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject){
    
-//    BOOL isEndScreenLoadingEnabled = LCQAPM.endScreenLoadingEnabled;
-    BOOL isEndScreenLoadingEnabled = @(YES);
+    BOOL isEndScreenLoadingEnabled = LCQAPM.endScreenLoadingEnabled;
     resolve(@(isEndScreenLoadingEnabled));
 }
 
 RCT_EXPORT_METHOD(endScreenLoading:(double)timeStampMicro
                   uiTraceId:(double)uiTraceId){
-//    [LCQAPM endScreenLoadingWithTimeStampMicro:timeStampMicro uiTraceId:uiTraceId];
+    [LCQAPM endScreenLoadingCPWithEndTimestampMUS:timeStampMicro];
 }
 
 RCT_EXPORT_METHOD(setScreenLoadingEnabled:(BOOL)isEnabled){

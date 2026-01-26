@@ -3,10 +3,11 @@ import { Platform } from 'react-native';
 import { NativeAPM } from '../native/NativeAPM';
 import { NativeLuciq } from '../native/NativeLuciq';
 import { ScreenLoadingManager } from './apm/ScreenLoadingManager';
+import { Logger } from '../utils/logger';
 
 // Initialize Screen Loading on module load
 ScreenLoadingManager.initialize().catch((error) => {
-  console.error('[APM] Failed to initialize Screen Loading:', error);
+  Logger.error('[APM] Failed to initialize Screen Loading:', error);
 });
 
 /**

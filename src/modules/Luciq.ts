@@ -124,7 +124,7 @@ export const init = (config: LuciqConfig) => {
   reportCurrentViewForAndroid(firstScreen);
   setTimeout(() => {
     if (_currentScreen === firstScreen) {
-      NativeLuciq.reportScreenChange(firstScreen);
+      NativeLuciq.reportScreenChange(firstScreen, null);
       _currentScreen = null;
     }
   }, 1000);
@@ -753,12 +753,11 @@ const _clearStateChangeTimeout = (): void => {
 /**
  * Handles React Navigation's __unsafe_action__ event
  * This fires WHEN a navigation action is dispatched (the start of navigation)
- * Following Sentry's pattern from sentry-react-native
  */
 const _onNavigationAction = (event?: any): void => {
   // Check for noop actions that shouldn't create spans
   if (event?.data?.noop) {
-    console.log('[ScreenLoading] Navigation action is a noop, not starting span');
+    Logger.log('[ScreenLoading] Navigation action is a noop, not starting span');
     return;
   }
 
@@ -768,18 +767,17 @@ const _onNavigationAction = (event?: any): void => {
     actionType &&
     ['SET_PARAMS', 'OPEN_DRAWER', 'CLOSE_DRAWER', 'TOGGLE_DRAWER'].includes(actionType)
   ) {
-    console.log(`[ScreenLoading] Skipping non-navigation action: ${actionType}`);
+    Logger.log(`[ScreenLoading] Skipping non-navigation action: ${actionType}`);
     return;
   }
 
   // If there's an existing active span, it means navigation was interrupted
   // Discard the previous span as it never completed
   if (_activeNavigationSpanId) {
-    console.log('[ScreenLoading] Discarding incomplete previous navigation span');
+    Logger.log('[ScreenLoading] Discarding incomplete previous navigation span');
     // Mark the span as cancelled/error since state change never occurred
     const span = ScreenLoadingManager.getActiveSpan(_activeNavigationSpanId);
     if (span) {
-      ScreenLoadingManager.addSpanAttribute(_activeNavigationSpanId, 'cancelled', true);
       ScreenLoadingManager.endSpan(_activeNavigationSpanId);
     }
     _activeNavigationSpanId = null;
@@ -792,23 +790,15 @@ const _onNavigationAction = (event?: any): void => {
     const span = ScreenLoadingManager.createSpan('NavigationPending', false);
     if (span) {
       _activeNavigationSpanId = span.spanId;
-      ScreenLoadingManager.addSpanAttribute(
-        span.spanId,
-        'navigation_library',
-        'react-navigation-v5/v6',
-      );
-      ScreenLoadingManager.addSpanAttribute(span.spanId, 'action_type', actionType || 'unknown');
-
-      console.log(`[ScreenLoading] Started span ${span.spanId} on navigation dispatch`);
+      Logger.log(`[ScreenLoading] Started span ${span.spanId} on navigation dispatch`);
 
       // Set a safety timeout to discard the span if state never changes
       // This prevents memory leaks from incomplete navigations
       _stateChangeTimeout = setTimeout(() => {
         if (_activeNavigationSpanId === span.spanId) {
-          console.warn(
+          Logger.warn(
             `[ScreenLoading] Navigation span ${span.spanId} timed out - state never changed`,
           );
-          ScreenLoadingManager.addSpanAttribute(span.spanId, 'timeout', true);
           ScreenLoadingManager.endSpan(span.spanId);
           _activeNavigationSpanId = null;
         }
@@ -820,7 +810,6 @@ const _onNavigationAction = (event?: any): void => {
 /**
  * Handles React Navigation's state event
  * This fires AFTER the navigation state has changed (the screen is mounted)
- * Following Sentry's pattern from sentry-react-native
  */
 const _onNavigationStateChange = (): void => {
   if (!_navigationRef?.current) {
@@ -835,8 +824,7 @@ const _onNavigationStateChange = (): void => {
   if (!currentRouteName || previousRouteName === currentRouteName) {
     // Still need to clean up the span if one was created
     if (_activeNavigationSpanId) {
-      console.log('[ScreenLoading] Navigation resulted in same route, discarding span');
-      ScreenLoadingManager.addSpanAttribute(_activeNavigationSpanId, 'same_route', true);
+      Logger.log('[ScreenLoading] Navigation resulted in same route, discarding span');
       ScreenLoadingManager.endSpan(_activeNavigationSpanId);
       _activeNavigationSpanId = null;
       _clearStateChangeTimeout();
@@ -851,25 +839,13 @@ const _onNavigationStateChange = (): void => {
       // Update the span name from placeholder to actual screen name
       span.screenName = currentRouteName;
 
-      // Add navigation metadata
-      ScreenLoadingManager.addSpanAttribute(
-        _activeNavigationSpanId,
-        'screen_name',
-        currentRouteName,
-      );
-      ScreenLoadingManager.addSpanAttribute(
-        _activeNavigationSpanId,
-        'previous_screen',
-        previousRouteName || 'unknown',
-      );
-
       // End the span - the native frame tracker will provide the actual render timestamp
       ScreenLoadingManager.endSpan(_activeNavigationSpanId)
         .then(() => {
-          console.log(`[ScreenLoading] Completed span for navigation to ${currentRouteName}`);
+          Logger.log(`[ScreenLoading] Completed span for navigation to ${currentRouteName}`);
         })
         .catch((error) => {
-          console.warn('[ScreenLoading] Failed to end navigation span:', error);
+          Logger.warn('[ScreenLoading] Failed to end navigation span:', error);
         });
     }
 
@@ -877,7 +853,7 @@ const _onNavigationStateChange = (): void => {
     _activeNavigationSpanId = null;
     _clearStateChangeTimeout();
   } else {
-    console.log(
+    Logger.log(
       '[ScreenLoading] State changed but no active span - navigation may have started before tracking',
     );
   }
@@ -886,7 +862,7 @@ const _onNavigationStateChange = (): void => {
   _currentRoute = currentRouteName;
 
   // Report to native (existing behavior)
-  NativeLuciq.reportScreenChange(currentRouteName);
+  NativeLuciq.reportScreenChange(currentRouteName, _activeNavigationSpanId);
 };
 
 export const onNavigationStateChange = (
@@ -904,35 +880,25 @@ export const onNavigationStateChange = (
       const span = ScreenLoadingManager.createSpan(currentScreen || 'Unknown', false);
       if (span) {
         screenLoadingSpanId = span.spanId;
-        ScreenLoadingManager.addSpanAttribute(
-          span.spanId,
-          'previous_screen',
-          prevScreen || 'unknown',
-        );
-        ScreenLoadingManager.addSpanAttribute(
-          span.spanId,
-          'navigation_library',
-          'react-navigation-v4',
-        );
       }
     }
 
     reportCurrentViewForAndroid(currentScreen);
     if (_currentScreen != null && _currentScreen !== firstScreen) {
-      NativeLuciq.reportScreenChange(_currentScreen);
+      NativeLuciq.reportScreenChange(_currentScreen, screenLoadingSpanId);
       _currentScreen = null;
     }
     _currentScreen = currentScreen;
     setTimeout(() => {
       if (currentScreen && _currentScreen === currentScreen) {
-        NativeLuciq.reportScreenChange(currentScreen);
+        NativeLuciq.reportScreenChange(currentScreen, screenLoadingSpanId);
         _currentScreen = null;
       }
 
       // End Screen Loading measurement for v4
       if (screenLoadingSpanId) {
         ScreenLoadingManager.endSpan(screenLoadingSpanId).catch((error) => {
-          console.warn('[ScreenLoading] Failed to end span:', error);
+          Logger.warn('[ScreenLoading] Failed to end span:', error);
         });
       }
     }, 1000);
@@ -951,14 +917,14 @@ export const onStateChange = (state?: NavigationStateV5) => {
   const currentScreen = LuciqUtils.getFullRoute(state);
   reportCurrentViewForAndroid(currentScreen);
   if (_currentScreen !== null && _currentScreen !== firstScreen) {
-    NativeLuciq.reportScreenChange(_currentScreen);
+    NativeLuciq.reportScreenChange(_currentScreen, null);
     _currentScreen = null;
   }
 
   _currentScreen = currentScreen;
   setTimeout(() => {
     if (_currentScreen === currentScreen) {
-      NativeLuciq.reportScreenChange(currentScreen);
+      NativeLuciq.reportScreenChange(currentScreen, null);
       _currentScreen = null;
     }
   }, 1000);
@@ -967,18 +933,18 @@ export const onStateChange = (state?: NavigationStateV5) => {
 /**
  * Sets a listener for screen change
  *  @param navigationRef a refrence of a navigation container
- *  @param onNavigationStateChangeCallback optional callback for state changes
+ // *  @param onNavigationStateChangeCallback optional callback for state changes
  *
  */
 export const setNavigationListener = (
   navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
-  onNavigationStateChangeCallback?: () => void,
+  // onNavigationStateChangeCallback?: () => void,
 ) => {
   // Store the navigationRef for Screen Loading tracking
   _navigationRef = navigationRef;
 
   if (!navigationRef?.current) {
-    console.warn('[Luciq] Navigation ref not available, cannot set listeners');
+    Logger.warn('[Luciq] Navigation ref not available, cannot set listeners');
     return;
   }
 
@@ -988,29 +954,24 @@ export const setNavigationListener = (
 
   // Register the state listener for span completion
   // This listener fires after state change (screen mounted)
-  const wrappedStateCallback = () => {
-    // Call our navigation state handler
-    onStateChange(navigationRef.getRootState());
+  // const wrappedStateCallback = () => {
+  //   // Call our navigation state handler
+  //   onStateChange(navigationRef.getRootState());
+  //
+  //   // Call user's callback if provided
+  //   if (onNavigationStateChangeCallback) {
+  //     onNavigationStateChangeCallback();
+  //   }
+  // };
+  const stateListener = navigationRef.current.addListener('state', _onNavigationStateChange);
 
-    // Call user's callback if provided
-    if (onNavigationStateChangeCallback) {
-      onNavigationStateChangeCallback();
-    }
-  };
-  const stateListener = navigationRef.current.addListener('state', wrappedStateCallback);
-
-  console.log('[Luciq] Registered Screen Loading listeners (__unsafe_action__ and state)');
-
-  if (Platform.OS === 'android') {
-    // Existing Android-specific cleanup (if any)
-    // NativeEventsHandler.removeListeners(); // Not found in current code, commenting out
-  }
+  Logger.log('[Luciq] Registered Screen Loading listeners (__unsafe_action__ and state)');
 
   return stateListener;
 };
 
 export const reportScreenChange = (screenName: string) => {
-  NativeLuciq.reportScreenChange(screenName);
+  NativeLuciq.reportScreenChange(screenName, null);
 };
 
 /**
@@ -1074,7 +1035,7 @@ export const componentDidAppearListener = (event: ComponentDidAppearEvent) => {
     return;
   }
   if (_lastScreen !== event.componentName) {
-    NativeLuciq.reportScreenChange(event.componentName);
+    NativeLuciq.reportScreenChange(event.componentName, null);
     _lastScreen = event.componentName;
   }
 };

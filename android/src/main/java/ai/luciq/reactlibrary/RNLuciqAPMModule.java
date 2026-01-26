@@ -15,6 +15,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.Nonnull;
 
@@ -518,7 +520,8 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 ", ttid_us: " + ttid_us +
                 ", attributes: " + attributes.toString());
         try {
-            InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) ttid_us, (long) spanId);
+            final Map<String , Long> stagesMap = new HashMap<>();
+            InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) ttid_us, (long) spanId , stagesMap);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -531,7 +534,22 @@ public class RNLuciqAPMModule extends EventEmitterModule {
      */
     @ReactMethod
     public void isEndScreenLoadingEnabled(Promise promise) {
-        isScreenLoadingEnabled(promise);
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    InternalAPM._isFeatureEnabledCP(APMFeature.END_SCREEN_LOADING, "LuciqCaptureScreenLoading", new FeatureAvailabilityCallback() {
+                        @Override
+                        public void invoke(boolean isFeatureAvailable) {
+                            promise.resolve(isFeatureAvailable);
+                        }
+                    });
+                } catch (Exception e) {
+                    promise.resolve(false);
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     /**

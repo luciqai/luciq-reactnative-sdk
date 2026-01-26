@@ -1,5 +1,6 @@
 import { ScreenLoadingManager } from '../../../src/modules/apm/ScreenLoadingManager';
 import { NativeAPM } from '../../../src/native/NativeAPM';
+import { Logger } from '../../../src/utils/logger';
 
 // Mock NativeAPM
 jest.mock('../../../src/native/NativeAPM', () => ({
@@ -8,6 +9,17 @@ jest.mock('../../../src/native/NativeAPM', () => ({
     setActiveScreenSpanId: jest.fn(),
     getScreenTimeToDisplay: jest.fn().mockResolvedValue(null),
     isScreenLoadingEnabled: jest.fn().mockResolvedValue(true),
+  },
+}));
+
+// Mock Logger
+jest.mock('../../../src/utils/logger', () => ({
+  Logger: {
+    log: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
   },
 }));
 
@@ -160,10 +172,10 @@ describe('ScreenLoadingManager', () => {
       const span = ScreenLoadingManager.createSpan('TestScreen');
 
       if (span) {
-        ScreenLoadingManager.addSpanAttribute(span.spanId, 'test_key', 'test_value');
+        ScreenLoadingManager.addSpanAttribute(span.spanId, 'test_key', 12345);
         const updatedSpan = ScreenLoadingManager.getActiveSpan(span.spanId);
 
-        expect(updatedSpan?.attributes.test_key).toBe('test_value');
+        expect(updatedSpan?.attributes.get('test_key')).toBe(12345);
       }
     });
 
@@ -171,20 +183,19 @@ describe('ScreenLoadingManager', () => {
       const span = ScreenLoadingManager.createSpan('TestScreen');
 
       if (span) {
-        const lifecycleDurations = {
-          constructor_ms: 5.2,
-          componentDidMount_timestamp_us: 1234567890,
-          render_ms: 2.1,
-        };
-
+        // Add multiple numeric attributes for lifecycle durations
+        ScreenLoadingManager.addSpanAttribute(span.spanId, 'constructor_ms', 5200);
         ScreenLoadingManager.addSpanAttribute(
           span.spanId,
-          'lifecycle_durations',
-          lifecycleDurations,
+          'componentDidMount_timestamp_us',
+          1234567890,
         );
+        ScreenLoadingManager.addSpanAttribute(span.spanId, 'render_ms', 2100);
 
         const updatedSpan = ScreenLoadingManager.getActiveSpan(span.spanId);
-        expect(updatedSpan?.attributes.lifecycle_durations).toEqual(lifecycleDurations);
+        expect(updatedSpan?.attributes.get('constructor_ms')).toBe(5200);
+        expect(updatedSpan?.attributes.get('componentDidMount_timestamp_us')).toBe(1234567890);
+        expect(updatedSpan?.attributes.get('render_ms')).toBe(2100);
       }
     });
 
@@ -234,7 +245,6 @@ describe('ScreenLoadingManager', () => {
     });
 
     it('should handle missing frame timestamp', async () => {
-      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
       (NativeAPM.getScreenTimeToDisplay as jest.Mock).mockResolvedValueOnce(null);
 
       const span = ScreenLoadingManager.createSpan('TestScreen');
@@ -243,16 +253,13 @@ describe('ScreenLoadingManager', () => {
 
         const updatedSpan = ScreenLoadingManager.getActiveSpan(span.spanId);
         expect(updatedSpan?.status).toBe('error');
-        expect(consoleWarnSpy).toHaveBeenCalledWith(
+        expect(Logger.warn).toHaveBeenCalledWith(
           expect.stringContaining('No frame timestamp available'),
         );
       }
-
-      consoleWarnSpy.mockRestore();
     });
 
     it('should handle errors when getting frame timestamp', async () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       (NativeAPM.getScreenTimeToDisplay as jest.Mock).mockRejectedValueOnce(
         new Error('Native error'),
       );
@@ -263,13 +270,11 @@ describe('ScreenLoadingManager', () => {
 
         const updatedSpan = ScreenLoadingManager.getActiveSpan(span.spanId);
         expect(updatedSpan?.status).toBe('error');
-        expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect(Logger.error).toHaveBeenCalledWith(
           expect.stringContaining('Failed to get timestamp'),
           expect.any(Error),
         );
       }
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should not end already completed span', async () => {
@@ -363,22 +368,19 @@ describe('ScreenLoadingManager', () => {
     });
 
     it('should log completed measurements', async () => {
-      const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
       const frameTimestamp = 1234567890;
       (NativeAPM.getScreenTimeToDisplay as jest.Mock).mockResolvedValueOnce(frameTimestamp);
 
       const span = ScreenLoadingManager.createSpan('TestScreen');
       if (span) {
-        ScreenLoadingManager.addSpanAttribute(span.spanId, 'test_attr', 'test_value');
+        ScreenLoadingManager.addSpanAttribute(span.spanId, 'test_attr', 12345);
         await ScreenLoadingManager.endSpan(span.spanId);
 
-        expect(consoleLogSpy).toHaveBeenCalledWith(
+        expect(Logger.log).toHaveBeenCalledWith(
           '[ScreenLoading] Measurement:',
           expect.stringContaining('screen_loading'),
         );
       }
-
-      consoleLogSpy.mockRestore();
     });
   });
 

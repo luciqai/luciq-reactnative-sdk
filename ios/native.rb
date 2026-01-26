@@ -1,4 +1,4 @@
-$luciq= { :version => '19.3.0' }
+$luciq= { :version => '19.3.1' }
 
 def use_luciq! (spec = nil)
   version = $luciq[:version]
