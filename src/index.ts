@@ -44,7 +44,7 @@ export type {
 };
 
 // Screen Loading Component
-export { LuciqScreenLoading } from './components/LuciqScreenLoading';
-export type { LuciqScreenLoadingProps } from './components/LuciqScreenLoading';
+export { LuciqCaptureScreenLoading } from './components/LuciqCaptureScreenLoading';
+export type { LuciqScreenLoadingProps } from './components/LuciqCaptureScreenLoading';
 
 export default Luciq;

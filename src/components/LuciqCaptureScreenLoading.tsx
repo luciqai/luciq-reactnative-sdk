@@ -19,7 +19,7 @@ export interface LuciqScreenLoadingProps extends ViewProps {
   onMeasured?: (ttid: number) => void;
 }
 
-export function LuciqScreenLoading(props: LuciqScreenLoadingProps) {
+export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
   const { screenName, record, onMeasured, onLayout, children, ...viewProps } = props;
 
   const isNested = useContext(ScreenLoadingContext);

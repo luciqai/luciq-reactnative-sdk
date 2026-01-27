@@ -1067,9 +1067,10 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    Long uiTraceId = spanId != null ? Long.parseLong(spanId) : null;
                     Method method = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class);
                     if (method != null) {
-                        method.invoke(null, null, screenName);
+                        method.invoke(null, null, screenName , uiTraceId);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();

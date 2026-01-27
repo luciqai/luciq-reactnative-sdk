@@ -10,7 +10,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { LuciqScreenLoading } from '@luciq/react-native';
+import { LuciqCaptureScreenLoading } from '@luciq/react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenLoadingManager } from '../../../../../src/modules/apm/ScreenLoadingManager';
 
@@ -157,7 +157,7 @@ const BasicTestsSection: React.FC = () => {
     <ScrollView style={styles.sectionContainer}>
       <Text style={styles.sectionTitle}>Basic Tests</Text>
       <Text style={styles.sectionDescription}>
-        Test fundamental LuciqScreenLoading functionality
+        Test fundamental LuciqCaptureScreenLoading functionality
       </Text>
 
       {/* Test 1: Simple Measurement */}
@@ -177,7 +177,7 @@ const BasicTestsSection: React.FC = () => {
           }}
         />
       ) : (
-        <LuciqScreenLoading
+        <LuciqCaptureScreenLoading
           screenName="SimpleTest"
           onMeasured={(ttid) => {
             console.log('[BasicTest] Simple measurement TTID:', ttid);
@@ -187,7 +187,7 @@ const BasicTestsSection: React.FC = () => {
           style={styles.testComponent}>
           <Text style={styles.componentText}>Simple Test Component</Text>
           <Text style={styles.componentSubtext}>This component measures its load time</Text>
-        </LuciqScreenLoading>
+        </LuciqCaptureScreenLoading>
       )}
 
       {/* Test 2: Record=false */}
@@ -214,7 +214,7 @@ const BasicTestsSection: React.FC = () => {
           }}
         />
       ) : (
-        <LuciqScreenLoading
+        <LuciqCaptureScreenLoading
           screenName="RecordFalseTest"
           record={false}
           onMeasured={(ttid) => {
@@ -231,7 +231,7 @@ const BasicTestsSection: React.FC = () => {
                 ? '✗ onMeasured was called (incorrect)'
                 : 'Waiting...'}
           </Text>
-        </LuciqScreenLoading>
+        </LuciqCaptureScreenLoading>
       )}
 
       {/* Test 3: Props Passthrough */}
@@ -252,7 +252,7 @@ const BasicTestsSection: React.FC = () => {
           }}
         />
       ) : (
-        <LuciqScreenLoading
+        <LuciqCaptureScreenLoading
           screenName="PropsTest"
           testID="props-test-component"
           style={[styles.testComponent, styles.customStyle]}
@@ -271,7 +271,7 @@ const BasicTestsSection: React.FC = () => {
             onLayout: {onLayoutCalled ? '✓ Called' : 'Waiting...'}
           </Text>
           <Text style={styles.componentSubtext}>Custom border style applied</Text>
-        </LuciqScreenLoading>
+        </LuciqCaptureScreenLoading>
       )}
 
       <View style={styles.testSpacer} />
@@ -332,7 +332,9 @@ const ModalTestsSection: React.FC = () => {
   return (
     <ScrollView style={styles.sectionContainer}>
       <Text style={styles.sectionTitle}>Modal & Overlay Tests</Text>
-      <Text style={styles.sectionDescription}>Test LuciqScreenLoading in modal contexts</Text>
+      <Text style={styles.sectionDescription}>
+        Test LuciqCaptureScreenLoading in modal contexts
+      </Text>
 
       {/* Bottom Sheet Test */}
       <TestResult
@@ -392,7 +394,7 @@ const ModalTestsSection: React.FC = () => {
             style={styles.modalBackdrop}
             onPress={() => setBottomSheetVisible(false)}
           />
-          <LuciqScreenLoading
+          <LuciqCaptureScreenLoading
             screenName="BottomSheet"
             onMeasured={(ttid) => {
               console.log('[ModalTest] Bottom Sheet TTID:', ttid);
@@ -413,7 +415,7 @@ const ModalTestsSection: React.FC = () => {
               onPress={() => setBottomSheetVisible(false)}
               variant="secondary"
             />
-          </LuciqScreenLoading>
+          </LuciqCaptureScreenLoading>
         </View>
       </Modal>
 
@@ -422,7 +424,7 @@ const ModalTestsSection: React.FC = () => {
         <View style={styles.drawerOverlay}>
           <TouchableOpacity style={styles.drawerBackdrop} onPress={closeDrawer} activeOpacity={1} />
           <Animated.View style={[styles.drawer, { transform: [{ translateX: drawerAnimation }] }]}>
-            <LuciqScreenLoading
+            <LuciqCaptureScreenLoading
               screenName="DrawerPanel"
               onMeasured={(ttid) => {
                 console.log('[ModalTest] Drawer TTID:', ttid);
@@ -439,7 +441,7 @@ const ModalTestsSection: React.FC = () => {
               )}
               <View style={styles.modalSpacer} />
               <ActionButton title="Close Drawer" onPress={closeDrawer} variant="secondary" />
-            </LuciqScreenLoading>
+            </LuciqCaptureScreenLoading>
           </Animated.View>
         </View>
       )}
@@ -449,7 +451,7 @@ const ModalTestsSection: React.FC = () => {
         visible={fullModalVisible}
         animationType="fade"
         onRequestClose={() => setFullModalVisible(false)}>
-        <LuciqScreenLoading
+        <LuciqCaptureScreenLoading
           screenName="FullScreenModal"
           onMeasured={(ttid) => {
             console.log('[ModalTest] Full Modal TTID:', ttid);
@@ -470,7 +472,7 @@ const ModalTestsSection: React.FC = () => {
             onPress={() => setFullModalVisible(false)}
             variant="secondary"
           />
-        </LuciqScreenLoading>
+        </LuciqCaptureScreenLoading>
       </Modal>
     </ScrollView>
   );
@@ -499,7 +501,9 @@ const TabTestsSection: React.FC = () => {
   return (
     <ScrollView style={styles.sectionContainer}>
       <Text style={styles.sectionTitle}>Tab Navigation Tests</Text>
-      <Text style={styles.sectionDescription}>Test LuciqScreenLoading with tab switching</Text>
+      <Text style={styles.sectionDescription}>
+        Test LuciqCaptureScreenLoading with tab switching
+      </Text>
 
       <TestResult
         name="Tab Bar Navigation"
@@ -536,7 +540,7 @@ const TabTestsSection: React.FC = () => {
       {/* Tab Content */}
       <View style={styles.tabContent}>
         {activeTab === 0 && (
-          <LuciqScreenLoading
+          <LuciqCaptureScreenLoading
             screenName="TabHome"
             onMeasured={(ttid) => {
               if (!tab1Measured) {
@@ -551,11 +555,11 @@ const TabTestsSection: React.FC = () => {
               This is the Home tab content. Navigate to other tabs to measure their load times.
             </Text>
             {tab1Ttid && <Text style={styles.ttidDisplay}>TTID: {tab1Ttid.toFixed(2)}ms</Text>}
-          </LuciqScreenLoading>
+          </LuciqCaptureScreenLoading>
         )}
 
         {activeTab === 1 && (
-          <LuciqScreenLoading
+          <LuciqCaptureScreenLoading
             screenName="TabProfile"
             onMeasured={(ttid) => {
               if (!tab2Measured) {
@@ -570,11 +574,11 @@ const TabTestsSection: React.FC = () => {
               This is the Profile tab content with user information.
             </Text>
             {tab2Ttid && <Text style={styles.ttidDisplay}>TTID: {tab2Ttid.toFixed(2)}ms</Text>}
-          </LuciqScreenLoading>
+          </LuciqCaptureScreenLoading>
         )}
 
         {activeTab === 2 && (
-          <LuciqScreenLoading
+          <LuciqCaptureScreenLoading
             screenName="TabSettings"
             onMeasured={(ttid) => {
               if (!tab3Measured) {
@@ -589,7 +593,7 @@ const TabTestsSection: React.FC = () => {
               This is the Settings tab with configuration options.
             </Text>
             {tab3Ttid && <Text style={styles.ttidDisplay}>TTID: {tab3Ttid.toFixed(2)}ms</Text>}
-          </LuciqScreenLoading>
+          </LuciqCaptureScreenLoading>
         )}
       </View>
 
@@ -697,7 +701,7 @@ const EdgeCasesSection: React.FC = () => {
       {/* Nested Components Test */}
       <TestResult
         name="Nested Components"
-        description="Parent wraps child LuciqScreenLoading"
+        description="Parent wraps child LuciqCaptureScreenLoading"
         ttid={nestedParentTtid}
         status={nestedStatus}
         expectedBehavior="Only parent should measure, child ignored"
@@ -711,7 +715,7 @@ const EdgeCasesSection: React.FC = () => {
           }}
         />
       ) : (
-        <LuciqScreenLoading
+        <LuciqCaptureScreenLoading
           screenName="NestedParent"
           onMeasured={(ttid) => {
             console.log('[EdgeCase] Nested Parent TTID:', ttid);
@@ -723,9 +727,9 @@ const EdgeCasesSection: React.FC = () => {
           }}
           style={styles.testComponent}>
           <Text style={styles.componentText}>Parent Component</Text>
-          <Text style={styles.componentSubtext}>Contains nested LuciqScreenLoading</Text>
+          <Text style={styles.componentSubtext}>Contains nested LuciqCaptureScreenLoading</Text>
 
-          <LuciqScreenLoading
+          <LuciqCaptureScreenLoading
             screenName="NestedChild"
             onMeasured={(ttid) => {
               console.log('[EdgeCase] UNEXPECTED: Nested Child TTID:', ttid);
@@ -735,7 +739,7 @@ const EdgeCasesSection: React.FC = () => {
             style={styles.nestedChild}>
             <Text style={styles.nestedChildText}>Nested Child</Text>
             <Text style={styles.nestedChildSubtext}>Should NOT measure</Text>
-          </LuciqScreenLoading>
+          </LuciqCaptureScreenLoading>
 
           <Text style={styles.nestedResult}>
             {nestedStatus === 'passed'
@@ -744,7 +748,7 @@ const EdgeCasesSection: React.FC = () => {
                 ? '✗ Child also measured (incorrect)'
                 : 'Testing...'}
           </Text>
-        </LuciqScreenLoading>
+        </LuciqCaptureScreenLoading>
       )}
 
       {/* Heavy Computation Test */}
@@ -765,7 +769,7 @@ const EdgeCasesSection: React.FC = () => {
           }}
         />
       ) : (
-        <LuciqScreenLoading
+        <LuciqCaptureScreenLoading
           screenName="HeavyComputation"
           onMeasured={(ttid) => {
             console.log('[EdgeCase] Heavy Computation TTID:', ttid);
@@ -782,7 +786,7 @@ const EdgeCasesSection: React.FC = () => {
           ) : (
             <Text style={styles.componentSubtext}>✓ Computation complete</Text>
           )}
-        </LuciqScreenLoading>
+        </LuciqCaptureScreenLoading>
       )}
 
       {/* Quick Unmount Test */}
@@ -803,7 +807,7 @@ const EdgeCasesSection: React.FC = () => {
           }}
         />
       ) : showUnmountTest ? (
-        <LuciqScreenLoading
+        <LuciqCaptureScreenLoading
           screenName="QuickUnmount"
           onMeasured={(ttid) => {
             console.log('[EdgeCase] Quick Unmount TTID:', ttid);
@@ -812,7 +816,7 @@ const EdgeCasesSection: React.FC = () => {
           style={styles.testComponent}>
           <Text style={styles.componentText}>Quick Unmount Test</Text>
           <Text style={styles.componentSubtext}>Unmounting in 50ms...</Text>
-        </LuciqScreenLoading>
+        </LuciqCaptureScreenLoading>
       ) : (
         <View style={styles.testComponent}>
           <Text style={styles.componentText}>
@@ -840,7 +844,7 @@ const EdgeCasesSection: React.FC = () => {
         />
       ) : (
         <View style={styles.multiContainer}>
-          <LuciqScreenLoading
+          <LuciqCaptureScreenLoading
             screenName="Multi1"
             onMeasured={(ttid) => {
               console.log('[EdgeCase] Multi 1 TTID:', ttid);
@@ -849,9 +853,9 @@ const EdgeCasesSection: React.FC = () => {
             style={styles.multiComponent}>
             <Text style={styles.multiText}>Component 1</Text>
             {multiTtids[0] && <Text style={styles.multiTtid}>{multiTtids[0].toFixed(1)}ms</Text>}
-          </LuciqScreenLoading>
+          </LuciqCaptureScreenLoading>
 
-          <LuciqScreenLoading
+          <LuciqCaptureScreenLoading
             screenName="Multi2"
             onMeasured={(ttid) => {
               console.log('[EdgeCase] Multi 2 TTID:', ttid);
@@ -860,9 +864,9 @@ const EdgeCasesSection: React.FC = () => {
             style={styles.multiComponent}>
             <Text style={styles.multiText}>Component 2</Text>
             {multiTtids[1] && <Text style={styles.multiTtid}>{multiTtids[1].toFixed(1)}ms</Text>}
-          </LuciqScreenLoading>
+          </LuciqCaptureScreenLoading>
 
-          <LuciqScreenLoading
+          <LuciqCaptureScreenLoading
             screenName="Multi3"
             onMeasured={(ttid) => {
               console.log('[EdgeCase] Multi 3 TTID:', ttid);
@@ -871,7 +875,7 @@ const EdgeCasesSection: React.FC = () => {
             style={styles.multiComponent}>
             <Text style={styles.multiText}>Component 3</Text>
             {multiTtids[2] && <Text style={styles.multiTtid}>{multiTtids[2].toFixed(1)}ms</Text>}
-          </LuciqScreenLoading>
+          </LuciqCaptureScreenLoading>
         </View>
       )}
 

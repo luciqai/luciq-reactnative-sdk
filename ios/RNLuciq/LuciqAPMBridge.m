@@ -149,6 +149,11 @@ RCT_EXPORT_METHOD(syncScreenLoading:(double)spanId
                   attributes:(NSDictionary *)attributes){
     NSLog(@"[ScreenLoading] syncScreenLoading - spanId: %.0f, screenName: %@, startTimestamp: %f, ttid_us: %f, attributes: %@",
           spanId, screenName, startTimestamp, ttid_us, attributes);
+    
+//    NSTimeInterval startTimeStampMicroMUS = [startTimestamp doubleValue];
+//    NSTimeInterval durationMUS = [ttid_us doubleValue];
+    [LCQAPM reportScreenLoadingCPWithStartTimestampMUS:startTimestamp durationMUS:ttid_us];
+    
 }
 
 @synthesize description;

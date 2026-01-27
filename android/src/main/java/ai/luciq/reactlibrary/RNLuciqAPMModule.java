@@ -521,6 +521,13 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 ", attributes: " + attributes.toString());
         try {
             final Map<String , Long> stagesMap = new HashMap<>();
+            stagesMap.put("rnd_mus_st", (long) attributes.getDouble("rnd_mus_st"));
+            stagesMap.put("rnd_mus", (long) attributes.getDouble("rnd_mus")); 
+            stagesMap.put("mnt_ms", (long) attributes.getDouble("mnt_ms"));
+            stagesMap.put("mnt_ms_st", (long) attributes.getDouble("mnt_ms_st"));
+            stagesMap.put("cnst_mus_st", (long) attributes.getDouble("cnst_mus_st"));
+            stagesMap.put("cnst_mus", (long) attributes.getDouble("cnst_mus"));
+
             InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) ttid_us, (long) spanId , stagesMap);
         } catch (Exception e) {
             e.printStackTrace();
