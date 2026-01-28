@@ -231,7 +231,8 @@ export default {
             if (this._hasError) {
               cloneNetwork.errorCode = clientErrorCode;
               cloneNetwork.errorDomain = 'ClientError';
-
+              cloneNetwork.responseCode = 0;
+              cloneNetwork.contentType = 'text/plain';
               // @ts-ignore
               const _response = this._response;
               cloneNetwork.requestBody =
@@ -243,22 +244,30 @@ export default {
                 cloneNetwork.errorDomain = _response;
               }
 
+              cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
+
               // @ts-ignore
             } else if (this._timedOut) {
               cloneNetwork.errorCode = clientErrorCode;
-              cloneNetwork.errorDomain = 'TimeOutError';
+              cloneNetwork.errorDomain = 'timeout';
+              cloneNetwork.responseCode = 0;
+              cloneNetwork.contentType = 'text/plain';
+              cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
             }
 
-            if (this.response) {
-              if (this.responseType === 'blob') {
-                const responseText = await new Response(this.response).text();
-                cloneNetwork.responseBody = responseText;
-              } else if (['text', '', 'json'].includes(this.responseType)) {
-                cloneNetwork.responseBody = JSON.stringify(this.response);
+            // Only set response body if not already set by error handlers
+            if (!cloneNetwork.errorDomain) {
+              if (this.response) {
+                if (this.responseType === 'blob') {
+                  const responseText = await new Response(this.response).text();
+                  cloneNetwork.responseBody = responseText;
+                } else if (['text', '', 'json'].includes(this.responseType)) {
+                  cloneNetwork.responseBody = JSON.stringify(this.response);
+                }
+              } else {
+                cloneNetwork.responseBody = '';
+                cloneNetwork.contentType = 'text/plain';
               }
-            } else {
-              cloneNetwork.responseBody = '';
-              cloneNetwork.contentType = 'text/plain';
             }
 
             cloneNetwork.requestBodySize = cloneNetwork.requestBody.length;
@@ -310,6 +319,18 @@ export default {
         };
         this.addEventListener('progress', downloadUploadProgressCallback);
         this.upload.addEventListener('progress', downloadUploadProgressCallback);
+
+        // Handler for abort events (works with fetch, Axios, and any XHR-based requests)
+        this.addEventListener('abort', () => {
+          if (!isInterceptorEnabled) {
+            return;
+          }
+          cloneNetwork.duration = Date.now() - cloneNetwork.startTime;
+          cloneNetwork.responseCode = 0;
+          cloneNetwork.errorCode = clientErrorCode;
+          cloneNetwork.errorDomain = 'cancelled';
+          cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
+        });
       }
 
       cloneNetwork.startTime = Date.now();
