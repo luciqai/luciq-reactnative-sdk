@@ -1,10 +1,18 @@
 # Changelog
 
-## [Unreleased](https://github.com/luciqai/luciq-flutter-sdk/compare/v19.1.0...dev)
+## [19.2.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.2.1...19.1.0)
 
 ### Added
 
-- dded support for handling aborted and canceled Axios network requests. ([#36](https://github.com/luciqai/luciq-reactnative-sdk/pull/36))
+- Add support for handling aborted and canceled Axios network requests. ([#36](https://github.com/luciqai/luciq-reactnative-sdk/pull/36))
+
+- Add new UserConsentActionType - noAutomaticBugGrouping.
+
+### Changed
+
+- Bump Luciq iOS SDK to v19.4.0 ([#29](https://github.com/luciqai/luciq-reactnative-sdk/pull/29)). [See release notes](https://github.com/luciqai/Luciq-iOS-sdk/releases/tag/19.4.0).
+
+- Bump Luciq Android SDK to v19.2.1 ([#29](https://github.com/luciqai/luciq-reactnative-sdk/pull/29)). [See release notes](https://github.com/luciqai/Luciq-Android-sdk/releases/tag/v19.2.1).
 
 ## [19.1.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.1.0...19.0.0)
 
