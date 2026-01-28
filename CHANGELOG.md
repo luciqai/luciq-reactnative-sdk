@@ -6,7 +6,7 @@
 
 - Add support for handling aborted and canceled Axios network requests. ([#36](https://github.com/luciqai/luciq-reactnative-sdk/pull/36))
 
-- Add new UserConsentActionType - noAutomaticBugGrouping.
+- Add new UserConsentActionType - noAutomaticBugGrouping. ([#20](https://github.com/luciqai/luciq-reactnative-sdk/pull/20))
 
 ### Changed
 
