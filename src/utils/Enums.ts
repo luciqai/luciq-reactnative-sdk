@@ -20,6 +20,7 @@ export enum userConsentActionType {
   dropAutoCapturedMedia = constants.dropAutoCapturedMedia,
   dropLogs = constants.dropLogs,
   noChat = constants.noChat,
+  noAutomaticBugGrouping = constants.noAutomaticBugGrouping,
 }
 
 /**

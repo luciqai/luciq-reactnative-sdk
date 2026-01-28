@@ -2,6 +2,10 @@
 
 ## [19.2.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.2.1...19.1.0)
 
+### Added
+
+- Add new UserConsentActionType - noAutomaticBugGrouping.
+
 ### Changed
 
 - Bump Luciq iOS SDK to v19.4.0 ([#29](https://github.com/luciqai/luciq-reactnative-sdk/pull/29)). [See release notes](https://github.com/luciqai/Luciq-iOS-sdk/releases/tag/19.4.0).

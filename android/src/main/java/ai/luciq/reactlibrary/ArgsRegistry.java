@@ -153,6 +153,7 @@ final class ArgsRegistry {
         put("dropAutoCapturedMedia",  ai.luciq.bug.userConsent.ActionType.DROP_AUTO_CAPTURED_MEDIA);
         put("dropLogs",  ai.luciq.bug.userConsent.ActionType.DROP_LOGS);
         put("noChat",  ai.luciq.bug.userConsent.ActionType.NO_CHAT);
+        put("noAutomaticBugGrouping",  ai.luciq.bug.userConsent.ActionType.NO_AUTOMATIC_BUG_GROUPING);
     }};
 
     static final ArgsMap<Integer> sdkLogLevels = new ArgsMap<Integer>() {{
