@@ -54,7 +54,7 @@ let _navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamL
 let _currentRoute: string | null = null;
 let _activeNavigationSpanId: string | null = null;
 let _stateChangeTimeout: ReturnType<typeof setTimeout> | undefined;
-const STATE_CHANGE_TIMEOUT_MS = 1000; // Safety timeout if state never changes
+const STATE_CHANGE_TIMEOUT_MS = 2000; // Safety timeout if state never changes
 
 /**
  * Enables or disables Luciq functionality.
@@ -832,6 +832,9 @@ const _onNavigationStateChange = (): void => {
     return;
   }
 
+  // Capture the span ID BEFORE clearing it so we can pass it to reportScreenChange
+  const spanIdForReport = _activeNavigationSpanId;
+
   // Complete the active navigation span if one exists
   if (_activeNavigationSpanId) {
     const span = ScreenLoadingManager.getActiveSpan(_activeNavigationSpanId);
@@ -853,16 +856,14 @@ const _onNavigationStateChange = (): void => {
     _activeNavigationSpanId = null;
     _clearStateChangeTimeout();
   } else {
-    Logger.log(
-      '[ScreenLoading] State changed but no active span - navigation may have started before tracking',
-    );
+    Logger.log('[ScreenLoading] State changed but no active span');
   }
 
   // Update the current route for the rest of Luciq's tracking
   _currentRoute = currentRouteName;
 
-  // Report to native (existing behavior)
-  NativeLuciq.reportScreenChange(currentRouteName, _activeNavigationSpanId);
+  // Report to native
+  NativeLuciq.reportScreenChange(currentRouteName, spanIdForReport);
 };
 
 export const onNavigationStateChange = (
@@ -911,9 +912,16 @@ export const onStateChange = (state?: NavigationStateV5) => {
   }
 
   // Delegate to the new state change handler for Screen Loading
+  // This handles reportScreenChange when setNavigationListener was called
   _onNavigationStateChange();
 
-  // Existing screen tracking logic
+  // When setNavigationListener is used, _onNavigationStateChange already handles
+  // reportScreenChange properly - skip legacy logic to avoid duplicate calls
+  if (_navigationRef?.current) {
+    return;
+  }
+
+  // Fallback: Legacy screen tracking for users who only use onStateChange without setNavigationListener
   const currentScreen = LuciqUtils.getFullRoute(state);
   reportCurrentViewForAndroid(currentScreen);
   if (_currentScreen !== null && _currentScreen !== firstScreen) {
@@ -952,22 +960,13 @@ export const setNavigationListener = (
   // This listener fires on navigation dispatch (start of navigation)
   navigationRef.current.addListener('__unsafe_action__', _onNavigationAction);
 
-  // Register the state listener for span completion
-  // This listener fires after state change (screen mounted)
-  // const wrappedStateCallback = () => {
-  //   // Call our navigation state handler
-  //   onStateChange(navigationRef.getRootState());
-  //
-  //   // Call user's callback if provided
-  //   if (onNavigationStateChangeCallback) {
-  //     onNavigationStateChangeCallback();
-  //   }
-  // };
-  const stateListener = navigationRef.current.addListener('state', _onNavigationStateChange);
+  // NOTE: We do NOT register a 'state' listener here because the user is expected
+  // to pass Luciq.onStateChange to NavigationContainer's onStateChange prop.
+  // Registering both would cause duplicate reportScreenChange calls.
 
-  Logger.log('[Luciq] Registered Screen Loading listeners (__unsafe_action__ and state)');
+  Logger.log('[Luciq] Registered Screen Loading listener (__unsafe_action__)');
 
-  return stateListener;
+  // return stateListener;
 };
 
 export const reportScreenChange = (screenName: string) => {

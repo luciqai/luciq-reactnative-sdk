@@ -43,10 +43,17 @@ public class LuciqScreenLoadingFrameTracker {
                     @Override
                     public void doFrame(long frameTimeNanos) {
                         if (activeSpanIds.contains(spanId)) {
-                            long timestampMicroseconds = System.currentTimeMillis() * 1000;
-                            spanIdToTimestamp.put(spanId, timestampMicroseconds);
+                            // frameTimeNanos is monotonic clock (nanoseconds since device boot)
+                            // Convert to epoch-based microseconds using offset correction
+                            long currentMonotonicNanos = System.nanoTime();
+                            long currentEpochMillis = System.currentTimeMillis();
+                            long nanosSinceFrame = currentMonotonicNanos - frameTimeNanos;
+                            long frameEpochMicroseconds = (currentEpochMillis * 1000) - (nanosSinceFrame / 1000);
+
+                            spanIdToTimestamp.put(spanId, frameEpochMicroseconds);
                             activeSpanIds.remove(spanId);
-                            Log.d(TAG, "Frame rendered for span " + spanId + " at " + timestampMicroseconds + "μs");
+                            Log.d(TAG, "Frame rendered for span " + spanId + " at " + frameEpochMicroseconds + 
+                                  "μs (frame offset: " + String.format("%.3f", nanosSinceFrame / 1_000_000.0) + "ms)");
 
                             if (spanIdToTimestamp.size() > MAX_STORAGE_CAPACITY) {
                                 cleanup();

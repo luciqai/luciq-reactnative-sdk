@@ -35,7 +35,6 @@ public class RNLuciqAPMModule extends EventEmitterModule {
         super(reactApplicationContext);
     }
 
-
     @Nonnull
     @Override
     public String getName() {
@@ -509,26 +508,34 @@ public class RNLuciqAPMModule extends EventEmitterModule {
      * @param spanId         the span ID
      * @param screenName     the name of the screen
      * @param startTimestamp the start timestamp in microseconds
-     * @param ttid_us        the time to initial display in microseconds
-     * @param attributes     custom attributes attached to the span
+     * @param duration_us    the time to initial display in microseconds
+     * @param stages     custom attributes attached to the span
      */
     @ReactMethod
-    public void syncScreenLoading(double spanId, String screenName, double startTimestamp, double ttid_us, ReadableMap attributes) {
+    public void syncScreenLoading(double spanId, String screenName, double startTimestamp, double duration_us, ReadableMap stages) {
         Log.d("ScreenLoading", "syncScreenLoading - spanId: " + (long) spanId +
                 ", screenName: " + screenName +
                 ", startTimestamp: " + startTimestamp +
-                ", ttid_us: " + ttid_us +
-                ", attributes: " + attributes.toString());
+                ", duration_us: " + duration_us +
+                ", stages: " + stages.toString());
         try {
             final Map<String , Long> stagesMap = new HashMap<>();
-            stagesMap.put("rnd_mus_st", (long) attributes.getDouble("rnd_mus_st"));
-            stagesMap.put("rnd_mus", (long) attributes.getDouble("rnd_mus")); 
-            stagesMap.put("mnt_ms", (long) attributes.getDouble("mnt_ms"));
-            stagesMap.put("mnt_ms_st", (long) attributes.getDouble("mnt_ms_st"));
-            stagesMap.put("cnst_mus_st", (long) attributes.getDouble("cnst_mus_st"));
-            stagesMap.put("cnst_mus", (long) attributes.getDouble("cnst_mus"));
+            if(stages.hasKey("rnd_mus_st"))
+                stagesMap.put("rnd_mus_st", (long) stages.getDouble("rnd_mus_st"));
+            if(stages.hasKey("rnd_mus"))
+                stagesMap.put("rnd_mus", (long) stages.getDouble("rnd_mus"));
+            if(stages.hasKey("mnt_ms"))
+                stagesMap.put("mnt_ms", (long) stages.getDouble("mnt_ms"));
+           if(stages.hasKey("layout_mus"))
+               stagesMap.put("layout_mus", (long) stages.getDouble("layout_mus"));
+            if(stages.hasKey("mnt_ms_st"))
+                stagesMap.put("mnt_ms_st", (long) stages.getDouble("mnt_ms_st"));
+            if(stages.hasKey("cnst_mus_st"))
+                stagesMap.put("cnst_mus_st", (long) stages.getDouble("cnst_mus_st"));
+           if(stages.hasKey("layout_mus_st"))
+               stagesMap.put("layout_mus_st", (long) stages.getDouble("layout_mus_st"));
 
-            InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) ttid_us, (long) spanId , stagesMap);
+            InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) duration_us, (long) spanId , stagesMap);
         } catch (Exception e) {
             e.printStackTrace();
         }

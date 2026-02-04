@@ -44,14 +44,14 @@
 
 - (void)frameRenderedWithTimestamp:(NSTimeInterval)timestamp {
     if (self.activeSpanIds.count > 0) {
-        // Convert to epoch-based microseconds for consistency with previous behavior
-        // Note: CADisplayLink timestamps are relative to device boot, not epoch
-        NSTimeInterval epochTimestampMicroseconds = [[NSDate date] timeIntervalSince1970] * 1000000;
+        // timestamp is already epoch-based (seconds since 1970) from LCQAPM SDK
+        // Convert from seconds to microseconds
+        NSTimeInterval epochTimestampMicroseconds = timestamp * 1000000;
         NSNumber *timestampNumber = @(epochTimestampMicroseconds);
 
         for (NSString *spanId in self.activeSpanIds) {
             self.spanIdToTimestamp[spanId] = timestampNumber;
-            NSLog(@"[ScreenLoading] Frame rendered for span %@ at %@μs", spanId, timestampNumber);
+            NSLog(@"[ScreenLoading] Frame rendered for span %@ at %.0fμs", spanId, epochTimestampMicroseconds);
         }
         [self.activeSpanIds removeAllObjects];
 
