@@ -98,6 +98,18 @@ RCT_EXPORT_METHOD(setTrackUserSteps:(BOOL)isEnabled) {
     [Luciq setTrackUserSteps:isEnabled];
 }
 
+RCT_EXPORT_METHOD(setWebViewMonitoringEnabled:(BOOL)isEnabled) {
+    [Luciq setWebViewMonitoringEnabled:isEnabled];
+}
+
+RCT_EXPORT_METHOD(setWebViewNetworkTrackingEnabled:(BOOL)isEnabled) {
+    [Luciq setWebViewNetworkTrackingEnabled:isEnabled];
+}
+
+RCT_EXPORT_METHOD(setWebViewUserInteractionsTrackingEnabled:(BOOL)isEnabled) {
+    [Luciq setWebViewUserInteractionsTrackingEnabled:isEnabled];
+}
+
 LCQReport *currentReport = nil;
 RCT_EXPORT_METHOD(setPreSendingHandler:(RCTResponseSenderBlock)callBack) {
     if (callBack != nil) {
