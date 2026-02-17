@@ -601,6 +601,33 @@ public class RNLuciqReactnativeModuleTest {
         }
 
     @Test
+    public void testSetWebViewMonitoringEnabled() {
+        // when
+        rnModule.setWebViewMonitoringEnabled(true);
+
+        // then
+        mockLuciq.verify(() -> Luciq.setWebViewMonitoringEnabled(true));
+    }
+
+    @Test
+    public void testSetWebViewNetworkTrackingEnabled() {
+        // when
+        rnModule.setWebViewNetworkTrackingEnabled(true);
+
+        // then
+        mockLuciq.verify(() -> Luciq.setWebViewNetworkTrackingEnabled(true));
+    }
+
+    @Test
+    public void testSetWebViewUserInteractionsTrackingEnabled() {
+        // when
+        rnModule.setWebViewUserInteractionsTrackingEnabled(true);
+
+        // then
+        mockLuciq.verify(() -> Luciq.setWebViewUserInteractionsTrackingEnabled(true));
+    }
+
+    @Test
     public void testWillRedirectToStore() {
         // when
         rnModule.willRedirectToStore();
