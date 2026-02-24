@@ -26,7 +26,6 @@
 
 - Running Expo Plugin on ios [#31](https://github.com/luciqai/luciq-reactnative-sdk/pull/31))
 
-
 ## [19.1.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.1.0...19.0.0)
 
 ### Added
