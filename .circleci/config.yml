@@ -228,7 +228,7 @@ jobs:
   # ios/upload_sourcemap.sh files respectively.
   sync_generated_files:
     macos:
-      xcode: 26.2.0
+      xcode: 16.4.0
     resource_class: m4pro.medium
     steps:
       - advanced-checkout/shallow-checkout
@@ -253,7 +253,7 @@ jobs:
         type: boolean
         default: false
     macos:
-      xcode: 26.2.0
+      xcode: 16.4.0
     resource_class: m4pro.medium
     working_directory: ~/project/examples/default
     environment:
@@ -274,7 +274,7 @@ jobs:
                 -resultBundlePath coverage/result.xcresult \
                 -sdk iphonesimulator \
                 -enableCodeCoverage YES \
-                -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max,OS=26.2' \
+                -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max,OS=18.5' \
                 test | xcpretty
       - when:
           condition: << parameters.collect_coverage >>
@@ -294,7 +294,7 @@ jobs:
         type: steps
         default: []
     macos:
-      xcode: 26.2.0
+      xcode: 16.4.0
     resource_class: m4pro.medium
     environment:
       LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
@@ -314,8 +314,8 @@ jobs:
           name: Add Maestro to PATH
           command: echo 'export PATH="$PATH:$HOME/.maestro/bin"' >> $BASH_ENV
       - ios/preboot-simulator:
-          version: '26.2'
-          device: 'iPhone 17 Pro'
+          version: '18.5'
+          device: 'iPhone 16 Pro'
       - ios/wait-until-simulator-booted
       - ios/wait-until-simulator-booted
       - run:
@@ -389,7 +389,7 @@ jobs:
       dashboard_token_env:
         type: env_var_name
     macos:
-      xcode: 26.2.0
+      xcode: 16.4.0
     resource_class: m4pro.medium
     working_directory: ~/project
     steps:
@@ -415,7 +415,7 @@ jobs:
 
   publish:
     macos:
-      xcode: 26.2.0
+      xcode: 16.4.0
     resource_class: m4pro.medium
     working_directory: '~'
     steps:
