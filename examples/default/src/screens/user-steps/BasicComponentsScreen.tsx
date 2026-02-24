@@ -37,13 +37,13 @@ export const BasicComponentsScreen: React.FC = () => {
   const textInputRef = useRef<TextInput>(null);
   const buttonRef = useRef<Button>(null);
   const pressableRef = useRef<View>(null);
-  const touchableOpacityRef = useRef<TouchableOpacity>(null);
-  const multiTextTouchableOpacityRef = useRef<TouchableOpacity>(null);
+  const touchableOpacityRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
+  const multiTextTouchableOpacityRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
   const iconPressableButtonRef = useRef<View>(null);
-  const iconButtonRef = useRef<Icon.Button>(null);
-  const fourTierTouchableOpacityButtonRef = useRef<TouchableOpacity>(null);
+  const iconButtonRef = useRef<React.ElementRef<typeof Icon.Button>>(null);
+  const fourTierTouchableOpacityButtonRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
   const switchButtonRef = useRef<Switch>(null);
-  const sliderRef = useRef<Slider>(null);
+  const sliderRef = useRef<any>(null);
   const activityIndicatorRef = useRef<ActivityIndicator>(null);
 
   const onPress = (label: string) => {

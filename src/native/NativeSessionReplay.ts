@@ -11,6 +11,9 @@ export interface SessionReplayNativeModule extends NativeModule {
   getSessionReplayLink(): Promise<string>;
   setSyncCallback(): Promise<void>;
   evaluateSync(shouldSync: boolean): void;
+  setCapturingMode(mode: any): void;
+  setScreenshotQuality(quality: any): void;
+  setScreenshotCaptureInterval(intervalMs: number): void;
 }
 
 export const NativeSessionReplay = NativeModules.LCQSessionReplay;

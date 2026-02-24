@@ -28,5 +28,7 @@ typedef NSDictionary<NSString*, NSNumber*> ArgsDictionary;
 
 + (NSDictionary<NSString *, NSString *> *) placeholders;
 + (ArgsDictionary *)autoMaskingTypes;
++ (ArgsDictionary *)capturingModes;
++ (ArgsDictionary *)screenshotQualities;
 
 @end

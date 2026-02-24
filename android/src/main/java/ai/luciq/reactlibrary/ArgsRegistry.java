@@ -65,6 +65,8 @@ final class ArgsRegistry {
             putAll(overAirUpdateService);
             putAll(autoMaskingTypes);
             putAll(userConsentActionType);
+            putAll(capturingModes);
+            putAll(screenshotQualities);
         }};
     }
 
@@ -151,6 +153,7 @@ final class ArgsRegistry {
         put("dropAutoCapturedMedia",  ai.luciq.bug.userConsent.ActionType.DROP_AUTO_CAPTURED_MEDIA);
         put("dropLogs",  ai.luciq.bug.userConsent.ActionType.DROP_LOGS);
         put("noChat",  ai.luciq.bug.userConsent.ActionType.NO_CHAT);
+        put("noAutomaticBugGrouping",  ai.luciq.bug.userConsent.ActionType.NO_AUTOMATIC_BUG_GROUPING);
     }};
 
     static final ArgsMap<Integer> sdkLogLevels = new ArgsMap<Integer>() {{
@@ -274,5 +277,17 @@ final class ArgsRegistry {
         put("textInputs", MaskingType.TEXT_INPUTS);
         put("media", MaskingType.MEDIA);
         put("none", MaskingType.MASK_NOTHING);
+    }};
+
+    public static final ArgsMap<Integer> capturingModes = new ArgsMap<Integer>() {{
+        put("capturingModeNavigation", ai.luciq.library.sessionreplay.CapturingMode.NAVIGATION);
+        put("capturingModeInteractions", ai.luciq.library.sessionreplay.CapturingMode.INTERACTIONS);
+        put("capturingModeFrequency", ai.luciq.library.sessionreplay.CapturingMode.FREQUENCY);
+    }};
+
+    public static final ArgsMap<Integer> screenshotQualities = new ArgsMap<Integer>() {{
+        put("screenshotQualityHigh", ai.luciq.library.sessionreplay.ScreenshotQuality.HIGH);
+        put("screenshotQualityNormal", ai.luciq.library.sessionreplay.ScreenshotQuality.NORMAL);
+        put("screenshotQualityGreyscale", ai.luciq.library.sessionreplay.ScreenshotQuality.GREYSCALE);
     }};
 }

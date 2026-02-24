@@ -31,9 +31,10 @@
  */
 
 - (void) testgivenBoolean$setBugReportingEnabled_whenQuery_thenShouldCallNativeApi {
-  BOOL enabled = true;
+  id mock = OCMClassMock([LCQBugReporting class]);
+  BOOL enabled = YES;
   [self.luciqBridge setEnabled:enabled];
-  XCTAssertTrue(LCQBugReporting.enabled);
+  OCMVerify([mock setEnabled:enabled]);
 }
 
 - (void) testgivenInvocationEvent$setInvocationEvents_whenQuery_thenShouldCallNativeApiWithArgs {

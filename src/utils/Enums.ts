@@ -20,6 +20,7 @@ export enum userConsentActionType {
   dropAutoCapturedMedia = constants.dropAutoCapturedMedia,
   dropLogs = constants.dropLogs,
   noChat = constants.noChat,
+  noAutomaticBugGrouping = constants.noAutomaticBugGrouping,
 }
 
 /**
@@ -263,4 +264,43 @@ export enum AutoMaskingType {
   textInputs = constants.textInputs,
   media = constants.media,
   none = constants.none,
+}
+
+/**
+ * The capturing mode for Session Replay screenshots.
+ */
+export enum CapturingMode {
+  /**
+   * Captures screenshots only when users navigate between screens.
+   * This is the default behavior and provides the lowest overhead.
+   */
+  navigation = constants.capturingModeNavigation,
+  /**
+   * Captures screenshots on screen navigation and user interactions.
+   * Includes debouncing to prevent excessive captures.
+   */
+  interactions = constants.capturingModeInteractions,
+  /**
+   * Captures screenshots at a fixed time interval for true video-like playback.
+   * Also captures on screen navigation.
+   */
+  frequency = constants.capturingModeFrequency,
+}
+
+/**
+ * The quality profile for Session Replay screenshots.
+ */
+export enum ScreenshotQuality {
+  /**
+   * 50% WebP compression - Best visual quality.
+   */
+  high = constants.screenshotQualityHigh,
+  /**
+   * 25% WebP compression - Balanced quality and storage (default).
+   */
+  normal = constants.screenshotQualityNormal,
+  /**
+   * Grayscale + 25% WebP compression - Maximum storage efficiency.
+   */
+  greyscale = constants.screenshotQualityGreyscale,
 }
