@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.2.2](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.2.2...19.2.1)
+
+### Changed
+
+- Bump Luciq iOS SDK to v19.4.1 ([#34](https://github.com/luciqai/luciq-reactnative-sdk/pull/34)). [See release notes](https://github.com/luciqai/Luciq-iOS-sdk/releases/tag/19.4.1).
+
+- Bump Luciq Android SDK to v19.2.2 ([#34](https://github.com/luciqai/luciq-reactnative-sdk/pull/34)). [See release notes](https://github.com/luciqai/Luciq-Android-sdk/releases/tag/v19.2.2).
+
 ## [19.2.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.2.1...19.1.0)
 
 ### Added
@@ -13,6 +21,11 @@
 - Bump Luciq iOS SDK to v19.4.0 ([#29](https://github.com/luciqai/luciq-reactnative-sdk/pull/29)). [See release notes](https://github.com/luciqai/Luciq-iOS-sdk/releases/tag/19.4.0).
 
 - Bump Luciq Android SDK to v19.2.1 ([#29](https://github.com/luciqai/luciq-reactnative-sdk/pull/29)). [See release notes](https://github.com/luciqai/Luciq-Android-sdk/releases/tag/v19.2.1).
+
+### Fixed
+
+- Running Expo Plugin on ios [#31](https://github.com/luciqai/luciq-reactnative-sdk/pull/31))
+
 
 ## [19.1.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.1.0...19.0.0)
 
