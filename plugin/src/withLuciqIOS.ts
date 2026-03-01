@@ -102,8 +102,15 @@ function addLuciqBuildPhase(xcodeProject: XcodeProject, packageName: string): vo
 // Inject source map export line into the shell script
 function injectSourceMapExport(script: string): string {
   const exportLine = 'export SOURCEMAP_FILE="$DERIVED_FILE_DIR/main.jsbundle.map"';
-  const escapedLine = exportLine.replace(/\$/g, '\\$').replace(/"/g, '\\"');
+  const escapedLine = exportLine.replace(/"/g, '\\"');
   const injectedLine = `${escapedLine}\\n`;
 
-  return script.includes(escapedLine) ? script : script.replace(/^"/, `"${injectedLine}`);
+  if (script.includes(escapedLine)) {
+    return script;
+  }
+  const buggyLine = exportLine.replace(/\$/g, '\\$').replace(/"/g, '\\"');
+  if (script.includes(buggyLine)) {
+    return script.split(buggyLine).join(escapedLine);
+  }
+  return script.replace(/^"/, `"${injectedLine}`);
 }

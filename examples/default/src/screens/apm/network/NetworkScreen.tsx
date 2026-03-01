@@ -144,6 +144,48 @@ export const NetworkScreen: React.FC<
     axios.get('https://httpbin.org/anything');
   };
 
+  const simulateCancelledRequest = () => {
+    const controller = new AbortController();
+
+    axios
+      .get('https://httpbin.org/delay/5', {
+        signal: controller.signal,
+      })
+      .then((response) => {
+        console.log('Response:', response.data);
+      })
+      .catch(() => {
+        // if (axios.isCancel(error)) {
+        //   console.log('Request cancelled:', error.message);
+        // } else {
+        //   console.error('Error:', error);
+        // }
+      });
+
+    // Cancel the request after 100ms
+    setTimeout(() => {
+      controller.abort();
+      // console.log('Request aborted');
+    }, 100);
+  };
+
+  const simulateTimeoutRequest = () => {
+    axios
+      .get('https://httpbin.org/delay/10', {
+        timeout: 1000, // 1 second timeout
+      })
+      .then((response) => {
+        console.log('Response:', response.data);
+      })
+      .catch((error) => {
+        if (error.code === 'ECONNABORTED') {
+          console.log('Request timeout:', error.message);
+        } else {
+          console.error('Error:', error.toString());
+        }
+      });
+  };
+
   function generateUrls(count: number = 10) {
     const urls = [];
     for (let i = 1; i <= count; i++) {
@@ -239,6 +281,14 @@ export const NetworkScreen: React.FC<
             <CustomButton
               title="Simulate Network Request"
               onPress={() => simulateNetworkRequestWithoutHeader()}
+            />
+            <CustomButton
+              title="Simulate Cancelled Request"
+              onPress={() => simulateCancelledRequest()}
+            />
+            <CustomButton
+              title="Simulate Timeout Request"
+              onPress={() => simulateTimeoutRequest()}
             />
             <CustomButton onPress={() => refetch} title="Reload GraphQL" />
             <View>
