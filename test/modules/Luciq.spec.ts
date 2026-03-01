@@ -273,10 +273,7 @@ describe('Luciq Module', () => {
     Luciq.setNavigationListener(mockNavigationContainerRef);
 
     expect(mockCurrent.addListener).toBeCalledTimes(1);
-    expect(mockCurrent.addListener).toHaveBeenCalledWith(
-      '__unsafe_action__',
-      expect.any(Function),
-    );
+    expect(mockCurrent.addListener).toHaveBeenCalledWith('__unsafe_action__', expect.any(Function));
   });
 
   it('should call the native method init', () => {
