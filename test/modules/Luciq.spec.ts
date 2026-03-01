@@ -253,40 +253,30 @@ describe('Luciq Module', () => {
     await waitForExpect(() => expect(NativeLuciq.reportScreenChange).toBeCalledTimes(2));
   });
 
-  it('setNavigationListener should call the onStateChange on a screen change', async () => {
-    const mockedState = { routes: [{ name: 'ScreenName' }], index: 0 };
+  it('setNavigationListener should register __unsafe_action__ listener on navigationRef.current', async () => {
+    const mockCurrent = {
+      addListener: jest.fn(() => jest.fn()),
+    };
 
     const mockNavigationContainerRef = {
-      current: null,
+      current: mockCurrent,
       navigate: jest.fn(),
       reset: jest.fn(),
       goBack: jest.fn(),
       dispatch: jest.fn(),
-      getRootState: () => mockedState,
+      getRootState: jest.fn(),
       canGoBack: jest.fn(),
-
-      addListener: jest.fn((event, callback) => {
-        expect(event).toBe('state');
-        callback(mockedState);
-        return jest.fn();
-      }),
+      addListener: jest.fn(),
       removeListener: jest.fn(),
     } as unknown as NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>;
 
-    const onStateChangeMock = jest.fn();
-
-    jest.spyOn(Luciq, 'onStateChange').mockImplementation(onStateChangeMock);
-
     Luciq.setNavigationListener(mockNavigationContainerRef);
 
-    expect(mockNavigationContainerRef.addListener).toBeCalledTimes(1);
-    expect(mockNavigationContainerRef.addListener).toHaveBeenCalledWith(
-      'state',
+    expect(mockCurrent.addListener).toBeCalledTimes(1);
+    expect(mockCurrent.addListener).toHaveBeenCalledWith(
+      '__unsafe_action__',
       expect.any(Function),
     );
-
-    expect(onStateChangeMock).toBeCalledTimes(1);
-    expect(onStateChangeMock).toHaveBeenCalledWith(mockNavigationContainerRef.getRootState());
   });
 
   it('should call the native method init', () => {

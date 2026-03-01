@@ -9,6 +9,9 @@ jest.mock('../../../src/native/NativeAPM', () => ({
     setActiveScreenSpanId: jest.fn(),
     getScreenTimeToDisplay: jest.fn().mockResolvedValue(null),
     isScreenLoadingEnabled: jest.fn().mockResolvedValue(true),
+    isEndScreenLoadingEnabled: jest.fn().mockResolvedValue(false),
+    syncScreenLoading: jest.fn(),
+    endScreenLoading: jest.fn(),
   },
 }));
 
@@ -26,8 +29,14 @@ jest.mock('../../../src/utils/logger', () => ({
 describe('ScreenLoadingManager', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset manager state by creating new spans
-    // Note: We can't directly reset the singleton, so we'll work with its public API
+    // Reset singleton state so each test starts fresh
+    (ScreenLoadingManager as any).isInitialized = false;
+    (ScreenLoadingManager as any).isEnabled = false;
+    (ScreenLoadingManager as any).isEndScreenLoadingEnabled = false;
+    (ScreenLoadingManager as any).isFrameTrackingInitialized = false;
+    (ScreenLoadingManager as any).activeSpans = new Map();
+    (ScreenLoadingManager as any).excludedRoutes = new Set();
+    (ScreenLoadingManager as any).activeSpanId = null;
   });
 
   describe('Initialization', () => {
@@ -58,12 +67,17 @@ describe('ScreenLoadingManager', () => {
     });
 
     it('should create span with unique ID using Date.now()', () => {
+      let dateNowCounter = 1000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => dateNowCounter++);
+
       const span1 = ScreenLoadingManager.createSpan('Screen1');
       const span2 = ScreenLoadingManager.createSpan('Screen2');
 
       expect(span1?.spanId).toBeTruthy();
       expect(span2?.spanId).toBeTruthy();
       expect(span1?.spanId).not.toBe(span2?.spanId);
+
+      dateNowSpy.mockRestore();
     });
 
     it('should create span with correct initial properties', () => {
@@ -75,7 +89,7 @@ describe('ScreenLoadingManager', () => {
       expect(span?.status).toBe('measuring');
       expect(span?.isManual).toBe(false);
       expect(span?.startTimestamp).toBeGreaterThan(0);
-      expect(span?.attributes).toEqual({});
+      expect(span?.attributes).toEqual(new Map());
     });
 
     it('should distinguish manual from automatic spans', () => {
@@ -92,16 +106,12 @@ describe('ScreenLoadingManager', () => {
       expect(NativeAPM.setActiveScreenSpanId).toHaveBeenCalledWith(span?.spanId);
     });
 
-    it('should not create span when feature is disabled', async () => {
-      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValueOnce(false);
-      const manager = ScreenLoadingManager;
-      // Force reinitialization by calling initialize again
-      // Note: This won't work because of the isInitialized check
-      // Instead, we'll just test the behavior
+    it('should not create span when feature is disabled', () => {
+      // Directly disable the feature to test createSpan behavior
+      (ScreenLoadingManager as any).isEnabled = false;
 
-      const span = manager.createSpan('TestScreen');
-      // Since we can't truly reinitialize, this test validates the logic
-      expect(span).toBeDefined(); // Because it was already initialized as enabled
+      const span = ScreenLoadingManager.createSpan('TestScreen');
+      expect(span).toBeNull();
     });
   });
 
