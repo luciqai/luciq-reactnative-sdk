@@ -436,6 +436,38 @@ export function getIntValue(value: string | null): number | null {
   return isNaN(parsed) ? null : parsed;
 }
 
+// One-time anchor captured at module load to convert performance.now() to epoch time.
+// performance.now() gives high-resolution monotonic time (sub-ms precision) but relative
+// to app start. We pair it with Date.now() once, then derive epoch from the offset.
+const perfAnchorMs: number = performance.now();
+const epochAnchorUs: number = Date.now() * 1000;
+
+/**
+ * Returns a high-resolution monotonic timestamp in microseconds.
+ * Use this for all internal duration measurements.
+ */
+export function nowMicros(): number {
+  return performance.now() * 1000;
+}
+
+/**
+ * Converts an internal monotonic microsecond timestamp to epoch microseconds.
+ * Use this only when reporting to the native layer or external systems.
+ */
+export function toEpochMicros(monotonicUs: number): number {
+  const offsetUs = monotonicUs - perfAnchorMs * 1000;
+  return epochAnchorUs + offsetUs;
+}
+
+/**
+ * Converts an epoch microsecond timestamp to internal monotonic microseconds.
+ * Use this when receiving timestamps from the native layer that are epoch-based.
+ */
+export function fromEpochMicros(epochUs: number): number {
+  const offsetUs = epochUs - epochAnchorUs;
+  return perfAnchorMs * 1000 + offsetUs;
+}
+
 export default {
   parseErrorStack,
   captureJsErrors,

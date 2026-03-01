@@ -9,6 +9,7 @@ import React, {
 import { View, ViewProps } from 'react-native';
 import { ScreenLoadingManager } from '../modules/apm/ScreenLoadingManager';
 import { Logger } from '../utils/logger';
+import { nowMicros, toEpochMicros } from '../utils/LuciqUtils';
 
 // Context to handle nested components
 const ScreenLoadingContext = React.createContext<boolean>(false);
@@ -25,7 +26,7 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
   const isNested = useContext(ScreenLoadingContext);
 
   // Refs for timestamps (these don't need to trigger re-renders)
-  const constructorTimestampRef = useRef<number>(Date.now() * 1000); // microseconds
+  const constructorTimestampRef = useRef<number>(nowMicros()); // microseconds
   const renderStartTimestampRef = useRef<number | undefined>(undefined);
   const renderEndTimestampRef = useRef<number | undefined>(undefined);
   const mountTimestampRef = useRef<number | undefined>(undefined);
@@ -38,7 +39,7 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
 
   // Capture render start timestamp ONLY on first render
   if (!hasFirstRenderCompletedRef.current) {
-    renderStartTimestampRef.current = Date.now() * 1000;
+    renderStartTimestampRef.current = nowMicros();
   }
 
   // Initialize span - runs once like constructor (lazy initialization)
@@ -92,16 +93,28 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
     }
 
     attributesRecordedRef.current = true;
-    mountTimestampRef.current = Date.now() * 1000;
+    mountTimestampRef.current = nowMicros();
 
     // Record all timestamps
-    ScreenLoadingManager.addSpanAttribute(spanId, 'cnst_mus_st', constructorTimestampRef.current);
+    ScreenLoadingManager.addSpanAttribute(
+      spanId,
+      'cnst_mus_st',
+      toEpochMicros(constructorTimestampRef.current),
+    );
 
     if (renderStartTimestampRef.current) {
-      ScreenLoadingManager.addSpanAttribute(spanId, 'rnd_mus_st', renderStartTimestampRef.current);
+      ScreenLoadingManager.addSpanAttribute(
+        spanId,
+        'rnd_mus_st',
+        toEpochMicros(renderStartTimestampRef.current),
+      );
     }
 
-    ScreenLoadingManager.addSpanAttribute(spanId, 'mnt_mus_st', mountTimestampRef.current);
+    ScreenLoadingManager.addSpanAttribute(
+      spanId,
+      'mnt_mus_st',
+      toEpochMicros(mountTimestampRef.current),
+    );
 
     // Record all durations
     if (renderStartTimestampRef.current) {
@@ -153,16 +166,20 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
   const handleLayout = useCallback(
     async (event: any) => {
       if (spanIdRef.current && !isMeasuredRef.current) {
-        const layoutTimestamp = Date.now() * 1000;
+        const layoutTimestamp = nowMicros();
         setIsMeasured(true);
 
         // Record layout timestamp
-        ScreenLoadingManager.addSpanAttribute(spanIdRef.current, 'layout_mus_st', layoutTimestamp);
+        ScreenLoadingManager.addSpanAttribute(
+          spanIdRef.current,
+          'lyt_mus_st',
+          toEpochMicros(layoutTimestamp),
+        );
 
         // Calculate layout duration (time from mount to layout)
         if (mountTimestampRef.current) {
           const layoutDuration = layoutTimestamp - mountTimestampRef.current;
-          ScreenLoadingManager.addSpanAttribute(spanIdRef.current, 'layout_mus', layoutDuration);
+          ScreenLoadingManager.addSpanAttribute(spanIdRef.current, 'lyt_mus', layoutDuration);
         }
 
         // Small delay to ensure frame is actually rendered
@@ -199,7 +216,7 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
 
   // Capture render end timestamp ONLY on first render (after JSX creation)
   if (!hasFirstRenderCompletedRef.current) {
-    renderEndTimestampRef.current = Date.now() * 1000;
+    renderEndTimestampRef.current = nowMicros();
     hasFirstRenderCompletedRef.current = true;
   }
 

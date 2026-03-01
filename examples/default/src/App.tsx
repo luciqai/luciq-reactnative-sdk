@@ -74,6 +74,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     initializeLuciq();
     APM.setScreenRenderingEnabled(true);
+    APM.excludeScreenLoadingRoutes(['APM']);
     NetworkLogger.setNetworkDataObfuscationHandler(async (networkData) => {
       networkData.url = `${networkData.url}/JS/Obfuscated`;
       return networkData;

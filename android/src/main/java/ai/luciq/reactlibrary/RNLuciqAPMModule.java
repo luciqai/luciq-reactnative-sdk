@@ -520,27 +520,21 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 ", stages: " + stages.toString());
         try {
             final Map<String , Long> stagesMap = new HashMap<>();
-//            if(stages.hasKey("rnd_mus_st"))
-//                stagesMap.put("rnd_mus_st", (long) stages.getDouble("rnd_mus_st"));
-//            if(stages.hasKey("rnd_mus"))
-//                stagesMap.put("rnd_mus", (long) stages.getDouble("rnd_mus"));
-//            if(stages.hasKey("mnt_ms"))
-//                stagesMap.put("mnt_ms", (long) stages.getDouble("mnt_ms"));
-//           if(stages.hasKey("layout_mus"))
-//               stagesMap.put("layout_mus", (long) stages.getDouble("layout_mus"));
-//            if(stages.hasKey("mnt_ms_st"))
-//                stagesMap.put("mnt_ms_st", (long) stages.getDouble("mnt_ms_st"));
-//            if(stages.hasKey("cnst_mus_st"))
-//                stagesMap.put("cnst_mus_st", (long) stages.getDouble("cnst_mus_st"));
-//           if(stages.hasKey("layout_mus_st"))
-//               stagesMap.put("layout_mus_st", (long) stages.getDouble("layout_mus_st"));
+            if(stages.hasKey("rnd_mus_st"))
+                stagesMap.put("rnd_mus_st", (long) stages.getDouble("rnd_mus_st"));
+            if(stages.hasKey("rnd_mus"))
+                stagesMap.put("rnd_mus", (long) stages.getDouble("rnd_mus"));
+            if(stages.hasKey("mnt_ms"))
+                stagesMap.put("mnt_ms", (long) stages.getDouble("mnt_ms"));
+           if(stages.hasKey("lyt_mus"))
+               stagesMap.put("lyt_mus", (long) stages.getDouble("lyt_mus"));
+            if(stages.hasKey("mnt_ms_st"))
+                stagesMap.put("mnt_ms_st", (long) stages.getDouble("mnt_ms_st"));
+            if(stages.hasKey("cnst_mus_st"))
+                stagesMap.put("cnst_mus_st", (long) stages.getDouble("cnst_mus_st"));
+           if(stages.hasKey("lyt_mus_st"))
+               stagesMap.put("lyt_mus_st", (long) stages.getDouble("lyt_mus_st"));
 
-            stagesMap.put("rnd_mus_st",Long.parseLong( "17714059999"));
-            stagesMap.put("rnd_mus",Long.parseLong( "17714059999"));
-            stagesMap.put("mnt_ms",Long.parseLong( "17714059999"));
-            stagesMap.put("mnt_ms_st",Long.parseLong( "17714059999"));
-            stagesMap.put("cnst_mus_st",Long.parseLong( "17714059999"));
-            stagesMap.put("cnst_mus",Long.parseLong( "17714059999"));
             InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) duration_us, (long) spanId , stagesMap);
         } catch (Exception e) {
             e.printStackTrace();

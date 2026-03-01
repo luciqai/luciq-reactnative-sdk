@@ -1,5 +1,6 @@
 import { NativeAPM } from '../../native/NativeAPM';
 import { Logger } from '../../utils/logger';
+import { fromEpochMicros, nowMicros, toEpochMicros } from '../../utils/LuciqUtils';
 
 export interface ScreenLoadingSpan {
   spanId: string;
@@ -95,7 +96,7 @@ class ScreenLoadingManagerClass {
     }
 
     const spanId = Date.now().toString();
-    const startTimestamp = Date.now() * 1000; // Convert to microseconds
+    const startTimestamp = nowMicros();
 
     const span: ScreenLoadingSpan = {
       spanId,
@@ -156,8 +157,9 @@ class ScreenLoadingManagerClass {
       }
 
       if (frameTimestamp) {
-        span.endTimestamp = frameTimestamp;
-        span.ttid = frameTimestamp - span.startTimestamp;
+        // Native returns epoch microseconds; convert to monotonic for consistent internal math
+        span.endTimestamp = fromEpochMicros(frameTimestamp);
+        span.ttid = span.endTimestamp - span.startTimestamp;
         span.status = 'completed';
 
         // Log the measurement
@@ -185,12 +187,15 @@ class ScreenLoadingManagerClass {
     // Convert Map to plain object for JSON serialization (JSON.stringify cannot serialize Maps)
     const attributesObject = Object.fromEntries(span.attributes);
 
+    const startEpochUs = toEpochMicros(span.startTimestamp);
+    const endEpochUs = span.endTimestamp ? toEpochMicros(span.endTimestamp) : undefined;
+
     const logData = {
       type: 'screen_loading',
       span_id: span.spanId,
       screen_name: span.screenName,
-      start_timestamp_us: span.startTimestamp,
-      end_timestamp_us: span.endTimestamp,
+      start_timestamp_us: startEpochUs,
+      end_timestamp_us: endEpochUs,
       ttid_us: span.ttid,
       ttid_ms: span.ttid ? span.ttid / 1000 : undefined,
       is_manual: span.isManual,
@@ -203,7 +208,7 @@ class ScreenLoadingManagerClass {
     NativeAPM.syncScreenLoading(
       Number(span.spanId),
       span.screenName,
-      span.startTimestamp,
+      startEpochUs,
       span.ttid!,
       attributesObject,
     );
@@ -223,6 +228,18 @@ class ScreenLoadingManagerClass {
       NativeAPM.endScreenLoading(timeStampMicro, uiTraceId);
     } catch (error) {
       Logger.error('[ScreenLoading] Failed to end screen loading:', error);
+    }
+  }
+
+  /**
+   * Discard a span without logging or syncing it to native.
+   * Used when a span should be silently dropped (e.g., excluded route resolved after creation).
+   */
+  discardSpan(spanId: string): void {
+    const span = this.activeSpans.get(spanId);
+    if (span) {
+      this.activeSpans.delete(spanId);
+      Logger.log(`[ScreenLoading] Discarded span ${spanId} for screen "${span.screenName}"`);
     }
   }
 

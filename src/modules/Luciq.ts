@@ -833,30 +833,37 @@ const _onNavigationStateChange = (): void => {
   }
 
   // Capture the span ID BEFORE clearing it so we can pass it to reportScreenChange
-  const spanIdForReport = _activeNavigationSpanId;
+  let spanIdForReport: string | null = _activeNavigationSpanId;
 
   // Complete the active navigation span if one exists
   if (_activeNavigationSpanId) {
-    const span = ScreenLoadingManager.getActiveSpan(_activeNavigationSpanId);
-    if (span) {
-      // Update the span name from placeholder to actual screen name
-      span.screenName = currentRouteName;
+    // Now that we know the actual route name, check if it's excluded
+    if (ScreenLoadingManager.isRouteExcluded(currentRouteName)) {
+      Logger.log(`[ScreenLoading] Route "${currentRouteName}" is excluded, discarding span`);
+      ScreenLoadingManager.discardSpan(_activeNavigationSpanId);
+      spanIdForReport = null;
+      _activeNavigationSpanId = null;
+      _clearStateChangeTimeout();
+    } else {
+      const span = ScreenLoadingManager.getActiveSpan(_activeNavigationSpanId);
+      if (span) {
+        // Update the span name from placeholder to actual screen name
+        span.screenName = currentRouteName;
 
-      // End the span - the native frame tracker will provide the actual render timestamp
-      ScreenLoadingManager.endSpan(_activeNavigationSpanId)
-        .then(() => {
-          Logger.log(`[ScreenLoading] Completed span for navigation to ${currentRouteName}`);
-        })
-        .catch((error) => {
-          Logger.warn('[ScreenLoading] Failed to end navigation span:', error);
-        });
+        // End the span - the native frame tracker will provide the actual render timestamp
+        ScreenLoadingManager.endSpan(_activeNavigationSpanId)
+          .then(() => {
+            Logger.log(`[ScreenLoading] Completed span for navigation to ${currentRouteName}`);
+          })
+          .catch((error) => {
+            Logger.warn('[ScreenLoading] Failed to end navigation span:', error);
+          });
+      }
+
+      // Clear the active span and timeout
+      _activeNavigationSpanId = null;
+      _clearStateChangeTimeout();
     }
-
-    // Clear the active span and timeout
-    _activeNavigationSpanId = null;
-    _clearStateChangeTimeout();
-  } else {
-    Logger.log('[ScreenLoading] State changed but no active span');
   }
 
   // Update the current route for the rest of Luciq's tracking

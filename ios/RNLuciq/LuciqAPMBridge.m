@@ -120,14 +120,14 @@ RCT_EXPORT_METHOD(getScreenTimeToDisplay:(NSString *)spanId
 
 RCT_EXPORT_METHOD(isScreenLoadingEnabled:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject){
-   
+
     BOOL isScreenLoadingEnabled = LCQAPM.screenLoadingEnabled;
     resolve(@(isScreenLoadingEnabled));
 }
 
 RCT_EXPORT_METHOD(isEndScreenLoadingEnabled:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject){
-   
+
     BOOL isEndScreenLoadingEnabled = LCQAPM.endScreenLoadingEnabled;
     resolve(@(isEndScreenLoadingEnabled));
 }
@@ -149,26 +149,25 @@ RCT_EXPORT_METHOD(syncScreenLoading:(double)spanId
                   attributes:(NSDictionary *)stages){
     NSLog(@"[ScreenLoading] syncScreenLoading - spanId: %.0f, screenName: %@, startTimestamp: %f, ttid_us: %f, attributes: %@",
           spanId, screenName, startTimestamp, ttid_us, stages);
-    
+
     NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [NSMutableDictionary dictionary];
-    
+
     if (stages[@"rnd_mus_st"])
         stagesMap[@"rnd_mus_st"] = @([stages[@"rnd_mus_st"] longLongValue]);
     if (stages[@"rnd_mus"])
         stagesMap[@"rnd_mus"] = @([stages[@"rnd_mus"] longLongValue]);
     if (stages[@"mnt_ms"])
         stagesMap[@"mnt_ms"] = @([stages[@"mnt_ms"] longLongValue]);
-    if (stages[@"layout_mus"])
-        stagesMap[@"layout_mus"] = @([stages[@"layout_mus"] longLongValue]);
+    if (stages[@"lyt_mus"])
+        stagesMap[@"lyt_mus"] = @([stages[@"lyt_mus"] longLongValue]);
     if (stages[@"mnt_ms_st"])
         stagesMap[@"mnt_ms_st"] = @([stages[@"mnt_ms_st"] longLongValue]);
     if (stages[@"cnst_mus_st"])
         stagesMap[@"cnst_mus_st"] = @([stages[@"cnst_mus_st"] longLongValue]);
-    if (stages[@"layout_mus_st"])
-        stagesMap[@"layout_mus_st"] = @([stages[@"layout_mus_st"] longLongValue]);
-    
-    [LCQAPM reportScreenLoadingCPWithStartTimestampMUS:startTimestamp durationMUS:ttid_us];
-    
+    if (stages[@"lyt_mus_st"])
+        stagesMap[@"lyt_mus_st"] = @([stages[@"lyt_mus_st"] longLongValue]);
+
+    [LCQAPM reportScreenLoadingCPWithStartTimestampMUS:startTimestamp durationMUS:ttid_us stages:stagesMap];
 }
 
 @synthesize description;
