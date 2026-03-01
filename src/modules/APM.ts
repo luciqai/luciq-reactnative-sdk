@@ -140,10 +140,10 @@ export const setScreenLoadingEnabled = (isEnabled: boolean) => {
 };
 
 /**
- * Ends the currently running screen loading custom trace.
+ * Extends the currently running screen loading trace with a new end timestamp.
  */
-export const endScreenLoading = (timeStampMicro: number, uiTraceId: number) => {
-  ScreenLoadingManager.endScreenLoading(timeStampMicro, uiTraceId);
+export const endScreenLoading = () => {
+  ScreenLoadingManager.endScreenLoading();
 };
 
 /**

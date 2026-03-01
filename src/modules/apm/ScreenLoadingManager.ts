@@ -18,6 +18,8 @@ class ScreenLoadingManagerClass {
   private isInitialized: boolean = false;
   private isEnabled: boolean = false;
   private isEndScreenLoadingEnabled: boolean = false;
+  private isFrameTrackingInitialized: boolean = false;
+  private activeSpanId: string | null = null;
   private maxConcurrentSpans: number = 50;
   private excludedRoutes: Set<string> = new Set();
 
@@ -27,19 +29,39 @@ class ScreenLoadingManagerClass {
     }
 
     try {
-      // Check feature flag
+      // Check feature flags
       this.isEnabled = await NativeAPM.isScreenLoadingEnabled();
       this.isEndScreenLoadingEnabled = await NativeAPM.isEndScreenLoadingEnabled();
       if (this.isEnabled) {
         await NativeAPM.initScreenFrameTracking();
-        this.isInitialized = true;
+        this.isFrameTrackingInitialized = true;
         Logger.log('[ScreenLoading] Manager initialized, feature enabled');
       } else {
         Logger.log('[ScreenLoading] Feature disabled by flag');
       }
+      this.isInitialized = true;
     } catch (error) {
       Logger.error('[ScreenLoading] Failed to initialize:', error);
       this.isEnabled = false;
+    }
+  }
+
+  async refreshFlags(): Promise<void> {
+    try {
+      this.isEnabled = await NativeAPM.isScreenLoadingEnabled();
+      this.isEndScreenLoadingEnabled = await NativeAPM.isEndScreenLoadingEnabled();
+
+      if (this.isEnabled && !this.isFrameTrackingInitialized) {
+        await NativeAPM.initScreenFrameTracking();
+        this.isFrameTrackingInitialized = true;
+        Logger.log('[ScreenLoading] Frame tracking initialized after flag refresh');
+      }
+
+      Logger.log(
+        `[ScreenLoading] Flags refreshed - enabled: ${this.isEnabled}, endScreenLoading: ${this.isEndScreenLoadingEnabled}`,
+      );
+    } catch (error) {
+      Logger.error('[ScreenLoading] Failed to refresh flags:', error);
     }
   }
 
@@ -111,6 +133,9 @@ class ScreenLoadingManagerClass {
 
     // Register with native for frame tracking
     NativeAPM.setActiveScreenSpanId(spanId);
+    if (!isManual) {
+      this.activeSpanId = spanId;
+    }
     span.status = 'measuring';
 
     Logger.log(
@@ -215,17 +240,24 @@ class ScreenLoadingManagerClass {
   }
 
   /**
-   * End a screen loading span
-   * @param timeStampMicro The timestamp in microseconds
-   * @param uiTraceId The UI trace ID
+   * End a screen loading span using the current timestamp and active span ID
    */
-  endScreenLoading(timeStampMicro: number, uiTraceId: number): void {
+  endScreenLoading(): void {
     if (!this.isEndScreenLoadingFeatureEnabled()) {
-      Logger.warn('[ScreenLoading] End screen loading feature is not enabled');
+      Logger.error('[ScreenLoading] End screen loading feature is not enabled');
+      return;
+    }
+    if (!this.activeSpanId) {
+      Logger.warn('[ScreenLoading] No active span to end screen loading');
       return;
     }
     try {
+      const timeStampMicro = toEpochMicros(nowMicros());
+      const uiTraceId = Number(this.activeSpanId);
       NativeAPM.endScreenLoading(timeStampMicro, uiTraceId);
+      Logger.log(
+        `[ScreenLoading] endScreenLoading() was called at ${timeStampMicro} for ui trace id "${uiTraceId}"`,
+      );
     } catch (error) {
       Logger.error('[ScreenLoading] Failed to end screen loading:', error);
     }

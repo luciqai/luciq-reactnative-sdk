@@ -142,12 +142,14 @@ export const setAppVariant = (appVariant: string) => {
  * Handles app state changes and updates APM network flags if necessary.
  */
 const handleAppStateChange = async (nextAppState: AppStateStatus, config: LuciqConfig) => {
-  // Checks if  the app has come to the foreground
+  // Checks if the app has come to the foreground
   if (['inactive', 'background'].includes(_currentAppState) && nextAppState === 'active') {
     const isUpdated = await fetchApmNetworkFlags();
     if (isUpdated) {
       refreshAPMNetworkConfigs(config);
     }
+    // Refresh screen loading flags from native
+    await ScreenLoadingManager.refreshFlags();
   }
 
   _currentAppState = nextAppState;
