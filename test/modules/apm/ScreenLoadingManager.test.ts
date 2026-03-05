@@ -1,6 +1,16 @@
-import { ScreenLoadingManager } from '../../../src/modules/apm/ScreenLoadingManager';
+import {
+  ScreenLoadingManager,
+  ScreenLoadingSpan,
+} from '../../../src/modules/apm/ScreenLoadingManager';
 import { NativeAPM } from '../../../src/native/NativeAPM';
 import { Logger } from '../../../src/utils/logger';
+
+// Mock LuciqUtils so toEpochMicros/fromEpochMicros/nowMicros are predictable
+jest.mock('../../../src/utils/LuciqUtils', () => ({
+  nowMicros: jest.fn(() => 5000),
+  toEpochMicros: jest.fn((v: number) => v + 1000000),
+  fromEpochMicros: jest.fn((v: number) => v),
+}));
 
 // Mock NativeAPM
 jest.mock('../../../src/native/NativeAPM', () => ({
@@ -11,6 +21,7 @@ jest.mock('../../../src/native/NativeAPM', () => ({
     isScreenLoadingEnabled: jest.fn().mockResolvedValue(true),
     isEndScreenLoadingEnabled: jest.fn().mockResolvedValue(false),
     syncScreenLoading: jest.fn(),
+    syncManualScreenLoading: jest.fn(),
     endScreenLoading: jest.fn(),
   },
 }));
@@ -57,6 +68,75 @@ describe('ScreenLoadingManager', () => {
       const secondCallCount = (NativeAPM.initScreenFrameTracking as jest.Mock).mock.calls.length;
 
       expect(secondCallCount).toBe(firstCallCount);
+    });
+
+    it('should set isInitialized but not enable when feature flag is off', async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(false);
+      (NativeAPM.isEndScreenLoadingEnabled as jest.Mock).mockResolvedValue(false);
+
+      await ScreenLoadingManager.initialize();
+
+      expect(ScreenLoadingManager.isFeatureEnabled()).toBe(false);
+      expect(NativeAPM.initScreenFrameTracking).not.toHaveBeenCalled();
+    });
+
+    it('should handle initialization error gracefully', async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockRejectedValue(new Error('init failed'));
+
+      await ScreenLoadingManager.initialize();
+
+      expect(ScreenLoadingManager.isFeatureEnabled()).toBe(false);
+      expect(Logger.error).toHaveBeenCalledWith(
+        '[ScreenLoading] Failed to initialize:',
+        expect.any(Error),
+      );
+    });
+  });
+
+  describe('refreshFlags', () => {
+    it('should update feature flags from native', async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      (NativeAPM.isEndScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+
+      await ScreenLoadingManager.refreshFlags();
+
+      expect(ScreenLoadingManager.isFeatureEnabled()).toBe(true);
+      expect(ScreenLoadingManager.isEndScreenLoadingFeatureEnabled()).toBe(true);
+    });
+
+    it('should initialize frame tracking if enabled after refresh and not yet initialized', async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      (NativeAPM.isEndScreenLoadingEnabled as jest.Mock).mockResolvedValue(false);
+
+      await ScreenLoadingManager.refreshFlags();
+
+      expect(NativeAPM.initScreenFrameTracking).toHaveBeenCalled();
+    });
+
+    it('should not reinitialize frame tracking if already initialized', async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      (NativeAPM.isEndScreenLoadingEnabled as jest.Mock).mockResolvedValue(false);
+      await ScreenLoadingManager.initialize();
+      jest.clearAllMocks();
+
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      (NativeAPM.isEndScreenLoadingEnabled as jest.Mock).mockResolvedValue(false);
+      await ScreenLoadingManager.refreshFlags();
+
+      expect(NativeAPM.initScreenFrameTracking).not.toHaveBeenCalled();
+    });
+
+    it('should handle refreshFlags error gracefully', async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockRejectedValue(
+        new Error('refresh failed'),
+      );
+
+      await ScreenLoadingManager.refreshFlags();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        '[ScreenLoading] Failed to refresh flags:',
+        expect.any(Error),
+      );
     });
   });
 
@@ -107,11 +187,19 @@ describe('ScreenLoadingManager', () => {
     });
 
     it('should not create span when feature is disabled', () => {
-      // Directly disable the feature to test createSpan behavior
       (ScreenLoadingManager as any).isEnabled = false;
 
       const span = ScreenLoadingManager.createSpan('TestScreen');
       expect(span).toBeNull();
+    });
+
+    it('should set activeSpanId for automatic spans but not for manual spans', () => {
+      ScreenLoadingManager.createSpan('AutoScreen', false);
+      expect((ScreenLoadingManager as any).activeSpanId).toBeTruthy();
+
+      const prevActiveId = (ScreenLoadingManager as any).activeSpanId;
+      ScreenLoadingManager.createSpan('ManualScreen', true);
+      expect((ScreenLoadingManager as any).activeSpanId).toBe(prevActiveId);
     });
   });
 
@@ -209,6 +297,12 @@ describe('ScreenLoadingManager', () => {
       }
     });
 
+    it('should not add attribute to non-existent span', () => {
+      ScreenLoadingManager.addSpanAttribute('non-existent-id', 'key', 42);
+
+      expect(ScreenLoadingManager.getActiveSpan('non-existent-id')).toBeUndefined();
+    });
+
     it('should retrieve active span by ID', () => {
       const span = ScreenLoadingManager.createSpan('TestScreen');
       const retrieved = ScreenLoadingManager.getActiveSpan(span!.spanId);
@@ -237,6 +331,51 @@ describe('ScreenLoadingManager', () => {
       (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
       await ScreenLoadingManager.initialize();
       jest.clearAllMocks();
+    });
+
+    it('should do nothing when feature is disabled', async () => {
+      (ScreenLoadingManager as any).isEnabled = false;
+
+      await ScreenLoadingManager.endSpan('any-id');
+
+      expect(NativeAPM.getScreenTimeToDisplay).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing for non-existent span', async () => {
+      await ScreenLoadingManager.endSpan('non-existent-id');
+
+      expect(NativeAPM.getScreenTimeToDisplay).not.toHaveBeenCalled();
+    });
+
+    it('should retry fetching frame timestamp up to 3 times', async () => {
+      (NativeAPM.getScreenTimeToDisplay as jest.Mock)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(9999999);
+
+      const span = ScreenLoadingManager.createSpan('RetryScreen');
+      if (span) {
+        await ScreenLoadingManager.endSpan(span.spanId);
+
+        expect(NativeAPM.getScreenTimeToDisplay).toHaveBeenCalledTimes(3);
+        const updatedSpan = ScreenLoadingManager.getActiveSpan(span.spanId);
+        expect(updatedSpan?.status).toBe('completed');
+      }
+    });
+
+    it('should set error status after all retries fail', async () => {
+      (NativeAPM.getScreenTimeToDisplay as jest.Mock)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+
+      const span = ScreenLoadingManager.createSpan('FailScreen');
+      if (span) {
+        await ScreenLoadingManager.endSpan(span.spanId);
+
+        const updatedSpan = ScreenLoadingManager.getActiveSpan(span.spanId);
+        expect(updatedSpan?.status).toBe('error');
+      }
     });
 
     it('should complete span with frame timestamp', async () => {
@@ -326,6 +465,93 @@ describe('ScreenLoadingManager', () => {
     });
   });
 
+  describe('Discard Span', () => {
+    beforeEach(async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      await ScreenLoadingManager.initialize();
+    });
+
+    it('should remove span from active spans', () => {
+      const span = ScreenLoadingManager.createSpan('DiscardScreen');
+      expect(span).toBeTruthy();
+      expect(ScreenLoadingManager.getActiveSpan(span!.spanId)).toBeDefined();
+
+      ScreenLoadingManager.discardSpan(span!.spanId);
+
+      expect(ScreenLoadingManager.getActiveSpan(span!.spanId)).toBeUndefined();
+    });
+
+    it('should do nothing for non-existent span ID', () => {
+      ScreenLoadingManager.discardSpan('non-existent-id');
+
+      expect(Logger.log).not.toHaveBeenCalledWith(expect.stringContaining('Discarded span'));
+    });
+  });
+
+  describe('endScreenLoading', () => {
+    beforeEach(async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      (NativeAPM.isEndScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      await ScreenLoadingManager.initialize();
+      jest.clearAllMocks();
+    });
+
+    it('should call native endScreenLoading with timestamp and ui trace id', () => {
+      ScreenLoadingManager.createSpan('TestScreen', false);
+      ScreenLoadingManager.endScreenLoading();
+
+      expect(NativeAPM.endScreenLoading).toHaveBeenCalledWith(
+        expect.any(Number),
+        expect.any(Number),
+      );
+    });
+
+    it('should not end screen loading when feature is disabled', () => {
+      (ScreenLoadingManager as any).isEnabled = false;
+
+      ScreenLoadingManager.endScreenLoading();
+
+      expect(NativeAPM.endScreenLoading).not.toHaveBeenCalled();
+      expect(Logger.error).toHaveBeenCalledWith(
+        '[ScreenLoading] End screen loading feature is not enabled',
+      );
+    });
+
+    it('should not end screen loading when isEndScreenLoadingEnabled is false', () => {
+      (ScreenLoadingManager as any).isEndScreenLoadingEnabled = false;
+
+      ScreenLoadingManager.endScreenLoading();
+
+      expect(NativeAPM.endScreenLoading).not.toHaveBeenCalled();
+    });
+
+    it('should warn when no active span exists', () => {
+      (ScreenLoadingManager as any).isEndScreenLoadingEnabled = true;
+      (ScreenLoadingManager as any).activeSpanId = null;
+
+      ScreenLoadingManager.endScreenLoading();
+
+      expect(Logger.warn).toHaveBeenCalledWith(
+        '[ScreenLoading] No active span to end screen loading',
+      );
+      expect(NativeAPM.endScreenLoading).not.toHaveBeenCalled();
+    });
+
+    it('should handle error during endScreenLoading gracefully', () => {
+      ScreenLoadingManager.createSpan('TestScreen', false);
+      (NativeAPM.endScreenLoading as jest.Mock).mockImplementationOnce(() => {
+        throw new Error('native error');
+      });
+
+      ScreenLoadingManager.endScreenLoading();
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        '[ScreenLoading] Failed to end screen loading:',
+        expect.any(Error),
+      );
+    });
+  });
+
   describe('Concurrent Span Limits', () => {
     beforeEach(async () => {
       (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
@@ -333,14 +559,13 @@ describe('ScreenLoadingManager', () => {
     });
 
     it('should limit concurrent spans to 50', () => {
-      const spans = [];
+      const spans: ScreenLoadingSpan[] = [];
       for (let i = 0; i < 60; i++) {
         const span = ScreenLoadingManager.createSpan(`Screen${i}`);
         if (span) {
           spans.push(span);
         }
       }
-
       const activeSpans = ScreenLoadingManager.getAllActiveSpans();
       expect(activeSpans.length).toBeLessThanOrEqual(50);
     });
@@ -392,6 +617,41 @@ describe('ScreenLoadingManager', () => {
         );
       }
     });
+
+    it('should call syncScreenLoading for automatic spans', async () => {
+      const frameTimestamp = 1234567890;
+      (NativeAPM.getScreenTimeToDisplay as jest.Mock).mockResolvedValueOnce(frameTimestamp);
+
+      const span = ScreenLoadingManager.createSpan('AutoScreen', false);
+      if (span) {
+        await ScreenLoadingManager.endSpan(span.spanId);
+
+        expect(NativeAPM.syncScreenLoading).toHaveBeenCalledWith(
+          Number(span.spanId),
+          'AutoScreen',
+          expect.any(Number),
+          expect.any(Number),
+          expect.any(Object),
+        );
+      }
+    });
+
+    it('should call syncManualScreenLoading for manual spans', async () => {
+      const frameTimestamp = 1234567890;
+      (NativeAPM.getScreenTimeToDisplay as jest.Mock).mockResolvedValueOnce(frameTimestamp);
+
+      const span = ScreenLoadingManager.createSpan('ManualScreen', true);
+      if (span) {
+        await ScreenLoadingManager.endSpan(span.spanId);
+
+        expect(NativeAPM.syncManualScreenLoading).toHaveBeenCalledWith(
+          'ManualScreen',
+          expect.any(Number),
+          expect.any(Number),
+          expect.any(Object),
+        );
+      }
+    });
   });
 
   describe('Feature Flag', () => {
@@ -400,6 +660,34 @@ describe('ScreenLoadingManager', () => {
       await ScreenLoadingManager.initialize();
 
       expect(ScreenLoadingManager.isFeatureEnabled()).toBe(true);
+    });
+
+    it('should return false for isFeatureEnabled when disabled', () => {
+      expect(ScreenLoadingManager.isFeatureEnabled()).toBe(false);
+    });
+
+    it('should return true for isEndScreenLoadingFeatureEnabled when both flags are on', async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      (NativeAPM.isEndScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      await ScreenLoadingManager.initialize();
+
+      expect(ScreenLoadingManager.isEndScreenLoadingFeatureEnabled()).toBe(true);
+    });
+
+    it('should return false for isEndScreenLoadingFeatureEnabled when screen loading is off', async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(false);
+      (NativeAPM.isEndScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      await ScreenLoadingManager.initialize();
+
+      expect(ScreenLoadingManager.isEndScreenLoadingFeatureEnabled()).toBe(false);
+    });
+
+    it('should return false for isEndScreenLoadingFeatureEnabled when endScreenLoading flag is off', async () => {
+      (NativeAPM.isScreenLoadingEnabled as jest.Mock).mockResolvedValue(true);
+      (NativeAPM.isEndScreenLoadingEnabled as jest.Mock).mockResolvedValue(false);
+      await ScreenLoadingManager.initialize();
+
+      expect(ScreenLoadingManager.isEndScreenLoadingFeatureEnabled()).toBe(false);
     });
   });
 });

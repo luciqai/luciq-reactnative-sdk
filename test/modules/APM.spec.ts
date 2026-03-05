@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { NativeAPM } from '../../src/native/NativeAPM';
 import { NativeLuciq } from '../../src/native/NativeLuciq';
 import * as APM from '../../src/modules/APM';
+import { ScreenLoadingManager } from '../../src/modules/apm/ScreenLoadingManager';
 
 describe('APM Module', () => {
   it('should call the native method setEnabled', () => {
@@ -107,5 +108,53 @@ describe('APM Module', () => {
 
     expect(NativeAPM.setScreenRenderingEnabled).toBeCalledTimes(1);
     expect(NativeAPM.setScreenRenderingEnabled).toBeCalledWith(true);
+  });
+
+  it('should call the native method setScreenLoadingEnabled', () => {
+    APM.setScreenLoadingEnabled(true);
+
+    expect(NativeAPM.setScreenLoadingEnabled).toBeCalledTimes(1);
+    expect(NativeAPM.setScreenLoadingEnabled).toBeCalledWith(true);
+  });
+
+  it('should call ScreenLoadingManager.endScreenLoading', () => {
+    const spy = jest.spyOn(ScreenLoadingManager, 'endScreenLoading').mockImplementation();
+
+    APM.endScreenLoading();
+
+    expect(spy).toBeCalledTimes(1);
+    spy.mockRestore();
+  });
+
+  it('should call ScreenLoadingManager.excludeRoutes', () => {
+    const spy = jest.spyOn(ScreenLoadingManager, 'excludeRoutes').mockImplementation();
+    const routes = ['Home', 'Settings'];
+
+    APM.excludeScreenLoadingRoutes(routes);
+
+    expect(spy).toBeCalledTimes(1);
+    expect(spy).toBeCalledWith(routes);
+    spy.mockRestore();
+  });
+
+  it('should call ScreenLoadingManager.includeRoutes with routes', () => {
+    const spy = jest.spyOn(ScreenLoadingManager, 'includeRoutes').mockImplementation();
+    const routes = ['Home'];
+
+    APM.includeScreenLoadingRoutes(routes);
+
+    expect(spy).toBeCalledTimes(1);
+    expect(spy).toBeCalledWith(routes);
+    spy.mockRestore();
+  });
+
+  it('should call ScreenLoadingManager.includeRoutes without arguments', () => {
+    const spy = jest.spyOn(ScreenLoadingManager, 'includeRoutes').mockImplementation();
+
+    APM.includeScreenLoadingRoutes();
+
+    expect(spy).toBeCalledTimes(1);
+    expect(spy).toBeCalledWith(undefined);
+    spy.mockRestore();
   });
 });

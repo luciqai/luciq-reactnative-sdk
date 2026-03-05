@@ -63,6 +63,12 @@ export interface ApmNativeModule extends NativeModule {
     durationUS: number,
     attributes: Record<string, any>,
   ): void;
+  syncManualScreenLoading(
+    screenName: string,
+    startTimestamp: number,
+    durationUS: number,
+    attributes: Record<string, any>,
+  ): void;
 }
 
 export const NativeAPM = NativeModules.LCQAPM;

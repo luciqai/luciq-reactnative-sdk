@@ -23,6 +23,7 @@ const mockAPM: ApmNativeModule = {
   endScreenLoading: jest.fn(),
   setScreenLoadingEnabled: jest.fn(),
   syncScreenLoading: jest.fn(),
+  syncManualScreenLoading: jest.fn(),
 };
 
 export default mockAPM;

@@ -542,6 +542,44 @@ public class RNLuciqAPMModule extends EventEmitterModule {
     }
 
     /**
+     * Syncs manual screen loading measurements to native layer for reporting.
+     * Unlike syncScreenLoading, this does not require a span ID.
+     *
+     * @param screenName     the name of the screen
+     * @param startTimestamp the start timestamp in microseconds
+     * @param duration_us    the duration in microseconds
+     * @param stages         custom attributes attached to the measurement
+     */
+    @ReactMethod
+    public void syncManualScreenLoading(String screenName, double startTimestamp, double duration_us, ReadableMap stages) {
+        Log.d("ScreenLoading", "syncManualScreenLoading - screenName: " + screenName +
+                ", startTimestamp: " + startTimestamp +
+                ", duration_us: " + duration_us +
+                ", stages: " + stages.toString());
+        try {
+            final Map<String, Long> stagesMap = new HashMap<>();
+            if (stages.hasKey("rnd_mus_st"))
+                stagesMap.put("rnd_mus_st", (long) stages.getDouble("rnd_mus_st"));
+            if (stages.hasKey("rnd_mus"))
+                stagesMap.put("rnd_mus", (long) stages.getDouble("rnd_mus"));
+            if (stages.hasKey("mnt_ms"))
+                stagesMap.put("mnt_ms", (long) stages.getDouble("mnt_ms"));
+            if (stages.hasKey("lyt_mus"))
+                stagesMap.put("lyt_mus", (long) stages.getDouble("lyt_mus"));
+            if (stages.hasKey("mnt_ms_st"))
+                stagesMap.put("mnt_ms_st", (long) stages.getDouble("mnt_ms_st"));
+            if (stages.hasKey("cnst_mus_st"))
+                stagesMap.put("cnst_mus_st", (long) stages.getDouble("cnst_mus_st"));
+            if (stages.hasKey("lyt_mus_st"))
+                stagesMap.put("lyt_mus_st", (long) stages.getDouble("lyt_mus_st"));
+
+            InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) duration_us, stagesMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Check if Screen Loading feature is enabled
      *
      * @param promise promise to resolve with enabled status

@@ -2,7 +2,9 @@ package ai.luciq.reactlibrary;
 import android.os.Looper;
 
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReadableMap;
 import ai.luciq.apm.APM;
+import ai.luciq.apm.InternalAPM;
 
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
@@ -13,6 +15,7 @@ import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -174,5 +177,32 @@ public class RNLuciqAPMModuleTest {
         APM.setScreenRenderingEnabled(true);
     }
 
+    @Test
+    public void testSyncManualScreenLoading() {
+        MockedStatic<InternalAPM> mockInternalAPM = mockStatic(InternalAPM.class);
+
+        String screenName = "HomeScreen";
+        double startTimestamp = 1000000;
+        double durationUs = 500000;
+        ReadableMap stages = mock(ReadableMap.class);
+
+        when(stages.hasKey("rnd_mus_st")).thenReturn(false);
+        when(stages.hasKey("rnd_mus")).thenReturn(false);
+        when(stages.hasKey("mnt_ms")).thenReturn(false);
+        when(stages.hasKey("lyt_mus")).thenReturn(false);
+        when(stages.hasKey("mnt_ms_st")).thenReturn(false);
+        when(stages.hasKey("cnst_mus_st")).thenReturn(false);
+        when(stages.hasKey("lyt_mus_st")).thenReturn(false);
+
+        apmModule.syncManualScreenLoading(screenName, startTimestamp, durationUs, stages);
+
+        mockInternalAPM.verify(() -> InternalAPM._reportScreenLoadingCP(
+                (long) startTimestamp,
+                (long) durationUs,
+                any(Map.class)
+        ));
+
+        mockInternalAPM.close();
+    }
 
 }

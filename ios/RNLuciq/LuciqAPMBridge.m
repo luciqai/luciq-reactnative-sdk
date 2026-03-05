@@ -170,6 +170,34 @@ RCT_EXPORT_METHOD(syncScreenLoading:(double)spanId
     [LCQAPM reportScreenLoadingCPWithStartTimestampMUS:startTimestamp durationMUS:ttid_us stages:stagesMap];
 }
 
+// Syncs manual screen loading measurements to native layer for reporting (no span ID)
+RCT_EXPORT_METHOD(syncManualScreenLoading:(NSString *)screenName
+                  startTimestamp:(double)startTimestamp
+                  ttid_us:(double)ttid_us
+                  attributes:(NSDictionary *)stages){
+    NSLog(@"[ScreenLoading] syncManualScreenLoading - screenName: %@, startTimestamp: %f, ttid_us: %f, attributes: %@",
+          screenName, startTimestamp, ttid_us, stages);
+
+    NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [NSMutableDictionary dictionary];
+
+    if (stages[@"rnd_mus_st"])
+        stagesMap[@"rnd_mus_st"] = @([stages[@"rnd_mus_st"] longLongValue]);
+    if (stages[@"rnd_mus"])
+        stagesMap[@"rnd_mus"] = @([stages[@"rnd_mus"] longLongValue]);
+    if (stages[@"mnt_ms"])
+        stagesMap[@"mnt_ms"] = @([stages[@"mnt_ms"] longLongValue]);
+    if (stages[@"lyt_mus"])
+        stagesMap[@"lyt_mus"] = @([stages[@"lyt_mus"] longLongValue]);
+    if (stages[@"mnt_ms_st"])
+        stagesMap[@"mnt_ms_st"] = @([stages[@"mnt_ms_st"] longLongValue]);
+    if (stages[@"cnst_mus_st"])
+        stagesMap[@"cnst_mus_st"] = @([stages[@"cnst_mus_st"] longLongValue]);
+    if (stages[@"lyt_mus_st"])
+        stagesMap[@"lyt_mus_st"] = @([stages[@"lyt_mus_st"] longLongValue]);
+
+    [LCQAPM reportScreenLoadingCPWithStartTimestampMUS:startTimestamp durationMUS:ttid_us stages:stagesMap];
+}
+
 @synthesize description;
 
 @synthesize hash;

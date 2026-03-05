@@ -230,13 +230,22 @@ class ScreenLoadingManagerClass {
     Logger.log('[ScreenLoading] Measurement:', JSON.stringify(logData, null, 2));
 
     // Sync screen loading data to native layer (also pass converted object)
-    NativeAPM.syncScreenLoading(
-      Number(span.spanId),
-      span.screenName,
-      startEpochUs,
-      span.ttid!,
-      attributesObject,
-    );
+    if (span.isManual) {
+      NativeAPM.syncManualScreenLoading(
+        span.screenName,
+        startEpochUs,
+        span.ttid!,
+        attributesObject,
+      );
+    } else {
+      NativeAPM.syncScreenLoading(
+        Number(span.spanId),
+        span.screenName,
+        startEpochUs,
+        span.ttid!,
+        attributesObject,
+      );
+    }
   }
 
   /**
