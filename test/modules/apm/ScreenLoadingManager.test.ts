@@ -1,7 +1,4 @@
-import {
-  ScreenLoadingManager,
-  ScreenLoadingSpan,
-} from '../../../src/modules/apm/ScreenLoadingManager';
+import { ScreenLoadingManager } from '../../../src/modules/apm/ScreenLoadingManager';
 import { NativeAPM } from '../../../src/native/NativeAPM';
 import { Logger } from '../../../src/utils/logger';
 
@@ -558,40 +555,44 @@ describe('ScreenLoadingManager', () => {
       await ScreenLoadingManager.initialize();
     });
 
-    it('should limit concurrent spans to 50', () => {
-      const spans: ScreenLoadingSpan[] = [];
-      for (let i = 0; i < 60; i++) {
-        const span = ScreenLoadingManager.createSpan(`Screen${i}`);
-        if (span) {
-          spans.push(span);
-        }
+    it('should trigger cleanup when reaching maxConcurrentSpans', () => {
+      // Mock Date.now to return unique values so each span gets a unique ID in the Map
+      let counter = 1000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => counter++);
+
+      // Create exactly maxConcurrentSpans (50) spans to fill the map
+      for (let i = 0; i < 50; i++) {
+        ScreenLoadingManager.createSpan(`Screen${i}`);
       }
+      expect(ScreenLoadingManager.getAllActiveSpans().length).toBe(50);
+
+      // Creating one more should trigger cleanupOldestSpans, which trims down to 30
+      ScreenLoadingManager.createSpan('TriggerCleanup');
+
+      // After cleanup: 30 kept + 1 new = 31
       const activeSpans = ScreenLoadingManager.getAllActiveSpans();
-      expect(activeSpans.length).toBeLessThanOrEqual(50);
+      expect(activeSpans.length).toBe(31);
+
+      dateNowSpy.mockRestore();
     });
 
-    it('should cleanup oldest spans when exceeding capacity', () => {
-      // Get current state
-      const allSpans = ScreenLoadingManager.getAllActiveSpans();
-      const currentCount = allSpans.length;
+    it('should remove oldest spans during cleanup', () => {
+      let counter = 1000;
+      const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => counter++);
 
-      // Create a test span that should be removed
-      ScreenLoadingManager.createSpan('OldSpanToBeRemoved');
-
-      // Create enough new spans to exceed 50 and trigger cleanup
-      // We need to create 50+ spans total to trigger the maxConcurrentSpans limit
-      const spansToCreate = Math.max(0, 52 - currentCount);
-      for (let i = 0; i < spansToCreate; i++) {
-        ScreenLoadingManager.createSpan(`NewCleanupSpan${i}`);
+      // Create 50 spans
+      const firstSpan = ScreenLoadingManager.createSpan('OldestScreen');
+      for (let i = 1; i < 50; i++) {
+        ScreenLoadingManager.createSpan(`Screen${i}`);
       }
 
-      // After cleanup, active spans should be at most 50 (since it cleans down to 30)
-      const activeSpansAfter = ScreenLoadingManager.getAllActiveSpans();
-      expect(activeSpansAfter.length).toBeLessThanOrEqual(50);
+      // Trigger cleanup by creating one more
+      ScreenLoadingManager.createSpan('NewScreen');
 
-      // The old span should likely be cleaned up
-      // Note: Due to cleanup keeping 30 most recent, we verify cleanup happened
-      expect(activeSpansAfter.length).toBeLessThan(52);
+      // The oldest span should have been removed
+      expect(ScreenLoadingManager.getActiveSpan(firstSpan!.spanId)).toBeUndefined();
+
+      dateNowSpy.mockRestore();
     });
   });
 
