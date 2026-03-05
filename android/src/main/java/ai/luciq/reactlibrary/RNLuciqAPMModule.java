@@ -573,7 +573,8 @@ public class RNLuciqAPMModule extends EventEmitterModule {
             if (stages.hasKey("lyt_mus_st"))
                 stagesMap.put("lyt_mus_st", (long) stages.getDouble("lyt_mus_st"));
 
-            InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) duration_us, stagesMap);
+            //todo: Pending new native API
+//            InternalAPM._reporManualtScreenLoadingCP((long) startTimestamp, (long) duration_us, stagesMap);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -177,32 +177,4 @@ public class RNLuciqAPMModuleTest {
         APM.setScreenRenderingEnabled(true);
     }
 
-    @Test
-    public void testSyncManualScreenLoading() {
-        MockedStatic<InternalAPM> mockInternalAPM = mockStatic(InternalAPM.class);
-
-        String screenName = "HomeScreen";
-        double startTimestamp = 1000000;
-        double durationUs = 500000;
-        ReadableMap stages = mock(ReadableMap.class);
-
-        when(stages.hasKey("rnd_mus_st")).thenReturn(false);
-        when(stages.hasKey("rnd_mus")).thenReturn(false);
-        when(stages.hasKey("mnt_ms")).thenReturn(false);
-        when(stages.hasKey("lyt_mus")).thenReturn(false);
-        when(stages.hasKey("mnt_ms_st")).thenReturn(false);
-        when(stages.hasKey("cnst_mus_st")).thenReturn(false);
-        when(stages.hasKey("lyt_mus_st")).thenReturn(false);
-
-        apmModule.syncManualScreenLoading(screenName, startTimestamp, durationUs, stages);
-
-        mockInternalAPM.verify(() -> InternalAPM._reportScreenLoadingCP(
-                (long) startTimestamp,
-                (long) durationUs,
-                any(Map.class)
-        ));
-
-        mockInternalAPM.close();
-    }
-
 }
