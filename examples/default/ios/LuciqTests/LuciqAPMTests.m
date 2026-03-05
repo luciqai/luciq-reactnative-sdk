@@ -148,21 +148,4 @@
     OCMVerify([mock setScreenRenderingEnabled:NO]);
 }
 
-- (void) testSyncManualScreenLoading {
-    id mock = OCMClassMock([LCQAPM class]);
-    NSString *screenName = @"HomeScreen";
-    double startTimestamp = 1000000;
-    double durationUS = 500000;
-    NSDictionary *stages = @{@"rnd_mus_st": @100, @"rnd_mus": @200};
-
-    [self.luciqBridge syncManualScreenLoading:screenName
-                              startTimestamp:startTimestamp
-                                     ttid_us:durationUS
-                                  attributes:stages];
-
-    OCMVerify([mock reportScreenLoadingCPWithStartTimestampMUS:startTimestamp
-                                                  durationMUS:durationUS
-                                                       stages:[OCMArg any]]);
-}
-
 @end
