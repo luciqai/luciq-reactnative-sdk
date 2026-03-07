@@ -74,6 +74,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     initializeLuciq();
     APM.setScreenRenderingEnabled(true);
+    APM.excludeScreenLoadingRoutes(['APM']);
     NetworkLogger.setNetworkDataObfuscationHandler(async (networkData) => {
       networkData.url = `${networkData.url}/JS/Obfuscated`;
       return networkData;
@@ -91,7 +92,10 @@ export const App: React.FC = () => {
     <GestureHandlerRootView style={styles.root}>
       <NativeBaseProvider theme={nativeBaseTheme}>
         <QueryClientProvider client={queryClient}>
-          <NavigationContainer onStateChange={Luciq.onStateChange} theme={navigationTheme}>
+          <NavigationContainer
+            onStateChange={Luciq.onStateChange}
+            ref={navigationRef}
+            theme={navigationTheme}>
             <CallbackHandlersProvider>
               <RootTabNavigator />
             </CallbackHandlersProvider>

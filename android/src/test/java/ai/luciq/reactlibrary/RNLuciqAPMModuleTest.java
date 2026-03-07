@@ -2,7 +2,9 @@ package ai.luciq.reactlibrary;
 import android.os.Looper;
 
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReadableMap;
 import ai.luciq.apm.APM;
+import ai.luciq.apm.InternalAPM;
 
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
@@ -13,6 +15,7 @@ import org.mockito.MockedStatic;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -173,6 +176,5 @@ public class RNLuciqAPMModuleTest {
         verify(APM.class, times(1));
         APM.setScreenRenderingEnabled(true);
     }
-
 
 }
