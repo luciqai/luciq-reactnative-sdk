@@ -1,3 +1,4 @@
+// TODO: This class is currently unused but will be used later for route matching.
 /**
  * Matches route path definitions (potentially containing parameters and wildcards)
  * against actual navigation paths.

@@ -1062,7 +1062,6 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void reportScreenChange(final String screenName, @Nullable final String spanId) {
-        Log.d(TAG, "reportScreenChange called with screenName: " + screenName + ", spanId: " + spanId);
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {

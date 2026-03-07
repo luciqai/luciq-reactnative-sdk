@@ -950,12 +950,10 @@ export const onStateChange = (state?: NavigationStateV5) => {
 /**
  * Sets a listener for screen change
  *  @param navigationRef a refrence of a navigation container
- // *  @param onNavigationStateChangeCallback optional callback for state changes
  *
  */
 export const setNavigationListener = (
   navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
-  // onNavigationStateChangeCallback?: () => void,
 ) => {
   // Store the navigationRef for Screen Loading tracking
   _navigationRef = navigationRef;

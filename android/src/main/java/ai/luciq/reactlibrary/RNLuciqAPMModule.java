@@ -511,6 +511,19 @@ public class RNLuciqAPMModule extends EventEmitterModule {
      * @param duration_us    the time to initial display in microseconds
      * @param stages         custom attributes attached to the span
      */
+    private static final String[] STAGE_KEYS = {
+        "rnd_mus_st", "rnd_mus", "mnt_mus", "lyt_mus", "mnt_mus_st", "cnst_mus_st", "lyt_mus_st"
+    };
+
+    private Map<String, Long> buildStagesMap(ReadableMap stages) {
+        final Map<String, Long> stagesMap = new HashMap<>();
+        for (String key : STAGE_KEYS) {
+            if (stages.hasKey(key))
+                stagesMap.put(key, (long) stages.getDouble(key));
+        }
+        return stagesMap;
+    }
+
     @ReactMethod
     public void syncScreenLoading(double spanId, String screenName, double startTimestamp, double duration_us, ReadableMap stages) {
         Log.d("ScreenLoading", "syncScreenLoading - spanId: " + (long) spanId +
@@ -519,22 +532,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 ", duration_us: " + duration_us +
                 ", stages: " + stages.toString());
         try {
-            final Map<String, Long> stagesMap = new HashMap<>();
-            if (stages.hasKey("rnd_mus_st"))
-                stagesMap.put("rnd_mus_st", (long) stages.getDouble("rnd_mus_st"));
-            if (stages.hasKey("rnd_mus"))
-                stagesMap.put("rnd_mus", (long) stages.getDouble("rnd_mus"));
-            if (stages.hasKey("mnt_ms"))
-                stagesMap.put("mnt_ms", (long) stages.getDouble("mnt_ms"));
-            if (stages.hasKey("lyt_mus"))
-                stagesMap.put("lyt_mus", (long) stages.getDouble("lyt_mus"));
-            if (stages.hasKey("mnt_ms_st"))
-                stagesMap.put("mnt_ms_st", (long) stages.getDouble("mnt_ms_st"));
-            if (stages.hasKey("cnst_mus_st"))
-                stagesMap.put("cnst_mus_st", (long) stages.getDouble("cnst_mus_st"));
-            if (stages.hasKey("lyt_mus_st"))
-                stagesMap.put("lyt_mus_st", (long) stages.getDouble("lyt_mus_st"));
-
+            final Map<String, Long> stagesMap = buildStagesMap(stages);
             InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) duration_us, (long) spanId, stagesMap);
         } catch (Exception e) {
             e.printStackTrace();
@@ -557,21 +555,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 ", duration_us: " + duration_us +
                 ", stages: " + stages.toString());
         try {
-            final Map<String, Long> stagesMap = new HashMap<>();
-            if (stages.hasKey("rnd_mus_st"))
-                stagesMap.put("rnd_mus_st", (long) stages.getDouble("rnd_mus_st"));
-            if (stages.hasKey("rnd_mus"))
-                stagesMap.put("rnd_mus", (long) stages.getDouble("rnd_mus"));
-            if (stages.hasKey("mnt_ms"))
-                stagesMap.put("mnt_ms", (long) stages.getDouble("mnt_ms"));
-            if (stages.hasKey("lyt_mus"))
-                stagesMap.put("lyt_mus", (long) stages.getDouble("lyt_mus"));
-            if (stages.hasKey("mnt_ms_st"))
-                stagesMap.put("mnt_ms_st", (long) stages.getDouble("mnt_ms_st"));
-            if (stages.hasKey("cnst_mus_st"))
-                stagesMap.put("cnst_mus_st", (long) stages.getDouble("cnst_mus_st"));
-            if (stages.hasKey("lyt_mus_st"))
-                stagesMap.put("lyt_mus_st", (long) stages.getDouble("lyt_mus_st"));
+            final Map<String, Long> stagesMap = buildStagesMap(stages);
 
             //todo: Pending new native API
 //            InternalAPM._reporManualtScreenLoadingCP((long) startTimestamp, (long) duration_us, stagesMap);

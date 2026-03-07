@@ -442,7 +442,6 @@ RCT_EXPORT_METHOD(show) {
 }
 
 RCT_EXPORT_METHOD(reportScreenChange:(NSString *)screenName spanId:(NSString * _Nullable)spanId) {
-    NSLog(@"[Luciq] reportScreenChange called with screenName: %@, spanId: %@", screenName, spanId);
     SEL setPrivateApiSEL = NSSelectorFromString(@"logViewDidAppearEvent:");
     if ([[Luciq class] respondsToSelector:setPrivateApiSEL]) {
         NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[[Luciq class] methodSignatureForSelector:setPrivateApiSEL]];

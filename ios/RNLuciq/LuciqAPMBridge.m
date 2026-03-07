@@ -132,6 +132,8 @@ RCT_EXPORT_METHOD(isEndScreenLoadingEnabled:(RCTPromiseResolveBlock)resolve
     resolve(@(isEndScreenLoadingEnabled));
 }
 
+// uiTraceId is unused on iOS but required to keep the React Native Bridge call
+// signature consistent with Android, which uses it.
 RCT_EXPORT_METHOD(endScreenLoading:(double)timeStampMicro
                   uiTraceId:(double)uiTraceId){
     [LCQAPM endScreenLoadingCPWithEndTimestampMUS:timeStampMicro];
@@ -139,6 +141,16 @@ RCT_EXPORT_METHOD(endScreenLoading:(double)timeStampMicro
 
 RCT_EXPORT_METHOD(setScreenLoadingEnabled:(BOOL)isEnabled){
     LCQAPM.screenLoadingEnabled = isEnabled;
+}
+
+- (NSMutableDictionary<NSString *, NSNumber *> *)buildStagesMapFromAttributes:(NSDictionary *)stages {
+    NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [NSMutableDictionary dictionary];
+    NSArray<NSString *> *keys = @[@"rnd_mus_st", @"rnd_mus", @"mnt_mus", @"lyt_mus", @"mnt_mus_st", @"cnst_mus_st", @"lyt_mus_st"];
+    for (NSString *key in keys) {
+        if (stages[key])
+            stagesMap[key] = @([stages[key] longLongValue]);
+    }
+    return stagesMap;
 }
 
 // Syncs screen loading data to native layer for reporting
@@ -150,23 +162,7 @@ RCT_EXPORT_METHOD(syncScreenLoading:(double)spanId
     NSLog(@"[ScreenLoading] syncScreenLoading - spanId: %.0f, screenName: %@, startTimestamp: %f, ttid_us: %f, attributes: %@",
           spanId, screenName, startTimestamp, ttid_us, stages);
 
-    NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [NSMutableDictionary dictionary];
-
-    if (stages[@"rnd_mus_st"])
-        stagesMap[@"rnd_mus_st"] = @([stages[@"rnd_mus_st"] longLongValue]);
-    if (stages[@"rnd_mus"])
-        stagesMap[@"rnd_mus"] = @([stages[@"rnd_mus"] longLongValue]);
-    if (stages[@"mnt_ms"])
-        stagesMap[@"mnt_ms"] = @([stages[@"mnt_ms"] longLongValue]);
-    if (stages[@"lyt_mus"])
-        stagesMap[@"lyt_mus"] = @([stages[@"lyt_mus"] longLongValue]);
-    if (stages[@"mnt_ms_st"])
-        stagesMap[@"mnt_ms_st"] = @([stages[@"mnt_ms_st"] longLongValue]);
-    if (stages[@"cnst_mus_st"])
-        stagesMap[@"cnst_mus_st"] = @([stages[@"cnst_mus_st"] longLongValue]);
-    if (stages[@"lyt_mus_st"])
-        stagesMap[@"lyt_mus_st"] = @([stages[@"lyt_mus_st"] longLongValue]);
-
+    NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [self buildStagesMapFromAttributes:stages];
     [LCQAPM reportScreenLoadingCPWithStartTimestampMUS:startTimestamp durationMUS:ttid_us stages:stagesMap];
 }
 
@@ -178,23 +174,7 @@ RCT_EXPORT_METHOD(syncManualScreenLoading:(NSString *)screenName
     NSLog(@"[ScreenLoading] syncManualScreenLoading - screenName: %@, startTimestamp: %f, ttid_us: %f, attributes: %@",
           screenName, startTimestamp, ttid_us, stages);
 
-    NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [NSMutableDictionary dictionary];
-
-    if (stages[@"rnd_mus_st"])
-        stagesMap[@"rnd_mus_st"] = @([stages[@"rnd_mus_st"] longLongValue]);
-    if (stages[@"rnd_mus"])
-        stagesMap[@"rnd_mus"] = @([stages[@"rnd_mus"] longLongValue]);
-    if (stages[@"mnt_ms"])
-        stagesMap[@"mnt_ms"] = @([stages[@"mnt_ms"] longLongValue]);
-    if (stages[@"lyt_mus"])
-        stagesMap[@"lyt_mus"] = @([stages[@"lyt_mus"] longLongValue]);
-    if (stages[@"mnt_ms_st"])
-        stagesMap[@"mnt_ms_st"] = @([stages[@"mnt_ms_st"] longLongValue]);
-    if (stages[@"cnst_mus_st"])
-        stagesMap[@"cnst_mus_st"] = @([stages[@"cnst_mus_st"] longLongValue]);
-    if (stages[@"lyt_mus_st"])
-        stagesMap[@"lyt_mus_st"] = @([stages[@"lyt_mus_st"] longLongValue]);
-
+    NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [self buildStagesMapFromAttributes:stages];
     [LCQAPM reportScreenLoadingCPWithStartTimestampMUS:startTimestamp durationMUS:ttid_us stages:stagesMap];
 }
 
