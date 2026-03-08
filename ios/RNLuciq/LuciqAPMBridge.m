@@ -175,7 +175,7 @@ RCT_EXPORT_METHOD(syncManualScreenLoading:(NSString *)screenName
           screenName, startTimestamp, ttid_us, stages);
 
     NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [self buildStagesMapFromAttributes:stages];
-    [LCQAPM reportScreenLoadingCPWithStartTimestampMUS:startTimestamp durationMUS:ttid_us stages:stagesMap];
+    [LCQAPM reportScreenLoadingCPUITraceWithName:screenName screenLoadingStartMUS:startTimestamp screenLoadingDurationMUS:ttid_us stages:stagesMap];
 }
 
 @synthesize description;

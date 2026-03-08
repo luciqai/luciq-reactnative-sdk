@@ -21,6 +21,8 @@ typedef void (^LCQDisplayLinkObservationCallback)(NSTimeInterval currentTimestam
 
 + (void)startObservingDisplayLinkWithCallback:(LCQDisplayLinkObservationCallback _Nonnull)callback;
 + (void)stopObservingDisplayLink;
-//+ (void)endScreenLoadingCPWithEndTimestampMUS:(double)endTimestampMUS
-//                                       stages:(nullable NSDictionary<NSString *, NSNumber *> *)stages;
++ (void)reportScreenLoadingCPUITraceWithName:(NSString *_Nonnull)name
+                       screenLoadingStartMUS:(double)screenLoadingStartMUS
+                    screenLoadingDurationMUS:(double)screenLoadingDurationMUS
+                                      stages:(nullable NSDictionary<NSString *, NSNumber *> *)stages;
 @end

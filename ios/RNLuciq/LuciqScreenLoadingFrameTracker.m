@@ -1,12 +1,12 @@
 #import "LuciqScreenLoadingFrameTracker.h"
-#import <LuciqSDK/LCQAPM.h>
-#import "Util/LCQAPM+PrivateAPIs.h"
+#import <QuartzCore/CADisplayLink.h>
 
 @interface LuciqScreenLoadingFrameTracker ()
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSNumber *> *spanIdToTimestamp;
 @property (nonatomic, strong) NSMutableSet<NSString *> *activeSpanIds;
 @property (nonatomic, assign) NSInteger maxStorageCapacity;
 @property (nonatomic, assign) BOOL isTracking;
+@property (nonatomic, strong) CADisplayLink *displayLink;
 @end
 
 @implementation LuciqScreenLoadingFrameTracker
@@ -35,18 +35,25 @@
         return;
     }
 
-    __weak typeof(self) weakSelf = self;
-    [LCQAPM startObservingDisplayLinkWithCallback:^(NSTimeInterval currentTimestamp, NSTimeInterval targetTimestamp) {
-        [weakSelf frameRenderedWithTimestamp:currentTimestamp];
-    }];
+    self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(handleDisplayLink:)];
+    [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
     self.isTracking = YES;
+}
+
+- (void)handleDisplayLink:(CADisplayLink *)displayLink {
+    [self frameRenderedWithTimestamp:displayLink.timestamp];
 }
 
 - (void)frameRenderedWithTimestamp:(NSTimeInterval)timestamp {
     if (self.activeSpanIds.count > 0) {
-        // timestamp is already epoch-based (seconds since 1970) from LCQAPM SDK
-        // Convert from seconds to microseconds
-        NSTimeInterval epochTimestampMicroseconds = timestamp * 1000000;
+        // timestamp is monotonic (seconds since boot, from CADisplayLink / mach_absolute_time)
+        // Convert to epoch microseconds using the same approach as Android:
+        // figure out how long ago the frame was rendered, then subtract from current epoch
+        NSTimeInterval currentUptime = [[NSProcessInfo processInfo] systemUptime];
+        NSTimeInterval currentEpoch = [[NSDate date] timeIntervalSince1970];
+        NSTimeInterval timeSinceFrame = currentUptime - timestamp;
+        NSTimeInterval frameEpochSeconds = currentEpoch - timeSinceFrame;
+        NSTimeInterval epochTimestampMicroseconds = frameEpochSeconds * 1000000;
         NSNumber *timestampNumber = @(epochTimestampMicroseconds);
 
         for (NSString *spanId in self.activeSpanIds) {
@@ -78,7 +85,8 @@
 
 - (void)cleanup {
     if (self.isTracking) {
-        [LCQAPM stopObservingDisplayLink];
+        [self.displayLink invalidate];
+        self.displayLink = nil;
         self.isTracking = NO;
     }
     [self.spanIdToTimestamp removeAllObjects];

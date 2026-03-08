@@ -185,6 +185,7 @@ class ScreenLoadingManagerClass {
         // Native returns epoch microseconds; convert to monotonic for consistent internal math
         span.endTimestamp = fromEpochMicros(frameTimestamp);
         span.ttid = span.endTimestamp - span.startTimestamp;
+
         span.status = 'completed';
 
         // Log the measurement
