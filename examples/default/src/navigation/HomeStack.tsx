@@ -64,6 +64,10 @@ import { HttpScreen } from '../screens/apm/HttpScreen';
 import { WebViewsScreen } from '../screens/apm/webViews/WebViewsScreen';
 import { FullWebViewsScreen } from '../screens/apm/webViews/FullWebViewsScreen';
 import { PartialWebViewsScreen } from '../screens/apm/webViews/PartialWebViewsScreen';
+import { WebViewNavigationPocScreen } from '../screens/apm/webViews/WebViewNavigationPocScreen';
+import { WebViewJSBridgePocScreen } from '../screens/apm/webViews/WebViewJSBridgePocScreen';
+import { WebViewConfigPocScreen } from '../screens/apm/webViews/WebViewConfigPocScreen';
+import { WebViewHtmlSourcePocScreen } from '../screens/apm/webViews/WebViewHtmlSourcePocScreen';
 import ScreenRender from '../screens/apm/ScreenRender';
 
 import {
@@ -138,6 +142,10 @@ export type HomeStackParamList = {
   WebViews: undefined;
   FullWebViews: undefined;
   PartialWebViews: undefined;
+  WebViewNavigationPoc: undefined;
+  WebViewJSBridgePoc: undefined;
+  WebViewConfigPoc: undefined;
+  WebViewHtmlSourcePoc: undefined;
   NetworkState: NetworkStateScreenProp;
   UserStepsState: UserStepsStateScreenProp;
   ScreenRender: undefined;
@@ -318,6 +326,26 @@ export const HomeStackNavigator: React.FC = () => {
         name="PartialWebViews"
         component={PartialWebViewsScreen}
         options={{ title: 'PartialWebViews' }}
+      />
+      <HomeStack.Screen
+        name="WebViewNavigationPoc"
+        component={WebViewNavigationPocScreen}
+        options={{ title: 'Navigation & Callbacks' }}
+      />
+      <HomeStack.Screen
+        name="WebViewJSBridgePoc"
+        component={WebViewJSBridgePocScreen}
+        options={{ title: 'JS Bridge' }}
+      />
+      <HomeStack.Screen
+        name="WebViewConfigPoc"
+        component={WebViewConfigPocScreen}
+        options={{ title: 'Config & Properties' }}
+      />
+      <HomeStack.Screen
+        name="WebViewHtmlSourcePoc"
+        component={WebViewHtmlSourcePocScreen}
+        options={{ title: 'HTML Source & Headers' }}
       />
       <HomeStack.Screen
         name="CallbackScreen"
