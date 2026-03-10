@@ -40,6 +40,7 @@ function getPortFromUrl(url: string) {
  * @param isEnabled
  */
 export const setEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] NetworkLogger.setEnabled called', { isEnabled });
   if (isEnabled) {
     xhr.enableInterception();
     xhr.setOnDoneCallback(async (network) => {
@@ -115,14 +116,24 @@ export const setEnabled = (isEnabled: boolean) => {
  * @param isEnabled
  */
 export const setNativeInterceptionEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] NetworkLogger.setNativeInterceptionEnabled called', { isEnabled });
   _isNativeInterceptionEnabled = isEnabled;
 };
 
-export const getNetworkDataObfuscationHandler = () => _networkDataObfuscationHandler;
+export const getNetworkDataObfuscationHandler = () => {
+  console.log('[LCQ-RN] NetworkLogger.getNetworkDataObfuscationHandler called');
+  return _networkDataObfuscationHandler;
+};
 
-export const getRequestFilterExpression = () => _requestFilterExpression;
+export const getRequestFilterExpression = () => {
+  console.log('[LCQ-RN] NetworkLogger.getRequestFilterExpression called');
+  return _requestFilterExpression;
+};
 
-export const hasRequestFilterExpression = () => hasFilterExpression;
+export const hasRequestFilterExpression = () => {
+  console.log('[LCQ-RN] NetworkLogger.hasRequestFilterExpression called');
+  return hasFilterExpression;
+};
 
 /**
  * Obfuscates any response data.
@@ -131,6 +142,7 @@ export const hasRequestFilterExpression = () => hasFilterExpression;
 export const setNetworkDataObfuscationHandler = (
   handler?: NetworkDataObfuscationHandler | null | undefined,
 ) => {
+  console.log('[LCQ-RN] NetworkLogger.setNetworkDataObfuscationHandler called', { handler });
   _networkDataObfuscationHandler = handler;
   if (_isNativeInterceptionEnabled && Platform.OS === 'ios') {
     if (hasFilterExpression) {
@@ -146,6 +158,7 @@ export const setNetworkDataObfuscationHandler = (
  * @param expression
  */
 export const setRequestFilterExpression = (expression: string) => {
+  console.log('[LCQ-RN] NetworkLogger.setRequestFilterExpression called', { expression });
   _requestFilterExpression = expression;
   hasFilterExpression = true;
 
@@ -163,10 +176,12 @@ export const setRequestFilterExpression = (expression: string) => {
  * @param handler
  */
 export const setProgressHandlerForRequest = (handler: ProgressCallback) => {
+  console.log('[LCQ-RN] NetworkLogger.setProgressHandlerForRequest called', { handler });
   xhr.setOnProgressCallback(handler);
 };
 
 export const apolloLinkRequestHandler: RequestHandler = (operation, forward) => {
+  console.log('[LCQ-RN] NetworkLogger.apolloLinkRequestHandler called', { operation });
   try {
     operation.setContext((context: Record<string, any>) => {
       const newHeaders: Record<string, any> = context.headers ?? {};
@@ -185,6 +200,7 @@ export const apolloLinkRequestHandler: RequestHandler = (operation, forward) => 
  * @param isEnabled
  */
 export const setNetworkLogBodyEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] NetworkLogger.setNetworkLogBodyEnabled called', { isEnabled });
   NativeLuciq.setNetworkLogBodyEnabled(isEnabled);
 };
 
@@ -193,6 +209,7 @@ export const setNetworkLogBodyEnabled = (isEnabled: boolean) => {
  * Exported for internal/testing purposes only.
  */
 export const resetNetworkListener = () => {
+  console.log('[LCQ-RN] NetworkLogger.resetNetworkListener called');
   if (process.env.NODE_ENV === 'test') {
     _networkListener = null;
     NativeNetworkLogger.resetNetworkLogsListener();
@@ -211,6 +228,7 @@ export const registerNetworkLogsListener = (
   type: NetworkListenerType,
   handler?: (networkSnapshot: NetworkData) => void,
 ) => {
+  console.log('[LCQ-RN] NetworkLogger.registerNetworkLogsListener called', { type, handler });
   if (Platform.OS === 'ios') {
     // remove old listeners
     if (NetworkLoggerEmitter.listenerCount(NativeNetworkLoggerEvent.NETWORK_LOGGER_HANDLER) > 0) {

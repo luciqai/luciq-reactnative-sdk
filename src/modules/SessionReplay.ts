@@ -14,6 +14,7 @@ import type { CapturingMode, ScreenshotQuality } from '../utils/Enums';
  * ```
  */
 export const setEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] SessionReplay.setEnabled called', { isEnabled });
   NativeSessionReplay.setEnabled(isEnabled);
 };
 
@@ -30,6 +31,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * ```
  */
 export const setNetworkLogsEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] SessionReplay.setNetworkLogsEnabled called', { isEnabled });
   NativeSessionReplay.setNetworkLogsEnabled(isEnabled);
 };
 
@@ -46,6 +48,7 @@ export const setNetworkLogsEnabled = (isEnabled: boolean) => {
  * ```
  */
 export const setLuciqLogsEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] SessionReplay.setLuciqLogsEnabled called', { isEnabled });
   NativeSessionReplay.setLuciqLogsEnabled(isEnabled);
 };
 
@@ -62,6 +65,7 @@ export const setLuciqLogsEnabled = (isEnabled: boolean) => {
  * ```
  */
 export const setUserStepsEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] SessionReplay.setUserStepsEnabled called', { isEnabled });
   NativeSessionReplay.setUserStepsEnabled(isEnabled);
 };
 
@@ -74,6 +78,7 @@ export const setUserStepsEnabled = (isEnabled: boolean) => {
  * ```
  */
 export const getSessionReplayLink = async (): Promise<string> => {
+  console.log('[LCQ-RN] SessionReplay.getSessionReplayLink called');
   return NativeSessionReplay.getSessionReplayLink();
 };
 
@@ -95,6 +100,7 @@ export const getSessionReplayLink = async (): Promise<string> => {
 export const setSyncCallback = async (
   handler: (payload: SessionMetadata) => boolean,
 ): Promise<void> => {
+  console.log('[LCQ-RN] SessionReplay.setSyncCallback called');
   emitter.addListener(NativeEvents.SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION, (payload) => {
     const result = handler(payload);
     const shouldSync = Boolean(result);

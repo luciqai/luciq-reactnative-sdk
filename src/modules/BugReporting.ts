@@ -18,6 +18,7 @@ import type {
  * @param isEnabled
  */
 export const setEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] BugReporting.setEnabled called', { isEnabled });
   NativeBugReporting.setEnabled(isEnabled);
 };
 
@@ -27,6 +28,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * @param events Array of events that invokes the feedback form.
  */
 export const setInvocationEvents = (events: InvocationEvent[]) => {
+  console.log('[LCQ-RN] BugReporting.setInvocationEvents called', { events });
   NativeBugReporting.setInvocationEvents(events);
 };
 
@@ -36,6 +38,7 @@ export const setInvocationEvents = (events: InvocationEvent[]) => {
  * @param options Array of invocation options
  */
 export const setOptions = (options: InvocationOption[]) => {
+  console.log('[LCQ-RN] BugReporting.setOptions called', { options });
   NativeBugReporting.setOptions(options);
 };
 
@@ -46,6 +49,7 @@ export const setOptions = (options: InvocationOption[]) => {
  * @param handler A callback that gets executed before invoking the SDK
  */
 export const onInvokeHandler = (handler: () => void) => {
+  console.log('[LCQ-RN] BugReporting.onInvokeHandler called');
   emitter.addListener(NativeEvents.ON_INVOKE_HANDLER, handler);
   NativeBugReporting.setOnInvokeHandler(handler);
 };
@@ -59,6 +63,7 @@ export const onInvokeHandler = (handler: () => void) => {
 export const onSDKDismissedHandler = (
   handler: (dismissType: DismissType, reportType: ReportType) => void,
 ) => {
+  console.log('[LCQ-RN] BugReporting.onSDKDismissedHandler called');
   emitter.addListener(NativeEvents.ON_DISMISS_HANDLER, (payload) => {
     handler(payload.dismissType, payload.reportType);
   });
@@ -71,6 +76,7 @@ export const onSDKDismissedHandler = (
  * @param threshold Threshold for iPhone.
  */
 export const setShakingThresholdForiPhone = (threshold: number) => {
+  console.log('[LCQ-RN] BugReporting.setShakingThresholdForiPhone called', { threshold });
   if (Platform.OS === 'ios') {
     NativeBugReporting.setShakingThresholdForiPhone(threshold);
   }
@@ -82,6 +88,7 @@ export const setShakingThresholdForiPhone = (threshold: number) => {
  * @param threshold Threshold for iPad.
  */
 export const setShakingThresholdForiPad = (threshold: number) => {
+  console.log('[LCQ-RN] BugReporting.setShakingThresholdForiPad called', { threshold });
   if (Platform.OS === 'ios') {
     NativeBugReporting.setShakingThresholdForiPad(threshold);
   }
@@ -95,6 +102,7 @@ export const setShakingThresholdForiPad = (threshold: number) => {
  * @param threshold Threshold for android devices.
  */
 export const setShakingThresholdForAndroid = (threshold: number) => {
+  console.log('[LCQ-RN] BugReporting.setShakingThresholdForAndroid called', { threshold });
   if (Platform.OS === 'android') {
     NativeBugReporting.setShakingThresholdForAndroid(threshold);
   }
@@ -107,6 +115,7 @@ export const setShakingThresholdForAndroid = (threshold: number) => {
  * enable it with required or with optional fields.
  */
 export const setExtendedBugReportMode = (mode: ExtendedBugReportMode) => {
+  console.log('[LCQ-RN] BugReporting.setExtendedBugReportMode called', { mode });
   NativeBugReporting.setExtendedBugReportMode(mode);
 };
 
@@ -115,6 +124,7 @@ export const setExtendedBugReportMode = (mode: ExtendedBugReportMode) => {
  * @param types Array of reportTypes
  */
 export const setReportTypes = (types: ReportType[]) => {
+  console.log('[LCQ-RN] BugReporting.setReportTypes called', { types });
   NativeBugReporting.setReportTypes(types);
 };
 
@@ -124,6 +134,7 @@ export const setReportTypes = (types: ReportType[]) => {
  * @param options
  */
 export const show = (type: ReportType, options: InvocationOption[]) => {
+  console.log('[LCQ-RN] BugReporting.show called', { type, options });
   NativeBugReporting.show(type, options ?? []);
 };
 
@@ -132,6 +143,7 @@ export const show = (type: ReportType, options: InvocationOption[]) => {
  * @param isEnabled enable/disable screen recording on crash feature
  */
 export const setAutoScreenRecordingEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] BugReporting.setAutoScreenRecordingEnabled called', { isEnabled });
   NativeBugReporting.setAutoScreenRecordingEnabled(isEnabled);
 };
 
@@ -142,6 +154,7 @@ export const setAutoScreenRecordingEnabled = (isEnabled: boolean) => {
  * The maximum duration is 30 seconds
  */
 export const setAutoScreenRecordingDurationIOS = (maxDuration: number) => {
+  console.log('[LCQ-RN] BugReporting.setAutoScreenRecordingDurationIOS called', { maxDuration });
   if (Platform.OS !== 'ios') {
     return;
   }
@@ -159,6 +172,9 @@ export const setAutoScreenRecordingDurationIOS = (maxDuration: number) => {
 export const setVideoRecordingFloatingButtonPosition = (
   buttonPosition: RecordingButtonPosition,
 ) => {
+  console.log('[LCQ-RN] BugReporting.setVideoRecordingFloatingButtonPosition called', {
+    buttonPosition,
+  });
   NativeBugReporting.setVideoRecordingFloatingButtonPosition(buttonPosition);
 };
 
@@ -167,6 +183,7 @@ export const setVideoRecordingFloatingButtonPosition = (
  * @param isEnabled A boolean to set whether view hierarchy are enabled or disabled.
  */
 export const setViewHierarchyEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] BugReporting.setViewHierarchyEnabled called', { isEnabled });
   NativeBugReporting.setViewHierarchyEnabled(isEnabled);
 };
 
@@ -185,6 +202,13 @@ export const addUserConsent = (
   checked: boolean,
   actionType?: userConsentActionType,
 ) => {
+  console.log('[LCQ-RN] BugReporting.addUserConsent called', {
+    key,
+    description,
+    mandatory,
+    checked,
+    actionType,
+  });
   NativeBugReporting.addUserConsent(key, description, mandatory, checked, actionType);
 };
 /**
@@ -192,6 +216,7 @@ export const addUserConsent = (
  * @param handler - A callback that gets executed when a prompt option is selected.
  */
 export const setDidSelectPromptOptionHandler = (handler: (promptOption: string) => void) => {
+  console.log('[LCQ-RN] BugReporting.setDidSelectPromptOptionHandler called');
   if (Platform.OS === 'android') {
     return;
   }
@@ -208,6 +233,7 @@ export const setDidSelectPromptOptionHandler = (handler: (promptOption: string) 
  * @param offset The offset of the floating button from the top of the screen. Default is 50.
  */
 export const setFloatingButtonEdge = (edge: FloatingButtonPosition, offset: number) => {
+  console.log('[LCQ-RN] BugReporting.setFloatingButtonEdge called', { edge, offset });
   NativeBugReporting.setFloatingButtonEdge(edge, offset);
 };
 
@@ -225,6 +251,12 @@ export const setEnabledAttachmentTypes = (
   galleryImage: boolean,
   screenRecording: boolean,
 ) => {
+  console.log('[LCQ-RN] BugReporting.setEnabledAttachmentTypes called', {
+    screenshot,
+    extraScreenshot,
+    galleryImage,
+    screenRecording,
+  });
   NativeBugReporting.setEnabledAttachmentTypes(
     screenshot,
     extraScreenshot,
@@ -238,6 +270,7 @@ export const setEnabledAttachmentTypes = (
  * @param text String text.
  */
 export const setDisclaimerText = (text: string) => {
+  console.log('[LCQ-RN] BugReporting.setDisclaimerText called', { text });
   NativeBugReporting.setDisclaimerText(text);
 };
 
@@ -248,6 +281,10 @@ export const setDisclaimerText = (text: string) => {
  * @platform iOS
  */
 export const setCommentMinimumCharacterCount = (limit: number, reportTypes?: ReportType[]) => {
+  console.log('[LCQ-RN] BugReporting.setCommentMinimumCharacterCount called', {
+    limit,
+    reportTypes,
+  });
   if (Platform.OS === 'ios') {
     NativeBugReporting.setCommentMinimumCharacterCount(limit, reportTypes ?? []);
   }
@@ -258,6 +295,7 @@ export const setCommentMinimumCharacterCount = (limit: number, reportTypes?: Rep
  * @param config configuration of proActive  bug report.
  */
 export const setProactiveReportingConfigurations = (config: ProactiveReportingConfigOptions) => {
+  console.log('[LCQ-RN] BugReporting.setProactiveReportingConfigurations called', { config });
   NativeBugReporting.setProactiveReportingConfigurations(
     config.enabled,
     config.gapBetweenModals,

@@ -13,6 +13,7 @@ import { Logger } from '../utils/logger';
  * @param isEnabled
  */
 export const setEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] CrashReporting.setEnabled called', { isEnabled });
   NativeCrashReporting.setEnabled(isEnabled);
 };
 
@@ -22,6 +23,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * @param nonFatalOptions extra config for the non-fatal error sent with Error Object
  */
 export const reportError = (error: ExtendedError, nonFatalOptions: NonFatalOptions = {}) => {
+  console.log('[LCQ-RN] CrashReporting.reportError called', { error, nonFatalOptions });
   if (error instanceof Error) {
     let level = NonFatalErrorLevel.error;
     if (nonFatalOptions.level != null) {
@@ -48,6 +50,7 @@ export const reportError = (error: ExtendedError, nonFatalOptions: NonFatalOptio
  * @param isEnabled
  */
 export const setNDKCrashesEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] CrashReporting.setNDKCrashesEnabled called', { isEnabled });
   if (Platform.OS === 'android') {
     NativeCrashReporting.setNDKCrashesEnabled(isEnabled);
   }

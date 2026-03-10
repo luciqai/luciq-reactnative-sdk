@@ -15,6 +15,7 @@ export type { Survey };
  * @param isEnabled A boolean to set whether Luciq Surveys is enabled or disabled.
  */
 export const setEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] Surveys.setEnabled called', { isEnabled });
   NativeSurveys.setEnabled(isEnabled);
 };
 
@@ -25,6 +26,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * in the current session.
  */
 export const showSurveyIfAvailable = () => {
+  console.log('[LCQ-RN] Surveys.showSurveyIfAvailable called');
   NativeSurveys.showSurveysIfAvailable();
 };
 
@@ -32,6 +34,7 @@ export const showSurveyIfAvailable = () => {
  * Returns an array containing the available surveys.
  */
 export const getAvailableSurveys = async (): Promise<Survey[] | null> => {
+  console.log('[LCQ-RN] Surveys.getAvailableSurveys called');
   const surveys = await NativeSurveys.getAvailableSurveys();
 
   return surveys;
@@ -43,6 +46,7 @@ export const getAvailableSurveys = async (): Promise<Survey[] | null> => {
  *                                surveys auto showing are enabled or not.
  */
 export const setAutoShowingEnabled = (autoShowingSurveysEnabled: boolean) => {
+  console.log('[LCQ-RN] Surveys.setAutoShowingEnabled called', { autoShowingSurveysEnabled });
   NativeSurveys.setAutoShowingEnabled(autoShowingSurveysEnabled);
 };
 
@@ -54,6 +58,7 @@ export const setAutoShowingEnabled = (autoShowingSurveysEnabled: boolean) => {
  * presenting the survey's UI.
  */
 export const setOnShowHandler = (onShowHandler: () => void) => {
+  console.log('[LCQ-RN] Surveys.setOnShowHandler called');
   emitter.addListener(NativeEvents.WILL_SHOW_SURVEY_HANDLER, onShowHandler);
   NativeSurveys.setOnShowHandler(onShowHandler);
 };
@@ -66,6 +71,7 @@ export const setOnShowHandler = (onShowHandler: () => void) => {
  * the survey's UI is dismissed.
  */
 export const setOnDismissHandler = (onDismissHandler: () => void) => {
+  console.log('[LCQ-RN] Surveys.setOnDismissHandler called');
   emitter.addListener(NativeEvents.DID_DISMISS_SURVEY_HANDLER, onDismissHandler);
   NativeSurveys.setOnDismissHandler(onDismissHandler);
 };
@@ -78,6 +84,7 @@ export const setOnDismissHandler = (onDismissHandler: () => void) => {
  *
  */
 export const showSurvey = (surveyToken: string) => {
+  console.log('[LCQ-RN] Surveys.showSurvey called', { surveyToken });
   NativeSurveys.showSurvey(surveyToken);
 };
 
@@ -89,6 +96,7 @@ export const showSurvey = (surveyToken: string) => {
  *
  */
 export const hasRespondedToSurvey = async (surveyToken: string): Promise<boolean | null> => {
+  console.log('[LCQ-RN] Surveys.hasRespondedToSurvey called', { surveyToken });
   const hasResponded = await NativeSurveys.hasRespondedToSurvey(surveyToken);
 
   return hasResponded;
@@ -101,6 +109,7 @@ export const hasRespondedToSurvey = async (surveyToken: string): Promise<boolean
  *                                welcome screen should show.
  */
 export const setShouldShowWelcomeScreen = (shouldShowWelcomeScreen: boolean) => {
+  console.log('[LCQ-RN] Surveys.setShouldShowWelcomeScreen called', { shouldShowWelcomeScreen });
   NativeSurveys.setShouldShowWelcomeScreen(shouldShowWelcomeScreen);
 };
 
@@ -112,6 +121,7 @@ export const setShouldShowWelcomeScreen = (shouldShowWelcomeScreen: boolean) => 
  */
 
 export const setAppStoreURL = (appStoreURL: string) => {
+  console.log('[LCQ-RN] Surveys.setAppStoreURL called', { appStoreURL });
   if (Platform.OS === 'ios') {
     NativeSurveys.setAppStoreURL(appStoreURL);
   }

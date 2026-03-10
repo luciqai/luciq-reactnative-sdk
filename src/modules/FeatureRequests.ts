@@ -7,6 +7,7 @@ import type { ActionType } from '../utils/Enums';
  * @param isEnabled
  */
 export const setEnabled = (isEnabled: boolean) => {
+  console.log('[LCQ-RN] FeatureRequests.setEnabled called', { isEnabled });
   NativeFeatureRequests.setEnabled(isEnabled);
 };
 
@@ -19,6 +20,10 @@ export const setEnabled = (isEnabled: boolean) => {
  * @param types An enum that indicates which action types will have the isEmailFieldRequired
  */
 export const setEmailFieldRequired = (isEmailFieldRequired: boolean, type: ActionType) => {
+  console.log('[LCQ-RN] FeatureRequests.setEmailFieldRequired called', {
+    isEmailFieldRequired,
+    type,
+  });
   NativeFeatureRequests.setEmailFieldRequiredForFeatureRequests(isEmailFieldRequired, [
     type,
   ] as ActionType[]);
@@ -28,5 +33,6 @@ export const setEmailFieldRequired = (isEmailFieldRequired: boolean, type: Actio
  * Shows the UI for feature requests list
  */
 export const show = () => {
+  console.log('[LCQ-RN] FeatureRequests.show called');
   NativeFeatureRequests.show();
 };
