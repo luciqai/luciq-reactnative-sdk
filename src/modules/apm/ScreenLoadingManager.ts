@@ -213,8 +213,8 @@ class ScreenLoadingManagerClass {
     // Convert Map to plain object for JSON serialization (JSON.stringify cannot serialize Maps)
     const attributesObject = Object.fromEntries(span.attributes);
 
-    const startEpochUs = toEpochMicros(span.startTimestamp);
-    const endEpochUs = span.endTimestamp ? toEpochMicros(span.endTimestamp) : undefined;
+    const startEpochUs = Math.round(toEpochMicros(span.startTimestamp));
+    const endEpochUs = span.endTimestamp ? Math.round(toEpochMicros(span.endTimestamp)) : undefined;
 
     const logData = {
       type: 'screen_loading',
@@ -222,8 +222,8 @@ class ScreenLoadingManagerClass {
       screen_name: span.screenName,
       start_timestamp_us: startEpochUs,
       end_timestamp_us: endEpochUs,
-      ttid_us: span.ttid,
-      ttid_ms: span.ttid ? span.ttid / 1000 : undefined,
+      ttid_us: span.ttid ? Math.round(span.ttid) : undefined,
+      ttid_ms: span.ttid ? Math.round(span.ttid) / 1000 : undefined,
       is_manual: span.isManual,
       attributes: attributesObject,
     };
@@ -235,7 +235,7 @@ class ScreenLoadingManagerClass {
       NativeAPM.syncManualScreenLoading(
         span.screenName,
         startEpochUs,
-        span.ttid!,
+        Math.round(span.ttid!),
         attributesObject,
       );
     } else {
@@ -243,7 +243,7 @@ class ScreenLoadingManagerClass {
         Number(span.spanId),
         span.screenName,
         startEpochUs,
-        span.ttid!,
+        Math.round(span.ttid!),
         attributesObject,
       );
     }
@@ -262,7 +262,7 @@ class ScreenLoadingManagerClass {
       return;
     }
     try {
-      const timeStampMicro = toEpochMicros(nowMicros());
+      const timeStampMicro = Math.round(toEpochMicros(nowMicros()));
       const uiTraceId = Number(this.activeSpanId);
       NativeAPM.endScreenLoading(timeStampMicro, uiTraceId);
       Logger.log(

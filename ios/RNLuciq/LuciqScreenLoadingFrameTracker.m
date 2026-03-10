@@ -1,9 +1,11 @@
 #import "LuciqScreenLoadingFrameTracker.h"
 #import <QuartzCore/CADisplayLink.h>
+// #import <QuartzCore/QuartzCore.h>
 
 @interface LuciqScreenLoadingFrameTracker ()
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSNumber *> *spanIdToTimestamp;
 @property (nonatomic, strong) NSMutableSet<NSString *> *activeSpanIds;
+@property (nonatomic, strong) NSMutableDictionary<NSString *, NSNumber *> *spanIdToTrackingStart;
 @property (nonatomic, assign) NSInteger maxStorageCapacity;
 @property (nonatomic, assign) BOOL isTracking;
 @property (nonatomic, strong) CADisplayLink *displayLink;
@@ -24,6 +26,7 @@
     if (self = [super init]) {
         self.spanIdToTimestamp = [NSMutableDictionary dictionary];
         self.activeSpanIds = [NSMutableSet set];
+        self.spanIdToTrackingStart = [NSMutableDictionary dictionary];
         self.maxStorageCapacity = 50;
         self.isTracking = NO;
     }
@@ -56,11 +59,19 @@
         NSTimeInterval epochTimestampMicroseconds = frameEpochSeconds * 1000000;
         NSNumber *timestampNumber = @(epochTimestampMicroseconds);
 
+        NSMutableSet<NSString *> *resolvedSpanIds = [NSMutableSet set];
         for (NSString *spanId in self.activeSpanIds) {
+            NSNumber *trackingStart = self.spanIdToTrackingStart[spanId];
+            if (trackingStart && timestamp < trackingStart.doubleValue) {
+                NSLog(@"[ScreenLoading] Skipping frame for span %@ (VSync %.6fs < tracking start %.6fs)", spanId, timestamp, trackingStart.doubleValue);
+                continue;
+            }
             self.spanIdToTimestamp[spanId] = timestampNumber;
+            [resolvedSpanIds addObject:spanId];
+            [self.spanIdToTrackingStart removeObjectForKey:spanId];
             NSLog(@"[ScreenLoading] Frame rendered for span %@ at %.0fμs", spanId, epochTimestampMicroseconds);
         }
-        [self.activeSpanIds removeAllObjects];
+        [self.activeSpanIds minusSet:resolvedSpanIds];
 
         // Cleanup if exceeding capacity
         if (self.spanIdToTimestamp.count > self.maxStorageCapacity) {
@@ -71,6 +82,7 @@
 
 - (void)startTrackingForSpanId:(NSString *)spanId {
     [self.activeSpanIds addObject:spanId];
+    self.spanIdToTrackingStart[spanId] = @([[NSProcessInfo processInfo] systemUptime]);
     NSLog(@"[ScreenLoading] Started tracking for span %@", spanId);
 }
 
@@ -107,3 +119,4 @@
 }
 
 @end
+
