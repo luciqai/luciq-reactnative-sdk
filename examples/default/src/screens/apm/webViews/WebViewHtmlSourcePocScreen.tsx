@@ -228,7 +228,12 @@ const MULTIMEDIA_HTML = `
 
 const CUSTOM_HEADERS_URL = 'https://httpbin.org/headers';
 
-type SourceMode = 'simple_html' | 'form_html' | 'multimedia_html' | 'custom_headers' | 'custom_html';
+type SourceMode =
+  | 'simple_html'
+  | 'form_html'
+  | 'multimedia_html'
+  | 'custom_headers'
+  | 'custom_html';
 
 export const WebViewHtmlSourcePocScreen: React.FC = () => {
   const webViewRef = useRef<WebView>(null);
@@ -283,8 +288,16 @@ export const WebViewHtmlSourcePocScreen: React.FC = () => {
   const sourceButtons: { mode: SourceMode; label: string; description: string }[] = [
     { mode: 'simple_html', label: 'Simple HTML', description: 'Basic HTML string source' },
     { mode: 'form_html', label: 'Form Test', description: 'All HTML form input types' },
-    { mode: 'multimedia_html', label: 'Multimedia', description: 'Canvas, SVG, CSS animations, images' },
-    { mode: 'custom_headers', label: 'Custom Headers', description: 'URI with custom HTTP headers' },
+    {
+      mode: 'multimedia_html',
+      label: 'Multimedia',
+      description: 'Canvas, SVG, CSS animations, images',
+    },
+    {
+      mode: 'custom_headers',
+      label: 'Custom Headers',
+      description: 'URI with custom HTTP headers',
+    },
     { mode: 'custom_html', label: 'Custom HTML', description: 'Enter your own HTML' },
   ];
 

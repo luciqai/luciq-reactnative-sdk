@@ -68,6 +68,7 @@ import { WebViewNavigationPocScreen } from '../screens/apm/webViews/WebViewNavig
 import { WebViewJSBridgePocScreen } from '../screens/apm/webViews/WebViewJSBridgePocScreen';
 import { WebViewConfigPocScreen } from '../screens/apm/webViews/WebViewConfigPocScreen';
 import { WebViewHtmlSourcePocScreen } from '../screens/apm/webViews/WebViewHtmlSourcePocScreen';
+import { WebViewDiagnosticPocScreen } from '../screens/apm/webViews/WebViewDiagnosticPocScreen';
 import ScreenRender from '../screens/apm/ScreenRender';
 
 import {
@@ -146,6 +147,7 @@ export type HomeStackParamList = {
   WebViewJSBridgePoc: undefined;
   WebViewConfigPoc: undefined;
   WebViewHtmlSourcePoc: undefined;
+  WebViewDiagnosticPoc: undefined;
   NetworkState: NetworkStateScreenProp;
   UserStepsState: UserStepsStateScreenProp;
   ScreenRender: undefined;
@@ -346,6 +348,11 @@ export const HomeStackNavigator: React.FC = () => {
         name="WebViewHtmlSourcePoc"
         component={WebViewHtmlSourcePocScreen}
         options={{ title: 'HTML Source & Headers' }}
+      />
+      <HomeStack.Screen
+        name="WebViewDiagnosticPoc"
+        component={WebViewDiagnosticPocScreen}
+        options={{ title: 'Diagnostic Tests' }}
       />
       <HomeStack.Screen
         name="CallbackScreen"

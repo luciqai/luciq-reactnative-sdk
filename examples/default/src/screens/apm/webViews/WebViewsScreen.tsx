@@ -31,6 +31,11 @@ export const WebViewsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
         subtitle="HTML string source, forms, canvas, SVG, custom headers, custom HTML editor"
         onPress={() => navigation.navigate('WebViewHtmlSourcePoc')}
       />
+      <ListTile
+        title="Diagnostic Tests"
+        subtitle="Automated tests: bridge, events, JS injection, DOM, storage, network, navigation"
+        onPress={() => navigation.navigate('WebViewDiagnosticPoc')}
+      />
     </Screen>
   );
 };

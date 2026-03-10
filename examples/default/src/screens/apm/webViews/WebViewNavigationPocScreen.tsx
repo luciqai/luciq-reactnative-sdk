@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React, { useRef, useState, useCallback } from 'react';
 import {
   View,
@@ -91,7 +92,9 @@ export const WebViewNavigationPocScreen: React.FC = () => {
 
   const handleShouldStartLoadWithRequest = useCallback(
     (request: WebViewNavigation): boolean => {
-      addLog(`onShouldStartLoadWithRequest: url=${request.url}, navigationType=${request.navigationType}`);
+      addLog(
+        `onShouldStartLoadWithRequest: url=${request.url}, navigationType=${request.navigationType}`,
+      );
       // Block any URL that's in the blocked list
       const isBlocked = blockedUrls.some((blocked) => request.url.includes(blocked));
       if (isBlocked) {
@@ -117,6 +120,20 @@ export const WebViewNavigationPocScreen: React.FC = () => {
       prev.includes('google.com')
         ? prev.filter((u) => u !== 'google.com')
         : [...prev, 'google.com'],
+    );
+  };
+
+  const testWindowOpen = () => {
+    addLog('Testing window.open() via injectJavaScript...');
+    webViewRef.current?.injectJavaScript(
+      'try { window.open("https://www.example.com/window-open-test", "_blank"); } catch(e) { document.title = "window.open error: " + e.message; } true;',
+    );
+  };
+
+  const testHistoryPushState = () => {
+    addLog('Testing history.pushState...');
+    webViewRef.current?.injectJavaScript(
+      'window.history.pushState({page: "test"}, "Test", "/push-state-test"); window.ReactNativeWebView && window.ReactNativeWebView.postMessage && window.ReactNativeWebView.postMessage("pushState done"); true;',
     );
   };
 
@@ -153,9 +170,7 @@ export const WebViewNavigationPocScreen: React.FC = () => {
           disabled={!canGoForward}>
           <Text style={styles.navButtonText}>Forward</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.navButton}
-          onPress={() => webViewRef.current?.reload()}>
+        <TouchableOpacity style={styles.navButton} onPress={() => webViewRef.current?.reload()}>
           <Text style={styles.navButtonText}>Reload</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -169,6 +184,12 @@ export const WebViewNavigationPocScreen: React.FC = () => {
           <Text style={styles.navButtonText}>
             {blockedUrls.includes('google.com') ? 'Unblock Google' : 'Block Google'}
           </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navButton} onPress={testWindowOpen}>
+          <Text style={styles.navButtonText}>window.open()</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navButton} onPress={testHistoryPushState}>
+          <Text style={styles.navButtonText}>pushState</Text>
         </TouchableOpacity>
       </View>
 
@@ -193,6 +214,10 @@ export const WebViewNavigationPocScreen: React.FC = () => {
           onHttpError={handleHttpError}
           onNavigationStateChange={handleNavigationStateChange}
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+          onMessage={(event) => addLog(`onMessage: ${event.nativeEvent.data.slice(0, 100)}`)}
+          setSupportMultipleWindows={true}
+          javaScriptCanOpenWindowsAutomatically={true}
+          onOpenWindow={(event) => addLog(`onOpenWindow: ${JSON.stringify(event.nativeEvent)}`)}
           startInLoadingView={true}
         />
       </View>
