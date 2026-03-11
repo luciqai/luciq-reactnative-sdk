@@ -10,7 +10,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { LuciqCaptureScreenLoading } from '@luciq/react-native';
+import { APM, LuciqCaptureScreenLoading } from '@luciq/react-native';
 import { Screen } from '../../components/Screen';
 import { ScreenLoadingManager } from '../../../../../src/modules/apm/ScreenLoadingManager';
 
@@ -140,6 +140,8 @@ const BasicTestsSection: React.FC = () => {
   const [onLayoutCalled, setOnLayoutCalled] = useState(false);
   const [showPropsTest, setShowPropsTest] = useState(false);
 
+  const [autoEndCalled, setAutoEndCalled] = useState(false);
+
   const resetTests = () => {
     setSimpleTestTtid(null);
     setSimpleTestStatus('pending');
@@ -152,6 +154,21 @@ const BasicTestsSection: React.FC = () => {
     setOnLayoutCalled(false);
     setShowPropsTest(false);
   };
+
+  // Automatic: simulate async data loading, then call endScreenLoading
+  useEffect(() => {
+    if (autoEndCalled) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      APM.endScreenLoading();
+      setAutoEndCalled(true);
+      console.log(
+        '[EndScreenLoading] Auto: endScreenLoading() called after screen loading component loaded',
+      );
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [autoEndCalled]);
 
   return (
     <ScrollView style={styles.sectionContainer}>
@@ -273,6 +290,9 @@ const BasicTestsSection: React.FC = () => {
           <Text style={styles.componentSubtext}>Custom border style applied</Text>
         </LuciqCaptureScreenLoading>
       )}
+
+      {/* Test 4: End Screen Loading */}
+      <View style={styles.testSpacer} />
 
       <View style={styles.testSpacer} />
       <ActionButton title="Reset All Tests" onPress={resetTests} variant="secondary" />
@@ -885,6 +905,291 @@ const EdgeCasesSection: React.FC = () => {
   );
 };
 
+// 5. End Screen Loading Tests Section
+const EndScreenLoadingSection: React.FC = () => {
+  const [endLoadingFeatureEnabled, setEndLoadingFeatureEnabled] = useState(false);
+
+  // Automatic approach state
+  const [autoTtid, setAutoTtid] = useState<number | null>(null);
+  const [autoStatus, setAutoStatus] = useState<'pending' | 'passed' | 'failed' | 'running'>(
+    'pending',
+  );
+  const [showAutoTest, setShowAutoTest] = useState(false);
+  const [autoDataLoaded, setAutoDataLoaded] = useState(false);
+  const [autoEndCalled, setAutoEndCalled] = useState(false);
+
+  // Manual approach state
+  const [manualTtid, setManualTtid] = useState<number | null>(null);
+  const [manualStatus, setManualStatus] = useState<'pending' | 'passed' | 'failed' | 'running'>(
+    'pending',
+  );
+  const [showManualTest, setShowManualTest] = useState(false);
+  const [manualStep, setManualStep] = useState(0);
+
+  // Delayed content approach state
+  const [delayedTtid, setDelayedTtid] = useState<number | null>(null);
+  const [delayedStatus, setDelayedStatus] = useState<'pending' | 'passed' | 'failed' | 'running'>(
+    'pending',
+  );
+  const [showDelayedTest, setShowDelayedTest] = useState(false);
+  const [delayedContentReady, setDelayedContentReady] = useState(false);
+  const [delayedEndCalled, setDelayedEndCalled] = useState(false);
+
+  useEffect(() => {
+    setEndLoadingFeatureEnabled(ScreenLoadingManager.isEndScreenLoadingFeatureEnabled());
+  }, []);
+
+  // Automatic: simulate async data loading, then call endScreenLoading
+  useEffect(() => {
+    if (!showAutoTest || autoDataLoaded) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setAutoDataLoaded(true);
+      APM.endScreenLoading();
+      setAutoEndCalled(true);
+      console.log('[EndScreenLoading] Auto: endScreenLoading() called after data loaded');
+      setAutoStatus('passed');
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [showAutoTest, autoDataLoaded]);
+
+  // Delayed content: simulate a longer loading flow
+  useEffect(() => {
+    if (!showDelayedTest || delayedContentReady) {
+      return;
+    }
+    const timer = setTimeout(() => {
+      setDelayedContentReady(true);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [showDelayedTest, delayedContentReady]);
+
+  const handleManualStep = () => {
+    const nextStep = manualStep + 1;
+    setManualStep(nextStep);
+    console.log(`[EndScreenLoading] Manual: step ${nextStep}/3`);
+
+    if (nextStep >= 3) {
+      APM.endScreenLoading();
+      console.log('[EndScreenLoading] Manual: endScreenLoading() called at step 3');
+      setManualStatus('passed');
+    }
+  };
+
+  const handleDelayedEnd = () => {
+    APM.endScreenLoading();
+    setDelayedEndCalled(true);
+    console.log('[EndScreenLoading] Delayed: endScreenLoading() called manually by user');
+    setDelayedStatus('passed');
+  };
+
+  const resetTests = () => {
+    setAutoTtid(null);
+    setAutoStatus('pending');
+    setShowAutoTest(false);
+    setAutoDataLoaded(false);
+    setAutoEndCalled(false);
+    setManualTtid(null);
+    setManualStatus('pending');
+    setShowManualTest(false);
+    setManualStep(0);
+    setDelayedTtid(null);
+    setDelayedStatus('pending');
+    setShowDelayedTest(false);
+    setDelayedContentReady(false);
+    setDelayedEndCalled(false);
+  };
+
+  return (
+    <ScrollView style={styles.sectionContainer}>
+      <Text style={styles.sectionTitle}>End Screen Loading</Text>
+      <Text style={styles.sectionDescription}>
+        Test APM.endScreenLoading() to extend the screen loading trace end timestamp
+      </Text>
+
+      <View style={styles.featureFlagBadge}>
+        <Text style={styles.featureFlagText}>
+          endScreenLoading feature: {endLoadingFeatureEnabled ? '✓ Enabled' : '✗ Disabled'}
+        </Text>
+      </View>
+
+      {/* Test 1: Automatic — endScreenLoading after async data load */}
+      <TestResult
+        name="Automatic (After Data Load)"
+        description="TTID fires on layout, then endScreenLoading() extends trace after async data finishes"
+        ttid={autoTtid}
+        status={autoStatus}
+        expectedBehavior="TTID measured first, then endScreenLoading() called after 2s data load"
+      />
+      {!showAutoTest ? (
+        <ActionButton
+          title="Run Auto End Test"
+          onPress={() => {
+            setAutoStatus('running');
+            setShowAutoTest(true);
+          }}
+        />
+      ) : (
+        <LuciqCaptureScreenLoading
+          screenName="AutoEndScreenLoading"
+          onMeasured={(ttid) => {
+            console.log('[EndScreenLoading] Auto: TTID measured:', ttid);
+            setAutoTtid(ttid);
+          }}
+          style={styles.testComponent}>
+          <Text style={styles.componentText}>Auto End Screen Loading</Text>
+          {!autoDataLoaded ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.componentSubtext}>Loading data (2s)...</Text>
+            </View>
+          ) : (
+            <>
+              <Text style={styles.componentSubtext}>✓ Data loaded</Text>
+              <Text style={styles.endScreenLoadingCallStatus}>
+                {autoEndCalled
+                  ? '✓ endScreenLoading() called — trace extended'
+                  : 'Calling endScreenLoading()...'}
+              </Text>
+            </>
+          )}
+          {autoTtid !== null && (
+            <Text style={styles.ttidInline}>Initial TTID: {autoTtid.toFixed(2)}ms</Text>
+          )}
+        </LuciqCaptureScreenLoading>
+      )}
+
+      {/* Test 2: Manual — step-by-step control */}
+      <View style={styles.testSpacer} />
+      <TestResult
+        name="Manual (Step-by-Step)"
+        description="Developer controls exactly when endScreenLoading() is called via multi-step flow"
+        ttid={manualTtid}
+        status={manualStatus}
+        expectedBehavior="3 manual steps, endScreenLoading() on final step"
+      />
+      {!showManualTest ? (
+        <ActionButton
+          title="Run Manual End Test"
+          onPress={() => {
+            setManualStatus('running');
+            setShowManualTest(true);
+          }}
+        />
+      ) : (
+        <LuciqCaptureScreenLoading
+          screenName="ManualEndScreenLoading"
+          onMeasured={(ttid) => {
+            console.log('[EndScreenLoading] Manual: TTID measured:', ttid);
+            setManualTtid(ttid);
+          }}
+          style={styles.testComponent}>
+          <Text style={styles.componentText}>Manual End Screen Loading</Text>
+          <Text style={styles.componentSubtext}>
+            Complete all steps to trigger endScreenLoading()
+          </Text>
+
+          <View style={styles.stepsContainer}>
+            {[1, 2, 3].map((step) => (
+              <View
+                key={step}
+                style={[styles.stepBadge, manualStep >= step && styles.stepBadgeCompleted]}>
+                <Text style={[styles.stepText, manualStep >= step && styles.stepTextCompleted]}>
+                  {manualStep >= step ? '✓' : step}
+                </Text>
+              </View>
+            ))}
+          </View>
+
+          <Text style={styles.stepProgress}>
+            {manualStep === 0
+              ? 'Tap "Next Step" to begin'
+              : manualStep < 3
+                ? `Step ${manualStep}/3 completed`
+                : '✓ All steps done — endScreenLoading() called'}
+          </Text>
+
+          {manualStep < 3 ? (
+            <ActionButton title={`Next Step (${manualStep + 1}/3)`} onPress={handleManualStep} />
+          ) : (
+            <Text style={styles.endScreenLoadingCallStatus}>
+              ✓ endScreenLoading() called — trace extended
+            </Text>
+          )}
+
+          {manualTtid !== null && (
+            <Text style={styles.ttidInline}>Initial TTID: {manualTtid.toFixed(2)}ms</Text>
+          )}
+        </LuciqCaptureScreenLoading>
+      )}
+
+      {/* Test 3: Delayed content — user triggers endScreenLoading after content appears */}
+      <View style={styles.testSpacer} />
+      <TestResult
+        name="Delayed Content (User-Triggered)"
+        description="Content loads async, user decides when to call endScreenLoading()"
+        ttid={delayedTtid}
+        status={delayedStatus}
+        expectedBehavior="TTID measured, content loads at 1.5s, user taps to end trace"
+      />
+      {!showDelayedTest ? (
+        <ActionButton
+          title="Run Delayed Content Test"
+          onPress={() => {
+            setDelayedStatus('running');
+            setShowDelayedTest(true);
+          }}
+        />
+      ) : (
+        <LuciqCaptureScreenLoading
+          screenName="DelayedEndScreenLoading"
+          onMeasured={(ttid) => {
+            console.log('[EndScreenLoading] Delayed: TTID measured:', ttid);
+            setDelayedTtid(ttid);
+          }}
+          style={styles.testComponent}>
+          <Text style={styles.componentText}>Delayed Content Test</Text>
+
+          {!delayedContentReady ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.componentSubtext}>Fetching content (1.5s)...</Text>
+            </View>
+          ) : (
+            <>
+              <Text style={styles.componentSubtext}>✓ Content ready</Text>
+              <View style={styles.delayedContentBox}>
+                <Text style={styles.delayedContentTitle}>Loaded Content</Text>
+                <Text style={styles.delayedContentBody}>
+                  This simulates a data-driven view that appeared after the initial screen render.
+                </Text>
+              </View>
+            </>
+          )}
+
+          {delayedContentReady && !delayedEndCalled && (
+            <ActionButton title="Call endScreenLoading()" onPress={handleDelayedEnd} />
+          )}
+
+          {delayedEndCalled && (
+            <Text style={styles.endScreenLoadingCallStatus}>
+              ✓ endScreenLoading() called — trace extended
+            </Text>
+          )}
+
+          {delayedTtid !== null && (
+            <Text style={styles.ttidInline}>Initial TTID: {delayedTtid.toFixed(2)}ms</Text>
+          )}
+        </LuciqCaptureScreenLoading>
+      )}
+
+      <View style={styles.testSpacer} />
+      <ActionButton title="Reset All Tests" onPress={resetTests} variant="secondary" />
+    </ScrollView>
+  );
+};
+
 // ============================================================================
 // MAIN SCREEN
 // ============================================================================
@@ -897,7 +1202,7 @@ export const ScreenLoadingScreen: React.FC = () => {
     setScreenLoadingEnabled(ScreenLoadingManager.isFeatureEnabled());
   }, []);
 
-  const sections = ['Basic', 'Modals', 'Tabs', 'Edge Cases'];
+  const sections = ['Basic', 'Modals', 'Tabs', 'Edge Cases', 'End Loading'];
 
   const renderSection = (): React.ReactNode => {
     switch (selectedSection) {
@@ -909,6 +1214,8 @@ export const ScreenLoadingScreen: React.FC = () => {
         return <TabTestsSection />;
       case 3:
         return <EdgeCasesSection />;
+      case 4:
+        return <EndScreenLoadingSection />;
       default:
         return <BasicTestsSection />;
     }
@@ -1277,5 +1584,79 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontWeight: '600',
     marginTop: 4,
+  },
+  featureFlagBadge: {
+    backgroundColor: '#F5F5F5',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  featureFlagText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#1a1a1a',
+  },
+  endScreenLoadingCallStatus: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#4CAF50',
+    marginTop: 8,
+  },
+  ttidInline: {
+    fontSize: 12,
+    color: '#007AFF',
+    fontWeight: '600',
+    marginTop: 8,
+  },
+  stepsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  stepBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepBadgeCompleted: {
+    backgroundColor: '#4CAF50',
+  },
+  stepText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#666',
+  },
+  stepTextCompleted: {
+    color: '#fff',
+  },
+  stepProgress: {
+    fontSize: 13,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  delayedContentBox: {
+    backgroundColor: '#F0F7FF',
+    borderRadius: 8,
+    padding: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#B3D4FC',
+  },
+  delayedContentTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#1a1a1a',
+    marginBottom: 4,
+  },
+  delayedContentBody: {
+    fontSize: 13,
+    color: '#666',
   },
 });

@@ -145,7 +145,7 @@ RCT_EXPORT_METHOD(setScreenLoadingEnabled:(BOOL)isEnabled){
 
 - (NSMutableDictionary<NSString *, NSNumber *> *)buildStagesMapFromAttributes:(NSDictionary *)stages {
     NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [NSMutableDictionary dictionary];
-    NSArray<NSString *> *keys = @[@"rnd_mus_st", @"rnd_mus", @"mnt_mus", @"lyt_mus", @"mnt_mus_st", @"cnst_mus_st", @"lyt_mus_st"];
+    NSArray<NSString *> *keys = @[@"cnst_mus_st" , @"cnst_mus",@"rnd_mus_st", @"rnd_mus", @"mnt_mus_st" ,@"mnt_mus", @"lyt_mus_st" , @"lyt_mus"];
     for (NSString *key in keys) {
         if (stages[key])
             stagesMap[key] = @([stages[key] longLongValue]);
@@ -159,8 +159,6 @@ RCT_EXPORT_METHOD(syncScreenLoading:(double)spanId
                   startTimestamp:(double)startTimestamp
                   ttid_us:(double)ttid_us
                   attributes:(NSDictionary *)stages){
-    NSLog(@"[ScreenLoading] syncScreenLoading - spanId: %.0f, screenName: %@, startTimestamp: %f, ttid_us: %f, attributes: %@",
-          spanId, screenName, startTimestamp, ttid_us, stages);
 
     NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [self buildStagesMapFromAttributes:stages];
     [LCQAPM reportScreenLoadingCPWithStartTimestampMUS:startTimestamp durationMUS:ttid_us stages:stagesMap];
@@ -169,13 +167,11 @@ RCT_EXPORT_METHOD(syncScreenLoading:(double)spanId
 // Syncs manual screen loading measurements to native layer for reporting (no span ID)
 RCT_EXPORT_METHOD(syncManualScreenLoading:(NSString *)screenName
                   startTimestamp:(double)startTimestamp
-                  ttid_us:(double)ttid_us
+                  ttid_mus:(double)ttid_mus
                   attributes:(NSDictionary *)stages){
-    NSLog(@"[ScreenLoading] syncManualScreenLoading - screenName: %@, startTimestamp: %f, ttid_us: %f, attributes: %@",
-          screenName, startTimestamp, ttid_us, stages);
 
     NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [self buildStagesMapFromAttributes:stages];
-    [LCQAPM reportScreenLoadingCPUITraceWithName:screenName screenLoadingStartMUS:startTimestamp screenLoadingDurationMUS:ttid_us stages:stagesMap];
+    [LCQAPM reportScreenLoadingCPUITraceWithName:screenName screenLoadingStartMUS:startTimestamp screenLoadingDurationMUS:ttid_mus stages:stagesMap];
 }
 
 @synthesize description;

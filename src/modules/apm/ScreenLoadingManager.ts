@@ -217,7 +217,6 @@ class ScreenLoadingManagerClass {
     const endEpochUs = span.endTimestamp ? Math.round(toEpochMicros(span.endTimestamp)) : undefined;
 
     const logData = {
-      type: 'screen_loading',
       span_id: span.spanId,
       screen_name: span.screenName,
       start_timestamp_us: startEpochUs,

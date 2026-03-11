@@ -1,4 +1,3 @@
-
 package ai.luciq.reactlibrary;
 
 import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
@@ -310,24 +309,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
      *                            debugging and troubleshooting network-related issues.
      */
     @ReactMethod
-    private void networkLogAndroid(final double requestStartTime,
-                                   final double requestDuration,
-                                   final String requestHeaders,
-                                   final String requestBody,
-                                   final double requestBodySize,
-                                   final String requestMethod,
-                                   final String requestUrl,
-                                   final String requestContentType,
-                                   final String responseHeaders,
-                                   final String responseBody,
-                                   final double responseBodySize,
-                                   final double statusCode,
-                                   final String responseContentType,
-                                   @Nullable final String errorDomain,
-                                   @Nullable final ReadableMap w3cAttributes,
-                                   @Nullable final String gqLCQueryName,
-                                   @Nullable final String serverErrorMessage
-    ) {
+    private void networkLogAndroid(final double requestStartTime, final double requestDuration, final String requestHeaders, final String requestBody, final double requestBodySize, final String requestMethod, final String requestUrl, final String requestContentType, final String responseHeaders, final String responseBody, final double responseBodySize, final double statusCode, final String responseContentType, @Nullable final String errorDomain, @Nullable final ReadableMap w3cAttributes, @Nullable final String gqLCQueryName, @Nullable final String serverErrorMessage) {
         try {
             APMNetworkLogger networkLogger = new APMNetworkLogger();
 
@@ -351,37 +333,11 @@ public class RNLuciqAPMModule extends EventEmitterModule {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            APMCPNetworkLog.W3CExternalTraceAttributes w3cExternalTraceAttributes =
-                    new APMCPNetworkLog.W3CExternalTraceAttributes(
-                            isW3cHeaderFound,
-                            partialId,
-                            networkStartTimeInSeconds,
-                            w3cAttributes.getString("w3cGeneratedHeader"),
-                            w3cAttributes.getString("w3cCaughtHeader")
-                    );
+            APMCPNetworkLog.W3CExternalTraceAttributes w3cExternalTraceAttributes = new APMCPNetworkLog.W3CExternalTraceAttributes(isW3cHeaderFound, partialId, networkStartTimeInSeconds, w3cAttributes.getString("w3cGeneratedHeader"), w3cAttributes.getString("w3cCaughtHeader"));
             try {
                 Method method = getMethod(Class.forName("ai.luciq.apm.networking.APMNetworkLogger"), "log", long.class, long.class, String.class, String.class, long.class, String.class, String.class, String.class, String.class, String.class, long.class, int.class, String.class, String.class, String.class, String.class, APMCPNetworkLog.W3CExternalTraceAttributes.class);
                 if (method != null) {
-                    method.invoke(
-                            networkLogger,
-                            (long) requestStartTime * 1000,
-                            (long) requestDuration,
-                            requestHeaders,
-                            requestBody,
-                            (long) requestBodySize,
-                            requestMethod,
-                            requestUrl,
-                            requestContentType,
-                            responseHeaders,
-                            responseBody,
-                            (long) responseBodySize,
-                            (int) statusCode,
-                            responseContentType,
-                            errorMessage,
-                            gqLCQueryName,
-                            serverErrorMessage,
-                            w3cExternalTraceAttributes
-                    );
+                    method.invoke(networkLogger, (long) requestStartTime * 1000, (long) requestDuration, requestHeaders, requestBody, (long) requestBodySize, requestMethod, requestUrl, requestContentType, responseHeaders, responseBody, (long) responseBodySize, (int) statusCode, responseContentType, errorMessage, gqLCQueryName, serverErrorMessage, w3cExternalTraceAttributes);
                 } else {
                     Log.e("IB-CP-Bridge", "APMNetworkLogger.log was not found by reflection");
                 }
@@ -511,26 +467,18 @@ public class RNLuciqAPMModule extends EventEmitterModule {
      * @param duration_us    the time to initial display in microseconds
      * @param stages         custom attributes attached to the span
      */
-    private static final String[] STAGE_KEYS = {
-        "rnd_mus_st", "rnd_mus", "mnt_mus", "lyt_mus", "mnt_mus_st", "cnst_mus_st", "lyt_mus_st"
-    };
+    private static final String[] STAGE_KEYS = {"cnst_mus_st", "cnst_mus", "rnd_mus_st", "rnd_mus", "mnt_mus_st", "mnt_mus", "lyt_mus_st", "lyt_mus"};
 
     private Map<String, Long> buildStagesMap(ReadableMap stages) {
         final Map<String, Long> stagesMap = new HashMap<>();
         for (String key : STAGE_KEYS) {
-            if (stages.hasKey(key))
-                stagesMap.put(key, (long) stages.getDouble(key));
+            if (stages.hasKey(key)) stagesMap.put(key, (long) stages.getDouble(key));
         }
         return stagesMap;
     }
 
     @ReactMethod
     public void syncScreenLoading(double spanId, String screenName, double startTimestamp, double duration_us, ReadableMap stages) {
-        Log.d("ScreenLoading", "syncScreenLoading - spanId: " + (long) spanId +
-                ", screenName: " + screenName +
-                ", startTimestamp: " + startTimestamp +
-                ", duration_us: " + duration_us +
-                ", stages: " + stages.toString());
         try {
             final Map<String, Long> stagesMap = buildStagesMap(stages);
             InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) duration_us, (long) spanId, stagesMap);
@@ -550,15 +498,9 @@ public class RNLuciqAPMModule extends EventEmitterModule {
      */
     @ReactMethod
     public void syncManualScreenLoading(String screenName, double startTimestamp, double duration_us, ReadableMap stages) {
-        Log.d("ScreenLoading", "syncManualScreenLoading - screenName: " + screenName +
-                ", startTimestamp: " + startTimestamp +
-                ", duration_us: " + duration_us +
-                ", stages: " + stages.toString());
         try {
             final Map<String, Long> stagesMap = buildStagesMap(stages);
-
-            //todo: Pending new native API
-//            InternalAPM._reporManualtScreenLoadingCP((long) startTimestamp, (long) duration_us, stagesMap);
+            InternalAPM._reportManualScreenLoadingCP(screenName, (long) startTimestamp, (long) duration_us, stagesMap);
         } catch (Exception e) {
             e.printStackTrace();
         }

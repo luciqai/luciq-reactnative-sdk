@@ -614,7 +614,7 @@ describe('ScreenLoadingManager', () => {
 
         expect(Logger.log).toHaveBeenCalledWith(
           '[ScreenLoading] Measurement:',
-          expect.stringContaining('screen_loading'),
+          expect.stringContaining('screen_name'),
         );
       }
     });

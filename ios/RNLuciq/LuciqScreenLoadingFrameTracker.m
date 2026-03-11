@@ -1,6 +1,5 @@
 #import "LuciqScreenLoadingFrameTracker.h"
 #import <QuartzCore/CADisplayLink.h>
-// #import <QuartzCore/QuartzCore.h>
 
 @interface LuciqScreenLoadingFrameTracker ()
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSNumber *> *spanIdToTimestamp;
