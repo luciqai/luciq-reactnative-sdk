@@ -16,6 +16,7 @@ import com.facebook.react.bridge.ReadableMap;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Date;
 
 import javax.annotation.Nonnull;
 
@@ -363,6 +364,88 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                     APM.setScreenRenderingEnabled(isEnabled);
                 } catch (Exception e) {
                     e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    /**
+     * Syncs a custom span to the native SDK (currently logs only).
+     *
+     * @param name           Name of the custom span
+     * @param startTimestamp Start time in microseconds since epoch
+     * @param endTimestamp   End time in microseconds since epoch
+     * @param promise        Promise to resolve when complete
+     */
+    @ReactMethod
+    public void syncCustomSpan(final String name,
+                               final double startTimestamp,
+                               final double endTimestamp,
+                               final Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Convert microseconds to milliseconds for Date objects
+                    Date startDate = new Date((long) (startTimestamp / 1000));
+                    Date endDate = new Date((long) (endTimestamp / 1000));
+
+                    APM.addCompletedCustomSpan(name, startDate, endDate);
+
+                    promise.resolve(true);
+                } catch (Exception e) {
+                    Log.e("IB-CP-Bridge", "Error syncing span", e);
+                    promise.resolve(false);
+                }
+            }
+        });
+    }
+
+    /**
+     * Checks if custom spans feature is enabled.
+     *
+     * @param promise Promise that resolves with boolean indicating if enabled
+     */
+    @ReactMethod
+    public void isCustomSpanEnabled(final Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    InternalAPM._isFeatureEnabledCP(APMFeature.CUSTOM_SPANS, "LuciqCustomSpan", new FeatureAvailabilityCallback() {
+                        @Override
+                        public void invoke(boolean isEnabled) {
+                            promise.resolve(isEnabled);
+                        }
+                    });
+                } catch (Exception e) {
+                    Log.e("IB-CP-Bridge", "Error checking feature flag", e);
+                    promise.resolve(false);
+                }
+            }
+        });
+    }
+
+    /**
+     * Checks if APM is enabled.
+     *
+     * @param promise Promise that resolves with boolean indicating if enabled
+     */
+    @ReactMethod
+    public void isAPMEnabled(final Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    InternalAPM._isFeatureEnabledCP(APMFeature.APM, "APM", new FeatureAvailabilityCallback() {
+                        @Override
+                        public void invoke(boolean isEnabled) {
+                            promise.resolve(isEnabled);
+                        }
+                    });
+                } catch (Exception e) {
+                    Log.e("IB-CP-Bridge", "Error checking APM enabled", e);
+                    promise.resolve(false);
                 }
             }
         });

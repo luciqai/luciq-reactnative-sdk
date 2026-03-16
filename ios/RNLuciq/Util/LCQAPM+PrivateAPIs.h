@@ -14,6 +14,8 @@
 
 typedef void (^LCQDisplayLinkObservationCallback)(NSTimeInterval currentTimestamp, NSTimeInterval targetTimestamp);
 
++ (BOOL)customSpansEnabled;
+
 + (void)endScreenLoadingCPWithEndTimestampMUS:(double)endTimestampMUS;
 + (void)reportScreenLoadingCPWithStartTimestampMUS:(double)startTimestampMUS
                                        durationMUS:(double)durationMUS

@@ -48,6 +48,13 @@ export interface ApmNativeModule extends NativeModule {
   // Screen Rendering //
   setScreenRenderingEnabled(isEnabled: boolean): void;
 
+  // Custom Spans APIs //
+  syncCustomSpan(name: string, startTimestamp: number, endTimestamp: number): Promise<void>;
+
+  isCustomSpanEnabled(): Promise<boolean>;
+
+  isAPMEnabled(): Promise<boolean>;
+
   // Screen Loading methods
   initScreenFrameTracking(): Promise<void>;
   setActiveScreenSpanId(spanId: string): void;

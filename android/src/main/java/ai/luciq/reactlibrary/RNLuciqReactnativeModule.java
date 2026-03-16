@@ -222,6 +222,26 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         });
     }
 
+    /**
+     * Checks if the SDK is built or not.
+     *
+     * @param promise Promise that resolves with boolean indicating if enabled
+     */
+    @ReactMethod
+    public void isBuilt(final Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    promise.resolve(Luciq.isBuilt());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    promise.resolve(false);
+                }
+            }
+        });
+    }
+
     @ReactMethod
     public void setOverAirVersion(@Nullable final ReadableMap overAirVersion) {
         MainThreadHandler.runOnMainThread(new Runnable() {

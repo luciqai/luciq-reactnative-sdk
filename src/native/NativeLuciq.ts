@@ -22,6 +22,7 @@ export interface LuciqNativeModule extends NativeModule {
 
   // Essential APIs //
   setEnabled(isEnabled: boolean): void;
+  isBuilt(): Promise<boolean>;
   init(
     token: string,
     invocationEvents: InvocationEvent[],

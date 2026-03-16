@@ -58,6 +58,7 @@ import { APMScreen } from '../screens/apm/APMScreen';
 import { CustomUITraceScreen } from '../screens/apm/CustomUITraceScreen';
 import { NetworkScreen } from '../screens/apm/network/NetworkScreen';
 import { FlowsScreen } from '../screens/apm/FlowsScreen';
+import { CustomSpansScreen } from '../screens/apm/CustomSpansScreen';
 import { SessionReplayScreen } from '../screens/SessionReplayScreen';
 import { LegacyModeScreen } from '../screens/LegacyModeScreen';
 import { HttpScreen } from '../screens/apm/HttpScreen';
@@ -136,6 +137,7 @@ export type HomeStackParamList = {
   NetworkTraces: undefined;
   CustomUITraces: undefined;
   AppFlows: undefined;
+  CustomSpans: undefined;
   WebViews: undefined;
   FullWebViews: undefined;
   PartialWebViews: undefined;
@@ -300,6 +302,11 @@ export const HomeStackNavigator: React.FC = () => {
       <HomeStack.Screen name="NetworkTraces" component={NetworkScreen} />
       <HomeStack.Screen name="CustomUITraces" component={CustomUITraceScreen} />
       <HomeStack.Screen name="AppFlows" component={FlowsScreen} />
+      <HomeStack.Screen
+        name="CustomSpans"
+        component={CustomSpansScreen}
+        options={{ title: 'Custom Spans' }}
+      />
       <HomeStack.Screen
         name="LegacyMode"
         component={LegacyModeScreen}

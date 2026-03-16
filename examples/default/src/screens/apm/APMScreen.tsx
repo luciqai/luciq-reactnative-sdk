@@ -36,6 +36,7 @@ export const APMScreen: React.FC<NativeStackScreenProps<HomeStackParamList, 'APM
       <ListTile title="Network Screen" onPress={() => navigation.navigate('NetworkTraces')} />
       <ListTile title="Custom UI Traces" onPress={() => navigation.navigate('CustomUITraces')} />
       <ListTile title="Flows" onPress={() => navigation.navigate('AppFlows')} />
+      <ListTile title="Custom Spans" onPress={() => navigation.navigate('CustomSpans')} />
       <ListTile title="WebViews" onPress={() => navigation.navigate('WebViews')} />
       <ListTile title="Complex Views" onPress={() => navigation.navigate('ComplexViews')} />
       <ListTile title="Screen Rendering" onPress={() => navigation.navigate('ScreenRender')} />

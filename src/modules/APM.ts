@@ -2,6 +2,11 @@ import { Platform } from 'react-native';
 
 import { NativeAPM } from '../native/NativeAPM';
 import { NativeLuciq } from '../native/NativeLuciq';
+import {
+  startCustomSpan as startCustomSpanInternal,
+  addCompletedCustomSpan as addCompletedCustomSpanInternal,
+} from '../utils/CustomSpansManager';
+import type { CustomSpan } from '../models/CustomSpan';
 import { ScreenLoadingManager } from './apm/ScreenLoadingManager';
 import { Logger } from '../utils/logger';
 
@@ -129,6 +134,73 @@ export const _lcqSleep = () => {
  */
 export const setScreenRenderingEnabled = (isEnabled: boolean) => {
   NativeAPM.setScreenRenderingEnabled(isEnabled);
+};
+
+/**
+ * Starts a custom span for performance tracking.
+ *
+ * A custom span measures the duration of an arbitrary operation that is not
+ * automatically tracked by the SDK. The span must be manually ended by calling
+ * the `end()` method on the returned span object.
+ *
+ * @param name - The name of the span. Cannot be empty. Max 150 characters.
+ *               Leading and trailing whitespace will be trimmed.
+ *
+ * @returns Promise<CustomSpan | null> - The span object to end later, or null if:
+ *   - Name is empty after trimming
+ *   - SDK is not initialized
+ *   - APM is disabled
+ *   - Custom spans feature is disabled
+ *   - Maximum concurrent spans limit (100) reached
+ *
+ * @example
+ * ```typescript
+ * const span = await APM.startCustomSpan('Load User Profile');
+ * if (span) {
+ *   try {
+ *     // ... perform operation ...
+ *   } finally {
+ *     await span.end();
+ *   }
+ * }
+ * ```
+ */
+export const startCustomSpan = async (name: string): Promise<CustomSpan | null> => {
+  return startCustomSpanInternal(name);
+};
+
+/**
+ * Records a completed custom span with pre-recorded timestamps.
+ *
+ * Use this method when you have already recorded the start and end times
+ * of an operation and want to report it retroactively.
+ *
+ * @param name - The name of the span. Cannot be empty. Max 150 characters.
+ *               Leading and trailing whitespace will be trimmed.
+ * @param startDate - The start time of the operation
+ * @param endDate - The end time of the operation (must be after startDate)
+ *
+ * @returns Promise<void> - Resolves when the span has been recorded, or logs error if:
+ *   - Name is empty after trimming
+ *   - End date is not after start date
+ *   - SDK is not initialized
+ *   - APM is disabled
+ *   - Custom spans feature is disabled
+ *
+ * @example
+ * ```typescript
+ * const start = new Date();
+ * // ... operation already completed ...
+ * const end = new Date();
+ * await APM.addCompletedCustomSpan('Cache Lookup', start, end);
+ * ```
+ */
+export const addCompletedCustomSpan = async (
+  name: string,
+  startDate: Date,
+  endDate: Date,
+): Promise<void> => {
+  return addCompletedCustomSpanInternal(name, startDate, endDate);
 };
 
 /**

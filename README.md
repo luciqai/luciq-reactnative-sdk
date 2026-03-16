@@ -141,6 +141,93 @@ You can disable Repro Steps using the following API:
 Luciq.setReproStepsConfig({ all: ReproStepsMode.disabled });
 ```
 
+## Custom Spans
+
+Custom spans allow you to manually instrument arbitrary code paths for performance tracking. This feature enables tracking of operations not covered by automatic instrumentation.
+
+### Starting and Ending a Span
+
+```javascript
+import { APM } from '@luciq/react-native';
+
+// Start a custom span
+const span = await APM.startCustomSpan('Load User Profile');
+
+if (span) {
+  try {
+    // Perform your operation
+    await loadUserProfile();
+  } finally {
+    // Always end the span, even if operation fails
+    await span.end();
+  }
+}
+```
+
+### Recording a Completed Span
+
+```javascript
+const start = new Date();
+// ... operation already completed ...
+const end = new Date();
+
+await APM.addCompletedCustomSpan('Cache Lookup', start, end);
+```
+
+### Important Notes
+
+- **Span Limit**: Maximum of 100 concurrent spans at any time
+- **Name Length**: Span names are truncated to 150 characters
+- **Validation**: Empty names or invalid timestamps will be rejected
+- **Idempotent**: Calling `span.end()` multiple times is safe
+- **Feature Flags**: Spans are only created when SDK is initialized, APM is enabled, and custom spans feature is enabled
+
+### API Reference
+
+#### `APM.startCustomSpan(name: string): Promise<CustomSpan | null>`
+
+Starts a custom span for performance tracking.
+
+**Parameters:**
+
+- `name` (string): The name of the span. Cannot be empty. Max 150 characters.
+
+**Returns:**
+
+- `Promise<CustomSpan | null>`: The span object to end later, or `null` if the span could not be created.
+
+**Example:**
+
+```javascript
+const span = await APM.startCustomSpan('Database Query');
+if (span) {
+  // ... perform operation ...
+  await span.end();
+}
+```
+
+#### `CustomSpan.end(): Promise<void>`
+
+Ends the custom span and reports it to the SDK. This method is idempotent.
+
+#### `APM.addCompletedCustomSpan(name: string, startDate: Date, endDate: Date): Promise<void>`
+
+Records a completed custom span with pre-recorded timestamps.
+
+**Parameters:**
+
+- `name` (string): The name of the span. Cannot be empty. Max 150 characters.
+- `startDate` (Date): The start time of the operation.
+- `endDate` (Date): The end time of the operation (must be after startDate).
+
+**Example:**
+
+```javascript
+const start = new Date(Date.now() - 1500);
+const end = new Date();
+await APM.addCompletedCustomSpan('Background Task', start, end);
+```
+
 ## Documentation
 
 For more details about the supported APIs and how to use them, check our [**Documentation**](https://docs.luciq.ai/docs/react-native-overview).

@@ -6,6 +6,24 @@
 
 - Add support for Screen Loading with react-navigation integration and manual reporting API.
 
+## [19.3.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.3.0...19.2.1)
+
+### Added
+
+- **Custom Spans**: New feature to manually instrument code paths for performance tracking
+  - `APM.startCustomSpan(name)` - Start a custom span and return a span object
+  - `CustomSpan.end()` - End the span and report to SDK
+  - `APM.addCompletedCustomSpan(name, startDate, endDate)` - Record a pre-completed span
+  - Support for up to 100 concurrent spans
+  - Comprehensive validation (name length, empty checks, timestamp validation)
+  - Feature flag support to enable/disable custom spans
+
+### Changed
+
+- Bump Luciq iOS SDK to v19.5.0 ([#37](https://github.com/luciqai/luciq-reactnative-sdk/pull/37)). [See release notes](https://github.com/luciqai/Luciq-iOS-sdk/releases/tag/19.5.0).
+
+- Bump Luciq Android SDK to v19.3.0 ([#37](https://github.com/luciqai/luciq-reactnative-sdk/pull/37)). [See release notes](https://github.com/luciqai/Luciq-Android-sdk/releases/tag/v19.4.0).
+
 ## [19.2.2](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.2.2...19.2.1)
 
 ### Changed

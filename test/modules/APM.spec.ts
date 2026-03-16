@@ -3,6 +3,8 @@ import { Platform } from 'react-native';
 import { NativeAPM } from '../../src/native/NativeAPM';
 import { NativeLuciq } from '../../src/native/NativeLuciq';
 import * as APM from '../../src/modules/APM';
+import { CustomSpan } from '../../src';
+import * as CustomSpansManager from '../../src/utils/CustomSpansManager';
 import { ScreenLoadingManager } from '../../src/modules/apm/ScreenLoadingManager';
 
 describe('APM Module', () => {
@@ -156,5 +158,29 @@ describe('APM Module', () => {
     expect(spy).toBeCalledTimes(1);
     expect(spy).toBeCalledWith(undefined);
     spy.mockRestore();
+  });
+
+  describe('Custom Spans delegation', () => {
+    it('APM.startCustomSpan delegates to manager', async () => {
+      const span = new CustomSpan('Delegation', jest.fn(), jest.fn().mockResolvedValue(undefined));
+      const spy = jest.spyOn(CustomSpansManager, 'startCustomSpan').mockResolvedValueOnce(span);
+
+      const result = await APM.startCustomSpan('Delegation');
+
+      expect(spy).toHaveBeenCalledWith('Delegation');
+      expect(result).toBe(span);
+    });
+
+    it('APM.addCompletedCustomSpan delegates to manager', async () => {
+      const start = new Date(Date.now() - 1000);
+      const end = new Date();
+      const spy = jest
+        .spyOn(CustomSpansManager, 'addCompletedCustomSpan')
+        .mockResolvedValueOnce(undefined);
+
+      await APM.addCompletedCustomSpan('Delegation', start, end);
+
+      expect(spy).toHaveBeenCalledWith('Delegation', start, end);
+    });
   });
 });
