@@ -190,6 +190,22 @@ describe('ScreenLoadingManager', () => {
       expect(span).toBeNull();
     });
 
+    it('should use custom startTimestamp when provided', () => {
+      const customTimestamp = 9999;
+      const span = ScreenLoadingManager.createSpan('CustomStartScreen', true, customTimestamp);
+
+      expect(span).toBeTruthy();
+      expect(span?.startTimestamp).toBe(customTimestamp);
+    });
+
+    it('should use nowMicros when startTimestamp is not provided', () => {
+      const span = ScreenLoadingManager.createSpan('DefaultStartScreen');
+
+      expect(span).toBeTruthy();
+      // nowMicros is mocked to return 5000
+      expect(span?.startTimestamp).toBe(5000);
+    });
+
     it('should set activeSpanId for automatic spans but not for manual spans', () => {
       ScreenLoadingManager.createSpan('AutoScreen', false);
       expect((ScreenLoadingManager as any).activeSpanId).toBeTruthy();

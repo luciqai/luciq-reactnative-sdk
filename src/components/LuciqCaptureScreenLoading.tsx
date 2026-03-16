@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useLayoutEffect,
-  useContext,
-  useCallback,
-} from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useContext } from 'react';
 import { View, ViewProps } from 'react-native';
 import { ScreenLoadingManager } from '../modules/apm/ScreenLoadingManager';
 import { Logger } from '../utils/logger';
@@ -47,7 +40,11 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
     initializedRef.current = true;
     // Initialize span if conditions are met
     if (record !== false && ScreenLoadingManager.isFeatureEnabled()) {
-      const span = ScreenLoadingManager.createSpan(screenName, true);
+      const span = ScreenLoadingManager.createSpan(
+        screenName,
+        true,
+        constructorTimestampRef.current,
+      );
       if (span) {
         initialSpanIdRef.current = span.spanId;
         Logger.log(`[LuciqScreenLoading] Span ${span.spanId} created in constructor`);
@@ -57,6 +54,12 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
 
   const [spanId, setSpanId] = useState<string | null>(initialSpanIdRef.current);
   const [isMeasured, setIsMeasured] = useState(false);
+
+  // Ref to avoid stale closure in useLayoutEffect
+  const onMeasuredRef = useRef(onMeasured);
+  useEffect(() => {
+    onMeasuredRef.current = onMeasured;
+  }, [onMeasured]);
 
   // Refs to track latest values for cleanup (componentWillUnmount)
   const spanIdRef = useRef<string | null>(spanId);
@@ -91,6 +94,18 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
     if (!spanId || attributesRecordedRef.current || isNested) {
       return;
     }
+
+    // endSpan is async (native frame timestamp fetch), fire-and-forget from useLayoutEffect
+    ScreenLoadingManager.endSpan(spanId)
+      .then(() => {
+        const completedSpan = ScreenLoadingManager.getActiveSpan(spanId);
+        if (completedSpan?.ttid && onMeasuredRef.current) {
+          onMeasuredRef.current(completedSpan.ttid / 1000);
+        }
+      })
+      .catch((error) => {
+        Logger.warn('[LuciqScreenLoading] Failed to end span:', error);
+      });
 
     attributesRecordedRef.current = true;
     mountTimestampRef.current = nowMicros();
@@ -148,6 +163,10 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
           ? mountTimestampRef.current - renderEndTimestampRef.current
           : undefined,
     });
+
+    // End the span — mark as measured synchronously to guard against unmount race
+    setIsMeasured(true);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [spanId]); // Run when spanId is set
 
@@ -163,52 +182,10 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
     };
   }, []); // Empty deps = only runs cleanup on unmount
 
-  const handleLayout = useCallback(
-    async (event: any) => {
-      if (spanIdRef.current && !isMeasuredRef.current) {
-        const layoutTimestamp = nowMicros();
-        setIsMeasured(true);
-
-        // Record layout timestamp
-        ScreenLoadingManager.addSpanAttribute(
-          spanIdRef.current,
-          'lyt_mus_st',
-          toEpochMicros(layoutTimestamp),
-        );
-
-        // Calculate layout duration (time from mount to layout)
-        if (mountTimestampRef.current) {
-          const layoutDuration = layoutTimestamp - mountTimestampRef.current;
-          ScreenLoadingManager.addSpanAttribute(spanIdRef.current, 'lyt_mus', layoutDuration);
-        }
-
-        // Small delay to ensure frame is actually rendered
-        setTimeout(async () => {
-          const currentSpanId = spanIdRef.current;
-          if (currentSpanId) {
-            await ScreenLoadingManager.endSpan(currentSpanId);
-
-            // Get the completed span to retrieve TTID
-            const span = ScreenLoadingManager.getActiveSpan(currentSpanId);
-            if (span?.ttid && onMeasured) {
-              onMeasured(span.ttid / 1000); // Convert to milliseconds for callback
-            }
-          }
-        }, 0);
-      }
-
-      // Call original onLayout if provided
-      if (onLayout) {
-        onLayout(event);
-      }
-    },
-    [onLayout, onMeasured],
-  );
-
   // Create the JSX result
   const result = (
     <ScreenLoadingContext.Provider value={spanId !== null}>
-      <View {...viewProps} onLayout={handleLayout}>
+      <View {...viewProps} onLayout={onLayout}>
         {children}
       </View>
     </ScreenLoadingContext.Provider>

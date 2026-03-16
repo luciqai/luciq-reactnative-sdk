@@ -13,6 +13,35 @@ export interface ScreenLoadingSpan {
   attributes: Map<string, number>;
 }
 
+/**
+ * Automatic Screen Loading Measurement
+ *
+ * Start point: `__unsafe_action__` navigation event (below).
+ *   - Fires when a navigation action is dispatched, before the target screen mounts.
+ *   - `ScreenLoadingManager.createSpan()` records `nowMicros()` as the span start.
+ *
+ * End point: `_onNavigationStateChange()` (called from `onStateChange`).
+ *   - Fires after navigation state has settled and the new screen is mounted.
+ *   - `ScreenLoadingManager.endSpan()` fetches the native frame timestamp from
+ *     CADisplayLink (iOS) / Choreographer (Android) to mark actual render completion.
+ *   - The TTID is: native frame timestamp − span start.
+ *
+ *
+ * Manual Screen Loading Measurement
+ *
+ * Start point: Component instantiation (lazy init block before first render).
+ *   - `nowMicros()` is captured as `constructorTimestampRef` and passed to
+ *     `ScreenLoadingManager.createSpan()` as the span's start timestamp.
+ *
+ * End point: `useLayoutEffect` (fires synchronously after React commits DOM
+ *   mutations, before the browser paints).
+ *   - `ScreenLoadingManager.endSpan()` fetches the native frame timestamp
+ *     from CADisplayLink (iOS) / Choreographer (Android) to mark the actual
+ *     render completion. The TTID is: native frame timestamp − span start.
+ *
+ * Both approaches share the same `endSpan()` path so TTID values are comparable.
+ */
+
 class ScreenLoadingManagerClass {
   private activeSpans: Map<string, ScreenLoadingSpan> = new Map();
   private isInitialized: boolean = false;
@@ -99,9 +128,14 @@ class ScreenLoadingManagerClass {
    * Create a new screen loading span
    * @param screenName Name of the screen
    * @param isManual Whether the span is manual (not automatically created)
+   * @param startTimestampParam Optional start timestamp in microseconds (defaults to nowMicros())
    * @returns The created span or null if the feature is not enabled
    */
-  createSpan(screenName: string, isManual: boolean = false): ScreenLoadingSpan | null {
+  createSpan(
+    screenName: string,
+    isManual: boolean = false,
+    startTimestampParam?: number,
+  ): ScreenLoadingSpan | null {
     if (!this.isEnabled) {
       return null;
     }
@@ -118,7 +152,7 @@ class ScreenLoadingManagerClass {
     }
 
     const spanId = Date.now().toString();
-    const startTimestamp = nowMicros();
+    const startTimestamp = startTimestampParam ?? nowMicros();
 
     const span: ScreenLoadingSpan = {
       spanId,
