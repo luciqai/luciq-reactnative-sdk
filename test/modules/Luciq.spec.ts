@@ -13,7 +13,6 @@ import { emitter, NativeEvents, NativeLuciq } from '../../src/native/NativeLuciq
 import {
   AutoMaskingType,
   ColorTheme,
-  type LuciqConfig,
   InvocationEvent,
   Locale,
   LogLevel,
@@ -23,6 +22,7 @@ import {
   StringKey,
   WelcomeMessageMode,
 } from '../../src';
+import type { LuciqConfig } from '../../src';
 import LuciqUtils from '../../src/utils/LuciqUtils';
 import type { FeatureFlag } from '../../src/models/FeatureFlag';
 import { Logger } from '../../src/utils/logger';
@@ -54,7 +54,7 @@ describe('Luciq Module', () => {
     const screenName = 'some-screen';
     Luciq.reportScreenChange(screenName);
     expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
-    expect(NativeLuciq.reportScreenChange).toBeCalledWith(screenName);
+    expect(NativeLuciq.reportScreenChange).toBeCalledWith(screenName, null);
   });
 
   it('componentDidAppearListener should call the native method reportScreenChange', () => {
@@ -67,7 +67,7 @@ describe('Luciq Module', () => {
     });
 
     expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
-    expect(NativeLuciq.reportScreenChange).toBeCalledWith(screenName);
+    expect(NativeLuciq.reportScreenChange).toBeCalledWith(screenName, null);
   });
 
   it("componentDidAppearListener shouldn't call the native method reportScreenChange if first screen", () => {
@@ -85,7 +85,7 @@ describe('Luciq Module', () => {
     waitForExpect(() => {
       // Only first screen should be reported
       expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
-      expect(NativeLuciq.reportScreenChange).toBeCalledWith('Initial Screen');
+      expect(NativeLuciq.reportScreenChange).toBeCalledWith('Initial Screen', null);
     });
   });
 
@@ -126,7 +126,7 @@ describe('Luciq Module', () => {
 
     await waitForExpect(() => {
       expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
-      expect(NativeLuciq.reportScreenChange).toBeCalledWith('settings');
+      expect(NativeLuciq.reportScreenChange).toBeCalledWith('settings', null);
     });
   });
 
@@ -195,7 +195,7 @@ describe('Luciq Module', () => {
     Luciq.onNavigationStateChange('home', 'settings');
 
     expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
-    expect(NativeLuciq.reportScreenChange).toBeCalledWith('settings');
+    expect(NativeLuciq.reportScreenChange).toBeCalledWith('settings', null);
 
     await waitForExpect(() => expect(NativeLuciq.reportScreenChange).toBeCalledTimes(2));
   });
@@ -207,7 +207,7 @@ describe('Luciq Module', () => {
 
     await waitForExpect(() => {
       expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
-      expect(NativeLuciq.reportScreenChange).toBeCalledWith('ScreenName');
+      expect(NativeLuciq.reportScreenChange).toBeCalledWith('ScreenName', null);
     });
   });
 
@@ -248,45 +248,32 @@ describe('Luciq Module', () => {
     Luciq.onStateChange(state);
 
     expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
-    expect(NativeLuciq.reportScreenChange).toBeCalledWith('ScreenName');
+    expect(NativeLuciq.reportScreenChange).toBeCalledWith('ScreenName', null);
 
     await waitForExpect(() => expect(NativeLuciq.reportScreenChange).toBeCalledTimes(2));
   });
 
-  it('setNavigationListener should call the onStateChange on a screen change', async () => {
-    const mockedState = { routes: [{ name: 'ScreenName' }], index: 0 };
+  it('setNavigationListener should register __unsafe_action__ listener on navigationRef.current', async () => {
+    const mockCurrent = {
+      addListener: jest.fn(() => jest.fn()),
+    };
 
     const mockNavigationContainerRef = {
-      current: null,
+      current: mockCurrent,
       navigate: jest.fn(),
       reset: jest.fn(),
       goBack: jest.fn(),
       dispatch: jest.fn(),
-      getRootState: () => mockedState,
+      getRootState: jest.fn(),
       canGoBack: jest.fn(),
-
-      addListener: jest.fn((event, callback) => {
-        expect(event).toBe('state');
-        callback(mockedState);
-        return jest.fn();
-      }),
+      addListener: jest.fn(),
       removeListener: jest.fn(),
     } as unknown as NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>;
 
-    const onStateChangeMock = jest.fn();
-
-    jest.spyOn(Luciq, 'onStateChange').mockImplementation(onStateChangeMock);
-
     Luciq.setNavigationListener(mockNavigationContainerRef);
 
-    expect(mockNavigationContainerRef.addListener).toBeCalledTimes(1);
-    expect(mockNavigationContainerRef.addListener).toHaveBeenCalledWith(
-      'state',
-      expect.any(Function),
-    );
-
-    expect(onStateChangeMock).toBeCalledTimes(1);
-    expect(onStateChangeMock).toHaveBeenCalledWith(mockNavigationContainerRef.getRootState());
+    expect(mockCurrent.addListener).toBeCalledTimes(1);
+    expect(mockCurrent.addListener).toHaveBeenCalledWith('__unsafe_action__', expect.any(Function));
   });
 
   it('should call the native method init', () => {
@@ -398,7 +385,7 @@ describe('Luciq Module', () => {
 
     await waitForExpect(() => {
       expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
-      expect(NativeLuciq.reportScreenChange).toBeCalledWith('Initial Screen');
+      expect(NativeLuciq.reportScreenChange).toBeCalledWith('Initial Screen', null);
     });
   });
 
@@ -744,7 +731,7 @@ describe('Luciq Module', () => {
   });
 
   it.each([[null]])("should fail if key isn't a string when calling removeUserAttribute", (key) => {
-    const logSpy = jest.spyOn(console, 'error');
+    const logSpy = jest.spyOn(Logger, 'error');
 
     // @ts-ignore
     Luciq.removeUserAttribute(key);
@@ -1015,7 +1002,7 @@ describe('Luciq iOS initialization tests', () => {
 
   it('should display error message when user sets networkInterceptionMode to native and [isNativeInterceptionEnabled] == false', () => {
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(false);
-    const logSpy = jest.spyOn(global.console, 'error');
+    const logSpy = jest.spyOn(Logger, 'error');
 
     Luciq.init(config);
 
@@ -1066,7 +1053,7 @@ describe('Luciq Android initialization tests', () => {
   it('should show warning message when networkInterceptionMode == javascript and user added APM plugin', () => {
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(true);
     jest.spyOn(NativeNetworkLogger, 'hasAPMNetworkPlugin').mockReturnValue(Promise.resolve(true));
-    const logSpy = jest.spyOn(global.console, 'warn');
+    const logSpy = jest.spyOn(Logger, 'warn');
 
     Luciq.init(config);
     fakeTimer(() => {
@@ -1082,7 +1069,7 @@ describe('Luciq Android initialization tests', () => {
 
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(true);
     jest.spyOn(NativeNetworkLogger, 'hasAPMNetworkPlugin').mockReturnValue(Promise.resolve(false));
-    const logSpy = jest.spyOn(global.console, 'error');
+    const logSpy = jest.spyOn(Logger, 'error');
 
     Luciq.init(config);
 
@@ -1099,7 +1086,7 @@ describe('Luciq Android initialization tests', () => {
 
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(false);
     jest.spyOn(NativeNetworkLogger, 'hasAPMNetworkPlugin').mockReturnValue(Promise.resolve(false));
-    const logSpy = jest.spyOn(global.console, 'error');
+    const logSpy = jest.spyOn(Logger, 'error');
 
     Luciq.init(config);
 
@@ -1115,7 +1102,7 @@ describe('Luciq Android initialization tests', () => {
     config.networkInterceptionMode = NetworkInterceptionMode.native;
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(false);
     jest.spyOn(NativeNetworkLogger, 'hasAPMNetworkPlugin').mockReturnValue(Promise.resolve(true));
-    const logSpy = jest.spyOn(global.console, 'error');
+    const logSpy = jest.spyOn(Logger, 'error');
 
     Luciq.init(config);
 

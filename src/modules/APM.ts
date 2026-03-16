@@ -7,6 +7,13 @@ import {
   addCompletedCustomSpan as addCompletedCustomSpanInternal,
 } from '../utils/CustomSpansManager';
 import type { CustomSpan } from '../models/CustomSpan';
+import { ScreenLoadingManager } from './apm/ScreenLoadingManager';
+import { Logger } from '../utils/logger';
+
+// Initialize Screen Loading on module load
+ScreenLoadingManager.initialize().catch((error) => {
+  Logger.error('[APM] Failed to initialize Screen Loading:', error);
+});
 
 /**
  * Enables or disables APM
@@ -195,3 +202,34 @@ export const addCompletedCustomSpan = async (
 ): Promise<void> => {
   return addCompletedCustomSpanInternal(name, startDate, endDate);
 };
+
+/**
+ * Enables or disables Screen Loading feature
+ * @param isEnabled
+ */
+export const setScreenLoadingEnabled = (isEnabled: boolean) => {
+  NativeAPM.setScreenLoadingEnabled(isEnabled);
+};
+
+/**
+ * Extends the currently running screen loading trace with a new end timestamp.
+ */
+export const endScreenLoading = () => {
+  ScreenLoadingManager.endScreenLoading();
+};
+
+/**
+ * Exclude specific routes from automatic screen loading measurement
+ * @param routes Array of route names to exclude
+ */
+export function excludeScreenLoadingRoutes(routes: string[]): void {
+  ScreenLoadingManager.excludeRoutes(routes);
+}
+
+/**
+ * Include previously excluded routes back into screen loading measurement
+ * @param routes Array of route names to include (or empty to clear all exclusions)
+ */
+export function includeScreenLoadingRoutes(routes?: string[]): void {
+  ScreenLoadingManager.includeRoutes(routes);
+}

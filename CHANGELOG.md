@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Add support for Screen Loading with react-navigation integration and manual reporting API.
+
 ## [19.3.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.3.0...19.2.1)
 
 ### Added
@@ -80,7 +86,7 @@
 
 - Replace jcenter with mavencentral. ([#10](https://github.com/luciqai/luciq-reactnative-sdk/pull/10))
 
-## [18.0.1] (https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.0.1...18.0.0) (October 27, 2025)
+## [18.0.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.0.1...18.0.0) (October 27, 2025)
 
 ### Added
 
