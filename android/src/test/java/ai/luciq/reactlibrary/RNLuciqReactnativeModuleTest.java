@@ -4,6 +4,7 @@ import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
 import android.graphics.Bitmap;
 import android.os.Looper;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.JavaOnlyArray;
@@ -69,12 +70,14 @@ public class RNLuciqReactnativeModuleTest {
 
     // Mock Objects
     private MockedStatic<Looper> mockLooper;
+    private MockedStatic<Log> mockLog;
     private MockedStatic <MainThreadHandler> mockMainThreadHandler;
     private MockedStatic <Luciq> mockLuciq;
 
     @Before
     public void mockMainThreadHandler() throws Exception {
         // Mock static functions
+        mockLog = mockStatic(Log.class);
         mockLuciq = mockStatic(Luciq.class);
         mockLooper = mockStatic(Looper.class);
         mockMainThreadHandler = mockStatic(MainThreadHandler.class);
@@ -97,6 +100,7 @@ public class RNLuciqReactnativeModuleTest {
     @After
     public void tearDown() {
         // Remove static mocks
+        mockLog.close();
         mockLooper.close();
         mockMainThreadHandler.close();
         mockLuciq.close();

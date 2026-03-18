@@ -436,6 +436,7 @@ export const NetworkScreen: React.FC<
                 <View
                   style={[
                     styles.statusDot,
+                    // eslint-disable-next-line react-native/no-inline-styles
                     { backgroundColor: isConnected ? '#34C759' : '#FF3B30' },
                   ]}
                 />
