@@ -1,7 +1,7 @@
 import LuciqConstants from './LuciqConstants';
 import { stringifyIfNotString, generateW3CHeader } from './LuciqUtils';
 
-import { FeatureFlags } from '../utils/FeatureFlags';
+import { getCachedW3cFlags } from './FeatureFlags';
 
 export type ProgressCallback = (totalBytesSent: number, totalBytesExpectedToSend: number) => void;
 export type NetworkDataCallback = (data: NetworkData) => void;
@@ -40,45 +40,41 @@ let originalXHRSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
 let onProgressCallback: ProgressCallback | null;
 let onDoneCallback: NetworkDataCallback | null;
 let isInterceptorEnabled = false;
-let network: NetworkData;
 
-const _reset = () => {
-  network = {
-    id: '',
-    url: '',
-    method: '',
-    requestBody: '',
-    requestBodySize: 0,
-    responseBody: '',
-    responseBodySize: 0,
-    responseCode: 0,
-    requestHeaders: {},
-    responseHeaders: {},
-    contentType: '',
-    errorDomain: '',
-    errorCode: 0,
-    startTime: 0,
-    duration: 0,
-    gqlQueryName: '',
-    serverErrorMessage: '',
-    requestContentType: '',
-    isW3cHeaderFound: null,
-    partialId: null,
-    networkStartTimeInSeconds: null,
-    w3cGeneratedHeader: null,
-    w3cCaughtHeader: null,
-  };
-};
-const getTraceparentHeader = async (networkData: NetworkData) => {
-  const [
+const networkMap = new WeakMap<XMLHttpRequest, NetworkData>();
+
+const createNetworkData = (): NetworkData => ({
+  id: '',
+  url: '',
+  method: '',
+  requestBody: '',
+  requestBodySize: 0,
+  responseBody: '',
+  responseBodySize: 0,
+  responseCode: 0,
+  requestHeaders: {},
+  responseHeaders: {},
+  contentType: '',
+  errorDomain: '',
+  errorCode: 0,
+  startTime: 0,
+  duration: 0,
+  gqlQueryName: '',
+  serverErrorMessage: '',
+  requestContentType: '',
+  isW3cHeaderFound: null,
+  partialId: null,
+  networkStartTimeInSeconds: null,
+  w3cGeneratedHeader: null,
+  w3cCaughtHeader: null,
+});
+
+const getTraceparentHeader = (networkData: NetworkData) => {
+  const {
     isW3cExternalTraceIDEnabled,
     isW3cExternalGeneratedHeaderEnabled,
     isW3cCaughtHeaderEnabled,
-  ] = await Promise.all([
-    FeatureFlags.isW3ExternalTraceID(),
-    FeatureFlags.isW3ExternalGeneratedHeader(),
-    FeatureFlags.isW3CaughtHeader(),
-  ]);
+  } = getCachedW3cFlags();
 
   return injectHeaders(networkData, {
     isW3cExternalTraceIDEnabled,
@@ -147,7 +143,6 @@ export default {
     onProgressCallback = callback;
   },
   enableInterception() {
-    // Prevents infinite calls to XMLHttpRequest.open when enabling interception multiple times
     if (isInterceptorEnabled) {
       return;
     }
@@ -158,9 +153,10 @@ export default {
     // An error code that signifies an issue with the RN client.
     const clientErrorCode = 9876;
     XMLHttpRequest.prototype.open = function (method, url, ...args) {
-      _reset();
-      network.url = url;
-      network.method = method;
+      const networkData = createNetworkData();
+      networkData.url = url;
+      networkData.method = method;
+      networkMap.set(this, networkData);
       originalXHROpen.apply(this, [method, url, ...args]);
     };
 
@@ -170,21 +166,32 @@ export default {
       // This avoid issues like failing to get the Content-Type header for a request
       // because the header is set as 'Content-Type' instead of 'content-type'.
       const key = header.toLowerCase();
-      network.requestHeaders[key] = stringifyIfNotString(value);
+      const networkData = networkMap.get(this);
+      if (networkData) {
+        networkData.requestHeaders[key] = stringifyIfNotString(value);
+      }
       originalXHRSetRequestHeader.apply(this, [header, value]);
     };
 
-    XMLHttpRequest.prototype.send = async function (data) {
-      const cloneNetwork = JSON.parse(JSON.stringify(network));
+    XMLHttpRequest.prototype.send = function (data) {
+      const networkData = networkMap.get(this);
+      if (!networkData) {
+        originalXHRSend.apply(this, [data]);
+        return;
+      }
+
+      const cloneNetwork = JSON.parse(JSON.stringify(networkData));
       cloneNetwork.requestBody = data ? data : '';
 
       if (typeof cloneNetwork.requestBody !== 'string') {
         cloneNetwork.requestBody = JSON.stringify(cloneNetwork.requestBody);
       }
 
+      let isReported = false;
+
       if (this.addEventListener) {
         this.addEventListener('readystatechange', async () => {
-          if (!isInterceptorEnabled) {
+          if (!isInterceptorEnabled || isReported) {
             return;
           }
           if (this.readyState === this.HEADERS_RECEIVED) {
@@ -300,6 +307,7 @@ export default {
               delete cloneNetwork.gqlQueryName;
             }
 
+            isReported = true;
             if (onDoneCallback) {
               onDoneCallback(cloneNetwork);
             }
@@ -320,26 +328,26 @@ export default {
         this.addEventListener('progress', downloadUploadProgressCallback);
         this.upload.addEventListener('progress', downloadUploadProgressCallback);
 
-        // Handler for abort events (works with fetch, Axios, and any XHR-based requests)
         this.addEventListener('abort', () => {
-          if (!isInterceptorEnabled) {
+          if (!isInterceptorEnabled || isReported) {
             return;
           }
+          isReported = true;
           cloneNetwork.duration = Date.now() - cloneNetwork.startTime;
           cloneNetwork.responseCode = 0;
           cloneNetwork.errorCode = clientErrorCode;
           cloneNetwork.errorDomain = 'cancelled';
           cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
+          if (onDoneCallback) {
+            onDoneCallback(cloneNetwork);
+          }
         });
       }
 
       cloneNetwork.startTime = Date.now();
-      const traceparent = await getTraceparentHeader(cloneNetwork);
+      const traceparent = getTraceparentHeader(cloneNetwork);
       if (traceparent) {
         this.setRequestHeader('Traceparent', traceparent);
-      }
-      if (this.readyState === this.UNSENT) {
-        return; // Prevent sending the request if not opened
       }
 
       originalXHRSend.apply(this, [data]);
