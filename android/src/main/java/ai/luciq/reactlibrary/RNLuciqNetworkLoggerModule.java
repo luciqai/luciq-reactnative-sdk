@@ -32,6 +32,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
 
+    private static final String NET_TAG = "LCQ-RN-NET";
+
     public final ConcurrentHashMap<String, OnCompleteCallback<NetworkLogSnapshot>> callbackMap = new ConcurrentHashMap<String, OnCompleteCallback<NetworkLogSnapshot>>();
 
     public RNLuciqNetworkLoggerModule(ReactApplicationContext reactContext) {
@@ -57,7 +59,9 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
     }
 
     private boolean getFlagValue(String key) {
-        return InternalAPM._isFeatureEnabledCP(key, "");
+        boolean value = InternalAPM._isFeatureEnabledCP(key, "");
+        Log.d(NET_TAG, "[getFlagValue] key=" + key + ", value=" + value);
+        return value;
     }
 
     private WritableMap convertFromMapToWritableMap(Map<String, Object> map) {
@@ -86,14 +90,18 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
      */
     @ReactMethod
     public void isNativeInterceptionEnabled(Promise promise) {
+        Log.d(NET_TAG, "[isNativeInterceptionEnabled] Querying CP_NATIVE_INTERCEPTION_ENABLED flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    promise.resolve(getFlagValue(CP_NATIVE_INTERCEPTION_ENABLED));
+                    boolean enabled = getFlagValue(CP_NATIVE_INTERCEPTION_ENABLED);
+                    Log.d(NET_TAG, "[isNativeInterceptionEnabled] Result=" + enabled);
+                    promise.resolve(enabled);
                 } catch (Exception e) {
+                    Log.e(NET_TAG, "[isNativeInterceptionEnabled] Error — falling back to false (JS interceptor)", e);
                     e.printStackTrace();
-                    promise.resolve(false); // Will rollback to JS interceptor
+                    promise.resolve(false);
                 }
 
             }
@@ -107,14 +115,18 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
      */
     @ReactMethod
     public void hasAPMNetworkPlugin(Promise promise) {
+        Log.d(NET_TAG, "[hasAPMNetworkPlugin] Querying APM_NETWORK_PLUGIN_INSTALLED flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    promise.resolve(getFlagValue(APM_NETWORK_PLUGIN_INSTALLED));
+                    boolean hasPlugin = getFlagValue(APM_NETWORK_PLUGIN_INSTALLED);
+                    Log.d(NET_TAG, "[hasAPMNetworkPlugin] Result=" + hasPlugin);
+                    promise.resolve(hasPlugin);
                 } catch (Exception e) {
+                    Log.e(NET_TAG, "[hasAPMNetworkPlugin] Error — falling back to false", e);
                     e.printStackTrace();
-                    promise.resolve(false);  // Will rollback to JS interceptor
+                    promise.resolve(false);
                 }
 
             }
@@ -124,12 +136,14 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
 
     @ReactMethod
     public void registerNetworkLogsListener() {
+        Log.d(NET_TAG, "[registerNetworkLogsListener] Registering network log sanitizer");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 InternalAPM._registerNetworkLogSanitizer((networkLogSnapshot, onCompleteCallback) -> {
                     final String id = String.valueOf(onCompleteCallback.hashCode());
                     callbackMap.put(id, onCompleteCallback);
+                    Log.d(NET_TAG, "[NetworkLogSanitizer] Received snapshot — id=" + id + ", url=" + networkLogSnapshot.getUrl() + ", responseCode=" + networkLogSnapshot.getResponseCode() + ", callbackMapSize=" + callbackMap.size());
 
                     WritableMap networkSnapshotParams = Arguments.createMap();
                     networkSnapshotParams.putString("id", id);
@@ -147,6 +161,7 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
                     }
 
                     sendEvent(Constants.LCQ_NETWORK_LOGGER_HANDLER, networkSnapshotParams);
+                    Log.d(NET_TAG, "[NetworkLogSanitizer] Sent event to JS: " + Constants.LCQ_NETWORK_LOGGER_HANDLER + " for " + networkLogSnapshot.getUrl());
                 });
             }
         });
@@ -154,10 +169,12 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
 
     @ReactMethod
     public void resetNetworkLogsListener() {
+        Log.d(NET_TAG, "[resetNetworkLogsListener] Clearing network log sanitizer, callbackMapSize=" + callbackMap.size());
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 InternalAPM._registerNetworkLogSanitizer(null);
+                Log.d(NET_TAG, "[resetNetworkLogsListener] Sanitizer cleared");
             }
         });
     }
@@ -172,23 +189,28 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
             ReadableMap requestHeaders,
             ReadableMap responseHeaders
     ) {
+        Log.d(NET_TAG, "[updateNetworkLogSnapshot] callbackID=" + callbackID + ", url=" + url + ", responseCode=" + responseCode + ", callbackMapSize=" + callbackMap.size());
         try {
-            // Convert ReadableMap to a Java Map for easier handling
             Map<String, Object> requestHeadersMap = convertReadableMapToMap(requestHeaders);
             Map<String, Object> responseHeadersMap = convertReadableMapToMap(responseHeaders);
 
             NetworkLogSnapshot modifiedSnapshot = null;
             if (!url.isEmpty()) {
                 modifiedSnapshot = new NetworkLogSnapshot(url, requestHeadersMap, requestBody, responseHeadersMap, responseBody, responseCode);
+            } else {
+                Log.d(NET_TAG, "[updateNetworkLogSnapshot] Empty URL — snapshot will be null (request filtered/removed)");
             }
 
             final OnCompleteCallback<NetworkLogSnapshot> callback = callbackMap.get(callbackID);
             if (callback != null) {
                 callback.onComplete(modifiedSnapshot);
                 callbackMap.remove(callbackID);
+                Log.d(NET_TAG, "[updateNetworkLogSnapshot] Callback invoked and removed for " + callbackID + ", remaining=" + callbackMap.size());
+            } else {
+                Log.e(NET_TAG, "[updateNetworkLogSnapshot] No callback found for callbackID=" + callbackID + " — possible leak or duplicate call, mapKeys=" + callbackMap.keySet());
             }
         } catch (Exception e) {
-            // Reject the promise to indicate an error occurred
+            Log.e(NET_TAG, "[updateNetworkLogSnapshot] Exception processing snapshot: " + e.getMessage() + " for callbackID=" + callbackID, e);
             Log.e("IB-CP-Bridge", "LuciqNetworkLogger.updateNetworkLogSnapshot failed to parse the network snapshot object.");
         }
     }

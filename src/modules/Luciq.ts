@@ -10,7 +10,7 @@ import type { NavigationAction, NavigationState as NavigationStateV4 } from 'rea
 import type { LuciqConfig } from '../models/LuciqConfig';
 import Report from '../models/Report';
 import { emitter, NativeEvents, NativeLuciq } from '../native/NativeLuciq';
-import { registerFeatureFlagsListener } from '../utils/FeatureFlags';
+import { registerFeatureFlagsListener, initFeatureFlagsCache } from '../utils/FeatureFlags';
 import {
   AutoMaskingType,
   ColorTheme,
@@ -81,6 +81,8 @@ function reportCurrentViewForAndroid(screenName: string | null) {
  * @param config SDK configurations. See {@link LuciqConfig} for more info.
  */
 export const init = (config: LuciqConfig) => {
+  initFeatureFlagsCache();
+
   if (Platform.OS === 'android') {
     // Add android feature flags listener for android
     registerFeatureFlagsListener();

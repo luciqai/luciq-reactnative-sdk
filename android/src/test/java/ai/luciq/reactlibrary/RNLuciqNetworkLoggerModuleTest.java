@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import static org.junit.Assert.*;
 
 import android.os.Looper;
+import android.util.Log;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
@@ -25,6 +26,7 @@ public class RNLuciqNetworkLoggerModuleTest {
 
     // Mock Objects
     private MockedStatic<Looper> mockLooper;
+    private MockedStatic<Log> mockLog;
     private MockedStatic<MainThreadHandler> mockMainThreadHandler;
     private RNLuciqNetworkLoggerModule rnLuciqNetworkLoggerModule;
     private Promise mockPromise;
@@ -37,6 +39,7 @@ public class RNLuciqNetworkLoggerModuleTest {
         rnLuciqNetworkLoggerModule = new RNLuciqNetworkLoggerModule(mockReactApplicationContext);
 
         // Mock static functions
+        mockLog = mockStatic(Log.class);
         mockLooper = mockStatic(Looper.class);
         mockMainThreadHandler = mockStatic(MainThreadHandler.class);
         // Mock Looper class
@@ -55,6 +58,7 @@ public class RNLuciqNetworkLoggerModuleTest {
     @After
     public void tearDown() {
         // Remove static mocks
+        mockLog.close();
         mockLooper.close();
         mockMainThreadHandler.close();
     }

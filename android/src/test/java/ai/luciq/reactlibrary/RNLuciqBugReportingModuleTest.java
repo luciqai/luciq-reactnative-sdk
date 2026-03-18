@@ -1,6 +1,7 @@
 package ai.luciq.reactlibrary;
 
 import android.os.Looper;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.JavaOnlyArray;
@@ -49,6 +50,7 @@ public class RNLuciqBugReportingModuleTest {
 
     // Mock Objects
     private MockedStatic<Looper> mockLooper;
+    private MockedStatic<Log> mockLog;
     private MockedStatic <MainThreadHandler> mockMainThreadHandler;
     private MockedStatic <BugReporting> mockBugReporting;
     private MockedStatic <LuciqUtil> mockLuciqUtil;
@@ -56,6 +58,7 @@ public class RNLuciqBugReportingModuleTest {
     @Before
     public void mockMainThreadHandler() throws Exception {
         // Mock static functions
+        mockLog = mockStatic(Log.class);
         mockBugReporting = mockStatic(BugReporting.class);
         mockLooper = mockStatic(Looper.class);
         mockMainThreadHandler = mockStatic(MainThreadHandler.class);
@@ -79,6 +82,7 @@ public class RNLuciqBugReportingModuleTest {
     @After
     public void tearDown() {
         // Remove static mocks
+        mockLog.close();
         mockLooper.close();
         mockMainThreadHandler.close();
         mockBugReporting.close();
