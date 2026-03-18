@@ -32,7 +32,7 @@ export const NetworkScreen: React.FC<
 
   const { isConnected } = useNetInfo();
   const defaultRequestBaseUrl = 'https://jsonplaceholder.typicode.com/posts/';
-  const shortenLink = 'https://shorturl.at/3Ufj3';
+  const shortenLink = 'https://shorturl.at/loDCx';
   const defaultRequestUrl = `${defaultRequestBaseUrl}1`;
 
   const imageUrls = [

@@ -2,6 +2,9 @@ import LuciqConstants from './LuciqConstants';
 import { stringifyIfNotString, generateW3CHeader } from './LuciqUtils';
 
 import { getCachedW3cFlags } from './FeatureFlags';
+import { Logger } from './logger';
+
+const TAG = 'LCQ-RN-NET:';
 
 export type ProgressCallback = (totalBytesSent: number, totalBytesExpectedToSend: number) => void;
 export type NetworkDataCallback = (data: NetworkData) => void;
@@ -144,8 +147,11 @@ export default {
   },
   enableInterception() {
     if (isInterceptorEnabled) {
+      Logger.debug(TAG, 'enableInterception called but already enabled, skipping');
       return;
     }
+
+    Logger.debug(TAG, 'Enabling XHR network interception');
 
     originalXHROpen = XMLHttpRequest.prototype.open;
     originalXHRSend = XMLHttpRequest.prototype.send;
@@ -157,18 +163,20 @@ export default {
       networkData.url = url;
       networkData.method = method;
       networkMap.set(this, networkData);
+      Logger.debug(TAG, `[open] ${method} ${url}`);
       originalXHROpen.apply(this, [method, url, ...args]);
     };
 
     XMLHttpRequest.prototype.setRequestHeader = function (header, value) {
-      // According to the HTTP RFC, headers are case-insensitive, so we convert
-      // them to lower-case to make accessing headers predictable.
-      // This avoid issues like failing to get the Content-Type header for a request
-      // because the header is set as 'Content-Type' instead of 'content-type'.
       const key = header.toLowerCase();
       const networkData = networkMap.get(this);
       if (networkData) {
         networkData.requestHeaders[key] = stringifyIfNotString(value);
+      } else {
+        Logger.debug(
+          TAG,
+          `[setRequestHeader] No networkData found in WeakMap for header "${key}" — request may have been GC'd or open() was not called`,
+        );
       }
       originalXHRSetRequestHeader.apply(this, [header, value]);
     };
@@ -176,9 +184,15 @@ export default {
     XMLHttpRequest.prototype.send = function (data) {
       const networkData = networkMap.get(this);
       if (!networkData) {
+        Logger.debug(
+          TAG,
+          '[send] No networkData found in WeakMap — falling back to original send (open() was not intercepted)',
+        );
         originalXHRSend.apply(this, [data]);
         return;
       }
+
+      Logger.debug(TAG, `[send] ${networkData.method} ${networkData.url}`);
 
       const cloneNetwork = JSON.parse(JSON.stringify(networkData));
       cloneNetwork.requestBody = data ? data : '';
@@ -191,7 +205,18 @@ export default {
 
       if (this.addEventListener) {
         this.addEventListener('readystatechange', async () => {
-          if (!isInterceptorEnabled || isReported) {
+          if (!isInterceptorEnabled) {
+            Logger.debug(
+              TAG,
+              `[readystatechange] Interceptor disabled, ignoring state=${this.readyState} for ${cloneNetwork.url}`,
+            );
+            return;
+          }
+          if (isReported) {
+            Logger.debug(
+              TAG,
+              `[readystatechange] Already reported, ignoring state=${this.readyState} for ${cloneNetwork.url}`,
+            );
             return;
           }
           if (this.readyState === this.HEADERS_RECEIVED) {
@@ -224,6 +249,11 @@ export default {
               cloneNetwork.requestContentType =
                 cloneNetwork.requestHeaders['content-type'].split(';')[0];
             }
+
+            Logger.debug(
+              TAG,
+              `[readystatechange] HEADERS_RECEIVED for ${cloneNetwork.url}, contentType=${cloneNetwork.contentType}`,
+            );
           }
 
           if (this.readyState === this.DONE) {
@@ -246,12 +276,15 @@ export default {
                 typeof _response === 'string' ? _response : JSON.stringify(_response);
               cloneNetwork.responseBody = '';
 
-              // Detect a more descriptive error message.
               if (typeof _response === 'string' && _response.length > 0) {
                 cloneNetwork.errorDomain = _response;
               }
 
               cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
+              Logger.debug(
+                TAG,
+                `[readystatechange] DONE with client error for ${cloneNetwork.url}, errorDomain=${cloneNetwork.errorDomain}`,
+              );
 
               // @ts-ignore
             } else if (this._timedOut) {
@@ -260,6 +293,7 @@ export default {
               cloneNetwork.responseCode = 0;
               cloneNetwork.contentType = 'text/plain';
               cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
+              Logger.debug(TAG, `[readystatechange] DONE with timeout for ${cloneNetwork.url}`);
             }
 
             // Only set response body if not already set by error handlers
@@ -308,8 +342,17 @@ export default {
             }
 
             isReported = true;
+            Logger.debug(
+              TAG,
+              `[readystatechange] DONE for ${cloneNetwork.method} ${cloneNetwork.url} — status=${cloneNetwork.responseCode}, duration=${cloneNetwork.duration}ms, hasCallback=${!!onDoneCallback}`,
+            );
             if (onDoneCallback) {
               onDoneCallback(cloneNetwork);
+            } else {
+              Logger.debug(
+                TAG,
+                `[readystatechange] WARNING: onDoneCallback is null, network log for ${cloneNetwork.url} will be LOST`,
+              );
             }
           }
         });
@@ -318,7 +361,6 @@ export default {
           if (!isInterceptorEnabled) {
             return;
           }
-          // check if will be able to compute progress
           if (event.lengthComputable && onProgressCallback) {
             const totalBytesSent = event.loaded;
             const totalBytesExpectedToSend = event.total - event.loaded;
@@ -329,7 +371,18 @@ export default {
         this.upload.addEventListener('progress', downloadUploadProgressCallback);
 
         this.addEventListener('abort', () => {
-          if (!isInterceptorEnabled || isReported) {
+          if (!isInterceptorEnabled) {
+            Logger.debug(
+              TAG,
+              `[abort] Interceptor disabled, ignoring abort for ${cloneNetwork.url}`,
+            );
+            return;
+          }
+          if (isReported) {
+            Logger.debug(
+              TAG,
+              `[abort] Already reported via readystatechange DONE, ignoring duplicate abort for ${cloneNetwork.url}`,
+            );
             return;
           }
           isReported = true;
@@ -338,8 +391,17 @@ export default {
           cloneNetwork.errorCode = clientErrorCode;
           cloneNetwork.errorDomain = 'cancelled';
           cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
+          Logger.debug(
+            TAG,
+            `[abort] Request cancelled: ${cloneNetwork.method} ${cloneNetwork.url}, duration=${cloneNetwork.duration}ms, hasCallback=${!!onDoneCallback}`,
+          );
           if (onDoneCallback) {
             onDoneCallback(cloneNetwork);
+          } else {
+            Logger.debug(
+              TAG,
+              `[abort] WARNING: onDoneCallback is null, cancelled log for ${cloneNetwork.url} will be LOST`,
+            );
           }
         });
       }
@@ -348,14 +410,17 @@ export default {
       const traceparent = getTraceparentHeader(cloneNetwork);
       if (traceparent) {
         this.setRequestHeader('Traceparent', traceparent);
+        Logger.debug(TAG, `[send] Injected traceparent header for ${cloneNetwork.url}`);
       }
 
       originalXHRSend.apply(this, [data]);
     };
     isInterceptorEnabled = true;
+    Logger.debug(TAG, 'XHR network interception enabled');
   },
 
   disableInterception() {
+    Logger.debug(TAG, 'Disabling XHR network interception');
     isInterceptorEnabled = false;
     XMLHttpRequest.prototype.send = originalXHRSend;
     XMLHttpRequest.prototype.open = originalXHROpen;
