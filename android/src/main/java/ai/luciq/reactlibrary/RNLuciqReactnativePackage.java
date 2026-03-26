@@ -20,6 +20,8 @@ public class RNLuciqReactnativePackage implements ReactPackage {
     @NonNull
     @Override
     public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
+        RNLuciq.getInstance().setCurrentPlatform();
+
         List<NativeModule> modules = new ArrayList<>();
         modules.add(new RNLuciqReactnativeModule(reactContext));
         modules.add(new RNLuciqBugReportingModule(reactContext));
