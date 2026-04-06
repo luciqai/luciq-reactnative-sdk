@@ -2,6 +2,7 @@
 import type { LuciqConfig } from './models/LuciqConfig';
 import Report from './models/Report';
 import type { ThemeConfig } from './models/ThemeConfig';
+import { CustomSpan } from './models/CustomSpan';
 // Modules
 import * as APM from './modules/APM';
 import * as BugReporting from './modules/BugReporting';
@@ -23,6 +24,7 @@ import type { SessionMetadata } from './models/SessionMetadata';
 export * from './utils/Enums';
 export {
   Report,
+  CustomSpan,
   APM,
   BugReporting,
   CrashReporting,

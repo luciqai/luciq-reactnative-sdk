@@ -11,5 +11,6 @@
 
 @property (class, atomic, assign) BOOL networkEnabled;
 
++ (BOOL)customSpansEnabled;
 
 @end

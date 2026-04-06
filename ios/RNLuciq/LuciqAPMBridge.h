@@ -23,4 +23,17 @@
 
 - (void)setScreenRenderingEnabled:(BOOL)isEnabled;
 
+// Custom Span methods
+- (void)syncCustomSpan:(NSString *)name
+        startTimestamp:(double)startTimestamp
+          endTimestamp:(double)endTimestamp
+              resolver:(RCTPromiseResolveBlock)resolve
+              rejecter:(RCTPromiseRejectBlock)reject;
+
+- (void)isCustomSpanEnabled:(RCTPromiseResolveBlock)resolve
+                   rejecter:(RCTPromiseRejectBlock)reject;
+
+- (void)isAPMEnabled:(RCTPromiseResolveBlock)resolve
+            rejecter:(RCTPromiseRejectBlock)reject;
+
 @end

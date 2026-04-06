@@ -5,6 +5,7 @@ orbs:
   advanced-checkout: vsco/advanced-checkout@1.1.0
   node: circleci/node@5.2.0
   ios: circleci/macos@2.5.4
+  slack: circleci/slack@5.1.1
 
 references:
   release_dependencies: &release_dependencies
@@ -131,6 +132,42 @@ commands:
           name: Post comment on GitHub
           command: ./scripts/notify-github.sh "<< parameters.data >>"
 
+  notify_slack_with_release:
+    parameters:
+      channel:
+        type: string
+        default: C08F3Q30U7Q
+    steps:
+      - slack/notify:
+          channel: <<parameters.channel>>
+          event: pass
+          custom: |
+            {
+            	"blocks": [
+            		{
+                  "type": "section",
+                  "text": {
+                      "type": "mrkdwn",
+                      "text": ":react: React Native `v$(./scripts/releases/get_sdk_version.sh)` is released by <@$(./scripts/releases/get_job_approver.sh)> 🚀"
+                  }
+                },
+            		{
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "$(./scripts/releases/get_release_notes.sh)"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "cc: <@U5697F4EL> @support_team <@ULDFCC09J>"
+                  }
+                }
+              ]
+            }
+
 jobs:
   danger:
     executor:
@@ -228,8 +265,8 @@ jobs:
   # ios/upload_sourcemap.sh files respectively.
   sync_generated_files:
     macos:
-      xcode: 16.0.0
-    resource_class: macos.m1.medium.gen1
+      xcode: 16.4.0
+    resource_class: m4pro.medium
     steps:
       - advanced-checkout/shallow-checkout
       - install_node_modules
@@ -253,8 +290,8 @@ jobs:
         type: boolean
         default: false
     macos:
-      xcode: 15.4.0
-    resource_class: macos.m1.medium.gen1
+      xcode: 16.4.0
+    resource_class: m4pro.medium
     working_directory: ~/project/examples/default
     environment:
       LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
@@ -274,7 +311,7 @@ jobs:
                 -resultBundlePath coverage/result.xcresult \
                 -sdk iphonesimulator \
                 -enableCodeCoverage YES \
-                -destination 'platform=iOS Simulator,name=iPhone 15 Pro Max,OS=17.5' \
+                -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max,OS=18.5' \
                 test | xcpretty
       - when:
           condition: << parameters.collect_coverage >>
@@ -294,8 +331,8 @@ jobs:
         type: steps
         default: []
     macos:
-      xcode: 16.0.0
-    resource_class: macos.m1.medium.gen1
+      xcode: 16.4.0
+    resource_class: m4pro.medium
     environment:
       LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
     steps:
@@ -314,7 +351,7 @@ jobs:
           name: Add Maestro to PATH
           command: echo 'export PATH="$PATH:$HOME/.maestro/bin"' >> $BASH_ENV
       - ios/preboot-simulator:
-          version: '18.0'
+          version: '18.5'
           device: 'iPhone 16 Pro'
       - ios/wait-until-simulator-booted
       - ios/wait-until-simulator-booted
@@ -389,8 +426,8 @@ jobs:
       dashboard_token_env:
         type: env_var_name
     macos:
-      xcode: 15.4.0
-    resource_class: macos.m1.medium.gen1
+      xcode: 16.4.0
+    resource_class: m4pro.medium
     working_directory: ~/project
     steps:
       - advanced-checkout/shallow-checkout
@@ -415,8 +452,8 @@ jobs:
 
   publish:
     macos:
-      xcode: 15.4.0
-    resource_class: macos.m1.medium.gen1
+      xcode: 16.4.0
+    resource_class: m4pro.medium
     working_directory: '~'
     steps:
       - advanced-checkout/shallow-checkout
@@ -466,6 +503,18 @@ jobs:
           replace: $SNAPSHOT_VERSION
       - notify_github:
           data: "$(jq -Rcs '{ body: . }' scripts/snapshot-comment.md)"
+
+  release_slack_notification:
+    parameters:
+      channel:
+        type: string
+        default: C08F3Q30U7Q
+    docker:
+      - image: cimg/base:current
+    steps:
+      - advanced-checkout/shallow-checkout
+      - notify_slack_with_release:
+          channel: <<parameters.channel>>
 
 workflows:
   publish:
@@ -545,3 +594,20 @@ workflows:
                 api_endpoint: st001013mec1.instabug.com
           api_endpoint: st001013mec1.instabug.com
           dashboard_token_env: INJAZAT_TOKEN
+
+      - release_slack_notification:
+          requires:
+            - publish
+          context: slack-app
+
+  send-release-notes:
+    jobs:
+      - hold_slack_notification:
+          type: approval
+          filters:
+            branches:
+              only: ci/automate-release-notes-for-slack
+      - release_slack_notification:
+          requires:
+            - hold_slack_notification
+          context: slack-app

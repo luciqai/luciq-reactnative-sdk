@@ -90,6 +90,61 @@ RCT_EXPORT_METHOD(setScreenRenderingEnabled:(BOOL)isEnabled) {
     LCQAPM.screenRenderingEnabled = isEnabled;
 }
 
+// Syncs a custom span to the native SDK (currently logs only)
+RCT_EXPORT_METHOD(syncCustomSpan:(NSString *)name
+                  startTimestamp:(double)startTimestamp
+                  endTimestamp:(double)endTimestamp
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    @try {
+        // Convert microseconds → seconds (NSDate uses seconds)
+        NSTimeInterval startSeconds = startTimestamp / 1e6;
+        NSTimeInterval endSeconds   = endTimestamp / 1e6;
+
+        NSDate *startDate = [NSDate dateWithTimeIntervalSince1970:startSeconds];
+        NSDate *endDate   = [NSDate dateWithTimeIntervalSince1970:endSeconds];
+
+        // Add completed span to APM
+        [LCQAPM addCompletedCustomSpanWithName:name
+                                     startDate:startDate
+                                       endDate:endDate];
+
+        resolve(@YES);
+    }
+    @catch (NSException *exception) {
+        reject(
+            @"SYNC_CUSTOM_SPAN_ERROR",
+            exception.reason ?: @"Failed to sync custom span",
+            nil
+        );
+    }
+}
+
+// Checks if custom spans feature is enabled
+RCT_EXPORT_METHOD(isCustomSpanEnabled:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    @try {
+        BOOL enabled = LCQAPM.customSpansEnabled;
+        resolve(@(enabled));
+    } @catch (NSException *exception) {
+        NSLog(@"[CustomSpan] Error checking feature flag: %@", exception);
+        resolve(@NO);
+    }
+}
+
+// Checks if APM is enabled
+RCT_EXPORT_METHOD(isAPMEnabled:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    @try {
+        BOOL enabled = LCQAPM.enabled;
+        resolve(@(enabled));
+    } @catch (NSException *exception) {
+        NSLog(@"[CustomSpan] Error checking APM enabled: %@", exception);
+        resolve(@NO);
+    }
+}
+
 
 
 @synthesize description;

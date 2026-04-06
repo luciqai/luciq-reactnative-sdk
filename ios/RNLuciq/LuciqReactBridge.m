@@ -557,4 +557,16 @@ RCT_EXPORT_METHOD(setNetworkLogBodyEnabled:(BOOL)isEnabled) {
     LCQNetworkLogger.logBodyEnabled = isEnabled;
 }
 
+// Checks if Luciq SDK is initialized
+RCT_EXPORT_METHOD(isBuilt:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    @try {
+        BOOL isBuilt = YES;
+        resolve(@(isBuilt));
+    } @catch (NSException *exception) {
+        NSLog(@"[Luciq] Error checking if SDK is built: %@", exception);
+        resolve(@NO);
+    }
+}
+
 @end
