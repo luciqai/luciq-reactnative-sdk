@@ -39,16 +39,20 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
   if (!initializedRef.current) {
     initializedRef.current = true;
     // Initialize span if conditions are met
-    if (record !== false && ScreenLoadingManager.isFeatureEnabled()) {
-      const span = ScreenLoadingManager.createSpan(
-        screenName,
-        true,
-        constructorTimestampRef.current,
-      );
-      if (span) {
-        initialSpanIdRef.current = span.spanId;
-        Logger.log(`[LuciqScreenLoading] Span ${span.spanId} created in constructor`);
+    try {
+      if (record !== false && ScreenLoadingManager.isFeatureEnabled()) {
+        const span = ScreenLoadingManager.createSpan(
+          screenName,
+          true,
+          constructorTimestampRef.current,
+        );
+        if (span) {
+          initialSpanIdRef.current = span.spanId;
+          Logger.log(`[LuciqScreenLoading] Span ${span.spanId} created in constructor`);
+        }
       }
+    } catch (error) {
+      Logger.error('[LuciqScreenLoading] Failed to create span:', error);
     }
   }
 
@@ -110,59 +114,64 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
     attributesRecordedRef.current = true;
     mountTimestampRef.current = nowMicros();
 
-    // Record all timestamps
-    ScreenLoadingManager.addSpanAttribute(
-      spanId,
-      'cnst_mus_st',
-      toEpochMicros(constructorTimestampRef.current),
-    );
-
-    if (renderStartTimestampRef.current) {
+    try {
+      // Record all timestamps
       ScreenLoadingManager.addSpanAttribute(
         spanId,
-        'rnd_mus_st',
-        toEpochMicros(renderStartTimestampRef.current),
+        'cnst_mus_st',
+        toEpochMicros(constructorTimestampRef.current),
       );
-    }
 
-    ScreenLoadingManager.addSpanAttribute(
-      spanId,
-      'mnt_mus_st',
-      toEpochMicros(mountTimestampRef.current),
-    );
+      if (renderStartTimestampRef.current) {
+        ScreenLoadingManager.addSpanAttribute(
+          spanId,
+          'rnd_mus_st',
+          toEpochMicros(renderStartTimestampRef.current),
+        );
+      }
 
-    // Record all durations
-    if (renderStartTimestampRef.current) {
-      // Constructor duration: time from component init to first render start
-      const constructorDuration = renderStartTimestampRef.current - constructorTimestampRef.current;
-      ScreenLoadingManager.addSpanAttribute(spanId, 'cnst_mus', constructorDuration);
-    }
+      ScreenLoadingManager.addSpanAttribute(
+        spanId,
+        'mnt_mus_st',
+        toEpochMicros(mountTimestampRef.current),
+      );
 
-    if (renderEndTimestampRef.current && renderStartTimestampRef.current) {
-      // Render duration: time spent creating JSX
-      const renderDuration = renderEndTimestampRef.current - renderStartTimestampRef.current;
-      ScreenLoadingManager.addSpanAttribute(spanId, 'rnd_mus', renderDuration);
-    }
+      // Record all durations
+      if (renderStartTimestampRef.current) {
+        // Constructor duration: time from component init to first render start
+        const constructorDuration =
+          renderStartTimestampRef.current - constructorTimestampRef.current;
+        ScreenLoadingManager.addSpanAttribute(spanId, 'cnst_mus', constructorDuration);
+      }
 
-    if (mountTimestampRef.current && renderEndTimestampRef.current) {
-      // Mount duration: time from render complete to effect execution
-      const mountDuration = mountTimestampRef.current - renderEndTimestampRef.current;
-      ScreenLoadingManager.addSpanAttribute(spanId, 'mnt_mus', mountDuration);
-    }
+      if (renderEndTimestampRef.current && renderStartTimestampRef.current) {
+        // Render duration: time spent creating JSX
+        const renderDuration = renderEndTimestampRef.current - renderStartTimestampRef.current;
+        ScreenLoadingManager.addSpanAttribute(spanId, 'rnd_mus', renderDuration);
+      }
 
-    Logger.log(`[LuciqScreenLoading] Lifecycle measurements for span ${spanId}:`, {
-      constructor_us: renderStartTimestampRef.current
-        ? renderStartTimestampRef.current - constructorTimestampRef.current
-        : undefined,
-      render_us:
-        renderEndTimestampRef.current && renderStartTimestampRef.current
-          ? renderEndTimestampRef.current - renderStartTimestampRef.current
+      if (mountTimestampRef.current && renderEndTimestampRef.current) {
+        // Mount duration: time from render complete to effect execution
+        const mountDuration = mountTimestampRef.current - renderEndTimestampRef.current;
+        ScreenLoadingManager.addSpanAttribute(spanId, 'mnt_mus', mountDuration);
+      }
+
+      Logger.log(`[LuciqScreenLoading] Lifecycle measurements for span ${spanId}:`, {
+        constructor_us: renderStartTimestampRef.current
+          ? renderStartTimestampRef.current - constructorTimestampRef.current
           : undefined,
-      mount_us:
-        mountTimestampRef.current && renderEndTimestampRef.current
-          ? mountTimestampRef.current - renderEndTimestampRef.current
-          : undefined,
-    });
+        render_us:
+          renderEndTimestampRef.current && renderStartTimestampRef.current
+            ? renderEndTimestampRef.current - renderStartTimestampRef.current
+            : undefined,
+        mount_us:
+          mountTimestampRef.current && renderEndTimestampRef.current
+            ? mountTimestampRef.current - renderEndTimestampRef.current
+            : undefined,
+      });
+    } catch (error) {
+      Logger.error(`[LuciqScreenLoading] Failed to record attributes for span ${spanId}:`, error);
+    }
 
     // End the span — mark as measured synchronously to guard against unmount race
     setIsMeasured(true);

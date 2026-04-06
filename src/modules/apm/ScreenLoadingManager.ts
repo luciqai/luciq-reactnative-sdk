@@ -166,7 +166,11 @@ class ScreenLoadingManagerClass {
     this.activeSpans.set(spanId, span);
 
     // Register with native for frame tracking
-    NativeAPM.setActiveScreenSpanId(spanId);
+    try {
+      NativeAPM.setActiveScreenSpanId(spanId);
+    } catch (error) {
+      Logger.error(`[ScreenLoading] Failed to set active span ID ${spanId}:`, error);
+    }
     if (!isManual) {
       this.activeSpanId = spanId;
     }
@@ -264,21 +268,25 @@ class ScreenLoadingManagerClass {
     Logger.log('[ScreenLoading] Measurement:', JSON.stringify(logData, null, 2));
 
     // Sync screen loading data to native layer (also pass converted object)
-    if (span.isManual) {
-      NativeAPM.syncManualScreenLoading(
-        span.screenName,
-        startEpochUs,
-        Math.round(span.ttid!),
-        attributesObject,
-      );
-    } else {
-      NativeAPM.syncScreenLoading(
-        Number(span.spanId),
-        span.screenName,
-        startEpochUs,
-        Math.round(span.ttid!),
-        attributesObject,
-      );
+    try {
+      if (span.isManual) {
+        NativeAPM.syncManualScreenLoading(
+          span.screenName,
+          startEpochUs,
+          Math.round(span.ttid!),
+          attributesObject,
+        );
+      } else {
+        NativeAPM.syncScreenLoading(
+          Number(span.spanId),
+          span.screenName,
+          startEpochUs,
+          Math.round(span.ttid!),
+          attributesObject,
+        );
+      }
+    } catch (error) {
+      Logger.error(`[ScreenLoading] Failed to sync screen loading for span ${span.spanId}:`, error);
     }
   }
 

@@ -208,7 +208,11 @@ export const addCompletedCustomSpan = async (
  * @param isEnabled
  */
 export const setScreenLoadingEnabled = (isEnabled: boolean) => {
-  NativeAPM.setScreenLoadingEnabled(isEnabled);
+  try {
+    NativeAPM.setScreenLoadingEnabled(isEnabled);
+  } catch (error) {
+    Logger.error('[APM] Failed to set screen loading enabled:', error);
+  }
 };
 
 /**
