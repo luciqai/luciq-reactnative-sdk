@@ -1,4 +1,3 @@
-
 package ai.luciq.reactlibrary;
 
 import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
@@ -15,6 +14,8 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
@@ -33,7 +34,6 @@ public class RNLuciqAPMModule extends EventEmitterModule {
     public RNLuciqAPMModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
     }
-
 
     @Nonnull
     @Override
@@ -310,24 +310,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
      *                            debugging and troubleshooting network-related issues.
      */
     @ReactMethod
-    private void networkLogAndroid(final double requestStartTime,
-                                   final double requestDuration,
-                                   final String requestHeaders,
-                                   final String requestBody,
-                                   final double requestBodySize,
-                                   final String requestMethod,
-                                   final String requestUrl,
-                                   final String requestContentType,
-                                   final String responseHeaders,
-                                   final String responseBody,
-                                   final double responseBodySize,
-                                   final double statusCode,
-                                   final String responseContentType,
-                                   @Nullable final String errorDomain,
-                                   @Nullable final ReadableMap w3cAttributes,
-                                   @Nullable final String gqLCQueryName,
-                                   @Nullable final String serverErrorMessage
-    ) {
+    private void networkLogAndroid(final double requestStartTime, final double requestDuration, final String requestHeaders, final String requestBody, final double requestBodySize, final String requestMethod, final String requestUrl, final String requestContentType, final String responseHeaders, final String responseBody, final double responseBodySize, final double statusCode, final String responseContentType, @Nullable final String errorDomain, @Nullable final ReadableMap w3cAttributes, @Nullable final String gqLCQueryName, @Nullable final String serverErrorMessage) {
         try {
             APMNetworkLogger networkLogger = new APMNetworkLogger();
 
@@ -351,37 +334,11 @@ public class RNLuciqAPMModule extends EventEmitterModule {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            APMCPNetworkLog.W3CExternalTraceAttributes w3cExternalTraceAttributes =
-                    new APMCPNetworkLog.W3CExternalTraceAttributes(
-                            isW3cHeaderFound,
-                            partialId,
-                            networkStartTimeInSeconds,
-                            w3cAttributes.getString("w3cGeneratedHeader"),
-                            w3cAttributes.getString("w3cCaughtHeader")
-                    );
+            APMCPNetworkLog.W3CExternalTraceAttributes w3cExternalTraceAttributes = new APMCPNetworkLog.W3CExternalTraceAttributes(isW3cHeaderFound, partialId, networkStartTimeInSeconds, w3cAttributes.getString("w3cGeneratedHeader"), w3cAttributes.getString("w3cCaughtHeader"));
             try {
                 Method method = getMethod(Class.forName("ai.luciq.apm.networking.APMNetworkLogger"), "log", long.class, long.class, String.class, String.class, long.class, String.class, String.class, String.class, String.class, String.class, long.class, int.class, String.class, String.class, String.class, String.class, APMCPNetworkLog.W3CExternalTraceAttributes.class);
                 if (method != null) {
-                    method.invoke(
-                            networkLogger,
-                            (long) requestStartTime * 1000,
-                            (long) requestDuration,
-                            requestHeaders,
-                            requestBody,
-                            (long) requestBodySize,
-                            requestMethod,
-                            requestUrl,
-                            requestContentType,
-                            responseHeaders,
-                            responseBody,
-                            (long) responseBodySize,
-                            (int) statusCode,
-                            responseContentType,
-                            errorMessage,
-                            gqLCQueryName,
-                            serverErrorMessage,
-                            w3cExternalTraceAttributes
-                    );
+                    method.invoke(networkLogger, (long) requestStartTime * 1000, (long) requestDuration, requestHeaders, requestBody, (long) requestBodySize, requestMethod, requestUrl, requestContentType, responseHeaders, responseBody, (long) responseBodySize, (int) statusCode, responseContentType, errorMessage, gqLCQueryName, serverErrorMessage, w3cExternalTraceAttributes);
                 } else {
                     Log.e("IB-CP-Bridge", "APMNetworkLogger.log was not found by reflection");
                 }
@@ -492,5 +449,186 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 }
             }
         });
+    }
+
+    /**
+     * Initialize screen frame tracking for Screen Loading feature
+     */
+    @ReactMethod
+    public void initScreenFrameTracking(Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                LuciqScreenLoadingFrameTracker.getInstance().initializeFrameTracking();
+                promise.resolve(null);
+            }
+        });
+    }
+
+    /**
+     * Set the active screen span ID for frame tracking
+     *
+     * @param spanId the span ID to track
+     */
+    @ReactMethod
+    public void setActiveScreenSpanId(String spanId) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                LuciqScreenLoadingFrameTracker.getInstance().startTrackingForSpanId(spanId);
+            }
+        });
+    }
+
+    /**
+     * Get the frame timestamp for a given span ID
+     *
+     * @param spanId  the span ID to retrieve the timestamp for
+     * @param promise promise to resolve with the timestamp
+     */
+    @ReactMethod
+    public void getScreenTimeToDisplay(String spanId, Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                Long timestamp = LuciqScreenLoadingFrameTracker.getInstance().getFrameTimestampForSpanId(spanId);
+                promise.resolve(timestamp != null ? timestamp.doubleValue() : null);
+            }
+        });
+    }
+
+    /**
+     * Check if Screen Loading feature is enabled
+     *
+     * @param promise promise to resolve with enabled status
+     */
+    @ReactMethod
+    public void isScreenLoadingEnabled(Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    InternalAPM._isFeatureEnabledCP(APMFeature.SCREEN_LOADING, "LuciqCaptureScreenLoading", new FeatureAvailabilityCallback() {
+                        @Override
+                        public void invoke(boolean isFeatureAvailable) {
+                            promise.resolve(isFeatureAvailable);
+                        }
+                    });
+                } catch (Exception e) {
+                    promise.resolve(false);
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    /**
+     * Enables or disables screen loading
+     *
+     * @param isEnabled boolean indicating enabled or disabled.
+     */
+    @ReactMethod
+    public void setScreenLoadingEnabled(boolean isEnabled) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    APM.setScreenLoadingEnabled(isEnabled);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    /**
+     * Syncs screen loading data to native layer for reporting
+     *
+     * @param spanId         the span ID
+     * @param screenName     the name of the screen
+     * @param startTimestamp the start timestamp in microseconds
+     * @param duration_us    the time to initial display in microseconds
+     * @param stages         custom attributes attached to the span
+     */
+    private static final String[] STAGE_KEYS = {"cnst_mus_st", "cnst_mus", "rnd_mus_st", "rnd_mus", "mnt_mus_st", "mnt_mus", "lyt_mus_st", "lyt_mus"};
+
+    private Map<String, Long> buildStagesMap(ReadableMap stages) {
+        final Map<String, Long> stagesMap = new HashMap<>();
+        for (String key : STAGE_KEYS) {
+            if (stages.hasKey(key)) stagesMap.put(key, (long) stages.getDouble(key));
+        }
+        return stagesMap;
+    }
+
+    @ReactMethod
+    public void syncScreenLoading(double spanId, String screenName, double startTimestamp, double duration_us, ReadableMap stages) {
+        try {
+            final Map<String, Long> stagesMap = buildStagesMap(stages);
+            InternalAPM._reportScreenLoadingCP((long) startTimestamp, (long) duration_us, (long) spanId, stagesMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Syncs manual screen loading measurements to native layer for reporting.
+     * Unlike syncScreenLoading, this does not require a span ID.
+     *
+     * @param screenName     the name of the screen
+     * @param startTimestamp the start timestamp in microseconds
+     * @param duration_us    the duration in microseconds
+     * @param stages         custom attributes attached to the measurement
+     */
+    @ReactMethod
+    public void syncManualScreenLoading(String screenName, double startTimestamp, double duration_us, ReadableMap stages) {
+        try {
+            final Map<String, Long> stagesMap = buildStagesMap(stages);
+            InternalAPM._reportManualScreenLoadingCP(screenName, (long) startTimestamp, (long) duration_us, stagesMap);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Check if Screen Loading feature is enabled
+     *
+     * @param promise promise to resolve with enabled status
+     */
+    @ReactMethod
+    public void isEndScreenLoadingEnabled(Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    InternalAPM._isFeatureEnabledCP(APMFeature.END_SCREEN_LOADING, "LuciqCaptureScreenLoading", new FeatureAvailabilityCallback() {
+                        @Override
+                        public void invoke(boolean isFeatureAvailable) {
+                            promise.resolve(isFeatureAvailable);
+                        }
+                    });
+                } catch (Exception e) {
+                    promise.resolve(false);
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    /**
+     * This method is responsible for extend the end time if the screen loading custom
+     * trace. It takes two parameters:
+     *
+     * @param timeStampMicro: A number representing the timestamp in microseconds when the screen loading
+     *                        custom trace is ending.
+     * @param uiTraceId:      A number representing the unique identifier for the UI trace associated with the
+     *                        screen loading.
+     */
+    @ReactMethod
+    public void endScreenLoading(double timeStampMicro, double uiTraceId) {
+        try {
+            InternalAPM._endScreenLoadingCP((long) timeStampMicro, (long) uiTraceId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

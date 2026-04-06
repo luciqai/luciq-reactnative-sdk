@@ -8,6 +8,7 @@
 #import <LuciqSDK/LCQTypes.h>
 #import <React/RCTUIManager.h>
 #import "Util/LCQAPM+PrivateAPIs.h"
+#import "LuciqScreenLoadingFrameTracker.h"
 
 @implementation LuciqAPMBridge
 
@@ -145,7 +146,88 @@ RCT_EXPORT_METHOD(isAPMEnabled:(RCTPromiseResolveBlock)resolve
     }
 }
 
+// Screen Loading methods
+RCT_EXPORT_METHOD(initScreenFrameTracking:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[LuciqScreenLoadingFrameTracker sharedInstance] initializeFrameTracking];
+        resolve(nil);
+    });
+}
 
+RCT_EXPORT_METHOD(setActiveScreenSpanId:(NSString *)spanId)
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [[LuciqScreenLoadingFrameTracker sharedInstance] startTrackingForSpanId:spanId];
+    });
+}
+
+RCT_EXPORT_METHOD(getScreenTimeToDisplay:(NSString *)spanId
+                  resolver:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject)
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSNumber *timestamp = [[LuciqScreenLoadingFrameTracker sharedInstance] getFrameTimestampForSpanId:spanId];
+        resolve(timestamp);
+    });
+}
+
+RCT_EXPORT_METHOD(isScreenLoadingEnabled:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject){
+
+    BOOL isScreenLoadingEnabled = LCQAPM.screenLoadingEnabled;
+    resolve(@(isScreenLoadingEnabled));
+}
+
+RCT_EXPORT_METHOD(isEndScreenLoadingEnabled:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject){
+
+    BOOL isEndScreenLoadingEnabled = LCQAPM.endScreenLoadingEnabled;
+    resolve(@(isEndScreenLoadingEnabled));
+}
+
+// uiTraceId is unused on iOS but required to keep the React Native Bridge call
+// signature consistent with Android, which uses it.
+RCT_EXPORT_METHOD(endScreenLoading:(double)timeStampMicro
+                  uiTraceId:(double)uiTraceId){
+    [LCQAPM endScreenLoadingCPWithEndTimestampMUS:timeStampMicro];
+}
+
+RCT_EXPORT_METHOD(setScreenLoadingEnabled:(BOOL)isEnabled){
+    LCQAPM.screenLoadingEnabled = isEnabled;
+}
+
+- (NSMutableDictionary<NSString *, NSNumber *> *)buildStagesMapFromAttributes:(NSDictionary *)stages {
+    NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [NSMutableDictionary dictionary];
+    NSArray<NSString *> *keys = @[@"cnst_mus_st" , @"cnst_mus",@"rnd_mus_st", @"rnd_mus", @"mnt_mus_st" ,@"mnt_mus", @"lyt_mus_st" , @"lyt_mus"];
+    for (NSString *key in keys) {
+        if (stages[key])
+            stagesMap[key] = @([stages[key] longLongValue]);
+    }
+    return stagesMap;
+}
+
+// Syncs screen loading data to native layer for reporting
+RCT_EXPORT_METHOD(syncScreenLoading:(double)spanId
+                  screenName:(NSString *)screenName
+                  startTimestamp:(double)startTimestamp
+                  ttid_us:(double)ttid_us
+                  attributes:(NSDictionary *)stages){
+
+    NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [self buildStagesMapFromAttributes:stages];
+    [LCQAPM reportScreenLoadingCPWithStartTimestampMUS:startTimestamp durationMUS:ttid_us stages:stagesMap];
+}
+
+// Syncs manual screen loading measurements to native layer for reporting (no span ID)
+RCT_EXPORT_METHOD(syncManualScreenLoading:(NSString *)screenName
+                  startTimestamp:(double)startTimestamp
+                  ttid_mus:(double)ttid_mus
+                  attributes:(NSDictionary *)stages){
+
+    NSMutableDictionary<NSString *, NSNumber *> *stagesMap = [self buildStagesMapFromAttributes:stages];
+    [LCQAPM reportScreenLoadingCPUITraceWithName:screenName screenLoadingStartMUS:startTimestamp screenLoadingDurationMUS:ttid_mus stages:stagesMap];
+}
 
 @synthesize description;
 
