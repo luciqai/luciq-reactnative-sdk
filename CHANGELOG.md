@@ -2,6 +2,13 @@
 
 ## [19.4.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.4.0...19.3.0)
 
+### Added
+
+- **WebView Monitoring**: Added comprehensive WebView monitoring to capture performance metrics, user interactions, and network requests from WebView components.
+  - `Luciq.setWebViewMonitoringEnabled(boolean)` - Enable/disable master WebView monitoring
+  - `Luciq.setWebViewUserInteractionsTrackingEnabled(boolean)` - Enable/disable user interaction tracking in WebViews
+  - `Luciq.setWebViewNetworkTrackingEnabled(boolean`) - Enable/disable network logging from WebViews
+
 ### Changed
 
 - Bump Luciq iOS SDK to v19.5.1 ([#42](https://github.com/luciqai/luciq-reactnative-sdk/pull/42)). [See release notes](https://github.com/luciqai/Luciq-iOS-sdk/releases/tag/19.5.1).
