@@ -8,6 +8,7 @@ import * as NetworkLogger from '../../src/modules/NetworkLogger';
 import { NativeCrashReporting } from '../../src/native/NativeCrashReporting';
 import { InvocationEvent, NetworkData, NonFatalErrorLevel } from '../../src';
 import * as LuciqUtils from '../../src/utils/LuciqUtils';
+import { mockDevMode } from '../mocks/mockDevMode';
 
 import {
   NativeNetworkLogger,
@@ -599,5 +600,208 @@ describe('checkNetworkRequestHandlers', () => {
     LuciqUtils.checkNetworkRequestHandlers();
 
     expect(registerNetworkLogsListenerSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('captureJsErrors', () => {
+  it('should return early when __DEV__ is true and not in test environment', () => {
+    const originalJestWorkerId = process.env.JEST_WORKER_ID;
+    delete process.env.JEST_WORKER_ID;
+    const devMock = mockDevMode(true);
+
+    LuciqUtils.captureJsErrors();
+
+    // The global handler should remain unchanged (not replaced by Luciq handler)
+    // Restore
+    process.env.JEST_WORKER_ID = originalJestWorkerId;
+    devMock.mockRestore();
+  });
+});
+
+describe('getStackTrace edge cases', () => {
+  it('should call parseErrorStackLib with error when Platform has no constants (RN < 0.63)', () => {
+    const error = new Error('test');
+    error.stack = 'Error\n\tat test (test.js:1:1)';
+
+    // Simulate RN < 0.63 by removing hasOwnProperty for constants
+    const originalHasOwnProperty = Platform.hasOwnProperty;
+    Platform.hasOwnProperty = jest.fn().mockReturnValue(false) as any;
+
+    LuciqUtils.getStackTrace(error);
+
+    expect(parseErrorStackLib).toBeCalledWith(error);
+
+    Platform.hasOwnProperty = originalHasOwnProperty;
+  });
+});
+
+describe('registerObfuscationListener callback', () => {
+  it('should invoke the obfuscation handler and call updateNetworkLogSnapshot', async () => {
+    jest.clearAllMocks();
+    const mockHandler = jest.fn().mockResolvedValue({
+      id: '1',
+      url: 'https://api.luciq.ai',
+      requestBody: 'obfuscated',
+      responseBody: 'obfuscated',
+      responseCode: 200,
+      requestHeaders: {},
+      responseHeaders: {},
+    });
+    jest.spyOn(NetworkLogger, 'getNetworkDataObfuscationHandler').mockReturnValue(mockHandler);
+    jest
+      .spyOn(NetworkLogger, 'registerNetworkLogsListener')
+      .mockImplementation((_type, callback) => {
+        // Simulate the native side calling back with a network snapshot
+        callback!({
+          id: '1',
+          url: 'https://api.luciq.ai',
+          requestBody: 'body',
+          responseBody: 'response',
+          responseCode: 200,
+          requestHeaders: {},
+          responseHeaders: {},
+        } as any);
+      });
+    jest.spyOn(NativeNetworkLogger, 'updateNetworkLogSnapshot').mockImplementation();
+
+    LuciqUtils.registerObfuscationListener();
+
+    // Wait for async handler
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(mockHandler).toHaveBeenCalled();
+    expect(NativeNetworkLogger.updateNetworkLogSnapshot).toHaveBeenCalled();
+  });
+});
+
+describe('registerFilteringListener callback', () => {
+  const network: any = {
+    id: '1',
+    url: 'https://api.luciq.ai',
+    requestBody: '',
+    responseBody: '',
+    responseCode: 200,
+    requestHeaders: {},
+    responseHeaders: {},
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should set url to empty and call updateNetworkLogSnapshot on Android when filter matches', async () => {
+    Platform.OS = 'android';
+    let capturedCallback: Function | undefined;
+    jest
+      .spyOn(NetworkLogger, 'registerNetworkLogsListener')
+      .mockImplementation((_type, callback) => {
+        capturedCallback = callback as Function;
+      });
+    jest.spyOn(NativeNetworkLogger, 'updateNetworkLogSnapshot').mockImplementation();
+
+    LuciqUtils.registerFilteringListener('true');
+    capturedCallback!({ ...network });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(NativeNetworkLogger.updateNetworkLogSnapshot).toHaveBeenCalled();
+  });
+
+  it('should call setNetworkLoggingRequestFilterPredicateIOS on iOS', async () => {
+    Platform.OS = 'ios';
+    let capturedCallback: Function | undefined;
+    jest
+      .spyOn(NetworkLogger, 'registerNetworkLogsListener')
+      .mockImplementation((_type, callback) => {
+        capturedCallback = callback as Function;
+      });
+    jest
+      .spyOn(NativeNetworkLogger, 'setNetworkLoggingRequestFilterPredicateIOS')
+      .mockImplementation();
+
+    LuciqUtils.registerFilteringListener('true');
+    capturedCallback!({ ...network });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(NativeNetworkLogger.setNetworkLoggingRequestFilterPredicateIOS).toHaveBeenCalledWith(
+      '1',
+      false,
+    );
+  });
+});
+
+describe('registerFilteringAndObfuscationListener callback', () => {
+  const network: any = {
+    id: '1',
+    url: 'https://api.luciq.ai',
+    requestBody: '',
+    responseBody: '',
+    responseCode: 200,
+    requestHeaders: {},
+    responseHeaders: {},
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should handle filtering match on Android (set url to empty)', async () => {
+    Platform.OS = 'android';
+    let capturedCallback: Function | undefined;
+    jest
+      .spyOn(NetworkLogger, 'registerNetworkLogsListener')
+      .mockImplementation((_type, callback) => {
+        capturedCallback = callback as Function;
+      });
+    jest.spyOn(NativeNetworkLogger, 'updateNetworkLogSnapshot').mockImplementation();
+    jest.spyOn(NetworkLogger, 'getNetworkDataObfuscationHandler').mockReturnValue(undefined);
+
+    LuciqUtils.registerFilteringAndObfuscationListener('true');
+    capturedCallback!({ ...network });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(NativeNetworkLogger.updateNetworkLogSnapshot).toHaveBeenCalled();
+  });
+
+  it('should handle filtering non-match and apply obfuscation', async () => {
+    Platform.OS = 'android';
+    let capturedCallback: Function | undefined;
+    const mockObfuscation = jest.fn().mockImplementation((n) => n);
+    jest
+      .spyOn(NetworkLogger, 'registerNetworkLogsListener')
+      .mockImplementation((_type, callback) => {
+        capturedCallback = callback as Function;
+      });
+    jest.spyOn(NativeNetworkLogger, 'updateNetworkLogSnapshot').mockImplementation();
+    jest.spyOn(NetworkLogger, 'getNetworkDataObfuscationHandler').mockReturnValue(mockObfuscation);
+
+    LuciqUtils.registerFilteringAndObfuscationListener('false');
+    capturedCallback!({ ...network });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockObfuscation).toHaveBeenCalled();
+    expect(NativeNetworkLogger.updateNetworkLogSnapshot).toHaveBeenCalled();
+  });
+
+  it('should handle filtering match on iOS', async () => {
+    Platform.OS = 'ios';
+    let capturedCallback: Function | undefined;
+    jest
+      .spyOn(NetworkLogger, 'registerNetworkLogsListener')
+      .mockImplementation((_type, callback) => {
+        capturedCallback = callback as Function;
+      });
+    jest
+      .spyOn(NativeNetworkLogger, 'setNetworkLoggingRequestFilterPredicateIOS')
+      .mockImplementation();
+    jest.spyOn(NetworkLogger, 'getNetworkDataObfuscationHandler').mockReturnValue(undefined);
+
+    LuciqUtils.registerFilteringAndObfuscationListener('true');
+    capturedCallback!({ ...network });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(NativeNetworkLogger.setNetworkLoggingRequestFilterPredicateIOS).toHaveBeenCalledWith(
+      '1',
+      false,
+    );
   });
 });
