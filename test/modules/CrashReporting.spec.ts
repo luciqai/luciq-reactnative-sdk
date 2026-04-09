@@ -43,4 +43,28 @@ describe('CrashReporting Module', () => {
 
     expect(NativeCrashReporting.setNDKCrashesEnabled).not.toBeCalled();
   });
+
+  it('should warn and return when reportError is called with a non-Error object', () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation();
+
+    // @ts-ignore - intentionally passing non-Error
+    const result = CrashReporting.reportError('not an error');
+
+    expect(result).toBeUndefined();
+    expect(NativeCrashReporting.sendHandledJSCrash).not.toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('should use default NonFatalErrorLevel.error when no level is provided', async () => {
+    const error = new TypeError('Invalid type');
+
+    await CrashReporting.reportError(error);
+    const crashData = getCrashDataFromError(error);
+    expect(NativeCrashReporting.sendHandledJSCrash).toBeCalledWith(
+      crashData,
+      undefined,
+      undefined,
+      NonFatalErrorLevel.error,
+    );
+  });
 });

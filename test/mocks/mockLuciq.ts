@@ -79,6 +79,9 @@ const mockLuciq: LuciqNativeModule = {
   setTheme: jest.fn(),
   setFullscreen: jest.fn(),
   isBuilt: jest.fn().mockResolvedValue(true),
+  setWebViewMonitoringEnabled: jest.fn(),
+  setWebViewNetworkTrackingEnabled: jest.fn(),
+  setWebViewUserInteractionsTrackingEnabled: jest.fn(),
 };
 
 export default mockLuciq;
