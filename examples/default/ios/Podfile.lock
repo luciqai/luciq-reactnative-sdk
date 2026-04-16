@@ -1625,7 +1625,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNLuciq (19.4.0):
+  - RNLuciq (19.4.1):
     - Luciq (= 19.5.1)
     - React-Core
   - RNReanimated (3.16.1):
