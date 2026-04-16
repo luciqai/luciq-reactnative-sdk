@@ -1,19 +1,16 @@
 # Changelog
 
-## [19.4.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.4.0...19.3.0)
+## [19.4.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.4.0...19.3.0)
 
 ### Added
 
-- **WebView Monitoring**: Added comprehensive WebView monitoring to capture performance metrics, user interactions, and network requests from WebView components.
-  - `Luciq.setWebViewMonitoringEnabled(boolean)` - Enable/disable master WebView monitoring
-  - `Luciq.setWebViewUserInteractionsTrackingEnabled(boolean)` - Enable/disable user interaction tracking in WebViews
-  - `Luciq.setWebViewNetworkTrackingEnabled(boolean`) - Enable/disable network logging from WebViews
-
-### Changed
-
-- Bump Luciq iOS SDK to v19.5.1 ([#42](https://github.com/luciqai/luciq-reactnative-sdk/pull/42)). [See release notes](https://github.com/luciqai/Luciq-iOS-sdk/releases/tag/19.5.1).
-
-- Bump Luciq Android SDK to v19.4.0 ([#42](https://github.com/luciqai/luciq-reactnative-sdk/pull/42)). [See release notes](https://github.com/luciqai/Luciq-Android-sdk/releases/tag/v19.4.0).
+- **Custom Spans**: New feature to manually instrument code paths for performance tracking
+  - `APM.startCustomSpan(name)` - Start a custom span and return a span object
+  - `CustomSpan.end()` - End the span and report to SDK
+  - `APM.addCompletedCustomSpan(name, startDate, endDate)` - Record a pre-completed span
+  - Support for up to 100 concurrent spans
+  - Comprehensive validation (name length, empty checks, timestamp validation)
+  - Feature flag support to enable/disable custom spans
 
 ## [19.3.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.3.0...19.2.1)
 
