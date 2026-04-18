@@ -89,15 +89,11 @@ public class RNLuciqNetworkLoggerModuleTest {
             internalAPMMock.when(() -> InternalAPM._isFeatureEnabledCP(CP_NATIVE_INTERCEPTION_ENABLED, "")).thenReturn(true);
 
             // Execute the method
-            rnLuciqNetworkLoggerModule.isNativeInterceptionEnabled(mockPromise);
+            boolean result = rnLuciqNetworkLoggerModule.isNativeInterceptionEnabled();
 
-            // Capture the Promise.resolve() call
-            ArgumentCaptor<Boolean> captor = ArgumentCaptor.forClass(Boolean.class);
-            verify(mockPromise).resolve(captor.capture());
-
-            // Assert that true was passed to resolve
+            // Assert that true was returned
             internalAPMMock.verify(() -> InternalAPM._isFeatureEnabledCP(CP_NATIVE_INTERCEPTION_ENABLED, ""));
-            assertTrue(captor.getValue());
+            assertTrue(result);
         }
     }
 
@@ -108,14 +104,10 @@ public class RNLuciqNetworkLoggerModuleTest {
             internalAPMMock.when(() -> InternalAPM._isFeatureEnabledCP(CP_NATIVE_INTERCEPTION_ENABLED, "")).thenReturn(false);
 
             // Execute the method
-            rnLuciqNetworkLoggerModule.isNativeInterceptionEnabled(mockPromise);
+            boolean result = rnLuciqNetworkLoggerModule.isNativeInterceptionEnabled();
 
-            // Capture the Promise.resolve() call
-            ArgumentCaptor<Boolean> captor = ArgumentCaptor.forClass(Boolean.class);
-            verify(mockPromise).resolve(captor.capture());
-
-            // Assert that false was passed to resolve
-            assertFalse(captor.getValue());
+            // Assert that false was returned
+            assertFalse(result);
         }
     }
 
@@ -127,14 +119,10 @@ public class RNLuciqNetworkLoggerModuleTest {
             internalAPMMock.when(() -> InternalAPM._isFeatureEnabledCP(anyString(), anyString())).thenThrow(new RuntimeException("Error"));
 
             // Execute the method
-            rnLuciqNetworkLoggerModule.isNativeInterceptionEnabled(mockPromise);
+            boolean result = rnLuciqNetworkLoggerModule.isNativeInterceptionEnabled();
 
-            // Capture the Promise.resolve() call in case of an exception
-            ArgumentCaptor<Boolean> captor = ArgumentCaptor.forClass(Boolean.class);
-            verify(mockPromise).resolve(captor.capture());
-
-            // Assert that false was passed to resolve when exception occurs
-            assertFalse(captor.getValue());
+            // Assert that false was returned when exception occurs
+            assertFalse(result);
         }
     }
 
@@ -198,7 +186,7 @@ public class RNLuciqNetworkLoggerModuleTest {
     public void testRegisterNetworkLogsListenerCalled() {
         try (MockedStatic<InternalAPM> internalAPMMock = mockStatic(InternalAPM.class)) {
             // Run the method
-            rnLuciqNetworkLoggerModule.registerNetworkLogsListener();
+            rnLuciqNetworkLoggerModule.registerNetworkLogsListener(null);
 
             // Verify the sanitizer was registered
             internalAPMMock.verify(() -> InternalAPM._registerNetworkLogSanitizer(any()));

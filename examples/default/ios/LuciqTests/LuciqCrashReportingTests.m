@@ -38,7 +38,7 @@
   };
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
 
-  [self.bridge sendJSCrash:stackTrace resolver:resolve rejecter:reject];
+  [self.bridge sendJSCrash:stackTrace resolve:resolve reject:reject];
 
   [self waitForExpectations:@[expectation] timeout:1];
   OCMVerify([self.mCrashReporting cp_reportFatalCrashWithStackTrace:stackTrace]);
@@ -53,7 +53,7 @@
   LCQNonFatalLevel LCQNonFatalLevel = LCQNonFatalLevelInfo;
 
 
-  [self.bridge sendHandledJSCrash:jsonCrash userAttributes:userAttributes  fingerprint:fingerPrint nonFatalExceptionLevel:LCQNonFatalLevel resolver:resolve rejecter:reject];
+  [self.bridge sendHandledJSCrash:jsonCrash userAttributes:userAttributes  fingerprint:fingerPrint nonFatalExceptionLevel:LCQNonFatalLevel resolve:resolve reject:reject];
 
     OCMVerify([self.mCrashReporting cp_reportNonFatalCrashWithStackTrace:jsonCrash
            level:LCQNonFatalLevelInfo
