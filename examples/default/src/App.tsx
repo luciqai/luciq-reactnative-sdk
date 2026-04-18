@@ -70,9 +70,6 @@ export const App: React.FC = () => {
       Luciq.setReproStepsConfig({ all: ReproStepsMode.enabled });
       Luciq.enableAutoMasking([AutoMaskingType.none]);
 
-      Luciq.setWebViewMonitoringEnabled(true);
-      Luciq.setWebViewNetworkTrackingEnabled(true);
-      Luciq.setWebViewUserInteractionsTrackingEnabled(true);
     } catch (error) {
       console.error('Luciq initialization failed:', error);
     }
