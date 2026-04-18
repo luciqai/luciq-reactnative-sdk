@@ -69,7 +69,6 @@ export const App: React.FC = () => {
       Luciq.setWelcomeMessageMode(WelcomeMessageMode.disabled);
       Luciq.setReproStepsConfig({ all: ReproStepsMode.enabled });
       Luciq.enableAutoMasking([AutoMaskingType.none]);
-
     } catch (error) {
       console.error('Luciq initialization failed:', error);
     }

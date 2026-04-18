@@ -63,11 +63,7 @@ export interface Spec extends TurboModule {
   setNetworkLoggingEnabled(isEnabled: boolean): void;
   setNetworkLogBodyEnabled(isEnabled: boolean): void;
 
-  setReproStepsConfig(
-    bugMode: string,
-    crashMode: string,
-    sessionReplay: string,
-  ): void;
+  setReproStepsConfig(bugMode: string, crashMode: string, sessionReplay: string): void;
   setTrackUserSteps(isEnabled: boolean): void;
   reportScreenChange(firstScreen: string): void;
   reportCurrentViewChange(screenName: string): void;
