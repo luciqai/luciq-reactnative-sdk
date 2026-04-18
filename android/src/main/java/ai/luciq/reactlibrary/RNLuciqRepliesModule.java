@@ -1,6 +1,5 @@
 package ai.luciq.reactlibrary;
 
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
@@ -9,14 +8,13 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import ai.luciq.chat.Replies;
 import ai.luciq.library.Feature;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RNLuciqRepliesModule extends EventEmitterModule {
+public class RNLuciqRepliesModule extends RNLuciqRepliesBaseSpec {
 
     public RNLuciqRepliesModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
@@ -26,16 +24,6 @@ public class RNLuciqRepliesModule extends EventEmitterModule {
     @Override
     public String getName() {
         return "LCQReplies";
-    }
-
-    @ReactMethod
-    public void addListener(String event) {
-        super.addListener(event);
-    }
-
-    @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
     }
 
     @ReactMethod
@@ -222,12 +210,12 @@ public class RNLuciqRepliesModule extends EventEmitterModule {
      * @param notificationIcon the notification icon resource ID
      */
     @ReactMethod
-    public void setNotificationIcon(final int notificationIcon) {
+    public void setNotificationIcon(final double notificationIcon) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Replies.setNotificationIcon(notificationIcon);
+                    Replies.setNotificationIcon((int) notificationIcon);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -277,7 +265,7 @@ public class RNLuciqRepliesModule extends EventEmitterModule {
     }
 
     @ReactMethod
-    public void setOnNewReplyReceivedHandler(final Callback onNewReplyReceivedCallback) {
+    public void setOnNewReplyReceivedHandler() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {

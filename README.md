@@ -231,3 +231,121 @@ await APM.addCompletedCustomSpan('Background Task', start, end);
 ## Documentation
 
 For more details about the supported APIs and how to use them, check our [**Documentation**](https://docs.luciq.ai/docs/react-native-overview).
+
+## Contributing: Adding a Native Method
+
+The library is a dual-architecture TurboModule — one spec drives codegen for both the legacy bridge and the new architecture. When you add a new native method, you'll touch the files listed below. The exact Android step depends on which pattern the target module uses.
+
+### 1. Spec (one file, source of truth)
+
+Declare the method in the corresponding spec file under `src/native/specs/`:
+
+| Module | Spec file |
+|---|---|
+| Core | `NativeLuciq.ts` |
+| `LCQBugReporting` | `NativeBugReporting.ts` |
+| `LCQCrashReporting` | `NativeCrashReporting.ts` |
+| `LCQAPM` | `NativeAPM.ts` |
+| `LCQSurveys` | `NativeSurveys.ts` |
+| `LCQReplies` | `NativeReplies.ts` |
+| `LCQFeatureRequests` | `NativeFeatureRequests.ts` |
+| `LCQSessionReplay` | `NativeSessionReplay.ts` |
+| `LCQNetworkLogger` | `NativeNetworkLogger.ts` |
+
+Example — adding `setFoo(value: string): Promise<boolean>` to Crash Reporting:
+
+```ts
+// src/native/specs/NativeCrashReporting.ts
+export interface Spec extends TurboModule {
+  // …existing methods…
+  setFoo(value: string): Promise<boolean>;
+}
+```
+
+Spec type constraints to keep in mind:
+
+- Parameter types must be: `boolean`, `number`, `string`, `Object`, `UnsafeObject`, `Array<T>`, or explicit `T | null`. No TS enums, no unions of non-null types, no optional `?` parameters, no `Record<K,V>`.
+- Enums → `string`. The rich enum type stays in the public wrapper (`src/modules/*.ts`), which converts to the string value before the native call.
+- Nullable args → explicit `| null`, not `?`.
+- Arbitrary object payloads → `UnsafeObject` (from `react-native/Libraries/Types/CodegenTypes`).
+- Callback function args aren't supported. Use a no-arg method plus a `NativeEventEmitter` subscription on the JS side.
+
+### 2. JS wrapper types
+
+Add the method to the legacy interface so public code type-checks:
+
+```ts
+// src/native/NativeCrashReporting.ts
+export interface CrashReportingNativeModule extends NativeModule {
+  // …existing methods…
+  setFoo(value: string): Promise<boolean>;
+}
+```
+
+If the method is part of the developer-facing API, also expose it from `src/modules/*.ts` with rich types (enums, overloads, etc.). That wrapper is responsible for converting rich types to the spec-compatible primitives.
+
+### 3. iOS (one file — `.mm`)
+
+Add an `RCT_EXPORT_METHOD` block to the corresponding bridge under `ios/RNLuciq/`:
+
+```objc
+// ios/RNLuciq/LuciqCrashReportingBridge.mm
+RCT_EXPORT_METHOD(setFoo:(NSString *)value
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+  // implementation
+  resolve(@YES);
+}
+```
+
+The same `RCT_EXPORT_METHOD` serves both old and new architecture. Match the selector labels (`resolve:`, `reject:`) to the codegen-generated protocol — don't use `resolver:` / `rejecter:`. The `#ifdef RCT_NEW_ARCH_ENABLED` block at the bottom of each bridge (`getTurboModule:`) is already in place; you don't need to touch it.
+
+### 4. Android
+
+All 9 modules use the **shim pattern**. Add the method directly to the real module file in `android/src/main/java/ai/luciq/reactlibrary/RNLuciqXModule.java` with an `@ReactMethod` annotation whose signature matches the spec exactly:
+
+```java
+@ReactMethod
+public void setFoo(String value, Promise promise) {
+    MainThreadHandler.runOnMainThread(() -> {
+        // implementation
+        promise.resolve(true);
+    });
+}
+```
+
+How it works under the hood: each module extends a thin `RNLuciqXBaseSpec` abstract class that exists in two flavors:
+
+- `android/src/oldarch/java/.../RNLuciqXBaseSpec.java` — extends `EventEmitterModule` or `ReactContextBaseJavaModule`
+- `android/src/newarch/java/.../RNLuciqXBaseSpec.java` — extends the codegen-generated `NativeXSpec`
+
+Gradle activates one or the other based on `newArchEnabled`. You don't edit these shim files when adding a method — only the main module file. On old arch `@ReactMethod` handles dispatch; on new arch your method's signature overrides the abstract method on `NativeXSpec`.
+
+If the new-arch abstract signature uses `double` (codegen maps TS `number` → `double`) or `@Nullable Double` (for `number | null`), make sure your method matches exactly — the compiler will tell you if it doesn't.
+
+### 5. Verify
+
+Run the full check:
+
+```bash
+# Type-check and unit tests
+yarn build:lib && yarn test
+
+# Android — old arch
+cd examples/default/android && ./gradlew :app:compileDebugJavaWithJavac
+
+# Android — new arch
+./gradlew :app:compileDebugJavaWithJavac -PnewArchEnabled=true
+
+# iOS — old arch
+cd examples/default/ios && pod install && xcodebuild -workspace LuciqExample.xcworkspace -scheme LuciqExample -configuration Debug -destination 'generic/platform=iOS Simulator' -sdk iphonesimulator build
+
+# iOS — new arch
+RCT_NEW_ARCH_ENABLED=1 pod install && RCT_NEW_ARCH_ENABLED=1 xcodebuild -workspace LuciqExample.xcworkspace -scheme LuciqExample -configuration Debug -destination 'generic/platform=iOS Simulator' -sdk iphonesimulator build
+```
+
+All four builds must pass before merging.
+
+### Platform-only methods
+
+If a method only applies to one platform (e.g. `setNotificationIcon` for Android, `setShakingThresholdForiPad` for iOS), still declare it in the spec — then stub it as a no-op on the other platform so the unified abstract class stays satisfied.

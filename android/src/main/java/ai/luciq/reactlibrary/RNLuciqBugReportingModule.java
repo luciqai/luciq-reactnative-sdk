@@ -5,7 +5,6 @@ import android.annotation.TargetApi;
 import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
@@ -20,7 +19,6 @@ import ai.luciq.library.invocation.OnInvokeCallback;
 import ai.luciq.library.invocation.util.LuciqFloatingButtonEdge;
 import ai.luciq.library.invocation.util.LuciqVideoRecordingButtonPosition;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import ai.luciq.bug.userConsent.ActionType;
 import java.util.ArrayList;
@@ -29,7 +27,7 @@ import ai.luciq.bug.ProactiveReportingConfigs;
 
 import javax.annotation.Nonnull;
 
-public class RNLuciqBugReportingModule extends EventEmitterModule {
+public class RNLuciqBugReportingModule extends RNLuciqBugReportingBaseSpec {
     public RNLuciqBugReportingModule(ReactApplicationContext reactContext) {
         super(reactContext);
     }
@@ -38,16 +36,6 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
     @Override
     public String getName() {
         return "LCQBugReporting";
-    }
-
-    @ReactMethod
-    public void addListener(String event) {
-        super.addListener(event);
-    }
-
-    @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
     }
 
     /**
@@ -241,7 +229,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
      *                             invoking the SDK
      */
     @ReactMethod
-    public void setOnInvokeHandler(final Callback onInvokeHandler) {
+    public void setOnInvokeHandler() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -265,13 +253,13 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
      * @param floatingButtonOffset integer offset from the left or right edge of the screen.
      */
     @ReactMethod
-    public void setFloatingButtonEdge(final String floatingButtonEdge, final int floatingButtonOffset) {
+    public void setFloatingButtonEdge(final String floatingButtonEdge, final double floatingButtonOffset) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 final LuciqFloatingButtonEdge parsedEdge = ArgsRegistry.floatingButtonEdges
                         .getOrDefault(floatingButtonEdge, LuciqFloatingButtonEdge.RIGHT);
-                BugReporting.setFloatingButtonOffset(floatingButtonOffset);
+                BugReporting.setFloatingButtonOffset((int) floatingButtonOffset);
                 BugReporting.setFloatingButtonEdge(parsedEdge);
             }
         });
@@ -286,7 +274,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
      *                              dismissing the SDK.
      */
     @ReactMethod
-    public void setOnSDKDismissedHandler(final Callback handler) {
+    public void setOnSDKDismissedHandler() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -316,12 +304,12 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
      * @param androidThreshold Threshold for android devices.
      */
     @ReactMethod
-    public void setShakingThresholdForAndroid(final int androidThreshold) {
+    public void setShakingThresholdForAndroid(final double androidThreshold) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    BugReporting.setShakingThreshold(androidThreshold);
+                    BugReporting.setShakingThreshold((int) androidThreshold);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -396,7 +384,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
     * @param reportTypes (Optional) Array of reportType. If it's not passed, the limit will apply to all report types.
     */
     @ReactMethod
-    public void setCommentMinimumCharacterCount(final int limit, final ReadableArray reportTypes){
+    public void setCommentMinimumCharacterCount(final double limit, final ReadableArray reportTypes){
         MainThreadHandler.runOnMainThread(new Runnable() {
             @SuppressLint("WrongConstant")
             @Override
@@ -410,7 +398,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
                         typesInts[i] = types.get(i);
                     }
 
-                    BugReporting.setCommentMinimumCharacterCountForBugReportType(limit, typesInts);                } catch (Exception e) {
+                    BugReporting.setCommentMinimumCharacterCountForBugReportType((int) limit, typesInts);                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -448,13 +436,13 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
      * @param gapBetweenModals         controls the time gap between showing 2 proactive reporting dialogs in seconds
      */
     @ReactMethod
-    public void setProactiveReportingConfigurations(final boolean enabled, final int gapBetweenModals, final int modalDelayAfterDetection) {
+    public void setProactiveReportingConfigurations(final boolean enabled, final double gapBetweenModals, final double modalDelayAfterDetection) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 ProactiveReportingConfigs configs = new ProactiveReportingConfigs.Builder()
-                        .setGapBetweenModals(gapBetweenModals) // Time in seconds
-                        .setModalDelayAfterDetection(modalDelayAfterDetection) // Time in seconds
+                        .setGapBetweenModals((int) gapBetweenModals) // Time in seconds
+                        .setModalDelayAfterDetection((int) modalDelayAfterDetection) // Time in seconds
                         .isEnabled(enabled) //Enable/disable
                         .build();
                 BugReporting.setProactiveReportingConfigurations(configs);
@@ -462,5 +450,21 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
 
             }
         });
+    }
+
+    @ReactMethod
+    public void setAutoScreenRecordingDuration(double maxDuration) {
+    }
+
+    @ReactMethod
+    public void setShakingThresholdForiPhone(double threshold) {
+    }
+
+    @ReactMethod
+    public void setShakingThresholdForiPad(double threshold) {
+    }
+
+    @ReactMethod
+    public void setDidSelectPromptOptionHandler() {
     }
 }

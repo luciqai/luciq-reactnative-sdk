@@ -1,7 +1,6 @@
 import { NativeEventEmitter, NativeModule } from 'react-native';
 
 import type {
-  DismissType,
   ExtendedBugReportMode,
   FloatingButtonPosition,
   InvocationEvent,
@@ -44,11 +43,9 @@ export interface BugReportingNativeModule extends NativeModule {
   setShakingThresholdForAndroid(threshold: number): void;
 
   // Callbacks //
-  setOnInvokeHandler(handler: () => void): void;
-  setDidSelectPromptOptionHandler(handler: (promptOption: string) => void): void;
-  setOnSDKDismissedHandler(
-    handler: (dismissType: DismissType, reportType: ReportType) => void,
-  ): void;
+  setOnInvokeHandler(): void;
+  setDidSelectPromptOptionHandler(): void;
+  setOnSDKDismissedHandler(): void;
 
   addUserConsent(
     key: string,

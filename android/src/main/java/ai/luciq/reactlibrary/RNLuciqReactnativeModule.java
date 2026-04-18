@@ -83,7 +83,7 @@ import javax.annotation.Nullable;
 /**
  * The type Rn luciq reactnative module.
  */
-public class RNLuciqReactnativeModule extends EventEmitterModule {
+public class RNLuciqReactnativeModule extends RNLuciqBaseSpec {
 
     private static final String TAG = "Luciq-RN-Core";
 
@@ -110,16 +110,6 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         return "Luciq";
     }
 
-
-    @ReactMethod
-    public void addListener(String event) {
-        super.addListener(event);
-    }
-
-    @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
-    }
 
     /**
      * Enables or disables Luciq functionality.
@@ -703,7 +693,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      *                          report.
      */
     @ReactMethod
-    public void setPreSendingHandler(final Callback preSendingHandler) {
+    public void setPreSendingHandler() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -1017,12 +1007,14 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
 
 
     @ReactMethod
-    public void addPrivateView(final int reactTag) {
+    public void addPrivateView(@Nullable final Double reactTag) {
+        if (reactTag == null) return;
+        final int tag = reactTag.intValue();
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    final View view = resolveReactView(reactTag);
+                    final View view = resolveReactView(tag);
 
                     if(view !=null){
                     Luciq.addPrivateViews(view);
@@ -1035,12 +1027,14 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
     }
 
     @ReactMethod
-    public void removePrivateView(final int reactTag) {
+    public void removePrivateView(@Nullable final Double reactTag) {
+        if (reactTag == null) return;
+        final int tag = reactTag.intValue();
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    final View view = resolveReactView(reactTag);
+                    final View view = resolveReactView(tag);
                     if(view !=null){
 
                     Luciq.removePrivateViews(view);
@@ -1279,6 +1273,15 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         }
 
         return constants;
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public WritableMap getAllConstants() {
+        final WritableMap map = Arguments.createMap();
+        for (Map.Entry<String, Object> entry : getConstants().entrySet()) {
+            map.putString(entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        return map;
     }
 
 
@@ -1665,6 +1668,56 @@ private String getFileName(String path) {
             public void run() {
                 try {
                         Luciq.setFullscreen(isEnabled);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    @ReactMethod
+    public void setLCQLogPrintsToConsole(boolean printsToConsole) {
+    }
+
+    @ReactMethod
+    public void setPrimaryColor(@Nullable Double color) {
+    }
+
+    @ReactMethod
+    public void networkLogIOS(String url,
+                               String method,
+                               @Nullable String requestBody,
+                               double requestBodySize,
+                               @Nullable String responseBody,
+                               double responseBodySize,
+                               double responseCode,
+                               ReadableMap requestHeaders,
+                               ReadableMap responseHeaders,
+                               String contentType,
+                               String errorDomain,
+                               double errorCode,
+                               double startTime,
+                               double duration,
+                               @Nullable String gqlQueryName,
+                               @Nullable String serverErrorMessage,
+                               ReadableMap w3cExternalTraceAttributes) {
+    }
+
+    @ReactMethod
+    public void setNetworkLoggingEnabled(boolean isEnabled) {
+    }
+
+    @ReactMethod
+    public void setTrackUserSteps(final boolean isEnabled) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (isEnabled) {
+                        Luciq.setTrackingUserStepsState(Feature.State.ENABLED);
+                    } else {
+                        Luciq.setTrackingUserStepsState(Feature.State.DISABLED);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

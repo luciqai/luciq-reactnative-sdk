@@ -1,29 +1,17 @@
-//
-//  LuciqNetworkLoggerBridge.m
-//  RNLuciq
-//
-//  Created by Andrew Amin on 01/10/2024.
-//
 #import "LuciqNetworkLoggerBridge.h"
 #import "Util/LCQNetworkLogger+CP.h"
 
 #import <React/RCTLog.h>
 #import <React/RCTConvert.h>
 
-// Extend RCTConvert to handle NetworkListenerType enum conversion
-@implementation RCTConvert (NetworkListenerType)
+#ifdef RCT_NEW_ARCH_ENABLED
+#import <RNLuciqSpec/RNLuciqSpec.h>
 
-// The RCT_ENUM_CONVERTER macro handles the conversion between JS values (Int) and Objective-C enum values
-RCT_ENUM_CONVERTER(NetworkListenerType, (@{
-    @"filtering": @(NetworkListenerTypeFiltering),
-    @"obfuscation": @(NetworkListenerTypeObfuscation),
-    @"both": @(NetworkListenerTypeBoth)
-}), NetworkListenerTypeFiltering, integerValue)
-
+@interface LuciqNetworkLoggerBridge () <NativeNetworkLoggerSpec>
 @end
+#endif
 
 @implementation LuciqNetworkLoggerBridge
-
 
 - (instancetype)init {
     self = [super init];
@@ -51,135 +39,118 @@ RCT_ENUM_CONVERTER(NetworkListenerType, (@{
         @"LCQNetworkLoggerHandler"
     ];
 }
+
 RCT_EXPORT_MODULE(LCQNetworkLogger)
 
 bool lcq_hasListeners = NO;
 
-
-
-// Will be called when this module's first listener is added.
--(void)startObserving {
+- (void)startObserving {
     lcq_hasListeners = YES;
-    // Set up any upstream listeners or background tasks as necessary
 }
 
-// Will be called when this module's last listener is removed, or on dealloc.
--(void)stopObserving {
+- (void)stopObserving {
     lcq_hasListeners = NO;
-    // Remove upstream listeners, stop unnecessary background tasks
 }
 
-RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(isNativeInterceptionEnabled) {
+RCT_EXPORT_SYNCHRONOUS_TYPED_METHOD(NSNumber *, isNativeInterceptionEnabled) {
     return @(LCQNetworkLogger.isNativeNetworkInterceptionFeatureEnabled);
 }
 
-
-
-RCT_EXPORT_METHOD(registerNetworkLogsListener: (NetworkListenerType) listenerType) {
-    switch (listenerType) {
-         case NetworkListenerTypeFiltering:
-             [self setupRequestFilteringHandler];
-             break;
-
-         case NetworkListenerTypeObfuscation:
-             [self setupRequestObfuscationHandler];
-             break;
-
-         case NetworkListenerTypeBoth:
-            // The obfuscation handler sends additional data to the JavaScript side. If filtering is applied, the request will be ignored; otherwise, it will be obfuscated and saved in the database.
-            [self setupRequestObfuscationHandler];
-             break;
-
-         default:
-             NSLog(@"Unknown NetworkListenerType");
-             break;
-     }
+RCT_EXPORT_METHOD(registerNetworkLogsListener:(NSString * _Nullable)type) {
+    NSString *value = type ?: @"filtering";
+    if ([value isEqualToString:@"filtering"]) {
+        [self setupRequestFilteringHandler];
+    } else if ([value isEqualToString:@"obfuscation"] || [value isEqualToString:@"both"]) {
+        // Obfuscation pipeline also subsumes filtering: filtered requests get dropped, the rest obfuscated.
+        [self setupRequestObfuscationHandler];
+    } else {
+        NSLog(@"Unknown network listener type: %@", value);
+    }
 }
 
-
-RCT_EXPORT_METHOD(updateNetworkLogSnapshot:(NSString * _Nonnull)url
-                  callbackID:(NSString * _Nonnull)callbackID
+RCT_EXPORT_METHOD(updateNetworkLogSnapshot:(NSString *)url
+                  callbackID:(NSString *)callbackID
                   requestBody:(NSString * _Nullable)requestBody
                   responseBody:(NSString * _Nullable)responseBody
                   responseCode:(double)responseCode
-                  requestHeaders:(NSDictionary * _Nullable)requestHeaders
-                  responseHeaders:(NSDictionary * _Nullable)responseHeaders)
+                  requestHeaders:(NSDictionary *)requestHeaders
+                  responseHeaders:(NSDictionary *)responseHeaders)
 {
-    // Validate and construct the URL
     NSURL *requestURL = [NSURL URLWithString:url];
     if (!requestURL) {
         NSLog(@"Invalid URL: %@", url);
         return;
     }
 
-    // Initialize the NSMutableURLRequest
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:requestURL];
 
-    // Set the HTTP body if provided
     if (requestBody && [requestBody isKindOfClass:[NSString class]]) {
         request.HTTPBody = [requestBody dataUsingEncoding:NSUTF8StringEncoding];
     }
 
-    // Ensure requestHeaders is a valid dictionary before setting it
     if (requestHeaders && [requestHeaders isKindOfClass:[NSDictionary class]]) {
         request.allHTTPHeaderFields = requestHeaders;
-    } else {
-        NSLog(@"Invalid requestHeaders format, expected NSDictionary.");
     }
 
-    // Ensure callbackID is valid and the completion handler exists
     LCQURLRequestAsyncObfuscationCompletedHandler completionHandler = self.requestObfuscationCompletionDictionary[callbackID];
     if (callbackID && [callbackID isKindOfClass:[NSString class]] && completionHandler) {
-        // Call the completion handler with the constructed request
         completionHandler(request);
     } else {
         NSLog(@"CallbackID not found or completion handler is unavailable for CallbackID: %@", callbackID);
     }
 }
 
-RCT_EXPORT_METHOD(setNetworkLoggingRequestFilterPredicateIOS: (NSString * _Nonnull) callbackID : (BOOL)value ){
-
+RCT_EXPORT_METHOD(setNetworkLoggingRequestFilterPredicateIOS:(NSString *)callbackID
+                  value:(BOOL)value) {
     if (self.requestFilteringCompletionDictionary[callbackID] != nil) {
-        // ⬇️ YES == Request will be saved, NO == will be ignored
         ((LCQURLRequestResponseAsyncFilteringCompletedHandler)self.requestFilteringCompletionDictionary[callbackID])(value);
     } else {
         NSLog(@"Not Available Completion");
     }
 }
 
+RCT_EXPORT_METHOD(forceStartNetworkLoggingIOS) {
+    [LCQNetworkLogger forceStartNetworkLogging];
+}
+
+RCT_EXPORT_METHOD(forceStopNetworkLoggingIOS) {
+    [LCQNetworkLogger forceStopNetworkLogging];
+}
+
+// Android-only methods — iOS no-ops to satisfy the unified spec.
+RCT_EXPORT_METHOD(hasAPMNetworkPlugin:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+    resolve(@NO);
+}
+
+RCT_EXPORT_METHOD(resetNetworkLogsListener) { }
 
 #pragma mark - Helper Methods
 
-// Set up the filtering handler
 - (void)setupRequestFilteringHandler {
     [LCQNetworkLogger setCPRequestFilteringHandler:^(NSURLRequest * _Nonnull request, void (^ _Nonnull completion)(BOOL)) {
         NSString *callbackID = [[[NSUUID alloc] init] UUIDString];
         self.requestFilteringCompletionDictionary[callbackID] = completion;
 
         NSDictionary *dict = [self createNetworkRequestDictForRequest:request callbackID:callbackID];
-        if(lcq_hasListeners){
+        if (lcq_hasListeners) {
             [self sendEventWithName:@"LCQNetworkLoggerHandler" body:dict];
         }
-
     }];
 }
 
-// Set up the obfuscation handler
 - (void)setupRequestObfuscationHandler {
     [LCQNetworkLogger setCPRequestAsyncObfuscationHandler:^(NSURLRequest * _Nonnull request, void (^ _Nonnull completion)(NSURLRequest * _Nonnull)) {
         NSString *callbackID = [[[NSUUID alloc] init] UUIDString];
         self.requestObfuscationCompletionDictionary[callbackID] = completion;
 
-
         NSDictionary *dict = [self createNetworkRequestDictForRequest:request callbackID:callbackID];
         if (lcq_hasListeners) {
             [self sendEventWithName:@"LCQNetworkLoggerHandler" body:dict];
         }
-
     }];
 }
 
-// Helper to create a dictionary from the request and callbackID
 - (NSDictionary *)createNetworkRequestDictForRequest:(NSURLRequest *)request callbackID:(NSString *)callbackID  {
     NSString *urlString = request.URL.absoluteString ?: @"";
     NSString *bodyString = [[NSString alloc] initWithData:request.HTTPBody encoding:NSUTF8StringEncoding] ?: @"";
@@ -193,14 +164,12 @@ RCT_EXPORT_METHOD(setNetworkLoggingRequestFilterPredicateIOS: (NSString * _Nonnu
     };
 }
 
-RCT_EXPORT_METHOD(forceStartNetworkLoggingIOS) {
-    [LCQNetworkLogger forceStartNetworkLogging];
+#ifdef RCT_NEW_ARCH_ENABLED
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+    (const facebook::react::ObjCTurboModule::InitParams &)params
+{
+    return std::make_shared<facebook::react::NativeNetworkLoggerSpecJSI>(params);
 }
-
-RCT_EXPORT_METHOD(forceStopNetworkLoggingIOS) {
-    [LCQNetworkLogger forceStopNetworkLogging];
-}
-
-
+#endif
 
 @end

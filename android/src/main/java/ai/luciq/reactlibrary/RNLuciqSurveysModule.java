@@ -1,14 +1,12 @@
 package ai.luciq.reactlibrary;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableArray;
 import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import ai.luciq.survey.callbacks.*;
@@ -21,7 +19,7 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-public class RNLuciqSurveysModule extends EventEmitterModule {
+public class RNLuciqSurveysModule extends RNLuciqSurveysBaseSpec {
 
     public RNLuciqSurveysModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -31,16 +29,6 @@ public class RNLuciqSurveysModule extends EventEmitterModule {
     @Override
     public String getName() {
         return "LCQSurveys";
-    }
-
-    @ReactMethod
-    public void addListener(String event) {
-        super.addListener(event);
-    }
-
-    @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
     }
 
     /**
@@ -139,7 +127,7 @@ public class RNLuciqSurveysModule extends EventEmitterModule {
      * @param handler to run on the UI thread before showing any valid survey
      */
     @ReactMethod
-    public void setOnShowHandler(final Callback handler) {
+    public void setOnShowHandler() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -161,7 +149,7 @@ public class RNLuciqSurveysModule extends EventEmitterModule {
      * @param handler to run on the UI thread after showing any valid survey
      */
     @ReactMethod
-    public void setOnDismissHandler(final Callback handler) {
+    public void setOnDismissHandler() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -233,5 +221,9 @@ public class RNLuciqSurveysModule extends EventEmitterModule {
                 }
             }
         });
+    }
+
+    @ReactMethod
+    public void setAppStoreURL(String appStoreURL) {
     }
 }

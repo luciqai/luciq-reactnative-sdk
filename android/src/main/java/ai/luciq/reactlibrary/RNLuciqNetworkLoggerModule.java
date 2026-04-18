@@ -19,7 +19,6 @@ import com.facebook.react.bridge.WritableNativeMap;
 import ai.luciq.apm.InternalAPM;
 import ai.luciq.apm.sanitization.OnCompleteCallback;
 import ai.luciq.library.logging.listeners.networklogs.NetworkLogSnapshot;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 import org.json.JSONException;
@@ -30,7 +29,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
+public class RNLuciqNetworkLoggerModule extends RNLuciqNetworkLoggerBaseSpec {
 
     public final ConcurrentHashMap<String, OnCompleteCallback<NetworkLogSnapshot>> callbackMap = new ConcurrentHashMap<String, OnCompleteCallback<NetworkLogSnapshot>>();
 
@@ -45,16 +44,6 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
         return "LCQNetworkLogger";
     }
 
-
-    @ReactMethod
-    public void addListener(String event) {
-        super.addListener(event);
-    }
-
-    @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
-    }
 
     private boolean getFlagValue(String key) {
         return InternalAPM._isFeatureEnabledCP(key, "");
@@ -84,20 +73,14 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
     /**
      * Get first time Value of [cp_native_interception_enabled] flag
      */
-    @ReactMethod
-    public void isNativeInterceptionEnabled(Promise promise) {
-        MainThreadHandler.runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    promise.resolve(getFlagValue(CP_NATIVE_INTERCEPTION_ENABLED));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    promise.resolve(false); // Will rollback to JS interceptor
-                }
-
-            }
-        });
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public boolean isNativeInterceptionEnabled() {
+        try {
+            return getFlagValue(CP_NATIVE_INTERCEPTION_ENABLED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; // Will rollback to JS interceptor
+        }
     }
 
     /**
@@ -123,7 +106,7 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
 
 
     @ReactMethod
-    public void registerNetworkLogsListener() {
+    public void registerNetworkLogsListener(@androidx.annotation.Nullable String type) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -168,7 +151,7 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
             String callbackID,
             String requestBody,
             String responseBody,
-            int responseCode,
+            double responseCode,
             ReadableMap requestHeaders,
             ReadableMap responseHeaders
     ) {
@@ -179,7 +162,7 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
 
             NetworkLogSnapshot modifiedSnapshot = null;
             if (!url.isEmpty()) {
-                modifiedSnapshot = new NetworkLogSnapshot(url, requestHeadersMap, requestBody, responseHeadersMap, responseBody, responseCode);
+                modifiedSnapshot = new NetworkLogSnapshot(url, requestHeadersMap, requestBody, responseHeadersMap, responseBody, (int) responseCode);
             }
 
             final OnCompleteCallback<NetworkLogSnapshot> callback = callbackMap.get(callbackID);
@@ -191,5 +174,17 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
             // Reject the promise to indicate an error occurred
             Log.e("IB-CP-Bridge", "LuciqNetworkLogger.updateNetworkLogSnapshot failed to parse the network snapshot object.");
         }
+    }
+
+    @ReactMethod
+    public void setNetworkLoggingRequestFilterPredicateIOS(String id, boolean value) {
+    }
+
+    @ReactMethod
+    public void forceStartNetworkLoggingIOS() {
+    }
+
+    @ReactMethod
+    public void forceStopNetworkLoggingIOS() {
     }
 }

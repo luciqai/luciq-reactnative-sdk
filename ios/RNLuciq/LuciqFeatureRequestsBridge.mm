@@ -1,11 +1,3 @@
-//
-//  LuciqFeatureRequestsBridge.m
-//  RNLuciq
-//
-//  Created by Salma Ali on 7/30/19.
-//  Copyright © 2019 luciq. All rights reserved.
-//
-
 #import "LuciqFeatureRequestsBridge.h"
 #import <LuciqSDK/LCQFeatureRequests.h>
 #import <asl.h>
@@ -13,6 +5,13 @@
 #import <os/log.h>
 #import <LuciqSDK/LCQTypes.h>
 #import <React/RCTUIManager.h>
+
+#ifdef RCT_NEW_ARCH_ENABLED
+#import <RNLuciqSpec/RNLuciqSpec.h>
+
+@interface LuciqFeatureRequestsBridge () <NativeFeatureRequestsSpec>
+@end
+#endif
 
 @implementation LuciqFeatureRequestsBridge
 
@@ -36,26 +35,32 @@ RCT_EXPORT_METHOD(show) {
 }
 
 RCT_EXPORT_METHOD(setEmailFieldRequiredForFeatureRequests:(BOOL)isEmailFieldRequired
-                  forAction:(NSArray *)actionTypesArray) {
+                  types:(NSArray *)actionTypesArray) {
     LCQAction actionTypes = 0;
 
-    for (NSNumber *boxedValue in actionTypesArray) {
-        actionTypes |= [boxedValue intValue];
+    for (id value in actionTypesArray) {
+        if ([value isKindOfClass:[NSNumber class]] || [value isKindOfClass:[NSString class]]) {
+            actionTypes |= [value intValue];
+        }
     }
 
     [LCQFeatureRequests setEmailFieldRequired:isEmailFieldRequired forAction:actionTypes];
 }
 
-RCT_EXPORT_METHOD(setEnabled: (BOOL) isEnabled) {
+RCT_EXPORT_METHOD(setEnabled:(BOOL)isEnabled) {
     LCQFeatureRequests.enabled = isEnabled;
 }
 
+#ifdef RCT_NEW_ARCH_ENABLED
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+    (const facebook::react::ObjCTurboModule::InitParams &)params
+{
+    return std::make_shared<facebook::react::NativeFeatureRequestsSpecJSI>(params);
+}
+#endif
+
 @synthesize description;
-
 @synthesize hash;
-
 @synthesize superclass;
 
 @end
-
-

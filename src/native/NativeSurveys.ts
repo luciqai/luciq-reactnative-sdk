@@ -20,8 +20,8 @@ export interface SurveysNativeModule extends NativeModule {
   setAppStoreURL(appStoreURL: string): void;
 
   // Callbacks //
-  setOnShowHandler(onShowHandler: () => void): void;
-  setOnDismissHandler(onDismissHandler: () => void): void;
+  setOnShowHandler(): void;
+  setOnDismissHandler(): void;
 }
 
 export const NativeSurveys = NativeModules.LCQSurveys;

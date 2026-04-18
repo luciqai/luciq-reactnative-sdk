@@ -1,11 +1,3 @@
-//
-//  LuciqSurveysBridge.m
-//  RNLuciq
-//
-//  Created by Salma Ali on 7/30/19.
-//  Copyright © 2019 luciq. All rights reserved.
-//
-
 #import "LuciqSurveysBridge.h"
 #import <LuciqSDK/LCQSurveys.h>
 #import <asl.h>
@@ -13,6 +5,13 @@
 #import <os/log.h>
 #import <LuciqSDK/LCQTypes.h>
 #import <React/RCTUIManager.h>
+
+#ifdef RCT_NEW_ARCH_ENABLED
+#import <RNLuciqSpec/RNLuciqSpec.h>
+
+@interface LuciqSurveysBridge () <NativeSurveysSpec>
+@end
+#endif
 
 @implementation LuciqSurveysBridge
 
@@ -27,9 +26,9 @@
 
 - (NSArray<NSString *> *)supportedEvents {
     return @[
-             @"LCQWillShowSurvey",
-             @"LCQDidDismissSurvey"
-             ];
+        @"LCQWillShowSurvey",
+        @"LCQDidDismissSurvey"
+    ];
 }
 
 RCT_EXPORT_MODULE(LCQSurveys)
@@ -38,18 +37,21 @@ RCT_EXPORT_METHOD(showSurvey:(NSString *)surveyToken) {
     [LCQSurveys showSurveyWithToken:surveyToken];
 }
 
-RCT_EXPORT_METHOD(hasRespondedToSurvey:(NSString *)surveyToken :(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(hasRespondedToSurvey:(NSString *)surveyToken
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
     [LCQSurveys hasRespondedToSurveyWithToken:surveyToken
                             completionHandler:^(BOOL hasResponded) {
         resolve(@(hasResponded));
     }];
 }
 
-RCT_EXPORT_METHOD(getAvailableSurveys:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getAvailableSurveys:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
     [LCQSurveys availableSurveysWithCompletionHandler:^(NSArray<LCQSurvey *> *availableSurveys) {
         NSMutableArray<NSDictionary*>* mappedSurveys = [[NSMutableArray alloc] init];
         for (LCQSurvey* survey in availableSurveys) {
-            [mappedSurveys addObject:@{@"title": survey.title }];
+            [mappedSurveys addObject:@{@"title": survey.title}];
         }
         resolve(mappedSurveys);
     }];
@@ -63,24 +65,18 @@ RCT_EXPORT_METHOD(showSurveysIfAvailable) {
     [LCQSurveys showSurveyIfAvailable];
 }
 
-RCT_EXPORT_METHOD(setOnShowHandler:(RCTResponseSenderBlock)callBack) {
-    if (callBack != nil) {
-        LCQSurveys.willShowSurveyHandler = ^{
-            [self sendEventWithName:@"LCQWillShowSurvey" body:nil];
-        };
-    } else {
-        LCQSurveys.willShowSurveyHandler = ^{};
-    }
+RCT_EXPORT_METHOD(setOnShowHandler) {
+    __weak LuciqSurveysBridge *weakSelf = self;
+    LCQSurveys.willShowSurveyHandler = ^{
+        [weakSelf sendEventWithName:@"LCQWillShowSurvey" body:nil];
+    };
 }
 
-RCT_EXPORT_METHOD(setOnDismissHandler:(RCTResponseSenderBlock)callBack) {
-    if (callBack != nil) {
-        LCQSurveys.didDismissSurveyHandler = ^{
-            [self sendEventWithName:@"LCQDidDismissSurvey" body:nil];
-        };
-    } else {
-        LCQSurveys.didDismissSurveyHandler = ^{};
-    }
+RCT_EXPORT_METHOD(setOnDismissHandler) {
+    __weak LuciqSurveysBridge *weakSelf = self;
+    LCQSurveys.didDismissSurveyHandler = ^{
+        [weakSelf sendEventWithName:@"LCQDidDismissSurvey" body:nil];
+    };
 }
 
 RCT_EXPORT_METHOD(setAutoShowingEnabled:(BOOL)autoShowingSurveysEnabled) {
@@ -95,13 +91,16 @@ RCT_EXPORT_METHOD(setAppStoreURL:(NSString *)appStoreURL) {
     LCQSurveys.appStoreURL = appStoreURL;
 }
 
+#ifdef RCT_NEW_ARCH_ENABLED
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+    (const facebook::react::ObjCTurboModule::InitParams &)params
+{
+    return std::make_shared<facebook::react::NativeSurveysSpecJSI>(params);
+}
+#endif
+
 @synthesize description;
-
 @synthesize hash;
-
 @synthesize superclass;
 
 @end
-
-
-

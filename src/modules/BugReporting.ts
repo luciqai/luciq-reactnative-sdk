@@ -47,7 +47,7 @@ export const setOptions = (options: InvocationOption[]) => {
  */
 export const onInvokeHandler = (handler: () => void) => {
   emitter.addListener(NativeEvents.ON_INVOKE_HANDLER, handler);
-  NativeBugReporting.setOnInvokeHandler(handler);
+  NativeBugReporting.setOnInvokeHandler();
 };
 
 /**
@@ -62,7 +62,7 @@ export const onSDKDismissedHandler = (
   emitter.addListener(NativeEvents.ON_DISMISS_HANDLER, (payload) => {
     handler(payload.dismissType, payload.reportType);
   });
-  NativeBugReporting.setOnSDKDismissedHandler(handler);
+  NativeBugReporting.setOnSDKDismissedHandler();
 };
 
 /**
@@ -198,7 +198,7 @@ export const setDidSelectPromptOptionHandler = (handler: (promptOption: string) 
   emitter.addListener(NativeEvents.DID_SELECT_PROMPT_OPTION_HANDLER, (payload) => {
     handler(payload.promptOption);
   });
-  NativeBugReporting.setDidSelectPromptOptionHandler(handler);
+  NativeBugReporting.setDidSelectPromptOptionHandler();
 };
 
 /**
