@@ -240,17 +240,17 @@ The library is a dual-architecture TurboModule — one spec drives codegen for b
 
 Declare the method in the corresponding spec file under `src/native/specs/`:
 
-| Module | Spec file |
-|---|---|
-| Core | `NativeLuciq.ts` |
-| `LCQBugReporting` | `NativeBugReporting.ts` |
-| `LCQCrashReporting` | `NativeCrashReporting.ts` |
-| `LCQAPM` | `NativeAPM.ts` |
-| `LCQSurveys` | `NativeSurveys.ts` |
-| `LCQReplies` | `NativeReplies.ts` |
+| Module               | Spec file                  |
+| -------------------- | -------------------------- |
+| Core                 | `NativeLuciq.ts`           |
+| `LCQBugReporting`    | `NativeBugReporting.ts`    |
+| `LCQCrashReporting`  | `NativeCrashReporting.ts`  |
+| `LCQAPM`             | `NativeAPM.ts`             |
+| `LCQSurveys`         | `NativeSurveys.ts`         |
+| `LCQReplies`         | `NativeReplies.ts`         |
 | `LCQFeatureRequests` | `NativeFeatureRequests.ts` |
-| `LCQSessionReplay` | `NativeSessionReplay.ts` |
-| `LCQNetworkLogger` | `NativeNetworkLogger.ts` |
+| `LCQSessionReplay`   | `NativeSessionReplay.ts`   |
+| `LCQNetworkLogger`   | `NativeNetworkLogger.ts`   |
 
 Example — adding `setFoo(value: string): Promise<boolean>` to Crash Reporting:
 
