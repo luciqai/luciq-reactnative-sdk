@@ -50,10 +50,10 @@
   RCTPromiseResolveBlock resolve = ^(id result) {};
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
   NSDictionary *userAttributes = @{ @"key" : @"value",  };
-  LCQNonFatalLevel LCQNonFatalLevel = LCQNonFatalLevelInfo;
+  NSString *nonFatalLevel = [NSString stringWithFormat:@"%d", LCQNonFatalLevelInfo];
 
 
-  [self.bridge sendHandledJSCrash:jsonCrash userAttributes:userAttributes  fingerprint:fingerPrint nonFatalExceptionLevel:LCQNonFatalLevel resolve:resolve reject:reject];
+  [self.bridge sendHandledJSCrash:jsonCrash userAttributes:userAttributes  fingerprint:fingerPrint nonFatalExceptionLevel:nonFatalLevel resolve:resolve reject:reject];
 
     OCMVerify([self.mCrashReporting cp_reportNonFatalCrashWithStackTrace:jsonCrash
            level:LCQNonFatalLevelInfo
