@@ -64,7 +64,7 @@
     RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {
     };
     OCMStub([self.mSessionReplay sessionReplayLink]).andReturn(link);
-    [self.bridge getSessionReplayLink:resolve :reject];
+    [self.bridge getSessionReplayLink:resolve reject:reject];
     OCMVerify([self.mSessionReplay sessionReplayLink]);
     [self waitForExpectations:@[expectation] timeout:5.0];
 }
@@ -114,7 +114,9 @@
 
 
 
-    [self.bridge setSyncCallback];
+    RCTPromiseResolveBlock syncResolve = ^(id result) {};
+    RCTPromiseRejectBlock syncReject = ^(NSString *code, NSString *message, NSError *error) {};
+    [self.bridge setSyncCallback:syncResolve reject:syncReject];
     [self waitForExpectationsWithTimeout:2 handler:nil];
 
     OCMVerify([partialMock sendEventWithName:@"LCQSessionReplayOnSyncCallback" body:OCMArg.any]);
@@ -123,37 +125,37 @@
   }
 
 - (void)testSetCapturingModeNavigation {
-  [self.bridge setCapturingMode:LCQScreenshotCapturingModeNavigation];
+  [self.bridge setCapturingMode:[NSString stringWithFormat:@"%ld", (long)LCQScreenshotCapturingModeNavigation]];
 
   OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQScreenshotCapturingModeNavigation]);
 }
 
 - (void)testSetCapturingModeInteractions {
-  [self.bridge setCapturingMode:LCQScreenshotCapturingModeInteraction];
+  [self.bridge setCapturingMode:[NSString stringWithFormat:@"%ld", (long)LCQScreenshotCapturingModeInteraction]];
 
   OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQScreenshotCapturingModeInteraction]);
 }
 
 - (void)testSetCapturingModeFrequency {
-  [self.bridge setCapturingMode:LCQScreenshotCapturingModeFrequency];
+  [self.bridge setCapturingMode:[NSString stringWithFormat:@"%ld", (long)LCQScreenshotCapturingModeFrequency]];
 
   OCMVerify([self.mSessionReplay setScreenshotCapturingMode:LCQScreenshotCapturingModeFrequency]);
 }
 
 - (void)testSetScreenshotQualityHigh {
-  [self.bridge setScreenshotQuality:LCQScreenshotQualityModeHigh];
+  [self.bridge setScreenshotQuality:[NSString stringWithFormat:@"%ld", (long)LCQScreenshotQualityModeHigh]];
 
   OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityModeHigh]);
 }
 
 - (void)testSetScreenshotQualityNormal {
-  [self.bridge setScreenshotQuality:LCQScreenshotQualityModeNormal];
+  [self.bridge setScreenshotQuality:[NSString stringWithFormat:@"%ld", (long)LCQScreenshotQualityModeNormal]];
 
   OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityModeNormal]);
 }
 
 - (void)testSetScreenshotQualityGreyscale {
-  [self.bridge setScreenshotQuality:LCQScreenshotQualityModeGreyScale];
+  [self.bridge setScreenshotQuality:[NSString stringWithFormat:@"%ld", (long)LCQScreenshotQualityModeGreyScale]];
 
   OCMVerify([self.mSessionReplay setScreenshotQualityMode:LCQScreenshotQualityModeGreyScale]);
 }
@@ -161,17 +163,19 @@
 - (void)testSetScreenshotCaptureInterval {
   NSInteger interval = 1000;
 
-  [self.bridge setScreenshotCaptureInterval:interval];
+  [self.bridge setScreenshotCaptureInterval:(double)interval];
 
-  OCMVerify([self.mSessionReplay setScreenshotCaptureInterval:interval]);
+  Class sdkClassMock = self.mSessionReplay;
+  OCMVerify([sdkClassMock setScreenshotCaptureInterval:interval]);
 }
 
 - (void)testSetScreenshotCaptureIntervalMinimum {
   NSInteger interval = 500;
 
-  [self.bridge setScreenshotCaptureInterval:interval];
+  [self.bridge setScreenshotCaptureInterval:(double)interval];
 
-  OCMVerify([self.mSessionReplay setScreenshotCaptureInterval:interval]);
+  Class sdkClassMock = self.mSessionReplay;
+  OCMVerify([sdkClassMock setScreenshotCaptureInterval:interval]);
 }
 
 @end

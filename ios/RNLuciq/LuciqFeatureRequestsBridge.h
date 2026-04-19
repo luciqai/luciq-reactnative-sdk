@@ -18,7 +18,7 @@
  +------------------------------------------------------------------------+
  */
 
-- (void)setEmailFieldRequiredForFeatureRequests:(BOOL)isEmailFieldRequired forAction:(NSArray *)actionTypesArray;
+- (void)setEmailFieldRequiredForFeatureRequests:(BOOL)isEmailFieldRequired types:(NSArray *)actionTypesArray;
 
 - (void)show;
 

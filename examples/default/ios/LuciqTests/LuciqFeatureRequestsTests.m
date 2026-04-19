@@ -39,7 +39,7 @@
     actionTypes |= [boxedValue intValue];
   }
   OCMStub([mock setEmailFieldRequired:required forAction:actionTypes]);
-  [self.luciqBridge setEmailFieldRequiredForFeatureRequests:required forAction:actionTypesArray];
+  [self.luciqBridge setEmailFieldRequiredForFeatureRequests:required types:actionTypesArray];
   OCMVerify([mock setEmailFieldRequired:required forAction:actionTypes]);
 }
 

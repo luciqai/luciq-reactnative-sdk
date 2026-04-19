@@ -19,17 +19,17 @@
 
 - (void)setUserStepsEnabled:(BOOL)isEnabled;
 
-- (void)getSessionReplayLink:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject;
+- (void)getSessionReplayLink:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
 
-- (void)setSyncCallback;
+- (void)setSyncCallback:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
 
 - (void)evaluateSync:(BOOL)result;
 
-- (void)setCapturingMode:(LCQScreenshotCapturingMode)mode;
+- (void)setCapturingMode:(NSString *)mode;
 
-- (void)setScreenshotQuality:(LCQScreenshotQualityMode)quality;
+- (void)setScreenshotQuality:(NSString *)quality;
 
-- (void)setScreenshotCaptureInterval:(NSInteger)intervalMs;
+- (void)setScreenshotCaptureInterval:(double)intervalMs;
 
 @property (atomic, copy) SessionEvaluationCompletion sessionEvaluationCompletion;
 
