@@ -609,6 +609,9 @@ RCT_EXPORT_METHOD(networkLogAndroid:(NSString *)url
 
 RCT_EXPORT_METHOD(registerFeatureFlagsChangeListener) { }
 RCT_EXPORT_METHOD(setOnFeaturesUpdatedListener) { }
+RCT_EXPORT_METHOD(reportCurrentViewChange:(NSString *)screenName) { }
+RCT_EXPORT_METHOD(setFullscreen:(BOOL)isEnabled) { }
+RCT_EXPORT_METHOD(setPrimaryColor:(NSNumber * _Nullable)color) { }
 
 #ifdef RCT_NEW_ARCH_ENABLED
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
