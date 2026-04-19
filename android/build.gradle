@@ -1,4 +1,19 @@
+boolean isNewArchitectureEnabled() {
+    // Checks `newArchEnabled=true` in any of:
+    //   * consuming app's `android/gradle.properties` (via rootProject)
+    //   * this library's `gradle.properties` (via project)
+    //   * `-PnewArchEnabled=true` on the command line
+    def fromRoot = rootProject.hasProperty("newArchEnabled") &&
+                   rootProject.getProperty("newArchEnabled") == "true"
+    def fromProject = project.hasProperty("newArchEnabled") &&
+                      project.getProperty("newArchEnabled") == "true"
+    return fromRoot || fromProject
+}
+
 apply plugin: 'com.android.library'
+if (isNewArchitectureEnabled()) {
+    apply plugin: 'com.facebook.react'
+}
 
 apply from: './jacoco.gradle'
 apply from: './native.gradle'
@@ -68,6 +83,16 @@ android {
        warning 'InvalidPackage'
         abortOnError true
         // SuppressLint WrongConstant was used to suppress errors when using arrays of ints to represent annotations.
+    }
+
+    sourceSets {
+        main {
+            if (isNewArchitectureEnabled()) {
+                java.srcDirs += ['src/newarch/java']
+            } else {
+                java.srcDirs += ['src/oldarch/java']
+            }
+        }
     }
 }
 

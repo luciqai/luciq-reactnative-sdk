@@ -21,13 +21,13 @@
 
 - (void)setEnabled:(BOOL) isEnabled;
 
-- (void)hasChats:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject;
+- (void)hasChats:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
 
 - (void)show;
 
-- (void)setOnNewReplyReceivedHandler:(RCTResponseSenderBlock) callback;
+- (void)setOnNewReplyReceivedHandler;
 
-- (void)getUnreadRepliesCount:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject;
+- (void)getUnreadRepliesCount:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
 
 - (void)setInAppNotificationEnabled:(BOOL)isChatNotificationEnabled;
 

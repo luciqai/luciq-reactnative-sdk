@@ -110,7 +110,7 @@
   NSString* attributeKey = @"Attribute_Key_1";
   NSString* attributeValue = @"Attribute_Value_1";
 
-  [self.luciqBridge setFlowAttribute:appFlowName :attributeKey :attributeValue];
+  [self.luciqBridge setFlowAttribute:appFlowName key:attributeKey value:attributeValue];
   OCMVerify([mock setAttributeForFlowWithName:appFlowName key:attributeKey value:attributeValue]);
 }
 
@@ -176,8 +176,8 @@
     [self.luciqBridge syncCustomSpan:spanName
                       startTimestamp:startTimestamp
                         endTimestamp:endTimestamp
-                            resolver:resolve
-                            rejecter:reject];
+                             resolve:resolve
+                              reject:reject];
 
     OCMVerify([mock addCompletedCustomSpanWithName:spanName
                                          startDate:[OCMArg any]
@@ -213,8 +213,8 @@
     [self.luciqBridge syncCustomSpan:spanName
                       startTimestamp:startTimestamp
                         endTimestamp:endTimestamp
-                            resolver:resolve
-                            rejecter:reject];
+                             resolve:resolve
+                              reject:reject];
 
     // Verify the timestamp conversion (microseconds to seconds)
     XCTAssertEqualWithAccuracy([capturedStartDate timeIntervalSince1970], 1609459200.0, 0.001);
@@ -238,8 +238,8 @@
     [self.luciqBridge syncCustomSpan:spanName
                       startTimestamp:startTimestamp
                         endTimestamp:endTimestamp
-                            resolver:resolve
-                            rejecter:reject];
+                             resolve:resolve
+                              reject:reject];
 
     OCMVerify([mock addCompletedCustomSpanWithName:spanName
                                          startDate:[OCMArg any]
@@ -265,7 +265,7 @@
         XCTFail(@"Reject should not be called");
     };
 
-    [self.luciqBridge isCustomSpanEnabled:resolve rejecter:reject];
+    [self.luciqBridge isCustomSpanEnabled:resolve reject:reject];
 
     XCTAssertTrue(resolveWasCalled);
     XCTAssertEqualObjects(resolvedValue, @YES);
@@ -288,7 +288,7 @@
         XCTFail(@"Reject should not be called");
     };
 
-    [self.luciqBridge isCustomSpanEnabled:resolve rejecter:reject];
+    [self.luciqBridge isCustomSpanEnabled:resolve reject:reject];
 
     XCTAssertTrue(resolveWasCalled);
     XCTAssertEqualObjects(resolvedValue, @NO);
@@ -311,7 +311,7 @@
         XCTFail(@"Reject should not be called");
     };
 
-    [self.luciqBridge isAPMEnabled:resolve rejecter:reject];
+    [self.luciqBridge isAPMEnabled:resolve reject:reject];
 
     XCTAssertTrue(resolveWasCalled);
     XCTAssertEqualObjects(resolvedValue, @YES);
@@ -334,7 +334,7 @@
         XCTFail(@"Reject should not be called");
     };
 
-    [self.luciqBridge isAPMEnabled:resolve rejecter:reject];
+    [self.luciqBridge isAPMEnabled:resolve reject:reject];
 
     XCTAssertTrue(resolveWasCalled);
     XCTAssertEqualObjects(resolvedValue, @NO);

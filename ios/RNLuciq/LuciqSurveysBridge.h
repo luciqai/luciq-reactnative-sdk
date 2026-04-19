@@ -22,19 +22,19 @@
 
 - (void)showSurveysIfAvailable;
 
-- (void)setOnShowHandler:(RCTResponseSenderBlock)callBack;
+- (void)setOnShowHandler;
 
-- (void)setOnDismissHandler:(RCTResponseSenderBlock)callBack;
+- (void)setOnDismissHandler;
 
 - (void)setAutoShowingEnabled:(BOOL)autoShowingSurveysEnabled;
 
 - (void)setShouldShowWelcomeScreen:(BOOL)shouldShowWelcomeScreen;
 
 - (void)hasRespondedToSurvey:(NSString *)surveyToken
-                            :(RCTPromiseResolveBlock)resolve
-                            :(RCTPromiseRejectBlock)reject;
+                     resolve:(RCTPromiseResolveBlock)resolve
+                      reject:(RCTPromiseRejectBlock)reject;
 
-- (void)getAvailableSurveys:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject;
+- (void)getAvailableSurveys:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
 
 - (void)setEnabled:(BOOL)surveysEnabled;
 

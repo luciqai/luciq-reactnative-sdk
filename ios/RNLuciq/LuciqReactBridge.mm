@@ -16,6 +16,13 @@
 #import "RNLuciq.h"
 #import "Util/LCQNetworkLogger+CP.h"
 
+#ifdef RCT_NEW_ARCH_ENABLED
+#import <RNLuciqSpec/RNLuciqSpec.h>
+
+@interface LuciqReactBridge () <NativeLuciqSpec>
+@end
+#endif
+
 @interface Luciq (PrivateWillSendAPI)
 + (void)setWillSendReportHandler_private:(void(^)(LCQReport *report, void(^reportCompletionHandler)(LCQReport *)))willSendReportHandler_private;
 @end
@@ -59,7 +66,7 @@ RCT_EXPORT_METHOD(init:(NSString *)token
 
     [Luciq setCodePushVersion:codePushVersion];
 
-    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 
     [RNLuciq initWithToken:token
              invocationEvents:invocationEvents
@@ -72,20 +79,26 @@ RCT_EXPORT_METHOD(setCodePushVersion:(NSString *)version) {
 }
 
 RCT_EXPORT_METHOD(setOverAirVersion:(NSDictionary *)overAirVersion) {
-    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 }
 
 RCT_EXPORT_METHOD(setAppVariant:(NSString *)appVariant) {
     Luciq.appVariant = appVariant;
 }
 
-RCT_EXPORT_METHOD(setReproStepsConfig:(LCQUserStepsMode)bugMode :(LCQUserStepsMode)crashMode:(LCQUserStepsMode)sessionReplayMode) {
-    [Luciq setReproStepsFor:LCQIssueTypeBug withMode:bugMode];
-    [Luciq setReproStepsFor:LCQIssueTypeAllCrashes withMode:crashMode];
-    [Luciq setReproStepsFor:LCQIssueTypeSessionReplay withMode:sessionReplayMode];
+RCT_EXPORT_METHOD(setReproStepsConfig:(NSString *)bugMode
+                  crashMode:(NSString *)crashMode
+                  sessionReplay:(NSString *)sessionReplayMode) {
+    LCQUserStepsMode bug = (LCQUserStepsMode)[bugMode intValue];
+    LCQUserStepsMode crash = (LCQUserStepsMode)[crashMode intValue];
+    LCQUserStepsMode sr = (LCQUserStepsMode)[sessionReplayMode intValue];
+    [Luciq setReproStepsFor:LCQIssueTypeBug withMode:bug];
+    [Luciq setReproStepsFor:LCQIssueTypeAllCrashes withMode:crash];
+    [Luciq setReproStepsFor:LCQIssueTypeSessionReplay withMode:sr];
 }
 
-RCT_EXPORT_METHOD(setFileAttachment:(NSString *)fileLocation) {
+RCT_EXPORT_METHOD(setFileAttachment:(NSString *)fileLocation
+                  fileName:(NSString * _Nullable)fileName) {
     NSURL *url = [NSURL URLWithString:fileLocation];
     [Luciq addFileAttachmentWithURL:url];
 }
@@ -111,23 +124,26 @@ RCT_EXPORT_METHOD(setWebViewUserInteractionsTrackingEnabled:(BOOL)isEnabled) {
 }
 
 LCQReport *currentReport = nil;
-RCT_EXPORT_METHOD(setPreSendingHandler:(RCTResponseSenderBlock)callBack) {
-    if (callBack != nil) {
-        Luciq.willSendReportHandler = ^LCQReport * _Nonnull(LCQReport * _Nonnull report) {
-            NSArray *tagsArray = report.tags;
-            NSArray *luciqLogs= report.luciqLogs;
-            NSArray *consoleLogs= report.consoleLogs;
-            NSDictionary *userAttributes= report.userAttributes;
-            NSArray *fileAttachments= report.fileLocations;
-            NSDictionary *dict = @{ @"tagsArray" : tagsArray, @"luciqLogs" : luciqLogs, @"consoleLogs" : consoleLogs,       @"userAttributes" : userAttributes, @"fileAttachments" : fileAttachments};
-            [self sendEventWithName:@"LCQpreSendingHandler" body:dict];
-
-            currentReport = report;
-            return report;
+RCT_EXPORT_METHOD(setPreSendingHandler) {
+    __weak LuciqReactBridge *weakSelf = self;
+    Luciq.willSendReportHandler = ^LCQReport * _Nonnull(LCQReport * _Nonnull report) {
+        NSArray *tagsArray = report.tags;
+        NSArray *luciqLogs = report.luciqLogs;
+        NSArray *consoleLogs = report.consoleLogs;
+        NSDictionary *userAttributes = report.userAttributes;
+        NSArray *fileAttachments = report.fileLocations;
+        NSDictionary *dict = @{
+            @"tagsArray": tagsArray,
+            @"luciqLogs": luciqLogs,
+            @"consoleLogs": consoleLogs,
+            @"userAttributes": userAttributes,
+            @"fileAttachments": fileAttachments
         };
-    } else {
-        Luciq.willSendReportHandler = nil;
-    }
+        [weakSelf sendEventWithName:@"LCQpreSendingHandler" body:dict];
+
+        currentReport = report;
+        return report;
+    };
 }
 
 RCT_EXPORT_METHOD(appendTagToReport:(NSString*) tag) {
@@ -290,11 +306,12 @@ RCT_EXPORT_METHOD(resetTags) {
     [Luciq resetTags];
 }
 
-RCT_EXPORT_METHOD(getTags:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getTags:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
     resolve([Luciq getTags]);
 }
 
-RCT_EXPORT_METHOD(setString:(NSString*)value toKey:(NSString*)key) {
+RCT_EXPORT_METHOD(setString:(NSString *)value key:(NSString *)key) {
     [Luciq setValue:value forStringWithKey:key];
 }
 
@@ -306,7 +323,9 @@ RCT_EXPORT_METHOD(clearFileAttachments) {
     [Luciq clearFileAttachments];
 }
 
-RCT_EXPORT_METHOD(identifyUser:(NSString *)email name:(NSString *)name userId:(nullable NSString *)userId) {
+RCT_EXPORT_METHOD(identifyUser:(NSString *)email
+                  name:(NSString *)name
+                  id:(NSString * _Nullable)userId) {
     [Luciq identifyUserWithID:userId email:email name:name];
 }
 
@@ -314,11 +333,11 @@ RCT_EXPORT_METHOD(logOut) {
     [Luciq logOut];
 }
 
-RCT_EXPORT_METHOD(setUserAttribute:(NSString *)key withValue:(NSString *)value) {
+RCT_EXPORT_METHOD(setUserAttribute:(NSString *)key value:(NSString *)value) {
     [Luciq setUserAttribute:value withKey:key];
 }
 
-RCT_EXPORT_METHOD(getUserAttribute:(NSString *)key :(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getUserAttribute:(NSString *)key resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject) {
     @try {
         resolve([Luciq userAttributeForKey:key]);
     } @catch (NSException *exception) {
@@ -330,7 +349,8 @@ RCT_EXPORT_METHOD(removeUserAttribute:(NSString *)key) {
     [Luciq removeUserAttributeForKey:key];
 }
 
-RCT_EXPORT_METHOD(getAllUserAttributes:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getAllUserAttributes:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
     resolve([Luciq userAttributes]);
 }
 
@@ -500,18 +520,25 @@ RCT_EXPORT_METHOD(willRedirectToStore){
     [Luciq willRedirectToAppStore];
 }
 
-RCT_EXPORT_METHOD(isW3ExternalTraceIDEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(isW3ExternalTraceIDEnabled:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
     resolve(@(LCQNetworkLogger.w3ExternalTraceIDEnabled));
 }
-RCT_EXPORT_METHOD(isW3ExternalGeneratedHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(isW3ExternalGeneratedHeaderEnabled:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
     resolve(@(LCQNetworkLogger.w3ExternalGeneratedHeaderEnabled));
 }
-RCT_EXPORT_METHOD(isW3CaughtHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(isW3CaughtHeaderEnabled:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
     resolve(@(LCQNetworkLogger.w3CaughtHeaderEnabled));
 }
 
 
 - (NSDictionary *)constantsToExport {
+    return ArgsRegistry.getAll;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getAllConstants) {
     return ArgsRegistry.getAll;
 }
 
@@ -549,7 +576,8 @@ RCT_EXPORT_METHOD(enableAutoMasking:(NSArray *)autoMaskingTypes) {
     [Luciq setAutoMaskScreenshots: autoMaskingOptions];
 };
 
-RCT_EXPORT_METHOD(getNetworkBodyMaxSize:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getNetworkBodyMaxSize:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
     resolve(@(LCQNetworkLogger.getNetworkBodyMaxSize));
 }
 
@@ -559,7 +587,7 @@ RCT_EXPORT_METHOD(setNetworkLogBodyEnabled:(BOOL)isEnabled) {
 
 // Checks if Luciq SDK is initialized
 RCT_EXPORT_METHOD(isBuilt:(RCTPromiseResolveBlock)resolve
-                  rejecter:(RCTPromiseRejectBlock)reject) {
+                  reject:(RCTPromiseRejectBlock)reject) {
     @try {
         BOOL isBuilt = YES;
         resolve(@(isBuilt));
@@ -568,5 +596,26 @@ RCT_EXPORT_METHOD(isBuilt:(RCTPromiseResolveBlock)resolve
         resolve(@NO);
     }
 }
+
+// Stubs for spec-declared methods that are Android-only.
+RCT_EXPORT_METHOD(networkLogAndroid:(NSString *)url
+                  requestBody:(NSString *)requestBody
+                  responseBody:(NSString * _Nullable)responseBody
+                  method:(NSString *)method
+                  responseCode:(double)responseCode
+                  requestHeaders:(NSString *)requestHeaders
+                  responseHeaders:(NSString *)responseHeaders
+                  duration:(double)duration) { }
+
+RCT_EXPORT_METHOD(registerFeatureFlagsChangeListener) { }
+RCT_EXPORT_METHOD(setOnFeaturesUpdatedListener) { }
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+    (const facebook::react::ObjCTurboModule::InitParams &)params
+{
+    return std::make_shared<facebook::react::NativeLuciqSpecJSI>(params);
+}
+#endif
 
 @end

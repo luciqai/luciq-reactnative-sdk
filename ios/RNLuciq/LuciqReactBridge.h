@@ -52,11 +52,11 @@
 
 - (void)resetTags;
 
-- (void)getTags:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject;
+- (void)getTags:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
 
-- (void)setString:(NSString *)value toKey:(NSString *)key;
+- (void)setString:(NSString *)value key:(NSString *)key;
 
-- (void)identifyUser:(NSString *)email name:(NSString *)name userId:(nullable NSString *)userId;
+- (void)identifyUser:(NSString *)email name:(NSString *)name id:(nullable NSString *)userId;
 
 - (void)logOut;
 
@@ -64,18 +64,18 @@
 
 - (void)logVerbose:(NSString *)log;
 
-- (void)setReproStepsConfig:(LCQUserStepsMode)bugMode:(LCQUserStepsMode)crashMode:(LCQUserStepsMode)sessionReplayMode;
+- (void)setReproStepsConfig:(NSString *)bugMode crashMode:(NSString *)crashMode sessionReplay:(NSString *)sessionReplayMode;
 
-- (void)setUserAttribute:(NSString *)key withValue:(NSString *)value;
+- (void)setUserAttribute:(NSString *)key value:(NSString *)value;
 
 - (void)getUserAttribute:(NSString *)key
-                        :(RCTPromiseResolveBlock)resolve
-                        :(RCTPromiseRejectBlock)reject;
+                 resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject;
 
 - (void)removeUserAttribute:(NSString *)key;
 
 - (void)getAllUserAttributes:(RCTPromiseResolveBlock)resolve
-                            :(RCTPromiseRejectBlock)reject;
+                      reject:(RCTPromiseRejectBlock)reject;
 
 - (void)clearAllUserAttributes;
 
@@ -83,7 +83,7 @@
 
 - (void)setWelcomeMessageMode:(LCQWelcomeMessageMode)welcomeMessageMode;
 
-- (void)setFileAttachment:(NSString *)fileLocation;
+- (void)setFileAttachment:(NSString *)fileLocation fileName:(NSString * _Nullable)fileName;
 
 - (void)show;
 
@@ -111,9 +111,9 @@
  */
 
 - (void)setNetworkLoggingEnabled:(BOOL)isEnabled;
-- (void)isW3ExternalTraceIDEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject;
-- (void)isW3ExternalGeneratedHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject;
-- (void)isW3CaughtHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject;
+- (void)isW3ExternalTraceIDEnabled:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
+- (void)isW3ExternalGeneratedHeaderEnabled:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
+- (void)isW3CaughtHeaderEnabled:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
 - (void)networkLogIOS:(NSString * _Nonnull)url
                method:(NSString * _Nonnull)method
           requestBody:(NSString * _Nonnull)requestBody
@@ -146,6 +146,6 @@ w3cExternalTraceAttributes:(NSDictionary * _Nullable)w3cExternalTraceAttributes;
 - (void)removeAllFeatureFlags;
 - (void)setNetworkLogBodyEnabled:(BOOL)isEnabled;
 - (void)enableAutoMasking:(NSArray *)autoMaskingTypes;
-- (void)getNetworkBodyMaxSize:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject;
+- (void)getNetworkBodyMaxSize:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject;
 
 @end

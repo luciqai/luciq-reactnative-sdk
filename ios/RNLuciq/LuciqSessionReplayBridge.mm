@@ -6,6 +6,13 @@
 #import <LuciqSDK/LCQSessionReplay.h>
 #import "LuciqSessionReplayBridge.h"
 
+#ifdef RCT_NEW_ARCH_ENABLED
+#import <RNLuciqSpec/RNLuciqSpec.h>
+
+@interface LuciqSessionReplayBridge () <NativeSessionReplaySpec>
+@end
+#endif
+
 @implementation LuciqSessionReplayBridge
 
 - (dispatch_queue_t)methodQueue {
@@ -41,14 +48,14 @@ RCT_EXPORT_METHOD(setUserStepsEnabled:(BOOL)isEnabled) {
     LCQSessionReplay.userStepsEnabled = isEnabled;
 }
 
-RCT_EXPORT_METHOD(getSessionReplayLink:
-    (RCTPromiseResolveBlock) resolve :(RCTPromiseRejectBlock)reject) {
+RCT_EXPORT_METHOD(getSessionReplayLink:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
     NSString *link = LCQSessionReplay.sessionReplayLink;
     resolve(link);
 }
 
 - (NSArray<NSDictionary *> *)getNetworkLogsArray:
-     (NSArray<LCQSessionMetadataNetworkLogs *>*) networkLogs {
+     (NSArray<LCQSessionMetadataNetworkLogs *>*)networkLogs {
      NSMutableArray<NSDictionary *> *networkLogsArray = [NSMutableArray array];
 
     for (LCQSessionMetadataNetworkLogs* log in networkLogs) {
@@ -70,49 +77,52 @@ RCT_EXPORT_METHOD(getSessionReplayLink:
         @"bugsCount": @(metadataObject.bugsCount),
         @"fatalCrashCount": @(metadataObject.fatalCrashCount),
         @"oomCrashCount": @(metadataObject.oomCrashCount),
-        @"networkLogs":[self getNetworkLogsArray:metadataObject.networkLogs]
+        @"networkLogs": [self getNetworkLogsArray:metadataObject.networkLogs]
     };
 }
 
-RCT_EXPORT_METHOD(setSyncCallback) {
-    [LCQSessionReplay setSyncCallbackWithHandler:^(LCQSessionMetadata * _Nonnull metadataObject, SessionEvaluationCompletion  _Nonnull completion) {
-
-        [self sendEventWithName:@"LCQSessionReplayOnSyncCallback"
-                           body:[self getMetadataObjectMap:metadataObject]];
-
-        self.sessionEvaluationCompletion = completion;
+RCT_EXPORT_METHOD(setSyncCallback:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+    __weak LuciqSessionReplayBridge *weakSelf = self;
+    [LCQSessionReplay setSyncCallbackWithHandler:^(LCQSessionMetadata * _Nonnull metadataObject, SessionEvaluationCompletion _Nonnull completion) {
+        LuciqSessionReplayBridge *strongSelf = weakSelf;
+        if (!strongSelf) { return; }
+        [strongSelf sendEventWithName:@"LCQSessionReplayOnSyncCallback"
+                                 body:[strongSelf getMetadataObjectMap:metadataObject]];
+        strongSelf.sessionEvaluationCompletion = completion;
     }];
+    resolve([NSNull null]);
 }
 
 RCT_EXPORT_METHOD(evaluateSync:(BOOL)result) {
-
     if (self.sessionEvaluationCompletion) {
-
         self.sessionEvaluationCompletion(result);
-
         self.sessionEvaluationCompletion = nil;
-
     }
 }
 
-RCT_EXPORT_METHOD(setCapturingMode:(LCQScreenshotCapturingMode)mode) {
-    LCQSessionReplay.screenshotCapturingMode = mode;
+RCT_EXPORT_METHOD(setCapturingMode:(NSString *)mode) {
+    LCQSessionReplay.screenshotCapturingMode = (LCQScreenshotCapturingMode)[mode intValue];
 }
 
-RCT_EXPORT_METHOD(setScreenshotQuality:(LCQScreenshotQualityMode)quality) {
-    LCQSessionReplay.screenshotQualityMode = quality;
+RCT_EXPORT_METHOD(setScreenshotQuality:(NSString *)quality) {
+    LCQSessionReplay.screenshotQualityMode = (LCQScreenshotQualityMode)[quality intValue];
 }
 
-RCT_EXPORT_METHOD(setScreenshotCaptureInterval:(NSInteger)intervalMs) {
-    LCQSessionReplay.screenshotCaptureInterval = intervalMs;
+RCT_EXPORT_METHOD(setScreenshotCaptureInterval:(double)intervalMs) {
+    LCQSessionReplay.screenshotCaptureInterval = (NSInteger)intervalMs;
 }
+
+#ifdef RCT_NEW_ARCH_ENABLED
+- (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:
+    (const facebook::react::ObjCTurboModule::InitParams &)params
+{
+    return std::make_shared<facebook::react::NativeSessionReplaySpecJSI>(params);
+}
+#endif
 
 @synthesize description;
-
 @synthesize hash;
-
 @synthesize superclass;
 
 @end
-
-

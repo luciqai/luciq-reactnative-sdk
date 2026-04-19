@@ -16,7 +16,6 @@ import ai.luciq.library.OnSessionReplayLinkReady;
 import ai.luciq.library.SessionSyncListener;
 import ai.luciq.library.sessionreplay.SessionReplay;
 import ai.luciq.library.sessionreplay.model.SessionMetadata;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import android.util.Log;
 import java.util.ArrayList;
@@ -25,20 +24,10 @@ import java.util.concurrent.CountDownLatch;
 
 import javax.annotation.Nonnull;
 
-public class RNLuciqSessionReplayModule extends EventEmitterModule {
+public class RNLuciqSessionReplayModule extends RNLuciqSessionReplayBaseSpec {
 
     public RNLuciqSessionReplayModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
-    }
-
-    @ReactMethod
-    public void addListener(String event) {
-        super.addListener(event);
-    }
-
-    @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
     }
 
     @Nonnull
@@ -168,7 +157,7 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
     private boolean shouldSync = true;
     private CountDownLatch latch;
     @ReactMethod
-    public void setSyncCallback() {
+    public void setSyncCallback(final Promise promise) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -195,7 +184,7 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
                 catch(Exception e){
                     e.printStackTrace();
                 }
-
+                promise.resolve(null);
             }
         });
     }
@@ -248,12 +237,12 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
     }
 
     @ReactMethod
-    public void setScreenshotCaptureInterval(final int intervalMs) {
+    public void setScreenshotCaptureInterval(final double intervalMs) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    SessionReplay.setScreenshotCaptureInterval(intervalMs);
+                    SessionReplay.setScreenshotCaptureInterval((int) intervalMs);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

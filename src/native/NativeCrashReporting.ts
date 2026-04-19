@@ -23,10 +23,10 @@ export interface CauseCrashData {
 }
 export interface CrashReportingNativeModule extends NativeModule {
   setEnabled(isEnabled: boolean): void;
-  sendJSCrash(data: CrashData | string): Promise<void>;
+  sendJSCrash(data: CrashData): Promise<void>;
 
   sendHandledJSCrash(
-    data: CrashData | string,
+    data: CrashData,
     userAttributes?: Record<string, string> | null,
     fingerprint?: string | null,
     nonFatalExceptionLevel?: NonFatalErrorLevel | null,

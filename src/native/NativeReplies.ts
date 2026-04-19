@@ -10,7 +10,7 @@ export interface RepliesNativeModule extends NativeModule {
   getUnreadRepliesCount(): Promise<number>;
 
   // Callbacks //
-  setOnNewReplyReceivedHandler(handler: () => void): void;
+  setOnNewReplyReceivedHandler(): void;
 
   // Notifications APIs //
   setPushNotificationsEnabled(isEnabled: boolean): void;

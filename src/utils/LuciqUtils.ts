@@ -164,14 +164,9 @@ export const stringifyIfNotString = (input: unknown) => {
  */
 export async function sendCrashReport(
   error: ExtendedError,
-  remoteSenderCallback: (json: CrashData | string) => Promise<void>,
+  remoteSenderCallback: (json: CrashData) => Promise<void>,
 ) {
   const jsonObject = getCrashDataFromError(error);
-
-  if (Platform.OS === 'android') {
-    return remoteSenderCallback(JSON.stringify(jsonObject));
-  }
-
   return remoteSenderCallback(jsonObject);
 }
 /**

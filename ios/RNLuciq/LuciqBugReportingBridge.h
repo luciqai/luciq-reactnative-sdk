@@ -25,21 +25,21 @@
 
 - (void)setOptions:(NSArray *)optionsArray;
 
-- (void)setFloatingButtonEdge:(CGRectEdge)floatingButtonEdge withTopOffset:(double)floatingButtonOffsetFromTop;
+- (void)setFloatingButtonEdge:(NSString *)edge offset:(double)offset;
 
-- (void)setOnInvokeHandler:(RCTResponseSenderBlock)callBack;
+- (void)setOnInvokeHandler;
 
-- (void)setOnSDKDismissedHandler:(RCTResponseSenderBlock)callBack;
+- (void)setOnSDKDismissedHandler;
 
 - (void)setShakingThresholdForiPhone:(double)iPhoneShakingThreshold;
 
 - (void)setShakingThresholdForiPad:(double)iPadShakingThreshold;
 
-- (void)setExtendedBugReportMode:(LCQExtendedBugReportMode)extendedBugReportMode;
+- (void)setExtendedBugReportMode:(NSString *)mode;
 
 - (void)setReportTypes:(NSArray *)types;
 
-- (void)show:(LCQBugReportingReportType)type options:(NSArray *)options;
+- (void)show:(NSString *)type options:(NSArray *)options;
 
 - (void)setAutoScreenRecordingEnabled:(BOOL)enabled;
 
@@ -57,6 +57,6 @@
                       checked:(BOOL)checked
                    actionType:(id)actionType;
 
-- (void)setProactiveReportingConfigurations:(BOOL)enabled gap:(NSNumber* )gap model:(NSNumber* )modal;
+- (void)setProactiveReportingConfigurations:(BOOL)enabled gapBetweenModals:(double)gapBetweenModals modalDelayAfterDetection:(double)modalDelayAfterDetection;
 
 @end

@@ -11,6 +11,10 @@ import static org.mockito.Mockito.mockStatic;
 
 import android.os.Looper;
 
+import com.facebook.react.bridge.JavaOnlyMap;
+import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReadableMap;
+
 import ai.luciq.crash.CrashReporting;
 import ai.luciq.crash.models.LuciqNonFatalException;
 import ai.luciq.library.Feature;
@@ -80,7 +84,7 @@ public class RNLuciqCrashReportingModuleTest {
     @Test
     public void testSetNDKCrashesEnabledGivenTrue() {
         // when
-        rnModule.setNDKCrashesEnabled(true);
+        rnModule.setNDKCrashesEnabled(true, mock(Promise.class));
 
 //then
         mockCrashReporting.verify(() -> CrashReporting.setNDKCrashesState(Feature.State.ENABLED));
@@ -89,7 +93,7 @@ public class RNLuciqCrashReportingModuleTest {
     @Test
     public void testSetNDKCrashesEnabledGivenFalse() {
         // when
-        rnModule.setNDKCrashesEnabled(false);
+        rnModule.setNDKCrashesEnabled(false, mock(Promise.class));
 
         //then
         mockCrashReporting.verify(() -> CrashReporting.setNDKCrashesState(Feature.State.DISABLED));
@@ -97,13 +101,13 @@ public class RNLuciqCrashReportingModuleTest {
 
     @Test
     public void testSendNonFatalError() {
-        String jsonCrash = "{}";
+        ReadableMap jsonCrash = new JavaOnlyMap();
         boolean isHandled = true;
         String fingerPrint = "test";
         String level = ArgsRegistry.nonFatalExceptionLevel.keySet().iterator().next();
         JSONObject expectedFingerprint = getFingerprintObject(fingerPrint);
         LuciqNonFatalException.Level expectedLevel = ArgsRegistry.nonFatalExceptionLevel.get(level);
-        rnModule.sendHandledJSCrash(jsonCrash, null, fingerPrint, level);
+        rnModule.sendHandledJSCrash(jsonCrash, null, fingerPrint, level, mock(Promise.class));
         reflected.verify(() -> MockReflected.reportException(any(JSONObject.class), eq(isHandled), eq(null), eq(expectedFingerprint), eq(expectedLevel)));
     }
 

@@ -1626,8 +1626,27 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - RNLuciq (19.4.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
     - Luciq (= 19.5.1)
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Yoga
   - RNReanimated (3.16.1):
     - DoubleConversion
     - glog
@@ -2090,7 +2109,7 @@ SPEC CHECKSUMS:
   ReactCommon: 36d48f542b4010786d6b2bcee615fe5f906b7105
   RNCClipboard: 7c3e3b5f71d84ef61690ad377b6c50cf27864ff5
   RNGestureHandler: 27a63f2218affdf1a426d56682f9b174904838b3
-  RNLuciq: 571cd403d489578898047969c251a4bfd2b20ca6
+  RNLuciq: 73cc6cd786a3983d21186a40968d82eaf7c86368
   RNReanimated: 8bf536bd3964d10a9bacabf179897e79f6bea34f
   RNScreens: 35bb8e81aeccf111baa0ea01a54231390dbbcfd9
   RNSVG: 8542aa11770b27563714bbd8494a8436385fc85f

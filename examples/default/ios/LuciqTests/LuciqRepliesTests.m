@@ -43,7 +43,7 @@
   LCQReplies.enabled = true;
   RCTPromiseResolveBlock resolve = ^(id result) { LCQReplies.enabled = false; };
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
-  [self.luciqBridge hasChats:resolve :reject];
+  [self.luciqBridge hasChats:resolve reject:reject];
   XCTAssertFalse(LCQReplies.enabled);
 }
 
@@ -64,8 +64,7 @@
 
 - (void) testgivenOnNewReplyReceivedHandler$setOnNewReplyReceivedCallback_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnNewReplyReceivedHandler:callback];
+  [partialMock setOnNewReplyReceivedHandler];
   XCTAssertNotNil(LCQReplies.didReceiveReplyHandler);
 
   OCMStub([partialMock sendEventWithName:@"LCQOnNewReplyReceivedCallback" body:nil]);
@@ -77,7 +76,7 @@
   LCQReplies.enabled = true;
   RCTPromiseResolveBlock resolve = ^(id result) { LCQReplies.enabled = false; };
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
-  [self.luciqBridge getUnreadRepliesCount:resolve :reject];
+  [self.luciqBridge getUnreadRepliesCount:resolve reject:reject];
   XCTAssertFalse(LCQReplies.enabled);
 }
 

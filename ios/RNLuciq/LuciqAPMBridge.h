@@ -17,7 +17,7 @@
 - (void)setAutoUITraceEnabled:(BOOL)isEnabled;
 - (void)startFlow:(NSString *)name;
 - (void)endFlow:(NSString *)name;
-- (void)setFlowAttribute:(NSString *)name :(NSString *)key :(NSString *_Nullable)value;
+- (void)setFlowAttribute:(NSString *)name key:(NSString *)key value:(NSString *_Nullable)value;
 - (void)startUITrace:(NSString *)name;
 - (void)endUITrace;
 
@@ -27,13 +27,13 @@
 - (void)syncCustomSpan:(NSString *)name
         startTimestamp:(double)startTimestamp
           endTimestamp:(double)endTimestamp
-              resolver:(RCTPromiseResolveBlock)resolve
-              rejecter:(RCTPromiseRejectBlock)reject;
+               resolve:(RCTPromiseResolveBlock)resolve
+                reject:(RCTPromiseRejectBlock)reject;
 
 - (void)isCustomSpanEnabled:(RCTPromiseResolveBlock)resolve
-                   rejecter:(RCTPromiseRejectBlock)reject;
+                     reject:(RCTPromiseRejectBlock)reject;
 
 - (void)isAPMEnabled:(RCTPromiseResolveBlock)resolve
-            rejecter:(RCTPromiseRejectBlock)reject;
+              reject:(RCTPromiseRejectBlock)reject;
 
 @end

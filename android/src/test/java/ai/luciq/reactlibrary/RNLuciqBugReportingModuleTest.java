@@ -239,7 +239,7 @@ public class RNLuciqBugReportingModuleTest {
                     }
                 });
 
-        bugReportingModule.setOnInvokeHandler(null);
+        bugReportingModule.setOnInvokeHandler();
 
         // then
         verify(bugReportingModule).sendEvent(Constants.LCQ_PRE_INVOCATION_HANDLER, null);
@@ -260,7 +260,7 @@ public class RNLuciqBugReportingModuleTest {
                         .call(OnSdkDismissCallback.DismissType.CANCEL, OnSdkDismissCallback.ReportType.BUG);
                 return null;
             }});
-        bugReportingModule.setOnSDKDismissedHandler(null);
+        bugReportingModule.setOnSDKDismissedHandler();
 
         // then
         WritableMap params = new JavaOnlyMap();

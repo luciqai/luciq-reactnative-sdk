@@ -3,7 +3,6 @@ package ai.luciq.reactlibrary;
 import android.annotation.SuppressLint;
 
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import ai.luciq.featuresrequest.FeatureRequests;
@@ -15,7 +14,7 @@ import java.util.ArrayList;
 
 import javax.annotation.Nonnull;
 
-public class RNLuciqFeatureRequestsModule extends ReactContextBaseJavaModule {
+public class RNLuciqFeatureRequestsModule extends RNLuciqFeatureRequestsBaseSpec {
 
     public RNLuciqFeatureRequestsModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
