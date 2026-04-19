@@ -51,8 +51,7 @@
 
 - (void) testgivenHandler$setOnInvokeHandler_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnInvokeHandler:callback];
+  [partialMock setOnInvokeHandler];
   XCTAssertNotNil(LCQBugReporting.willInvokeHandler);
   OCMStub([partialMock sendEventWithName:@"LCQpreInvocationHandler" body:nil]);
   LCQBugReporting.willInvokeHandler();
@@ -62,8 +61,7 @@
 
 - (void) testgivenHandlerCANCEL$setOnSDKDismissedHandler_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnSDKDismissedHandler:callback];
+  [partialMock setOnSDKDismissedHandler];
   XCTAssertNotNil(LCQBugReporting.didDismissHandler);
   NSDictionary *result = @{ @"dismissType": @"CANCEL",
                             @"reportType": @"bug"};
@@ -74,8 +72,7 @@
 
 - (void) testgivenHandlerSUBMIT$setOnSDKDismissedHandler_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnSDKDismissedHandler:callback];
+  [partialMock setOnSDKDismissedHandler];
   XCTAssertNotNil(LCQBugReporting.didDismissHandler);
 
   NSDictionary *result = @{ @"dismissType": @"SUBMIT",
@@ -87,8 +84,7 @@
 
 - (void) testgivenHandlerADD_ATTACHMENT$setOnSDKDismissedHandler_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnSDKDismissedHandler:callback];
+  [partialMock setOnSDKDismissedHandler];
   XCTAssertNotNil(LCQBugReporting.didDismissHandler);
   NSDictionary *result = @{ @"dismissType": @"ADD_ATTACHMENT",
                             @"reportType": @"feedback"};
@@ -111,7 +107,7 @@
 
 - (void) testgivenExtendedBugReportMode$setExtendedBugReportMode_whenQuery_thenShouldCallNativeApi {
   LCQExtendedBugReportMode extendedBugReportMode = LCQExtendedBugReportModeEnabledWithOptionalFields;
-  [self.luciqBridge setExtendedBugReportMode:extendedBugReportMode];
+  [self.luciqBridge setExtendedBugReportMode:[NSString stringWithFormat:@"%d", extendedBugReportMode]];
   XCTAssertEqual(LCQBugReporting.extendedBugReportMode, extendedBugReportMode);
 }
 
@@ -137,7 +133,7 @@
     parsedOptions |= [boxedValue intValue];
   }
   OCMStub([mock showWithReportType:reportType options:parsedOptions]);
-  [self.luciqBridge show:reportType options:options];
+  [self.luciqBridge show:[NSString stringWithFormat:@"%d", reportType] options:options];
 
   XCTestExpectation *expectation = [self expectationWithDescription:@"Test ME PLX"];
 
@@ -212,7 +208,7 @@
 
   OCMStub([mock setProactiveReportingConfigurations:OCMOCK_ANY]);
 
-  [self.luciqBridge setProactiveReportingConfigurations:enabled gap:gap model:delay];
+  [self.luciqBridge setProactiveReportingConfigurations:enabled gapBetweenModals:[gap doubleValue] modalDelayAfterDetection:[delay doubleValue]];
 
   // Verify that the method is called with the correct properties (using OCMArg to match properties)
   OCMVerify([mock setProactiveReportingConfigurations:[OCMArg checkWithBlock:^BOOL(id obj) {

@@ -88,9 +88,6 @@
 
   OCMVerify([mock setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]]);
 
-
-  XCTAssertEqual(Luciq.appVariant, appVariant);
-
   OCMVerify([self.mRNLuciq initWithToken:appToken invocationEvents:floatingButtonInvocationEvent debugLogsLevel:sdkDebugLogsLevel useNativeNetworkInterception:useNativeNetworkInterception]);
 }
 
@@ -131,7 +128,7 @@
   NSString *appVariant = @"appVariant";
 
   [self.luciqBridge setAppVariant: appVariant];
-  XCTAssertEqual(Luciq.appVariant, appVariant);
+  OCMVerify([mock setAppVariant:appVariant]);
 }
 
 - (void)testSetTrackUserSteps {
@@ -200,7 +197,7 @@
   NSDictionary *dictionary = @{ @"someKey" : @"someValue" };
 
   OCMStub([mock getTags]).andReturn(dictionary);
-  [self.luciqBridge getTags:resolve :reject];
+  [self.luciqBridge getTags:resolve reject:reject];
   OCMVerify([mock getTags]);
 }
 
@@ -210,7 +207,7 @@
   NSString *key = @"KEY";
 
   OCMStub([mock setValue:value forStringWithKey:key]);
-  [self.luciqBridge setString:value toKey:key];
+  [self.luciqBridge setString:value key:key];
   OCMVerify([mock setValue:value forStringWithKey:key]);
 }
 
@@ -220,7 +217,7 @@
   NSString *name = @"this is my name";
 
   OCMStub([mock identifyUserWithID:nil email:email name:name]);
-  [self.luciqBridge identifyUser:email name:name userId:nil];
+  [self.luciqBridge identifyUser:email name:name id:nil];
   OCMVerify([mock identifyUserWithID:nil email:email name:name]);
 }
 
@@ -231,7 +228,7 @@
   NSString *userId = @"this is my id";
 
   OCMStub([mock identifyUserWithID:userId email:email name:name]);
-  [self.luciqBridge identifyUser:email name:name userId:userId];
+  [self.luciqBridge identifyUser:email name:name id:userId];
   OCMVerify([mock identifyUserWithID:userId email:email name:name]);
 }
 
@@ -258,7 +255,7 @@
   LCQUserStepsMode crashMode = LCQUserStepsModeEnable;
   LCQUserStepsMode sessionReplayMode = LCQUserStepsModeEnabledWithNoScreenshots;
 
-  [self.luciqBridge setReproStepsConfig:bugMode :crashMode :sessionReplayMode];
+  [self.luciqBridge setReproStepsConfig:[NSString stringWithFormat:@"%ld", (long)bugMode] crashMode:[NSString stringWithFormat:@"%ld", (long)crashMode] sessionReplay:[NSString stringWithFormat:@"%ld", (long)sessionReplayMode]];
 
   OCMVerify([mock setReproStepsFor:LCQIssueTypeBug withMode:bugMode]);
   OCMVerify([mock setReproStepsFor:LCQIssueTypeAllCrashes withMode:crashMode]);
@@ -271,7 +268,7 @@
   NSString *value = @"value";
 
   OCMStub([mock setUserAttribute:value withKey:key]);
-  [self.luciqBridge setUserAttribute:key withValue:value];
+  [self.luciqBridge setUserAttribute:key value:value];
   OCMVerify([mock setUserAttribute:value withKey:key]);
 }
 
@@ -282,7 +279,7 @@
   RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
 
   OCMStub([mock userAttributeForKey:key]).andReturn(@"someValue");
-  [self.luciqBridge getUserAttribute:key :resolve :reject];
+  [self.luciqBridge getUserAttribute:key resolve:resolve reject:reject];
   OCMVerify([mock userAttributeForKey:key]);
 }
 
@@ -302,7 +299,7 @@
   NSDictionary *dictionary = @{ @"someKey" : @"someValue" };
 
   OCMStub([mock userAttributes]).andReturn(dictionary);
-  [self.luciqBridge getAllUserAttributes:resolve :reject];
+  [self.luciqBridge getAllUserAttributes:resolve reject:reject];
   OCMVerify([mock userAttributes]);
 }
 
@@ -410,7 +407,7 @@
   NSURL *url = [NSURL URLWithString:fileLocation];
 
   OCMStub([mock addFileAttachmentWithURL:url]);
-  [self.luciqBridge setFileAttachment:fileLocation];
+  [self.luciqBridge setFileAttachment:fileLocation fileName:nil];
   OCMVerify([mock addFileAttachmentWithURL:url]);
 }
 
@@ -561,7 +558,7 @@
         [expectation fulfill];
     };
 
-    [self.luciqBridge isW3ExternalTraceIDEnabled:resolve :nil];
+    [self.luciqBridge isW3ExternalTraceIDEnabled:resolve reject:nil];
 
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
@@ -580,7 +577,7 @@
         [expectation fulfill];
     };
 
-    [self.luciqBridge isW3ExternalGeneratedHeaderEnabled:resolve :nil];
+    [self.luciqBridge isW3ExternalGeneratedHeaderEnabled:resolve reject:nil];
 
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
@@ -599,7 +596,7 @@
         [expectation fulfill];
     };
 
-    [self.luciqBridge isW3CaughtHeaderEnabled:resolve :nil];
+    [self.luciqBridge isW3CaughtHeaderEnabled:resolve reject:nil];
 
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
@@ -644,7 +641,7 @@
         [expectation fulfill];
     };
 
-    [self.luciqBridge getNetworkBodyMaxSize:resolve :nil];
+    [self.luciqBridge getNetworkBodyMaxSize:resolve reject:nil];
     [self waitForExpectationsWithTimeout:1.0 handler:nil];
 
     OCMVerify(ClassMethod([mock getNetworkBodyMaxSize]));
