@@ -39,11 +39,7 @@ export interface Spec extends TurboModule {
 
   setScreenRenderingEnabled(isEnabled: boolean): void;
 
-  syncCustomSpan(
-    name: string,
-    startTimestamp: number,
-    endTimestamp: number,
-  ): Promise<void>;
+  syncCustomSpan(name: string, startTimestamp: number, endTimestamp: number): Promise<void>;
   isCustomSpanEnabled(): Promise<boolean>;
   isAPMEnabled(): Promise<boolean>;
 

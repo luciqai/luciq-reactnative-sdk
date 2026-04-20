@@ -1,4 +1,8 @@
-import { NativeEventEmitter, NativeModules as ReactNativeModules, type NativeModule } from 'react-native';
+import {
+  NativeEventEmitter,
+  NativeModules as ReactNativeModules,
+  type NativeModule,
+} from 'react-native';
 
 import NetworkLoggerTurboSpec from '../specs/NativeNetworkLogger';
 

@@ -1,6 +1,10 @@
-import { NativeEventEmitter, NativeModule, NativeModules as ReactNativeModules, ProcessedColorValue } from 'react-native';
+import {
+  NativeEventEmitter,
+  NativeModule,
+  NativeModules as ReactNativeModules,
+  ProcessedColorValue,
+} from 'react-native';
 
-import type Report from '../models/Report';
 import type {
   AutoMaskingType,
   ColorTheme,
@@ -18,7 +22,7 @@ import type { ThemeConfig } from '../models/ThemeConfig';
 import LuciqTurboSpec from '../specs/NativeLuciq';
 
 export interface LuciqNativeModule extends NativeModule {
-  getConstants(): NativeConstants;
+  getAllConstants(): NativeConstants;
 
   // Essential APIs //
   setEnabled(isEnabled: boolean): void;
@@ -138,7 +142,7 @@ export interface LuciqNativeModule extends NativeModule {
   setFileAttachment(filePath: string, fileName?: string): void;
 
   // Report APIs //
-  setPreSendingHandler(handler?: (report: Report) => void): void;
+  setPreSendingHandler(): void;
   appendTagToReport(tag: string): void;
   appendConsoleLogToReport(consoleLog: string): void;
   setUserAttributeToReport(key: string, value: string): void;
@@ -161,7 +165,7 @@ export interface LuciqNativeModule extends NativeModule {
   // Feature Flags Listener for Android
   registerFeatureFlagsChangeListener(): void;
 
-  setOnFeaturesUpdatedListener(handler?: (params: any) => void): void; // android only
+  setOnFeaturesUpdatedListener(): void; // android only
   enableAutoMasking(autoMaskingTypes: AutoMaskingType[]): void;
   getNetworkBodyMaxSize(): Promise<number>;
 

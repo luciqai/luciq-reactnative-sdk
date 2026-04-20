@@ -56,7 +56,6 @@ export interface ApmNativeModule extends NativeModule {
   isAPMEnabled(): Promise<boolean>;
 }
 
-export const NativeAPM = (ApmTurboSpec ??
-  ReactNativeModules.LCQAPM) as unknown as ApmNativeModule;
+export const NativeAPM = (ApmTurboSpec ?? ReactNativeModules.LCQAPM) as unknown as ApmNativeModule;
 
 export const emitter = new NativeEventEmitter(NativeAPM);

@@ -1,4 +1,8 @@
-import { NativeEventEmitter, NativeModule, NativeModules as ReactNativeModules } from 'react-native';
+import {
+  NativeEventEmitter,
+  NativeModule,
+  NativeModules as ReactNativeModules,
+} from 'react-native';
 
 import RepliesTurboSpec from '../specs/NativeReplies';
 
@@ -10,7 +14,7 @@ export interface RepliesNativeModule extends NativeModule {
   getUnreadRepliesCount(): Promise<number>;
 
   // Callbacks //
-  setOnNewReplyReceivedHandler(handler: () => void): void;
+  setOnNewReplyReceivedHandler(): void;
 
   // Notifications APIs //
   setPushNotificationsEnabled(isEnabled: boolean): void;

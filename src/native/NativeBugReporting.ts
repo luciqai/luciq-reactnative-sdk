@@ -1,4 +1,8 @@
-import { NativeEventEmitter, NativeModule, NativeModules as ReactNativeModules } from 'react-native';
+import {
+  NativeEventEmitter,
+  NativeModule,
+  NativeModules as ReactNativeModules,
+} from 'react-native';
 
 import type {
   DismissType,
@@ -44,11 +48,9 @@ export interface BugReportingNativeModule extends NativeModule {
   setShakingThresholdForAndroid(threshold: number): void;
 
   // Callbacks //
-  setOnInvokeHandler(handler: () => void): void;
-  setDidSelectPromptOptionHandler(handler: (promptOption: string) => void): void;
-  setOnSDKDismissedHandler(
-    handler: (dismissType: DismissType, reportType: ReportType) => void,
-  ): void;
+  setOnInvokeHandler(): void;
+  setDidSelectPromptOptionHandler(): void;
+  setOnSDKDismissedHandler(): void;
 
   addUserConsent(
     key: string,

@@ -46,15 +46,10 @@ RCT_EXPORT_METHOD(show) {
     [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[LCQReplies class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
 }
 
-RCT_EXPORT_METHOD(setOnNewReplyReceivedHandler:(RCTResponseSenderBlock) callback) {
-    if (callback != nil) {
-        LCQReplies.didReceiveReplyHandler = ^{
-            [self sendEventWithName:@"LCQOnNewReplyReceivedCallback" body:nil];
-        };
-    } else {
-        LCQReplies.didReceiveReplyHandler = nil;
-    }
-
+RCT_EXPORT_METHOD(setOnNewReplyReceivedHandler) {
+    LCQReplies.didReceiveReplyHandler = ^{
+        [self sendEventWithName:@"LCQOnNewReplyReceivedCallback" body:nil];
+    };
 }
 
 RCT_EXPORT_METHOD(getUnreadRepliesCount:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {

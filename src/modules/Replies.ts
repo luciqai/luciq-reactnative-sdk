@@ -32,7 +32,7 @@ export const show = () => {
  */
 export const setOnNewReplyReceivedHandler = (handler: () => void) => {
   emitter.addListener(NativeEvents.ON_REPLY_RECEIVED_HANDLER, handler);
-  NativeReplies.setOnNewReplyReceivedHandler(handler);
+  NativeReplies.setOnNewReplyReceivedHandler();
 };
 
 /**
