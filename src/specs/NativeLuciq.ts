@@ -1,54 +1,37 @@
-import { NativeEventEmitter, NativeModule, NativeModules as ReactNativeModules, ProcessedColorValue } from 'react-native';
+import type { TurboModule } from 'react-native';
+import { TurboModuleRegistry } from 'react-native';
+import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 
-import type Report from '../models/Report';
-import type {
-  AutoMaskingType,
-  ColorTheme,
-  InvocationEvent,
-  Locale,
-  LogLevel,
-  ReproStepsMode,
-  StringKey,
-  WelcomeMessageMode,
-} from '../utils/Enums';
-import type { NativeConstants } from './NativeConstants';
-import type { W3cExternalTraceAttributes } from '../models/W3cExternalTraceAttributes';
-import type { OverAirUpdate } from '../models/OverAirUpdate';
-import type { ThemeConfig } from '../models/ThemeConfig';
-import LuciqTurboSpec from '../specs/NativeLuciq';
-
-export interface LuciqNativeModule extends NativeModule {
-  getConstants(): NativeConstants;
+export interface Spec extends TurboModule {
+  getAllConstants(): UnsafeObject;
 
   // Essential APIs //
   setEnabled(isEnabled: boolean): void;
   isBuilt(): Promise<boolean>;
   init(
     token: string,
-    invocationEvents: InvocationEvent[],
-    debugLogsLevel: LogLevel,
+    invocationEvents: Array<string>,
+    debugLogsLevel: string,
     useNativeNetworkInterception: boolean,
-    codePushVersion?: string,
-    appVariant?: string,
-    options?: {
-      ignoreAndroidSecureFlag?: boolean;
-    },
-    overAirVersion?: OverAirUpdate,
+    codePushVersion: string | null,
+    appVariant: string | null,
+    options: UnsafeObject | null,
+    overAirVersion: UnsafeObject | null,
   ): void;
   show(): void;
 
   // Misc APIs //
   setCodePushVersion(version: string): void;
-  setOverAirVersion(OTAserviceVersion: OverAirUpdate): void;
+  setOverAirVersion(OTAserviceVersion: UnsafeObject): void;
   setAppVariant(appVariant: string): void;
   setLCQLogPrintsToConsole(printsToConsole: boolean): void;
   setSessionProfilerEnabled(isEnabled: boolean): void;
 
   // Customization APIs //
-  setLocale(sdkLocale: Locale): void;
-  setColorTheme(sdkTheme: ColorTheme): void;
-  setPrimaryColor(color: ProcessedColorValue | null | undefined): void;
-  setString(string: string, key: StringKey): void;
+  setLocale(sdkLocale: string): void;
+  setColorTheme(sdkTheme: string): void;
+  setPrimaryColor(color: number | null): void;
+  setString(string: string, key: string): void;
 
   // Network APIs //
   networkLogAndroid(
@@ -70,16 +53,16 @@ export interface LuciqNativeModule extends NativeModule {
     responseBody: string | null,
     responseBodySize: number,
     responseCode: number,
-    requestHeaders: Record<string, string>,
-    responseHeaders: Record<string, string>,
+    requestHeaders: UnsafeObject,
+    responseHeaders: UnsafeObject,
     contentType: string,
     errorDomain: string,
     errorCode: number,
     startTime: number,
     duration: number,
-    gqlQueryName: string | undefined,
-    serverErrorMessage: string | undefined,
-    W3cExternalTraceAttributes: W3cExternalTraceAttributes,
+    gqlQueryName: string | null,
+    serverErrorMessage: string | null,
+    w3cExternalTraceAttributes: UnsafeObject,
   ): void;
 
   setNetworkLoggingEnabled(isEnabled: boolean): void;
@@ -87,9 +70,9 @@ export interface LuciqNativeModule extends NativeModule {
 
   // Repro Steps APIs //
   setReproStepsConfig(
-    bugMode: ReproStepsMode,
-    crashMode: ReproStepsMode,
-    sessionReplay: ReproStepsMode,
+    bugMode: string,
+    crashMode: string,
+    sessionReplay: string,
   ): void;
   setTrackUserSteps(isEnabled: boolean): void;
   reportScreenChange(firstScreen: string): void;
@@ -106,7 +89,7 @@ export interface LuciqNativeModule extends NativeModule {
   clearLogs(): void;
 
   // User APIs //
-  identifyUser(email: string, name: string, id?: string): void;
+  identifyUser(email: string, name: string, id: string | null): void;
   logOut(): void;
   logUserEvent(name: string): void;
   setUserData(data: string): void;
@@ -115,30 +98,28 @@ export interface LuciqNativeModule extends NativeModule {
   setUserAttribute(key: string, value: string): void;
   getUserAttribute(key: string): Promise<string>;
   removeUserAttribute(key: string): void;
-  getAllUserAttributes(): Promise<Record<string, string>>;
+  getAllUserAttributes(): Promise<UnsafeObject>;
   clearAllUserAttributes(): void;
 
   // Welcome Message APIs //
-  showWelcomeMessageWithMode(mode: WelcomeMessageMode): void;
-  setWelcomeMessageMode(mode: WelcomeMessageMode): void;
+  showWelcomeMessageWithMode(mode: string): void;
+  setWelcomeMessageMode(mode: string): void;
 
   // Tags APIs //
-  appendTags(tags: string[]): void;
+  appendTags(tags: Array<string>): void;
   resetTags(): void;
-  getTags(): Promise<string[]>;
+  getTags(): Promise<Array<string>>;
 
   // Experiments APIs //
-  addFeatureFlags(featureFlags: Record<string, string | undefined>): void;
-
-  removeFeatureFlags(featureFlags: string[]): void;
-
+  addFeatureFlags(featureFlags: UnsafeObject): void;
+  removeFeatureFlags(featureFlags: Array<string>): void;
   removeAllFeatureFlags(): void;
 
   // Files APIs //
-  setFileAttachment(filePath: string, fileName?: string): void;
+  setFileAttachment(filePath: string, fileName: string | null): void;
 
   // Report APIs //
-  setPreSendingHandler(handler?: (report: Report) => void): void;
+  setPreSendingHandler(): void;
   appendTagToReport(tag: string): void;
   appendConsoleLogToReport(consoleLog: string): void;
   setUserAttributeToReport(key: string, value: string): void;
@@ -147,40 +128,32 @@ export interface LuciqNativeModule extends NativeModule {
   logWarnToReport(log: string): void;
   logErrorToReport(log: string): void;
   logInfoToReport(log: string): void;
-  addFileAttachmentWithURLToReport(url: string, filename?: string): void;
-  addFileAttachmentWithDataToReport(data: string, filename?: string): void;
+  addFileAttachmentWithURLToReport(url: string, filename: string | null): void;
+  addFileAttachmentWithDataToReport(data: string, filename: string | null): void;
   willRedirectToStore(): void;
 
   // W3C Feature Flags
   isW3ExternalTraceIDEnabled(): Promise<boolean>;
-
   isW3ExternalGeneratedHeaderEnabled(): Promise<boolean>;
-
   isW3CaughtHeaderEnabled(): Promise<boolean>;
 
   // Feature Flags Listener for Android
   registerFeatureFlagsChangeListener(): void;
-
-  setOnFeaturesUpdatedListener(handler?: (params: any) => void): void; // android only
-  enableAutoMasking(autoMaskingTypes: AutoMaskingType[]): void;
+  setOnFeaturesUpdatedListener(): void;
+  enableAutoMasking(autoMaskingTypes: Array<string>): void;
   getNetworkBodyMaxSize(): Promise<number>;
 
-  setTheme(theme: ThemeConfig): void;
+  setTheme(theme: UnsafeObject): void;
   setFullscreen(isEnabled: boolean): void;
 
   // WebView APIs //
   setWebViewMonitoringEnabled(isEnabled: boolean): void;
   setWebViewNetworkTrackingEnabled(isEnabled: boolean): void;
   setWebViewUserInteractionsTrackingEnabled(isEnabled: boolean): void;
+
+  // Event emitter plumbing
+  addListener(eventName: string): void;
+  removeListeners(count: number): void;
 }
 
-export const NativeLuciq = (LuciqTurboSpec ??
-  ReactNativeModules.Luciq) as unknown as LuciqNativeModule;
-
-export enum NativeEvents {
-  PRESENDING_HANDLER = 'LCQpreSendingHandler',
-  LCQ_ON_FEATURES_UPDATED_CALLBACK = 'LCQOnFeatureUpdatedCallback',
-  ON_FEATURE_FLAGS_CHANGE = 'LCQOnNewFeatureFlagsUpdateReceivedCallback',
-}
-
-export const emitter = new NativeEventEmitter(NativeLuciq);
+export default TurboModuleRegistry.get<Spec>('Luciq');

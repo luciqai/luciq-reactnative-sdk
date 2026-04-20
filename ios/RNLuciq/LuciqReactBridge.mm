@@ -59,7 +59,7 @@ RCT_EXPORT_METHOD(init:(NSString *)token
 
     [Luciq setCodePushVersion:codePushVersion];
 
-    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 
     [RNLuciq initWithToken:token
              invocationEvents:invocationEvents
@@ -72,7 +72,7 @@ RCT_EXPORT_METHOD(setCodePushVersion:(NSString *)version) {
 }
 
 RCT_EXPORT_METHOD(setOverAirVersion:(NSDictionary *)overAirVersion) {
-    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 }
 
 RCT_EXPORT_METHOD(setAppVariant:(NSString *)appVariant) {

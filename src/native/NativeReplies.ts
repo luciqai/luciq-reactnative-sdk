@@ -1,6 +1,6 @@
-import { NativeEventEmitter, NativeModule } from 'react-native';
+import { NativeEventEmitter, NativeModule, NativeModules as ReactNativeModules } from 'react-native';
 
-import { NativeModules } from './NativePackage';
+import RepliesTurboSpec from '../specs/NativeReplies';
 
 export interface RepliesNativeModule extends NativeModule {
   // Essential APIs //
@@ -25,7 +25,8 @@ export interface RepliesNativeModule extends NativeModule {
   setSystemReplyNotificationSoundEnabled(isEnabled: boolean): void;
 }
 
-export const NativeReplies = NativeModules.LCQReplies;
+export const NativeReplies = (RepliesTurboSpec ??
+  ReactNativeModules.LCQReplies) as unknown as RepliesNativeModule;
 
 export enum NativeEvents {
   ON_REPLY_RECEIVED_HANDLER = 'LCQOnNewReplyReceivedCallback',

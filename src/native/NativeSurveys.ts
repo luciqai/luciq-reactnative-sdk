@@ -1,6 +1,6 @@
-import { NativeEventEmitter, NativeModule } from 'react-native';
+import { NativeEventEmitter, NativeModule, NativeModules as ReactNativeModules } from 'react-native';
 
-import { NativeModules } from './NativePackage';
+import SurveysTurboSpec from '../specs/NativeSurveys';
 
 export interface Survey {
   title: string;
@@ -24,7 +24,8 @@ export interface SurveysNativeModule extends NativeModule {
   setOnDismissHandler(onDismissHandler: () => void): void;
 }
 
-export const NativeSurveys = NativeModules.LCQSurveys;
+export const NativeSurveys = (SurveysTurboSpec ??
+  ReactNativeModules.LCQSurveys) as unknown as SurveysNativeModule;
 
 export enum NativeEvents {
   WILL_SHOW_SURVEY_HANDLER = 'LCQWillShowSurvey',

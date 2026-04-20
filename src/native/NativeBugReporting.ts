@@ -1,4 +1,4 @@
-import { NativeEventEmitter, NativeModule } from 'react-native';
+import { NativeEventEmitter, NativeModule, NativeModules as ReactNativeModules } from 'react-native';
 
 import type {
   DismissType,
@@ -10,7 +10,7 @@ import type {
   ReportType,
   userConsentActionType,
 } from '../utils/Enums';
-import { NativeModules } from './NativePackage';
+import BugReportingTurboSpec from '../specs/NativeBugReporting';
 
 export interface BugReportingNativeModule extends NativeModule {
   // Essential APIs //
@@ -65,7 +65,8 @@ export interface BugReportingNativeModule extends NativeModule {
   ): void;
 }
 
-export const NativeBugReporting = NativeModules.LCQBugReporting;
+export const NativeBugReporting = (BugReportingTurboSpec ??
+  ReactNativeModules.LCQBugReporting) as unknown as BugReportingNativeModule;
 
 export enum NativeEvents {
   ON_INVOKE_HANDLER = 'LCQpreInvocationHandler',
