@@ -198,7 +198,7 @@ public class RNLuciqNetworkLoggerModuleTest {
     public void testRegisterNetworkLogsListenerCalled() {
         try (MockedStatic<InternalAPM> internalAPMMock = mockStatic(InternalAPM.class)) {
             // Run the method
-            rnLuciqNetworkLoggerModule.registerNetworkLogsListener();
+            rnLuciqNetworkLoggerModule.registerNetworkLogsListener(null);
 
             // Verify the sanitizer was registered
             internalAPMMock.verify(() -> InternalAPM._registerNetworkLogSanitizer(any()));

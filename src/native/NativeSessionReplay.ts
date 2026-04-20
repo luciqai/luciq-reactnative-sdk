@@ -1,7 +1,7 @@
-import { NativeEventEmitter } from 'react-native';
+import { NativeEventEmitter, NativeModules as ReactNativeModules } from 'react-native';
 import type { NativeModule } from 'react-native';
 
-import { NativeModules } from './NativePackage';
+import SessionReplayTurboSpec from '../specs/NativeSessionReplay';
 
 export interface SessionReplayNativeModule extends NativeModule {
   setEnabled(isEnabled: boolean): void;
@@ -16,7 +16,8 @@ export interface SessionReplayNativeModule extends NativeModule {
   setScreenshotCaptureInterval(intervalMs: number): void;
 }
 
-export const NativeSessionReplay = NativeModules.LCQSessionReplay;
+export const NativeSessionReplay = (SessionReplayTurboSpec ??
+  ReactNativeModules.LCQSessionReplay) as unknown as SessionReplayNativeModule;
 export enum NativeEvents {
   SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION = 'LCQSessionReplayOnSyncCallback',
 }

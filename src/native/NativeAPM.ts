@@ -1,8 +1,8 @@
 import type { NativeModule } from 'react-native';
-import { NativeEventEmitter } from 'react-native';
+import { NativeEventEmitter, NativeModules as ReactNativeModules } from 'react-native';
 
 import type { W3cExternalTraceAttributes } from '../models/W3cExternalTraceAttributes';
-import { NativeModules } from './NativePackage';
+import ApmTurboSpec from '../specs/NativeAPM';
 
 export interface ApmNativeModule extends NativeModule {
   // Essential APIs //
@@ -56,6 +56,6 @@ export interface ApmNativeModule extends NativeModule {
   isAPMEnabled(): Promise<boolean>;
 }
 
-export const NativeAPM = NativeModules.LCQAPM;
+export const NativeAPM = (ApmTurboSpec ?? ReactNativeModules.LCQAPM) as unknown as ApmNativeModule;
 
 export const emitter = new NativeEventEmitter(NativeAPM);

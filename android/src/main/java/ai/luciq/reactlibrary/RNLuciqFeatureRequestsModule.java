@@ -3,7 +3,6 @@ package ai.luciq.reactlibrary;
 import android.annotation.SuppressLint;
 
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import ai.luciq.featuresrequest.FeatureRequests;
@@ -13,18 +12,10 @@ import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 import java.util.ArrayList;
 
-import javax.annotation.Nonnull;
-
-public class RNLuciqFeatureRequestsModule extends ReactContextBaseJavaModule {
+public class RNLuciqFeatureRequestsModule extends NativeFeatureRequestsSpec {
 
     public RNLuciqFeatureRequestsModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
-    }
-
-    @Nonnull
-    @Override
-    public String getName() {
-        return "LCQFeatureRequests";
     }
 
     /**

@@ -63,24 +63,16 @@ RCT_EXPORT_METHOD(showSurveysIfAvailable) {
     [LCQSurveys showSurveyIfAvailable];
 }
 
-RCT_EXPORT_METHOD(setOnShowHandler:(RCTResponseSenderBlock)callBack) {
-    if (callBack != nil) {
-        LCQSurveys.willShowSurveyHandler = ^{
-            [self sendEventWithName:@"LCQWillShowSurvey" body:nil];
-        };
-    } else {
-        LCQSurveys.willShowSurveyHandler = ^{};
-    }
+RCT_EXPORT_METHOD(setOnShowHandler) {
+    LCQSurveys.willShowSurveyHandler = ^{
+        [self sendEventWithName:@"LCQWillShowSurvey" body:nil];
+    };
 }
 
-RCT_EXPORT_METHOD(setOnDismissHandler:(RCTResponseSenderBlock)callBack) {
-    if (callBack != nil) {
-        LCQSurveys.didDismissSurveyHandler = ^{
-            [self sendEventWithName:@"LCQDidDismissSurvey" body:nil];
-        };
-    } else {
-        LCQSurveys.didDismissSurveyHandler = ^{};
-    }
+RCT_EXPORT_METHOD(setOnDismissHandler) {
+    LCQSurveys.didDismissSurveyHandler = ^{
+        [self sendEventWithName:@"LCQDidDismissSurvey" body:nil];
+    };
 }
 
 RCT_EXPORT_METHOD(setAutoShowingEnabled:(BOOL)autoShowingSurveysEnabled) {

@@ -852,7 +852,7 @@ describe('Luciq Module', () => {
     Luciq.onReportSubmitHandler(callback);
 
     expect(NativeLuciq.setPreSendingHandler).toBeCalledTimes(1);
-    expect(NativeLuciq.setPreSendingHandler).toBeCalledWith(callback);
+    expect(NativeLuciq.setPreSendingHandler).toBeCalledWith();
   });
 
   it('should invoke callback on emitting the event LCQpreSendingHandler', (done) => {

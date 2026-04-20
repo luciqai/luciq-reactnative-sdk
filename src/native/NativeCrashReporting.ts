@@ -1,8 +1,9 @@
 import type { NativeModule, Platform } from 'react-native';
+import { NativeModules as ReactNativeModules } from 'react-native';
 import type { StackFrame } from 'react-native/Libraries/Core/Devtools/parseErrorStack';
 
-import { NativeModules } from './NativePackage';
 import type { NonFatalErrorLevel } from '../utils/Enums';
+import CrashReportingTurboSpec from '../specs/NativeCrashReporting';
 
 export interface CrashData {
   message: string;
@@ -34,4 +35,5 @@ export interface CrashReportingNativeModule extends NativeModule {
   setNDKCrashesEnabled(isEnabled: boolean): Promise<void>;
 }
 
-export const NativeCrashReporting = NativeModules.LCQCrashReporting;
+export const NativeCrashReporting = (CrashReportingTurboSpec ??
+  ReactNativeModules.LCQCrashReporting) as unknown as CrashReportingNativeModule;

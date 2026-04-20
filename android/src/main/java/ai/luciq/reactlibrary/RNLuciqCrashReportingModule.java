@@ -2,11 +2,8 @@ package ai.luciq.reactlibrary;
 
 import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
-import androidx.annotation.NonNull;
-
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import ai.luciq.crash.CrashReporting;
@@ -18,22 +15,14 @@ import org.json.JSONObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
+public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
 
     public RNLuciqCrashReportingModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
-    }
-
-    @Nonnull
-    @Override
-    public String getName() {
-        return "LCQCrashReporting";
     }
 
     /**
@@ -67,9 +56,9 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
      *                        finishes processing/handling the crash.
      */
     @ReactMethod
-    public void sendJSCrash(final String exceptionObject, final Promise promise) {
+    public void sendJSCrash(final ReadableMap exceptionObject, final Promise promise) {
         try {
-            JSONObject jsonObject = new JSONObject(exceptionObject);
+            JSONObject jsonObject = new JSONObject(exceptionObject.toHashMap());
             sendJSCrashByReflection(jsonObject, false, new Runnable() {
                 @Override
                 public void run() {
@@ -90,9 +79,9 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
      * @param level       different severity levels for errors
      */
     @ReactMethod
-    public void sendHandledJSCrash(final String exceptionObject, @Nullable final ReadableMap userAttributes, @Nullable final String fingerprint, @Nullable final String level) {
+    public void sendHandledJSCrash(final ReadableMap exceptionObject, @Nullable final ReadableMap userAttributes, @Nullable final String fingerprint, @Nullable final String level, final Promise promise) {
         try {
-            final JSONObject jsonObject = new JSONObject(exceptionObject);
+            final JSONObject jsonObject = new JSONObject(exceptionObject.toHashMap());
             MainThreadHandler.runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
@@ -111,11 +100,14 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
                     } catch (ClassNotFoundException | IllegalAccessException |
                              InvocationTargetException e) {
                         e.printStackTrace();
+                    } finally {
+                        promise.resolve(null);
                     }
                 }
             });
         } catch (Throwable e) {
             e.printStackTrace();
+            promise.resolve(null);
         }
     }
 
@@ -150,7 +142,7 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
      * @param isEnabled boolean indicating enabled or disabled.
      */
     @ReactMethod
-    public void setNDKCrashesEnabled(final boolean isEnabled) {
+    public void setNDKCrashesEnabled(final boolean isEnabled, final Promise promise) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -162,8 +154,16 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                } finally {
+                    promise.resolve(null);
                 }
             }
         });
     }
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }
