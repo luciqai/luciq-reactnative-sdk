@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 
 import type {
-  DismissType,
   ExtendedBugReportMode,
   FloatingButtonPosition,
   InvocationEvent,

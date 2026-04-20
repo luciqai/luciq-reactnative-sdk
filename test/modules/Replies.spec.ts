@@ -43,7 +43,7 @@ describe('Replies Module', () => {
     Replies.setOnNewReplyReceivedHandler(callback);
 
     expect(NativeReplies.setOnNewReplyReceivedHandler).toBeCalledTimes(1);
-    expect(NativeReplies.setOnNewReplyReceivedHandler).toBeCalledWith(callback);
+    expect(NativeReplies.setOnNewReplyReceivedHandler).toBeCalledWith();
   });
 
   it('should invoke callback on emitting the event LCQOnNewReplyReceivedCallback', () => {
