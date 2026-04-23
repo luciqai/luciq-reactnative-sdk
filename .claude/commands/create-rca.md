@@ -72,6 +72,7 @@ gh pr diff <pr_number> --repo <owner>/<repo> --name-only
 ### Step 1.4: Document All PRs
 
 For each PR, document:
+
 - PR number and title
 - Files changed
 - Nature of the fix/change
@@ -128,6 +129,7 @@ To complete the RCA, please provide the following details:
 **Date**: [Current Date]
 **Author**: [User Name or Team]
 **Related PRs**:
+
 - [PR_TITLE_1](PR_URL_1)
 - [PR_TITLE_2](PR_URL_2)
 
@@ -195,28 +197,29 @@ To complete the RCA, please provide the following details:
 
 ## Actions Taken
 
-| Timestamp | Action | Owner |
-|-----------|--------|-------|
-| [Time 1] | [Action taken] | [Person] |
-| [Time 2] | [Action taken] | [Person] |
+| Timestamp | Action         | Owner    |
+| --------- | -------------- | -------- |
+| [Time 1]  | [Action taken] | [Person] |
+| [Time 2]  | [Action taken] | [Person] |
 
 ---
 
 ## Engaged People
 
-| Name | Role | Contribution |
-|------|------|--------------|
+| Name     | Role   | Contribution    |
+| -------- | ------ | --------------- |
 | [Name 1] | [Role] | [What they did] |
 
 ---
 
 ## Future Improvements
 
-| Improvement | Priority | Owner | Target Date | JIRA Ticket |
-|-------------|----------|-------|-------------|-------------|
-| [Improvement 1] | [High/Medium/Low] | [Owner] | [Date] | [MOB-XXXXX] |
+| Improvement     | Priority          | Owner   | Target Date | JIRA Ticket |
+| --------------- | ----------------- | ------- | ----------- | ----------- |
+| [Improvement 1] | [High/Medium/Low] | [Owner] | [Date]      | [MOB-XXXXX] |
 
 ### Preventive Categories:
+
 - [ ] Code Review Process Enhancement
 - [ ] Testing Coverage Improvement
 - [ ] Monitoring/Alerting Enhancement
@@ -237,12 +240,15 @@ To complete the RCA, please provide the following details:
 ## Appendix
 
 ### Timeline
+
 [Detailed timeline]
 
 ### Technical Details
+
 [Stack traces, logs, etc.]
 
 ### References
+
 - JIRA: [JIRA_URL]
 - PRs: [PR links with descriptions]
 - Related Documentation: [Links]
@@ -255,6 +261,7 @@ Present the generated RCA and ask for corrections, additions, or updates.
 ## 4. Output Options
 
 Ask the user:
+
 ```
 How would you like to save this RCA?
 1. Display in terminal (copy manually)
@@ -263,6 +270,7 @@ How would you like to save this RCA?
 ```
 
 Default save location:
+
 ```bash
 cat > ./RCA-<TASK_ID>-$(date +%Y%m%d).md << 'EOF'
 <RCA_CONTENT>

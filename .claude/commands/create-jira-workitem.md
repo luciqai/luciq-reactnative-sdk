@@ -17,6 +17,7 @@ acli jira workitem create \
 ```
 
 Follow the following rules unless specified otherwise:
+
 - Prefix task summary with `[React Native]`
 - Make the description concise
 - Use MOB (Mobile) project

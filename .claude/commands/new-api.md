@@ -16,12 +16,14 @@ Add a new public API method to an existing feature module.
 ### 1. Define Native Interface
 
 Add the method to the native interface in `src/native/Native<Module>.ts`:
+
 - Define parameter types and return type
 - Follow existing method patterns in the same file
 
 ### 2. Add Module Method
 
 Add the method to the module in `src/modules/<Module>.ts`:
+
 - Export function calling through to the native module
 - Match the style of existing methods in the same module
 
@@ -36,6 +38,7 @@ If new models were added, export them in `src/index.ts`
 ### 5. Write Tests
 
 Add tests to `test/modules/<Module>.spec.ts`:
+
 - Test the method calls through to the native module correctly
 - Test parameter passing
 - Test error handling

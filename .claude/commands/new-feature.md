@@ -21,12 +21,14 @@ Scaffold a new feature module in the Luciq React Native SDK following establishe
 ### 2. Create Native Interface
 
 Create `src/native/Native<FeatureName>.ts`:
+
 - Define the typed interface for the native module
 - Follow existing patterns from other native interface files (e.g., `NativeAPM.ts`, `NativeBugReporting.ts`)
 
 ### 3. Create Module
 
 Create `src/modules/<FeatureName>.ts`:
+
 - Export functions that call through to the native module
 - Follow the pattern of existing modules (e.g., `BugReporting`, `APM`)
 - Add proper error handling
@@ -35,18 +37,21 @@ Create `src/modules/<FeatureName>.ts`:
 ### 4. Create Models
 
 Create any needed models in `src/models/`:
+
 - Follow existing model patterns
 - Include proper TypeScript types and enums in `src/utils/Enums.ts`
 
 ### 5. Export Public API
 
 Update `src/index.ts`:
+
 - Export the new module namespace
 - Export any new models and types
 
 ### 6. Write Tests
 
 Create `test/modules/<FeatureName>.spec.ts`:
+
 - Add native module mock in `test/mocks/`
 - Register mock in `test/setup.ts`
 - Test each public method

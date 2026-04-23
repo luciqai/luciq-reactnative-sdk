@@ -17,6 +17,7 @@ This is the Luciq React Native SDK (`@luciq/react-native`). It bridges JavaScrip
 ## Module Pattern
 
 Each SDK feature is a module in `src/modules/` exported as a namespace:
+
 - Module exports functions that call through to native via `NativeModules`
 - Native bridge interfaces are typed in `src/native/`
 - Events from native use `NativeEventEmitter`

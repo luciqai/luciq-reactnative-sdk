@@ -38,6 +38,7 @@ Wait for the user to provide the internal notes content.
 ## Step 2: Analyze and Categorize
 
 Review the internal notes and for each item:
+
 1. Identify the type (Feature, Improvement, Bug Fix, Other)
 2. Determine if public-facing (remove internal-only items)
 3. Extract the core user-facing change
@@ -46,10 +47,12 @@ Review the internal notes and for each item:
 ## Step 3: Transform Content
 
 ### Tone and Style
+
 - Professional, concise, and clear - write for SDK consumers
 - Use team perspective: "We've added...", "Fixed an issue where...", "Improved..."
 
 ### Remove
+
 - Ticket IDs (MOB-XXXX)
 - Developer names
 - Internal tools references
@@ -59,6 +62,7 @@ Review the internal notes and for each item:
 - Feature flags
 
 ### Keep
+
 - New features
 - Improvements
 - Public bug fixes
@@ -67,10 +71,12 @@ Review the internal notes and for each item:
 - Compatibility updates
 
 ### Generalize
+
 - "Fixed internal NativeModule marshaling" -> "Improved platform communication reliability"
 - "Updated XhrNetworkInterceptor implementation" -> "Enhanced network request tracking accuracy"
 
 ### React Native-Specific Considerations
+
 - Note platform-specific fixes (iOS/Android) when relevant
 - Highlight TypeScript API changes clearly
 - Mention React Navigation or Expo compatibility changes
@@ -104,6 +110,7 @@ If breaking changes exist, list them first with warning prefix:
 ## Step 5: Present and Refine
 
 Show the generated notes and ask:
+
 1. Adjust any wording?
 2. Add or remove any items?
 3. Save to a file?
@@ -111,6 +118,7 @@ Show the generated notes and ask:
 ## Step 6: Save Output (Optional)
 
 If requested:
+
 ```bash
 cat > rn-sdk-v{version}-release-notes.md << 'EOF'
 <content>

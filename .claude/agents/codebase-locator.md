@@ -28,6 +28,7 @@ Use only: Grep, Glob
 ## Output Format
 
 Categorize findings:
+
 - **Implementation**: source files with the core logic
 - **API Surface**: public exports and native bridge interfaces
 - **Native**: iOS (Objective-C/Swift) and Android (Java/Kotlin) code

@@ -52,6 +52,7 @@ Types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `chore`
 Scope should reference the affected area (e.g., `apm`, `bug-reporting`, `network-logger`, `session-replay`, `cli`).
 
 Example:
+
 ```
 feat(apm): add custom span duration tracking
 
@@ -62,14 +63,22 @@ feat(apm): add custom span duration tracking
 
 **Present the suggested commit message and wait for user approval.**
 
-Once approved, stage and commit:
+Once approved, stage and commit. Never use `git add -A` / `git add .` since they can pull in `.env`, credentials, or other stray files.
 
 ```bash
-git add -A
+# Show the working tree so the user can confirm what gets staged
+git status
+
+# Stage only the intended files explicitly (expand as needed)
+git add <path1> <path2> ...
+
+# Verify the staged diff before committing
+git diff --cached
+
 git commit -m "<approved-message>"
 ```
 
-**Do not proceed until the user approves and the commit succeeds.**
+**Do not proceed until the user approves the staged file list and the commit succeeds.**
 
 ---
 
@@ -102,6 +111,7 @@ Generate PR title in format: `<type>: [TASK-ID] brief description`
 Types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `chore`
 
 Examples:
+
 - `feat: [MOB-20541] add network request duration tracking to APM`
 - `fix: [MOB-18732] fix crash when initializing SDK on iOS 14`
 - `chore: [MOB-19000] update CI Node version to 20.11.1`
@@ -114,16 +124,15 @@ Once approved:
 # Push the branch
 git push -u origin HEAD
 
-# Save PR description
-cat > /tmp/pr-description.txt << 'EOF'
+# Save PR description to a unique temp file (avoids collisions with concurrent runs)
+PR_BODY_FILE="$(mktemp -t pr-description.XXXXXX)"
+trap 'rm -f "$PR_BODY_FILE"' EXIT
+cat > "$PR_BODY_FILE" << 'EOF'
 <filled PR template from Step 2>
 EOF
 
 # Create draft PR
-gh pr create --base {baseBranch} --title "<approved-title>" --body-file /tmp/pr-description.txt --draft --assignee @me
-
-# Clean up
-rm /tmp/pr-description.txt
+gh pr create --base {baseBranch} --title "<approved-title>" --body-file "$PR_BODY_FILE" --draft --assignee @me
 ```
 
 Display the PR URL when done.

@@ -28,6 +28,7 @@ Use: Grep, Glob, Read
 ## Output Format
 
 For each pattern found:
+
 - **File**: relative path and line range
 - **Code**: the relevant excerpt
 - **Key Aspects**: what makes this pattern work

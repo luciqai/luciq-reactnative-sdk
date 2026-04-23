@@ -36,6 +36,7 @@ For more info: https://cli.github.com/
 ```
 
 If `gh` is installed, verify authentication:
+
 ```bash
 gh auth status
 ```
@@ -47,11 +48,13 @@ If not authenticated, provide the authentication instructions above.
 ## 1. Get Current Branch and PR Information
 
 First, determine the current git branch:
+
 ```bash
 git branch --show-current
 ```
 
 Then fetch the PR associated with this branch using GitHub CLI:
+
 ```bash
 gh pr list --head <branch-name> --json number,title,url,state --limit 1
 ```
@@ -59,11 +62,13 @@ gh pr list --head <branch-name> --json number,title,url,state --limit 1
 ## 2. Fetch Unresolved PR Review Comments
 
 Use GitHub CLI to fetch inline review comments (file-specific comments):
+
 ```bash
 gh api repos/{owner}/{repo}/pulls/{pr_number}/comments --jq '.[] | select(.in_reply_to_id == null) | {id: .id, path: .path, line: .line, body: .body, user: .user.login, created_at: .created_at}'
 ```
 
 This fetches:
+
 - Comment ID (for marking as resolved)
 - File path (where the comment is located)
 - Line number (specific line in the file)
@@ -78,7 +83,9 @@ This fetches:
 For each unresolved comment, perform the following workflow:
 
 ### Step 3.1: Display Comment Context
+
 Show the reviewer's comment clearly:
+
 - **File**: `path/to/file.ts`
 - **Line**: 42
 - **Reviewer**: @username
@@ -86,7 +93,9 @@ Show the reviewer's comment clearly:
 - **Code Context**: Show 5 lines before and after the commented line
 
 ### Step 3.2: Analyze Comment Validity
+
 Evaluate if the comment should be applied:
+
 - **Is it actionable?** (vs just a question or discussion)
 - **Is it still relevant?** (code might have changed)
 - **Is it technically sound?** (does it follow project standards)
@@ -94,6 +103,7 @@ Evaluate if the comment should be applied:
 - **Check for similar issues**: Search the entire file for other occurrences of the same pattern/issue
 
 ### Step 3.2.1: Check for Similar Issues in File
+
 **IMPORTANT**: Before applying any fix, search the entire file for similar occurrences of the same issue:
 
 1. **Pattern matching**: If the comment is about a specific pattern, search the entire file for all instances
@@ -102,7 +112,9 @@ Evaluate if the comment should be applied:
 4. **Report findings**: If multiple occurrences are found, ask the user if they want to fix all instances or just the commented line
 
 ### Step 3.3: Present Analysis
+
 Display your analysis:
+
 ```
 VALID - This comment is actionable and relevant
   Priority: Important
@@ -118,10 +130,13 @@ SKIP - Not applicable
 ```
 
 ### Step 3.4: Apply Valid Comments
+
 If the comment is valid and should be applied:
+
 1. Read the file at the specified path
 2. **Check for similar issues** (Step 3.2.1) - Search for other occurrences of the same pattern
 3. If multiple occurrences found, ask user for preference:
+
    ```
    Found 3 additional occurrences of the same issue in this file:
    - Line 15: missing await
@@ -134,13 +149,16 @@ If the comment is valid and should be applied:
    [s] Show me all occurrences first, then decide
    [c] Cancel this fix
    ```
+
 4. Locate the exact code section(s)
 5. Implement the requested change(s)
 6. Ensure the fix follows project coding standards
 7. Show the diff of changes made
 
 ### Step 3.5: Confirm with User
+
 After analyzing each comment, ask:
+
 ```
 Should I apply this fix?
 [y] Yes, apply it
@@ -151,7 +169,9 @@ Should I apply this fix?
 ```
 
 ### Step 3.6: Reply to Comment
+
 After the user decides to apply/skip, ask if they want to reply to the comment:
+
 ```
 Do you want to reply to this comment?
 [y] Yes, use the auto-generated reply
@@ -160,6 +180,7 @@ Do you want to reply to this comment?
 ```
 
 **Auto-generated replies based on action:**
+
 - If applied: "Applied (changes not yet committed)"
 - If skipped: "Skipped: [reason]"
 - If marked as not applicable: "Not applicable: [reason]"
@@ -167,21 +188,21 @@ Do you want to reply to this comment?
 **IMPORTANT**: Do NOT include commit hashes in auto-generated replies because the changes haven't been committed yet.
 
 ### Step 3.7: Post Reply to GitHub
-Once user confirms the reply, post it as a **threaded reply** under the original comment:
+
+Once user confirms the reply, post it as a **threaded reply** under the original comment.
+
+Use GitHub's dedicated replies endpoint, which only needs the original comment ID and the reply body (path/line/side/commit_id are inferred from the parent comment and will cause a 422 if included):
 
 ```bash
-gh api --method POST repos/{owner}/{repo}/pulls/{pr_number}/comments \
-  -f body='<reply message>' \
-  -f commit_id="$(git rev-parse HEAD)" \
-  -f path='<file_path>' \
-  -f side='RIGHT' \
-  -F line=<line_number> \
-  -F in_reply_to=<comment_id>
+gh api --method POST \
+  repos/{owner}/{repo}/pulls/{pr_number}/comments/<comment_id>/replies \
+  -f body='<reply message>'
 ```
 
 ## 4. Summary Report
 
 After processing all comments, provide:
+
 ```
 PR Review Comments - Summary
 ============================
@@ -205,6 +226,7 @@ Next steps:
 ## 5. Error Handling
 
 If any step fails:
+
 - **GitHub CLI not found**: Stop immediately and show setup instructions
 - **Not authenticated**: Stop and show `gh auth login` instructions
 - **PR not found**: Verify branch name and check if PR exists
@@ -217,12 +239,14 @@ If any step fails:
 ## Optional Arguments
 
 User can provide in `$ARGUMENTS`:
+
 - PR number (e.g., `123`) - Process specific PR instead of auto-detecting from branch
 - `--auto` - Auto-apply all valid comments without confirmation
 - `--dry-run` - Show what would be done without making changes
 - `--priority=critical` - Only apply critical priority comments
 
 Examples:
+
 - `/apply-pr-reviews` - Auto-detect PR from current branch
 - `/apply-pr-reviews 123` - Process PR #123
 - `/apply-pr-reviews --auto` - Auto-apply all valid comments
