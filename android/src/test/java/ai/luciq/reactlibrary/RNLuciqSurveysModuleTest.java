@@ -171,7 +171,7 @@ public class RNLuciqSurveysModuleTest {
                         return null;
                     }
                 });
-        surveysModule.setOnShowHandler(null);
+        surveysModule.setOnShowHandler();
 
         // then
         verify(surveysModule).sendEvent(Constants.LCQ_ON_SHOW_SURVEY_HANDLER, null);
@@ -190,7 +190,7 @@ public class RNLuciqSurveysModuleTest {
                         return null;
                     }
                 });
-        surveysModule.setOnDismissHandler(null);
+        surveysModule.setOnDismissHandler();
 
         // then
         verify(surveysModule).sendEvent(Constants.LCQ_ON_DISMISS_SURVEY_HANDLER, null);

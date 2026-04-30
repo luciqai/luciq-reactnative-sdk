@@ -46,71 +46,58 @@ RCT_EXPORT_METHOD(setAutoScreenRecordingDuration:(CGFloat)duration) {
     LCQBugReporting.autoScreenRecordingDuration = duration;
 }
 
-RCT_EXPORT_METHOD(setOnInvokeHandler:(RCTResponseSenderBlock)callBack) {
-    if (callBack != nil) {
-        LCQBugReporting.willInvokeHandler = ^{
-            [self sendEventWithName:@"LCQpreInvocationHandler" body:nil];
-        };
-    } else {
-        LCQBugReporting.willInvokeHandler = nil;
-    }
+RCT_EXPORT_METHOD(setOnInvokeHandler) {
+    LCQBugReporting.willInvokeHandler = ^{
+        [self sendEventWithName:@"LCQpreInvocationHandler" body:nil];
+    };
 }
 
-RCT_EXPORT_METHOD(setOnSDKDismissedHandler:(RCTResponseSenderBlock)callBack) {
-    if (callBack != nil) {
-        LCQBugReporting.didDismissHandler = ^(LCQDismissType dismissType, LCQReportCategory reportType) {
+RCT_EXPORT_METHOD(setOnSDKDismissedHandler) {
+    LCQBugReporting.didDismissHandler = ^(LCQDismissType dismissType, LCQReportCategory reportType) {
 
-            //parse dismiss type enum
-            NSString* dismissTypeString;
-            if (dismissType == LCQDismissTypeCancel) {
-                dismissTypeString = @"CANCEL";
-            } else if (dismissType == LCQDismissTypeSubmit) {
-                dismissTypeString = @"SUBMIT";
-            } else if (dismissType == LCQDismissTypeAddAttachment) {
-                dismissTypeString = @"ADD_ATTACHMENT";
-            }
+        //parse dismiss type enum
+        NSString* dismissTypeString;
+        if (dismissType == LCQDismissTypeCancel) {
+            dismissTypeString = @"CANCEL";
+        } else if (dismissType == LCQDismissTypeSubmit) {
+            dismissTypeString = @"SUBMIT";
+        } else if (dismissType == LCQDismissTypeAddAttachment) {
+            dismissTypeString = @"ADD_ATTACHMENT";
+        }
 
-            //parse report type enum
-            NSString* reportTypeString;
-            if (reportType == LCQReportCategoryBug) {
-                reportTypeString = @"bug";
-            } else if (reportType == LCQReportCategoryFeedback) {
-                reportTypeString = @"feedback";
-            } else {
-                reportTypeString = @"other";
-            }
-            NSDictionary *result = @{ @"dismissType": dismissTypeString,
-                                      @"reportType": reportTypeString};
-            [self sendEventWithName:@"LCQpostInvocationHandler" body: result];
-        };
-    } else {
-        LCQBugReporting.didDismissHandler = nil;
-    }
+        //parse report type enum
+        NSString* reportTypeString;
+        if (reportType == LCQReportCategoryBug) {
+            reportTypeString = @"bug";
+        } else if (reportType == LCQReportCategoryFeedback) {
+            reportTypeString = @"feedback";
+        } else {
+            reportTypeString = @"other";
+        }
+        NSDictionary *result = @{ @"dismissType": dismissTypeString,
+                                  @"reportType": reportTypeString};
+        [self sendEventWithName:@"LCQpostInvocationHandler" body: result];
+    };
 }
 
-RCT_EXPORT_METHOD(setDidSelectPromptOptionHandler:(RCTResponseSenderBlock)callBack) {
-    if (callBack != nil) {
+RCT_EXPORT_METHOD(setDidSelectPromptOptionHandler) {
+    LCQBugReporting.didSelectPromptOptionHandler = ^(LCQPromptOption promptOption) {
 
-        LCQBugReporting.didSelectPromptOptionHandler = ^(LCQPromptOption promptOption) {
+        NSString *promptOptionString;
+        if (promptOption == LCQPromptOptionBug) {
+            promptOptionString = @"bug";
+        } else if (promptOption == LCQBugReportingTypeFeedback) {
+            promptOptionString = @"feedback";
+        } else if (promptOption == LCQPromptOptionChat) {
+            promptOptionString = @"chat";
+        } else {
+            promptOptionString = @"none";
+        }
 
-            NSString *promptOptionString;
-            if (promptOption == LCQPromptOptionBug) {
-                promptOptionString = @"bug";
-            } else if (promptOption == LCQBugReportingTypeFeedback) {
-                promptOptionString = @"feedback";
-            } else if (promptOption == LCQPromptOptionChat) {
-                promptOptionString = @"chat";
-            } else {
-                promptOptionString = @"none";
-            }
-
-            [self sendEventWithName:@"LCQDidSelectPromptOptionHandler" body:@{
-                                                                              @"promptOption": promptOptionString
-                                                                              }];
-        };
-    } else {
-        LCQBugReporting.didSelectPromptOptionHandler = nil;
-    }
+        [self sendEventWithName:@"LCQDidSelectPromptOptionHandler" body:@{
+                                                                          @"promptOption": promptOptionString
+                                                                          }];
+    };
 }
 
 RCT_EXPORT_METHOD(setInvocationEvents:(NSArray*)invocationEventsArray) {

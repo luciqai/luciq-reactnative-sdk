@@ -1,41 +1,45 @@
 package ai.luciq.reactlibrary;
 
-import com.facebook.react.bridge.Callback;
+import androidx.annotation.Nullable;
+
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import ai.luciq.chat.Replies;
 import ai.luciq.library.Feature;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
-import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RNLuciqRepliesModule extends EventEmitterModule {
+public class RNLuciqRepliesModule extends NativeRepliesSpec {
+
+    private int listenerCount = 0;
 
     public RNLuciqRepliesModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
     }
 
-    @Nonnull
-    @Override
-    public String getName() {
-        return "LCQReplies";
+    protected void sendEvent(String event, @Nullable ReadableMap params) {
+        if (listenerCount > 0) {
+            getReactApplicationContext()
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit(event, params);
+        }
     }
 
     @ReactMethod
     public void addListener(String event) {
-        super.addListener(event);
+        listenerCount++;
     }
 
     @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
+    public void removeListeners(double count) {
+        listenerCount = Math.max(0, listenerCount - (int) count);
     }
 
     @ReactMethod
@@ -222,12 +226,12 @@ public class RNLuciqRepliesModule extends EventEmitterModule {
      * @param notificationIcon the notification icon resource ID
      */
     @ReactMethod
-    public void setNotificationIcon(final int notificationIcon) {
+    public void setNotificationIcon(final double notificationIcon) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Replies.setNotificationIcon(notificationIcon);
+                    Replies.setNotificationIcon((int) notificationIcon);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -277,7 +281,7 @@ public class RNLuciqRepliesModule extends EventEmitterModule {
     }
 
     @ReactMethod
-    public void setOnNewReplyReceivedHandler(final Callback onNewReplyReceivedCallback) {
+    public void setOnNewReplyReceivedHandler() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {

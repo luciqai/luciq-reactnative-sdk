@@ -1,3 +1,5 @@
+ENV['RCT_NEW_ARCH_ENABLED'] = '1'
+
 require_relative '../node_modules/react-native/scripts/react_native_pods'
 require_relative '../../../ios/native.rb'
 
@@ -18,16 +20,9 @@ target 'LuciqExample' do
   pod 'react-native-google-maps', :path => rn_maps_path
 #   pod 'Luciq', :podspec => 'https://ios-releases.luciq.ai/custom/feature-enable_cp_web_view_navigation/19.4.0/Luciq.podspec'
   # XCFramework from local extracted folder
-  # add this line
-  flags = get_default_flags()
 
   use_react_native!(
     :path => config[:reactNativePath],
-    # Hermes is now enabled by default. Disable by setting this flag to false.
-    # Upcoming versions of React Native may rely on get_default_flags(), but
-    # we make it explicit here to aid in the React Native upgrade process.
-    :hermes_enabled => flags[:hermes_enabled],
-    :fabric_enabled => flags[:fabric_enabled],
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
@@ -40,6 +35,7 @@ target 'LuciqExample' do
   post_install do |installer|
     react_native_post_install(
       installer,
+      config[:reactNativePath],
       # Set `mac_catalyst_enabled` to `true` in order to apply patches
       # necessary for Mac Catalyst builds
       :mac_catalyst_enabled => false

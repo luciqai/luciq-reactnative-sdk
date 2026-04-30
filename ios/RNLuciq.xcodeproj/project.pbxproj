@@ -7,13 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		24DF11FD1DA3A2F30056F77C /* LuciqReactBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DF11FA1DA3A2F30056F77C /* LuciqReactBridge.m */; };
+		24DF11FD1DA3A2F30056F77C /* LuciqReactBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = 24DF11FA1DA3A2F30056F77C /* LuciqReactBridge.mm */; };
 		24DF11FE1DA3A2F30056F77C /* RCTConvert+LuciqEnums.m in Sources */ = {isa = PBXBuildFile; fileRef = 24DF11FC1DA3A2F30056F77C /* RCTConvert+LuciqEnums.m */; };
-		BAD36E1A22F0763A007F5E74 /* LuciqBugReportingBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = BAD36E1922F0763A007F5E74 /* LuciqBugReportingBridge.m */; };
-		BAD36E2222F19248007F5E74 /* LuciqSurveysBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = BAD36E2122F19248007F5E74 /* LuciqSurveysBridge.m */; };
-		BAD36E2522F19265007F5E74 /* LuciqRepliesBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = BAD36E2422F19265007F5E74 /* LuciqRepliesBridge.m */; };
+		BAD36E1A22F0763A007F5E74 /* LuciqBugReportingBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAD36E1922F0763A007F5E74 /* LuciqBugReportingBridge.mm */; };
+		BAD36E2222F19248007F5E74 /* LuciqSurveysBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAD36E2122F19248007F5E74 /* LuciqSurveysBridge.mm */; };
+		BAD36E2522F19265007F5E74 /* LuciqRepliesBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAD36E2422F19265007F5E74 /* LuciqRepliesBridge.mm */; };
 		BAD36E2822F19283007F5E74 /* LuciqChatsBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = BAD36E2722F19283007F5E74 /* LuciqChatsBridge.m */; };
-		BAD36E2B22F192CB007F5E74 /* LuciqFeatureRequestsBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = BAD36E2A22F192CB007F5E74 /* LuciqFeatureRequestsBridge.m */; };
+		BAD36E2B22F192CB007F5E74 /* LuciqFeatureRequestsBridge.mm in Sources */ = {isa = PBXBuildFile; fileRef = BAD36E2A22F192CB007F5E74 /* LuciqFeatureRequestsBridge.mm */; };
 		C063F52D2620B0220039EDEA /* Luciq.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = C063F52C2620B0220039EDEA /* Luciq.xcframework */; };
 /* End PBXBuildFile section */
 
@@ -32,19 +32,19 @@
 /* Begin PBXFileReference section */
 		24DF11ED1DA3A2B90056F77C /* libRNLuciq.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRNLuciq.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		24DF11F91DA3A2F30056F77C /* LuciqReactBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LuciqReactBridge.h; sourceTree = "<group>"; };
-		24DF11FA1DA3A2F30056F77C /* LuciqReactBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuciqReactBridge.m; sourceTree = "<group>"; };
+		24DF11FA1DA3A2F30056F77C /* LuciqReactBridge.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LuciqReactBridge.mm; sourceTree = "<group>"; };
 		24DF11FB1DA3A2F30056F77C /* RCTConvert+LuciqEnums.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "RCTConvert+LuciqEnums.h"; sourceTree = "<group>"; };
 		24DF11FC1DA3A2F30056F77C /* RCTConvert+LuciqEnums.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "RCTConvert+LuciqEnums.m"; sourceTree = "<group>"; };
 		BAD36E1822F075DD007F5E74 /* LuciqBugReportingBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LuciqBugReportingBridge.h; sourceTree = "<group>"; };
-		BAD36E1922F0763A007F5E74 /* LuciqBugReportingBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LuciqBugReportingBridge.m; sourceTree = "<group>"; };
+		BAD36E1922F0763A007F5E74 /* LuciqBugReportingBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LuciqBugReportingBridge.mm; sourceTree = "<group>"; };
 		BAD36E2022F19230007F5E74 /* LuciqSurveysBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LuciqSurveysBridge.h; sourceTree = "<group>"; };
-		BAD36E2122F19248007F5E74 /* LuciqSurveysBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LuciqSurveysBridge.m; sourceTree = "<group>"; };
+		BAD36E2122F19248007F5E74 /* LuciqSurveysBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LuciqSurveysBridge.mm; sourceTree = "<group>"; };
 		BAD36E2322F19258007F5E74 /* LuciqRepliesBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LuciqRepliesBridge.h; sourceTree = "<group>"; };
-		BAD36E2422F19265007F5E74 /* LuciqRepliesBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LuciqRepliesBridge.m; sourceTree = "<group>"; };
+		BAD36E2422F19265007F5E74 /* LuciqRepliesBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LuciqRepliesBridge.mm; sourceTree = "<group>"; };
 		BAD36E2622F19272007F5E74 /* LuciqChatsBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LuciqChatsBridge.h; sourceTree = "<group>"; };
 		BAD36E2722F19283007F5E74 /* LuciqChatsBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LuciqChatsBridge.m; sourceTree = "<group>"; };
 		BAD36E2922F192B8007F5E74 /* LuciqFeatureRequestsBridge.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LuciqFeatureRequestsBridge.h; sourceTree = "<group>"; };
-		BAD36E2A22F192CB007F5E74 /* LuciqFeatureRequestsBridge.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LuciqFeatureRequestsBridge.m; sourceTree = "<group>"; };
+		BAD36E2A22F192CB007F5E74 /* LuciqFeatureRequestsBridge.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LuciqFeatureRequestsBridge.mm; sourceTree = "<group>"; };
 		C063F52C2620B0220039EDEA /* Luciq.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; path = Luciq.xcframework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -89,19 +89,19 @@
 			isa = PBXGroup;
 			children = (
 				24DF11F91DA3A2F30056F77C /* LuciqReactBridge.h */,
-				24DF11FA1DA3A2F30056F77C /* LuciqReactBridge.m */,
+				24DF11FA1DA3A2F30056F77C /* LuciqReactBridge.mm */,
 				24DF11FB1DA3A2F30056F77C /* RCTConvert+LuciqEnums.h */,
 				24DF11FC1DA3A2F30056F77C /* RCTConvert+LuciqEnums.m */,
 				BAD36E1822F075DD007F5E74 /* LuciqBugReportingBridge.h */,
-				BAD36E1922F0763A007F5E74 /* LuciqBugReportingBridge.m */,
+				BAD36E1922F0763A007F5E74 /* LuciqBugReportingBridge.mm */,
 				BAD36E2022F19230007F5E74 /* LuciqSurveysBridge.h */,
-				BAD36E2122F19248007F5E74 /* LuciqSurveysBridge.m */,
+				BAD36E2122F19248007F5E74 /* LuciqSurveysBridge.mm */,
 				BAD36E2322F19258007F5E74 /* LuciqRepliesBridge.h */,
-				BAD36E2422F19265007F5E74 /* LuciqRepliesBridge.m */,
+				BAD36E2422F19265007F5E74 /* LuciqRepliesBridge.mm */,
 				BAD36E2622F19272007F5E74 /* LuciqChatsBridge.h */,
 				BAD36E2722F19283007F5E74 /* LuciqChatsBridge.m */,
 				BAD36E2922F192B8007F5E74 /* LuciqFeatureRequestsBridge.h */,
-				BAD36E2A22F192CB007F5E74 /* LuciqFeatureRequestsBridge.m */,
+				BAD36E2A22F192CB007F5E74 /* LuciqFeatureRequestsBridge.mm */,
 			);
 			path = RNLuciq;
 			sourceTree = "<group>";
@@ -164,13 +164,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BAD36E1A22F0763A007F5E74 /* LuciqBugReportingBridge.m in Sources */,
-				BAD36E2222F19248007F5E74 /* LuciqSurveysBridge.m in Sources */,
-				BAD36E2522F19265007F5E74 /* LuciqRepliesBridge.m in Sources */,
+				BAD36E1A22F0763A007F5E74 /* LuciqBugReportingBridge.mm in Sources */,
+				BAD36E2222F19248007F5E74 /* LuciqSurveysBridge.mm in Sources */,
+				BAD36E2522F19265007F5E74 /* LuciqRepliesBridge.mm in Sources */,
 				BAD36E2822F19283007F5E74 /* LuciqChatsBridge.m in Sources */,
-				BAD36E2B22F192CB007F5E74 /* LuciqFeatureRequestsBridge.m in Sources */,
+				BAD36E2B22F192CB007F5E74 /* LuciqFeatureRequestsBridge.mm in Sources */,
 				24DF11FE1DA3A2F30056F77C /* RCTConvert+LuciqEnums.m in Sources */,
-				24DF11FD1DA3A2F30056F77C /* LuciqReactBridge.m in Sources */,
+				24DF11FD1DA3A2F30056F77C /* LuciqReactBridge.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

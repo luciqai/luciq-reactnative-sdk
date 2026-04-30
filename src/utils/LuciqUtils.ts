@@ -168,10 +168,6 @@ export async function sendCrashReport(
 ) {
   const jsonObject = getCrashDataFromError(error);
 
-  if (Platform.OS === 'android') {
-    return remoteSenderCallback(JSON.stringify(jsonObject));
-  }
-
   return remoteSenderCallback(jsonObject);
 }
 /**

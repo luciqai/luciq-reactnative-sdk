@@ -86,7 +86,7 @@
   [self.luciqBridge init:appToken invocationEvents:invocationEvents debugLogsLevel:sdkDebugLogsLevel useNativeNetworkInterception:useNativeNetworkInterception codePushVersion:codePushVersion appVariant:appVariant  options:nil  overAirVersion:overAirVersion ];
   OCMVerify([mock setCodePushVersion:codePushVersion]);
 
-  OCMVerify([mock setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]]);
+  OCMVerify([mock setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]]);
 
 
   XCTAssertEqual(Luciq.appVariant, appVariant);
@@ -114,7 +114,7 @@
 
   LCQOverAirType service = [ArgsRegistry.overAirServices[overAirVersion[@"service"]] intValue];
 
-  OCMVerify([mock setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]]);
+  OCMVerify([mock setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]]);
 }
 
 - (void)testSetUserData {

@@ -228,6 +228,41 @@ const end = new Date();
 await APM.addCompletedCustomSpan('Background Task', start, end);
 ```
 
+## Adding a new feature
+
+The library supports both the old bridge architecture and the new architecture (TurboModules) from a single source tree. Adding a new API — either a new method on an existing module or a brand-new module — requires touching the JS layer, the Codegen spec, and both native platforms in lockstep so that the types stay aligned.
+
+### Adding a method to an existing module
+
+1. **Codegen spec** — add the method signature to `src/specs/Native<Module>.ts`. Signatures here must use Codegen-compatible types (`boolean`, `string`, `number` / `double`, `Array<...>`, `Object`, `Promise<T>`, `void`). Avoid `int` — use `double`. Callbacks for spec methods are typed as `(value: Object) => void`.
+2. **JS native wrapper** — mirror the method on the `NativeModule` interface in `src/native/Native<Module>.ts`. This is the richly-typed surface (enum types, unions) that the JS modules consume; the spec is the Codegen-safe subset.
+3. **JS module** — expose the public API in `src/modules/<Module>.ts`, calling through `Native<Module>.<method>(...)`.
+4. **Android** — implement the method in `android/src/main/java/ai/luciq/reactlibrary/RNLuciq<Module>Module.java`. The module extends `Native<Module>Spec`; annotate with `@ReactMethod` and match the spec's parameter types exactly (e.g. `double` not `int`, `Promise` where the spec returns `Promise<T>`).
+5. **iOS** — implement the method in `ios/RNLuciq/Luciq<Module>Bridge.mm` using `RCT_EXPORT_METHOD`. The bridge file extension is `.mm` (Objective-C++) so the same source compiles on both architectures.
+6. **Tests** — add coverage in `test/modules/<Module>.spec.ts` and `android/src/test/java/ai/luciq/reactlibrary/RNLuciq<Module>ModuleTest.java`.
+
+### Adding a brand-new module
+
+In addition to the steps above, register the new module in each arch-specific location:
+
+1. **Codegen spec** — create `src/specs/Native<Module>.ts` and export the module via `TurboModuleRegistry.get<Spec>('LCQ<Module>')`. Keep the `LCQ` prefix — it must match the iOS `RCT_EXPORT_MODULE` name and the Android `NAME` constant.
+2. **JS native wrapper** — create `src/native/Native<Module>.ts` with a fallback: `(TurboSpec ?? ReactNativeModules.LCQ<Module>) as unknown as <Module>NativeModule`. Add the module to the `LuciqNativePackage` interface in `src/native/NativePackage.ts`.
+3. **JS module and public export** — create `src/modules/<Module>.ts` and re-export it from `src/index.ts`.
+4. **Android Codegen spec** — add `android/src/oldarch/java/ai/luciq/reactlibrary/Native<Module>Spec.java` extending `ReactContextBaseJavaModule`, with `public static final String NAME = "LCQ<Module>"`. The newarch variant is generated into `build/generated/source/codegen/java` by React Gradle Plugin at build time, so nothing is hand-authored under `android/src/newarch/`.
+5. **Android module** — create `android/src/main/java/ai/luciq/reactlibrary/RNLuciq<Module>Module.java` extending `Native<Module>Spec`, and register it inside `createNativeModules` in `RNLuciqReactnativePackage.java`.
+6. **iOS bridge** — create `ios/RNLuciq/Luciq<Module>Bridge.h` / `.mm`. Use `RCT_EXPORT_MODULE(LCQ<Module>)` so the name resolves on both architectures.
+
+### Running Codegen locally
+
+Codegen runs automatically during the example app's build. To regenerate manually from the library root:
+
+```bash
+cd examples/default/android && ./gradlew generateCodegenArtifactsFromSchema
+cd examples/default/ios && RCT_NEW_ARCH_ENABLED=1 pod install
+```
+
+If the JS spec and the native implementation disagree on a type, Codegen will fail the build with a mismatch error — that's the signal to bring the three layers back in sync.
+
 ## Documentation
 
 For more details about the supported APIs and how to use them, check our [**Documentation**](https://docs.luciq.ai/docs/react-native-overview).

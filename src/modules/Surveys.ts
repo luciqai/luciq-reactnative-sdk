@@ -55,7 +55,7 @@ export const setAutoShowingEnabled = (autoShowingSurveysEnabled: boolean) => {
  */
 export const setOnShowHandler = (onShowHandler: () => void) => {
   emitter.addListener(NativeEvents.WILL_SHOW_SURVEY_HANDLER, onShowHandler);
-  NativeSurveys.setOnShowHandler(onShowHandler);
+  NativeSurveys.setOnShowHandler();
 };
 
 /**
@@ -67,7 +67,7 @@ export const setOnShowHandler = (onShowHandler: () => void) => {
  */
 export const setOnDismissHandler = (onDismissHandler: () => void) => {
   emitter.addListener(NativeEvents.DID_DISMISS_SURVEY_HANDLER, onDismissHandler);
-  NativeSurveys.setOnDismissHandler(onDismissHandler);
+  NativeSurveys.setOnDismissHandler();
 };
 
 /**

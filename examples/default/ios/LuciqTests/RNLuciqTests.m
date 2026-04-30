@@ -81,7 +81,7 @@
 
   [RNLuciq setOverAirVersion:overAirVersion];
 
-  OCMVerify([self.mLuciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]]);
+  OCMVerify([self.mLuciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]]);
 }
 
 - (void)testSetOverAirVersionCodepush {
@@ -92,7 +92,7 @@
 
   [RNLuciq setOverAirVersion:overAirVersion];
 
-  OCMVerify([self.mLuciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]]);
+  OCMVerify([self.mLuciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]]);
 }
 
 @end

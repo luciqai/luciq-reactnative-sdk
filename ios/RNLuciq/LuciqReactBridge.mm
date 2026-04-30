@@ -59,7 +59,7 @@ RCT_EXPORT_METHOD(init:(NSString *)token
 
     [Luciq setCodePushVersion:codePushVersion];
 
-    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 
     [RNLuciq initWithToken:token
              invocationEvents:invocationEvents
@@ -72,7 +72,7 @@ RCT_EXPORT_METHOD(setCodePushVersion:(NSString *)version) {
 }
 
 RCT_EXPORT_METHOD(setOverAirVersion:(NSDictionary *)overAirVersion) {
-    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 }
 
 RCT_EXPORT_METHOD(setAppVariant:(NSString *)appVariant) {
@@ -111,23 +111,19 @@ RCT_EXPORT_METHOD(setWebViewUserInteractionsTrackingEnabled:(BOOL)isEnabled) {
 }
 
 LCQReport *currentReport = nil;
-RCT_EXPORT_METHOD(setPreSendingHandler:(RCTResponseSenderBlock)callBack) {
-    if (callBack != nil) {
-        Luciq.willSendReportHandler = ^LCQReport * _Nonnull(LCQReport * _Nonnull report) {
-            NSArray *tagsArray = report.tags;
-            NSArray *luciqLogs= report.luciqLogs;
-            NSArray *consoleLogs= report.consoleLogs;
-            NSDictionary *userAttributes= report.userAttributes;
-            NSArray *fileAttachments= report.fileLocations;
-            NSDictionary *dict = @{ @"tagsArray" : tagsArray, @"luciqLogs" : luciqLogs, @"consoleLogs" : consoleLogs,       @"userAttributes" : userAttributes, @"fileAttachments" : fileAttachments};
-            [self sendEventWithName:@"LCQpreSendingHandler" body:dict];
+RCT_EXPORT_METHOD(setPreSendingHandler) {
+    Luciq.willSendReportHandler = ^LCQReport * _Nonnull(LCQReport * _Nonnull report) {
+        NSArray *tagsArray = report.tags;
+        NSArray *luciqLogs= report.luciqLogs;
+        NSArray *consoleLogs= report.consoleLogs;
+        NSDictionary *userAttributes= report.userAttributes;
+        NSArray *fileAttachments= report.fileLocations;
+        NSDictionary *dict = @{ @"tagsArray" : tagsArray, @"luciqLogs" : luciqLogs, @"consoleLogs" : consoleLogs,       @"userAttributes" : userAttributes, @"fileAttachments" : fileAttachments};
+        [self sendEventWithName:@"LCQpreSendingHandler" body:dict];
 
-            currentReport = report;
-            return report;
-        };
-    } else {
-        Luciq.willSendReportHandler = nil;
-    }
+        currentReport = report;
+        return report;
+    };
 }
 
 RCT_EXPORT_METHOD(appendTagToReport:(NSString*) tag) {
@@ -512,6 +508,10 @@ RCT_EXPORT_METHOD(isW3CaughtHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTP
 
 
 - (NSDictionary *)constantsToExport {
+    return ArgsRegistry.getAll;
+}
+
+RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(getAllConstants) {
     return ArgsRegistry.getAll;
 }
 
