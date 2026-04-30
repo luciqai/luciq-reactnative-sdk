@@ -46,7 +46,7 @@ public class RNLuciqSessionReplayModule extends NativeSessionReplaySpec {
 
     @ReactMethod
     public void removeListeners(double count) {
-        listenerCount -= (int) count;
+        listenerCount = Math.max(0, listenerCount - (int) count);
     }
 
     @ReactMethod
@@ -175,7 +175,6 @@ public class RNLuciqSessionReplayModule extends NativeSessionReplaySpec {
             @Override
             public void run() {
                 try {
-                    promise.resolve(null);
                     SessionReplay.setSyncCallback(new SessionSyncListener() {
                         @Override
                         public boolean onSessionReadyToSync(@NonNull SessionMetadata sessionMetadata) {
@@ -194,6 +193,7 @@ public class RNLuciqSessionReplayModule extends NativeSessionReplaySpec {
                             return shouldSync;
                         }
                     });
+                    promise.resolve(null);
                 }
                 catch(Exception e){
                     e.printStackTrace();

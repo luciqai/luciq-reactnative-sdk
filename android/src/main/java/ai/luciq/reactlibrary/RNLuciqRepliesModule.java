@@ -39,7 +39,7 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
 
     @ReactMethod
     public void removeListeners(double count) {
-        listenerCount -= (int) count;
+        listenerCount = Math.max(0, listenerCount - (int) count);
     }
 
     @ReactMethod

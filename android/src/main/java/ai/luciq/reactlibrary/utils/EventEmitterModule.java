@@ -30,6 +30,6 @@ public abstract class EventEmitterModule extends ReactContextBaseJavaModule {
     }
 
     protected void removeListeners(Integer count) {
-        listenerCount -= count;
+        listenerCount = Math.max(0, listenerCount - count);
     }
 }

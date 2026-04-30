@@ -49,7 +49,7 @@ public class RNLuciqBugReportingModule extends NativeBugReportingSpec {
 
     @ReactMethod
     public void removeListeners(double count) {
-        listenerCount -= (int) count;
+        listenerCount = Math.max(0, listenerCount - (int) count);
     }
 
     // iOS-only stubs; present to satisfy TurboModule spec contract.

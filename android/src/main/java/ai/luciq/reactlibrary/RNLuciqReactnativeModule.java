@@ -120,7 +120,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void removeListeners(double count) {
-        listenerCount -= (int) count;
+        listenerCount = Math.max(0, listenerCount - (int) count);
     }
 
     /**
@@ -1406,9 +1406,20 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
     public WritableMap getAllConstants() {
         final WritableMap out = Arguments.createMap();
         for (Map.Entry<String, Object> entry : getConstants().entrySet()) {
+            final String key = entry.getKey();
             final Object value = entry.getValue();
-            if (value instanceof String) {
-                out.putString(entry.getKey(), (String) value);
+            if (value == null) {
+                out.putNull(key);
+            } else if (value instanceof String) {
+                out.putString(key, (String) value);
+            } else if (value instanceof Boolean) {
+                out.putBoolean(key, (Boolean) value);
+            } else if (value instanceof Integer) {
+                out.putInt(key, (Integer) value);
+            } else if (value instanceof Number) {
+                out.putDouble(key, ((Number) value).doubleValue());
+            } else {
+                out.putString(key, value.toString());
             }
         }
         return out;

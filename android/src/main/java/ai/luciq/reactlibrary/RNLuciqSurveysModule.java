@@ -44,7 +44,7 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
 
     @ReactMethod
     public void removeListeners(double count) {
-        listenerCount -= (int) count;
+        listenerCount = Math.max(0, listenerCount - (int) count);
     }
 
     // iOS-only stub; present to satisfy TurboModule spec contract.
