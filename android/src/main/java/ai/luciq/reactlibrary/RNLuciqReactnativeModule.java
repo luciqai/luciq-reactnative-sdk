@@ -1395,6 +1395,49 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 e.printStackTrace();
             }
         }
+
+    /**
+     * Enables or disables WebView monitoring.
+     *
+     * @param isEnabled A boolean to enable/disable WebView monitoring.
+     */
+    @ReactMethod
+    public void setWebViewMonitoringEnabled(final boolean isEnabled) {
+        try {
+            Luciq.setWebViewMonitoringEnabled(isEnabled);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Enables or disables WebView network tracking.
+     *
+     * @param isEnabled A boolean to enable/disable WebView network tracking.
+     */
+    @ReactMethod
+    public void setWebViewNetworkTrackingEnabled(final boolean isEnabled) {
+        try {
+            Luciq.setWebViewNetworkTrackingEnabled(isEnabled);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Enables or disables WebView user interactions tracking.
+     *
+     * @param isEnabled A boolean to enable/disable WebView user interactions tracking.
+     */
+    @ReactMethod
+    public void setWebViewUserInteractionsTrackingEnabled(final boolean isEnabled) {
+        try {
+            Luciq.setWebViewUserInteractionsTrackingEnabled(isEnabled);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Sets the theme for Luciq using a configuration object.
      *
