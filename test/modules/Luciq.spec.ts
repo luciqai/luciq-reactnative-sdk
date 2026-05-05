@@ -50,6 +50,27 @@ describe('Luciq Module', () => {
     expect(NativeLuciq.setEnabled).toBeCalledWith(true);
   });
 
+  it('should call the native method setWebViewMonitoringEnabled', () => {
+    Luciq.setWebViewMonitoringEnabled(true);
+
+    expect(NativeLuciq.setWebViewMonitoringEnabled).toBeCalledTimes(1);
+    expect(NativeLuciq.setWebViewMonitoringEnabled).toBeCalledWith(true);
+  });
+
+  it('should call the native method setWebViewNetworkTrackingEnabled', () => {
+    Luciq.setWebViewNetworkTrackingEnabled(true);
+
+    expect(NativeLuciq.setWebViewNetworkTrackingEnabled).toBeCalledTimes(1);
+    expect(NativeLuciq.setWebViewNetworkTrackingEnabled).toBeCalledWith(true);
+  });
+
+  it('should call the native method setWebViewUserInteractionsTrackingEnabled', () => {
+    Luciq.setWebViewUserInteractionsTrackingEnabled(true);
+
+    expect(NativeLuciq.setWebViewUserInteractionsTrackingEnabled).toBeCalledTimes(1);
+    expect(NativeLuciq.setWebViewUserInteractionsTrackingEnabled).toBeCalledWith(true);
+  });
+
   it('reportScreenChange should call the native method reportScreenChange', () => {
     const screenName = 'some-screen';
     Luciq.reportScreenChange(screenName);

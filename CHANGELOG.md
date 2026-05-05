@@ -6,6 +6,21 @@
 
 - Add support for Screen Loading with react-navigation integration and manual reporting API.
 
+## [19.4.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.4.0...19.3.0)
+
+### Added
+
+- **WebView Monitoring**: Added comprehensive WebView monitoring to capture performance metrics, user interactions, and network requests from WebView components.
+  - `Luciq.setWebViewMonitoringEnabled(boolean)` - Enable/disable master WebView monitoring
+  - `Luciq.setWebViewUserInteractionsTrackingEnabled(boolean)` - Enable/disable user interaction tracking in WebViews
+  - `Luciq.setWebViewNetworkTrackingEnabled(boolean`) - Enable/disable network logging from WebViews
+
+### Changed
+
+- Bump Luciq iOS SDK to v19.5.1 ([#42](https://github.com/luciqai/luciq-reactnative-sdk/pull/42)). [See release notes](https://github.com/luciqai/Luciq-iOS-sdk/releases/tag/19.5.1).
+
+- Bump Luciq Android SDK to v19.4.0 ([#42](https://github.com/luciqai/luciq-reactnative-sdk/pull/42)). [See release notes](https://github.com/luciqai/Luciq-Android-sdk/releases/tag/v19.4.0).
+
 ## [19.3.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.3.0...19.2.1)
 
 ### Added
@@ -86,7 +101,7 @@
 
 - Replace jcenter with mavencentral. ([#10](https://github.com/luciqai/luciq-reactnative-sdk/pull/10))
 
-## [18.0.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.0.1...18.0.0) (October 27, 2025)
+## [18.0.1] (https://github.com/luciqai/luciq-reactnative-sdk/compare/v18.0.1...18.0.0) (October 27, 2025)
 
 ### Added
 

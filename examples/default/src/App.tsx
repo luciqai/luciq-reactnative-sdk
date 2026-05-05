@@ -3,9 +3,9 @@ import { StyleSheet } from 'react-native';
 
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
-import { SessionMetadata, WelcomeMessageMode } from '@luciq/react-native';
 import Luciq, {
   APM,
+  AutoMaskingType,
   CapturingMode,
   CrashReporting,
   InvocationEvent,
@@ -13,10 +13,12 @@ import Luciq, {
   LogLevel,
   NetworkInterceptionMode,
   NetworkLogger,
+  OverAirUpdateServices,
   ReproStepsMode,
   ScreenshotQuality,
+  SessionMetadata,
   SessionReplay,
-  OverAirUpdateServices,
+  WelcomeMessageMode,
 } from '@luciq/react-native';
 import { NativeBaseProvider } from 'native-base';
 
@@ -66,6 +68,11 @@ export const App: React.FC = () => {
       CrashReporting.setNDKCrashesEnabled(true);
       Luciq.setWelcomeMessageMode(WelcomeMessageMode.disabled);
       Luciq.setReproStepsConfig({ all: ReproStepsMode.enabled });
+      Luciq.enableAutoMasking([AutoMaskingType.none]);
+
+      Luciq.setWebViewMonitoringEnabled(true);
+      Luciq.setWebViewNetworkTrackingEnabled(true);
+      Luciq.setWebViewUserInteractionsTrackingEnabled(true);
     } catch (error) {
       console.error('Luciq initialization failed:', error);
     }

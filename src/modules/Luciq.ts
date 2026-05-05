@@ -139,6 +139,30 @@ export const setAppVariant = (appVariant: string) => {
 };
 
 /**
+ * Enables or disables WebView monitoring.
+ * @param isEnabled A boolean to enable/disable WebView monitoring.
+ */
+export const setWebViewMonitoringEnabled = (isEnabled: boolean) => {
+  NativeLuciq.setWebViewMonitoringEnabled(isEnabled);
+};
+
+/**
+ * Enables or disables WebView network tracking.
+ * @param isEnabled A boolean to enable/disable WebView network tracking.
+ */
+export const setWebViewNetworkTrackingEnabled = (isEnabled: boolean) => {
+  NativeLuciq.setWebViewNetworkTrackingEnabled(isEnabled);
+};
+
+/**
+ * Enables or disables WebView user interactions tracking.
+ * @param isEnabled A boolean to enable/disable WebView user interactions tracking.
+ */
+export const setWebViewUserInteractionsTrackingEnabled = (isEnabled: boolean) => {
+  NativeLuciq.setWebViewUserInteractionsTrackingEnabled(isEnabled);
+};
+
+/**
  * Handles app state changes and updates APM network flags if necessary.
  */
 const handleAppStateChange = async (nextAppState: AppStateStatus, config: LuciqConfig) => {

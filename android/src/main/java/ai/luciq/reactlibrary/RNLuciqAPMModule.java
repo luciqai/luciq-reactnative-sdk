@@ -310,7 +310,24 @@ public class RNLuciqAPMModule extends EventEmitterModule {
      *                            debugging and troubleshooting network-related issues.
      */
     @ReactMethod
-    private void networkLogAndroid(final double requestStartTime, final double requestDuration, final String requestHeaders, final String requestBody, final double requestBodySize, final String requestMethod, final String requestUrl, final String requestContentType, final String responseHeaders, final String responseBody, final double responseBodySize, final double statusCode, final String responseContentType, @Nullable final String errorDomain, @Nullable final ReadableMap w3cAttributes, @Nullable final String gqLCQueryName, @Nullable final String serverErrorMessage) {
+    private void networkLogAndroid(final double requestStartTime,
+                                   final double requestDuration,
+                                   final String requestHeaders,
+                                   final String requestBody,
+                                   final double requestBodySize,
+                                   final String requestMethod,
+                                   final String requestUrl,
+                                   final String requestContentType,
+                                   final String responseHeaders,
+                                   final String responseBody,
+                                   final double responseBodySize,
+                                   final double statusCode,
+                                   final String responseContentType,
+                                   @Nullable final String errorDomain,
+                                   @Nullable final ReadableMap w3cAttributes,
+                                   @Nullable final String gqLCQueryName,
+                                   @Nullable final String serverErrorMessage
+    ) {
         try {
             APMNetworkLogger networkLogger = new APMNetworkLogger();
 
@@ -338,7 +355,26 @@ public class RNLuciqAPMModule extends EventEmitterModule {
             try {
                 Method method = getMethod(Class.forName("ai.luciq.apm.networking.APMNetworkLogger"), "log", long.class, long.class, String.class, String.class, long.class, String.class, String.class, String.class, String.class, String.class, long.class, int.class, String.class, String.class, String.class, String.class, APMCPNetworkLog.W3CExternalTraceAttributes.class);
                 if (method != null) {
-                    method.invoke(networkLogger, (long) requestStartTime * 1000, (long) requestDuration, requestHeaders, requestBody, (long) requestBodySize, requestMethod, requestUrl, requestContentType, responseHeaders, responseBody, (long) responseBodySize, (int) statusCode, responseContentType, errorMessage, gqLCQueryName, serverErrorMessage, w3cExternalTraceAttributes);
+                    method.invoke(
+                            networkLogger,
+                            (long) requestStartTime * 1000,
+                            (long) requestDuration,
+                            requestHeaders,
+                            requestBody,
+                            (long) requestBodySize,
+                            requestMethod,
+                            requestUrl,
+                            requestContentType,
+                            responseHeaders,
+                            responseBody,
+                            (long) responseBodySize,
+                            (int) statusCode,
+                            responseContentType,
+                            errorMessage,
+                            gqLCQueryName,
+                            serverErrorMessage,
+                            w3cExternalTraceAttributes
+                    );
                 } else {
                     Log.e("IB-CP-Bridge", "APMNetworkLogger.log was not found by reflection");
                 }
