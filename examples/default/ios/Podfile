@@ -16,7 +16,7 @@ target 'LuciqExample' do
   config = use_native_modules!
   rn_maps_path = '../node_modules/react-native-maps'
   pod 'react-native-google-maps', :path => rn_maps_path
-  pod 'Luciq', :podspec => 'https://ios-releases.luciq.ai/custom/feature-react_native_screen_loading-custom_build/19.5.1/Luciq.podspec'
+#   pod 'Luciq', :podspec => 'https://ios-releases.luciq.ai/custom/feature-react_native_screen_loading-custom_build/19.5.1/Luciq.podspec'
   # XCFramework from local extracted folder
   # add this line
   flags = get_default_flags()
