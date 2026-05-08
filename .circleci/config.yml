@@ -9,7 +9,6 @@ orbs:
 
 references:
   release_dependencies: &release_dependencies
-#    - danger
     - lint
     - test_module
     - test_android
