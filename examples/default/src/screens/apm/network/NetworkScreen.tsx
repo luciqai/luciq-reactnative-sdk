@@ -118,7 +118,7 @@ export const NetworkScreen: React.FC<
   const fetchGraphQlData = async () => {
     const client = new GraphQLClient('https://countries.trevorblades.com/graphql', {
       headers: {
-        'ibg-graphql-header': 'AndrewQL', // change Query Name here
+        'lcq-graphql-header': 'CustomQName', // change Query Name here
       },
     });
 
