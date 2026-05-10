@@ -492,4 +492,156 @@ describe('Network Interceptor W3C Headers', () => {
     FakeRequest.open(method, url);
     FakeRequest.send();
   });
+
+  it('should populate partialId and networkStartTimeInSeconds even when generated header flag is disabled', () => {
+    const featureFlags = {
+      isW3cExternalTraceIDEnabled: true,
+      isW3cExternalGeneratedHeaderEnabled: false,
+      isW3cCaughtHeaderEnabled: false,
+    };
+
+    const networkData = {
+      url: 'http://test.com',
+      method: 'GET',
+      requestBody: '',
+      requestBodySize: 0,
+      responseBody: '',
+      responseBodySize: 0,
+      responseCode: 200,
+      requestHeaders: {} as Record<string, string>,
+      responseHeaders: {},
+      contentType: '',
+      errorDomain: '',
+      errorCode: 0,
+      startTime: Date.now(),
+      duration: 0,
+      serverErrorMessage: '',
+      requestContentType: '',
+      isW3cHeaderFound: null as boolean | null,
+      partialId: null as number | null,
+      networkStartTimeInSeconds: null as number | null,
+      w3cGeneratedHeader: null as string | null,
+      w3cCaughtHeader: null as string | null,
+      id: '1',
+    };
+
+    const result = injectHeaders(networkData, featureFlags);
+
+    expect(networkData.isW3cHeaderFound).toBe(false);
+    expect(networkData.partialId).not.toBeNull();
+    expect(networkData.networkStartTimeInSeconds).not.toBeNull();
+    expect(networkData.w3cGeneratedHeader).toBeNull();
+    expect(result).toBeUndefined();
+  });
+});
+
+describe('Network Interceptor Edge Cases', () => {
+  beforeEach(() => {
+    nock.cleanAll();
+    Interceptor.disableInterception();
+  });
+
+  it('should handle timeout error', async () => {
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+
+    const xhr = new global.XMLHttpRequest();
+    xhr.open('GET', url);
+    // @ts-ignore
+    xhr._timedOut = true;
+    request.once().reply(200, 'ok');
+    xhr.send();
+
+    await waitForExpect(() => {
+      expect(callback).toBeCalledWith(
+        expect.objectContaining({
+          errorDomain: 'timeout',
+          errorCode: 9876,
+          responseCode: 0,
+          responseBody: 'ERROR: timeout',
+        }),
+      );
+    });
+  });
+
+  it('should set empty responseBody when response is null and no error', async () => {
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+
+    FakeRequest.mockResponse(request, 200, '');
+    FakeRequest.open(method, url);
+    FakeRequest.send();
+
+    await waitForExpect(() => {
+      expect(callback).toBeCalledWith(
+        expect.objectContaining({
+          contentType: 'text/plain',
+        }),
+      );
+    });
+  });
+
+  it('should not call onDoneCallback if interception was disabled mid-request', async () => {
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+
+    FakeRequest.open(method, url);
+    FakeRequest.mockResponse(request);
+
+    // Disable interception before the response
+    Interceptor.disableInterception();
+
+    FakeRequest.send();
+
+    // The callback should not be called since interception is disabled
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(callback).not.toHaveBeenCalled();
+  });
+
+  it('should handle empty requestBody as empty string', async () => {
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+    FakeRequest.mockResponse(postRequest);
+    FakeRequest.open('POST', url);
+    FakeRequest.send(null);
+
+    await waitForExpect(() => {
+      expect(callback).toBeCalledWith(
+        expect.objectContaining({
+          requestBody: '',
+        }),
+      );
+    });
+  });
+
+  it('should not enable interception twice', () => {
+    Interceptor.enableInterception();
+    const openAfterFirstEnable = XMLHttpRequest.prototype.open;
+
+    Interceptor.enableInterception();
+    // Should be the same reference (not re-patched)
+    expect(XMLHttpRequest.prototype.open).toBe(openAfterFirstEnable);
+
+    Interceptor.disableInterception();
+  });
+
+  it('should set serverErrorMessage to empty string on JSON parse error', (done) => {
+    const headers = {
+      [LuciqConstants.GRAPHQL_HEADER]: 'TestQuery',
+    };
+
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback((network) => {
+      expect(network.serverErrorMessage).toEqual('');
+      done();
+    });
+    FakeRequest.open(method, url);
+    FakeRequest.mockResponse(request, 200, 'not-valid-json');
+    FakeRequest.setRequestHeaders(headers);
+    FakeRequest.send();
+  });
 });

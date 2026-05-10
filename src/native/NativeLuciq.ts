@@ -167,6 +167,11 @@ export interface LuciqNativeModule extends NativeModule {
 
   setTheme(theme: ThemeConfig): void;
   setFullscreen(isEnabled: boolean): void;
+
+  // WebView APIs //
+  setWebViewMonitoringEnabled(isEnabled: boolean): void;
+  setWebViewNetworkTrackingEnabled(isEnabled: boolean): void;
+  setWebViewUserInteractionsTrackingEnabled(isEnabled: boolean): void;
 }
 
 export const NativeLuciq = NativeModules.Luciq as LuciqNativeModule;

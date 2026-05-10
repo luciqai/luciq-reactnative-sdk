@@ -148,5 +148,72 @@ describe('Custom Spans Manager', () => {
       const [name] = (NativeAPM.syncCustomSpan as jest.Mock).mock.calls[0];
       expect(name.length).toBe(150);
     });
+
+    it('should reject whitespace-only name', async () => {
+      const start = new Date(Date.now() - 1000);
+      const end = new Date();
+
+      await addCompletedCustomSpan('   ', start, end);
+
+      expect(NativeAPM.syncCustomSpan).not.toHaveBeenCalled();
+    });
+
+    it('should not sync when SDK is not initialized', async () => {
+      (NativeLuciq.isBuilt as jest.Mock).mockResolvedValueOnce(false);
+
+      const start = new Date(Date.now() - 1000);
+      const end = new Date();
+
+      await addCompletedCustomSpan('Test', start, end);
+
+      expect(NativeAPM.syncCustomSpan).not.toHaveBeenCalled();
+    });
+
+    it('should not sync when APM is disabled', async () => {
+      (NativeAPM.isAPMEnabled as jest.Mock).mockResolvedValueOnce(false);
+
+      const start = new Date(Date.now() - 1000);
+      const end = new Date();
+
+      await addCompletedCustomSpan('Test', start, end);
+
+      expect(NativeAPM.syncCustomSpan).not.toHaveBeenCalled();
+    });
+
+    it('should not sync when custom spans are disabled', async () => {
+      (NativeAPM.isCustomSpanEnabled as jest.Mock).mockResolvedValueOnce(false);
+
+      const start = new Date(Date.now() - 1000);
+      const end = new Date();
+
+      await addCompletedCustomSpan('Test', start, end);
+
+      expect(NativeAPM.syncCustomSpan).not.toHaveBeenCalled();
+    });
+
+    it('should handle errors gracefully in addCompletedCustomSpan', async () => {
+      (NativeLuciq.isBuilt as jest.Mock).mockRejectedValueOnce(new Error('native error'));
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      const start = new Date(Date.now() - 1000);
+      const end = new Date();
+
+      await addCompletedCustomSpan('Test', start, end);
+
+      expect(NativeAPM.syncCustomSpan).not.toHaveBeenCalled();
+      errorSpy.mockRestore();
+    });
+  });
+
+  describe('startCustomSpan error handling', () => {
+    it('should handle errors gracefully in startCustomSpan', async () => {
+      (NativeLuciq.isBuilt as jest.Mock).mockRejectedValueOnce(new Error('native error'));
+      const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      const span = await startCustomSpan('Test');
+
+      expect(span).toBeNull();
+      errorSpy.mockRestore();
+    });
   });
 });
