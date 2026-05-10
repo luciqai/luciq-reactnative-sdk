@@ -518,6 +518,7 @@ jobs:
           files: scripts/snapshot-comment.md
           search: '{VERSION}'
           replace: $SNAPSHOT_VERSION
+      - generate_luciq_github_app_token
       - notify_github:
           data: "$(jq -Rcs '{ body: . }' scripts/snapshot-comment.md)"
 
