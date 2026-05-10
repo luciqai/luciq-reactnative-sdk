@@ -8,9 +8,9 @@
 
 ### Changed
 
-- Bump Luciq iOS SDK to v19.6.1 ([#48](https://github.com/luciqai/luciq-reactnative-sdk/pull/48)). [See release notes](https://github.com/luciqai/luciq-ios-sdk/releases/tag/19.6.1).
+- Bump Luciq iOS SDK to v19.6.1 ([#49](https://github.com/luciqai/luciq-reactnative-sdk/pull/49)). [See release notes](https://github.com/luciqai/luciq-ios-sdk/releases/tag/19.6.1).
 
-- Bump Luciq Android SDK to v19.6.0 ([#48](https://github.com/luciqai/luciq-reactnative-sdk/pull/48)). [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.6.0).
+- Bump Luciq Android SDK to v19.6.0 ([#49](https://github.com/luciqai/luciq-reactnative-sdk/pull/49)). [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.6.0).
 
 ## [19.4.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.4.0...19.3.0)
 
