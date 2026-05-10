@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Add support for Screen Loading with react-navigation integration and manual reporting API.
+
 ## [19.4.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.4.0...19.3.0)
 
 ### Added

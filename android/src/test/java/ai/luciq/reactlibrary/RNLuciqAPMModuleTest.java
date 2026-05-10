@@ -2,6 +2,7 @@ package ai.luciq.reactlibrary;
 import android.os.Looper;
 
 import com.facebook.react.bridge.Promise;
+import com.facebook.react.bridge.ReadableMap;
 import ai.luciq.apm.APM;
 import ai.luciq.apm.InternalAPM;
 import ai.luciq.apm.configuration.cp.APMFeature;
@@ -19,6 +20,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
