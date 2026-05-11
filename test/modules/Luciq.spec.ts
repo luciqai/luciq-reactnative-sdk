@@ -31,6 +31,10 @@ import LuciqConstants from '../../src/utils/LuciqConstants';
 
 jest.mock('../../src/modules/NetworkLogger');
 
+function fakeTimer(callback: () => void) {
+  setTimeout(callback, 100);
+}
+
 describe('Luciq Module', () => {
   beforeEach(() => {
     const events = Object.values(NativeEvents);
@@ -87,7 +91,7 @@ describe('Luciq Module', () => {
     expect(NativeLuciq.reportScreenChange).toBeCalledWith(screenName, null);
   });
 
-  it("componentDidAppearListener shouldn't call the native method reportScreenChange if first screen", async () => {
+  it("componentDidAppearListener shouldn't call the native method reportScreenChange if first screen", () => {
     Luciq.init({
       token: 'some-token',
       invocationEvents: [InvocationEvent.none],
@@ -99,7 +103,7 @@ describe('Luciq Module', () => {
       componentType: 'Component',
     });
 
-    await waitForExpect(() => {
+    waitForExpect(() => {
       // Only first screen should be reported
       expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
       expect(NativeLuciq.reportScreenChange).toBeCalledWith('Initial Screen', null);
@@ -708,7 +712,7 @@ describe('Luciq Module', () => {
     [{}, 'value'],
     ['key', []],
   ])("should fail if key and value aren't strings when calling setUserAttribute", (key, value) => {
-    const logSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {});
+    const logSpy = jest.spyOn(Logger, 'error');
 
     // @ts-ignore
     Luciq.setUserAttribute(key, value);
@@ -748,7 +752,7 @@ describe('Luciq Module', () => {
   });
 
   it.each([[null]])("should fail if key isn't a string when calling removeUserAttribute", (key) => {
-    const logSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {});
+    const logSpy = jest.spyOn(Logger, 'error');
 
     // @ts-ignore
     Luciq.removeUserAttribute(key);
@@ -956,6 +960,8 @@ describe('Luciq iOS initialization tests', () => {
         version: 'D0A12345-6789-4B3C-A123-4567ABCDEF01',
       },
     };
+    // Fast-forward until all timers have been executed
+    jest.advanceTimersByTime(1000);
   });
 
   it('should initialize correctly with javascript interception mode', () => {
@@ -1046,10 +1052,10 @@ describe('Luciq Android initialization tests', () => {
     };
   });
 
-  it('should initialize correctly with native interception enabled', async () => {
+  it('should initialize correctly with native interception enabled', () => {
     config.networkInterceptionMode = NetworkInterceptionMode.native;
     Luciq.init(config);
-    await waitForExpect(() => {
+    fakeTimer(() => {
       expect(NativeLuciq.setOnFeaturesUpdatedListener).toHaveBeenCalled();
       expect(NetworkLogger.setEnabled).toHaveBeenCalledWith(true);
       expect(NativeLuciq.init).toHaveBeenCalledWith(
@@ -1065,13 +1071,13 @@ describe('Luciq Android initialization tests', () => {
     });
   });
 
-  it('should show warning message when networkInterceptionMode == javascript and user added APM plugin', async () => {
+  it('should show warning message when networkInterceptionMode == javascript and user added APM plugin', () => {
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(true);
     jest.spyOn(NativeNetworkLogger, 'hasAPMNetworkPlugin').mockReturnValue(Promise.resolve(true));
     const logSpy = jest.spyOn(Logger, 'warn');
 
     Luciq.init(config);
-    await waitForExpect(() => {
+    fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
         LuciqConstants.LCQ_APM_TAG + LuciqConstants.SWITCHED_TO_NATIVE_INTERCEPTION_MESSAGE,
@@ -1079,7 +1085,7 @@ describe('Luciq Android initialization tests', () => {
     });
   });
 
-  it('should show error message when networkInterceptionMode == native and user did not add APM plugin', async () => {
+  it('should show error message when networkInterceptionMode == native and user did not add APM plugin', () => {
     config.networkInterceptionMode = NetworkInterceptionMode.native;
 
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(true);
@@ -1088,7 +1094,7 @@ describe('Luciq Android initialization tests', () => {
 
     Luciq.init(config);
 
-    await waitForExpect(() => {
+    fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
         LuciqConstants.LCQ_APM_TAG + LuciqConstants.PLUGIN_NOT_INSTALLED_MESSAGE,
@@ -1096,7 +1102,7 @@ describe('Luciq Android initialization tests', () => {
     });
   });
 
-  it('should show error message when networkInterceptionMode == native and user did not add APM plugin and the isNativeInterceptionEnabled is disabled', async () => {
+  it('should show error message when networkInterceptionMode == native and user did not add APM plugin and the isNativeInterceptionEnabled is disabled', () => {
     config.networkInterceptionMode = NetworkInterceptionMode.native;
 
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(false);
@@ -1105,7 +1111,7 @@ describe('Luciq Android initialization tests', () => {
 
     Luciq.init(config);
 
-    await waitForExpect(() => {
+    fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
         LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
@@ -1113,7 +1119,7 @@ describe('Luciq Android initialization tests', () => {
     });
   });
 
-  it('should show error message when networkInterceptionMode == native and the isNativeInterceptionEnabled is disabled', async () => {
+  it('should show error message when networkInterceptionMode == native and the isNativeInterceptionEnabled is disabled', () => {
     config.networkInterceptionMode = NetworkInterceptionMode.native;
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(false);
     jest.spyOn(NativeNetworkLogger, 'hasAPMNetworkPlugin').mockReturnValue(Promise.resolve(true));
@@ -1121,7 +1127,7 @@ describe('Luciq Android initialization tests', () => {
 
     Luciq.init(config);
 
-    await waitForExpect(() => {
+    fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
         LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
@@ -1132,7 +1138,7 @@ describe('Luciq Android initialization tests', () => {
   it('should initialize correctly with App variant', async () => {
     config.appVariant = 'App Variant';
     await Luciq.init(config);
-    await waitForExpect(() => {
+    fakeTimer(() => {
       expect(NativeLuciq.setOnFeaturesUpdatedListener).toHaveBeenCalled();
       expect(NativeLuciq.init).toHaveBeenCalledWith(
         config.token,
