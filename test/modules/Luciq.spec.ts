@@ -712,7 +712,7 @@ describe('Luciq Module', () => {
     [{}, 'value'],
     ['key', []],
   ])("should fail if key and value aren't strings when calling setUserAttribute", (key, value) => {
-    const logSpy = jest.spyOn(Logger, 'error');
+    const logSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {});
 
     // @ts-ignore
     Luciq.setUserAttribute(key, value);
@@ -752,7 +752,7 @@ describe('Luciq Module', () => {
   });
 
   it.each([[null]])("should fail if key isn't a string when calling removeUserAttribute", (key) => {
-    const logSpy = jest.spyOn(Logger, 'error');
+    const logSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {});
 
     // @ts-ignore
     Luciq.removeUserAttribute(key);
@@ -960,8 +960,6 @@ describe('Luciq iOS initialization tests', () => {
         version: 'D0A12345-6789-4B3C-A123-4567ABCDEF01',
       },
     };
-    // Fast-forward until all timers have been executed
-    jest.advanceTimersByTime(1000);
   });
 
   it('should initialize correctly with javascript interception mode', () => {
