@@ -87,6 +87,16 @@ export const init = (config: LuciqConfig) => {
     // Add android feature flags listener for android
     registerFeatureFlagsListener();
     addOnFeatureUpdatedListener(config);
+
+    // Enable the JS XHR interceptor synchronously so cold-start requests
+    // (fired before LCQ_ON_FEATURES_UPDATED_CALLBACK arrives) are captured.
+    handleNetworkInterceptionMode(config);
+
+    setApmNetworkFlagsIfChanged({
+      isNativeInterceptionFeatureEnabled: isNativeInterceptionFeatureEnabled,
+      hasAPMNetworkPlugin: hasAPMNetworkPlugin,
+      shouldEnableNativeInterception: shouldEnableNativeInterception,
+    });
   } else {
     isNativeInterceptionFeatureEnabled = NativeNetworkLogger.isNativeInterceptionEnabled();
 
