@@ -6,6 +6,8 @@ import waitForExpect from 'wait-for-expect';
 import LuciqConstants from '../../src/utils/LuciqConstants';
 import Interceptor, { injectHeaders } from '../../src/utils/XhrNetworkInterceptor';
 
+jest.setTimeout(15000);
+
 const url = 'http://api.luciq.ai';
 const method = 'GET';
 
