@@ -17,10 +17,6 @@ describe('Network Interceptor', () => {
     nock.cleanAll();
   });
 
-  afterEach(() => {
-    Interceptor.disableInterception();
-  });
-
   it('should set network object on entering XMLHttpRequest.prototype.open', (done) => {
     Interceptor.enableInterception();
     Interceptor.setOnDoneCallback((network) => {
