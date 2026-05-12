@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert,
   Image,
@@ -20,7 +20,7 @@ import type { HomeStackParamList } from '../../../navigation/HomeStack';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { ListTile } from '../../../components/ListTile';
-import { NetworkLogger } from '@luciq/react-native';
+import { APM, NetworkLogger } from '@luciq/react-native';
 import { NetworkState } from './NetworkStateScreen';
 import { useCallbackHandlers } from '../../../contexts/callbackContext';
 
@@ -40,6 +40,14 @@ export const NetworkScreen: React.FC<
     'https://fastly.picsum.photos/id/619/200/300.jpg?hmac=WqBGwlGjuY9RCdpzRaG9G-rc9Fi7TGUINX_-klAL2kA',
   ];
   const { addItem } = useCallbackHandlers();
+  const loadedImagesCount = useRef(0);
+
+  const handleImageLoad = () => {
+    loadedImagesCount.current += 1;
+    if (loadedImagesCount.current === imageUrls.length) {
+      APM.endScreenLoading();
+    }
+  };
 
   async function sendRequestToUrl() {
     let urlToSend: string;
@@ -479,8 +487,11 @@ export const NetworkScreen: React.FC<
             {imageUrls.map((imageUrl) => (
               <Image
                 key={imageUrl}
-                source={{ uri: imageUrl }}
-                style={[styles.image, { width: width * 0.42, height: height * 0.28 }]}
+                source={{
+                  uri: imageUrl,
+                }}
+                onLoad={handleImageLoad}
+                style={[styles.image, { width: width * 0.45, height: height * 0.3 }]}
               />
             ))}
           </HStack>

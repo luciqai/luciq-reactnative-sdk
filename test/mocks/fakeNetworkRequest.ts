@@ -82,6 +82,10 @@ export default {
     // @ts-ignore
     xhr._hasError = true;
   },
+  mockTimedOut() {
+    // @ts-ignore
+    xhr._timedOut = true;
+  },
   mockXHRStatus(status: number | null) {
     // @ts-ignore
     xhr.status = status;
