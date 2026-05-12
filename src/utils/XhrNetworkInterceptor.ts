@@ -1,7 +1,10 @@
 import LuciqConstants from './LuciqConstants';
 import { stringifyIfNotString, generateW3CHeader } from './LuciqUtils';
 
-import { FeatureFlags } from '../utils/FeatureFlags';
+import { getCachedW3cFlags } from './FeatureFlags';
+import { Logger } from './logger';
+
+const TAG = 'LCQ-RN-NET:';
 
 export type ProgressCallback = (totalBytesSent: number, totalBytesExpectedToSend: number) => void;
 export type NetworkDataCallback = (data: NetworkData) => void;
@@ -40,45 +43,41 @@ let originalXHRSetRequestHeader = XMLHttpRequest.prototype.setRequestHeader;
 let onProgressCallback: ProgressCallback | null;
 let onDoneCallback: NetworkDataCallback | null;
 let isInterceptorEnabled = false;
-let network: NetworkData;
 
-const _reset = () => {
-  network = {
-    id: '',
-    url: '',
-    method: '',
-    requestBody: '',
-    requestBodySize: 0,
-    responseBody: '',
-    responseBodySize: 0,
-    responseCode: 0,
-    requestHeaders: {},
-    responseHeaders: {},
-    contentType: '',
-    errorDomain: '',
-    errorCode: 0,
-    startTime: 0,
-    duration: 0,
-    gqlQueryName: '',
-    serverErrorMessage: '',
-    requestContentType: '',
-    isW3cHeaderFound: null,
-    partialId: null,
-    networkStartTimeInSeconds: null,
-    w3cGeneratedHeader: null,
-    w3cCaughtHeader: null,
-  };
-};
-const getTraceparentHeader = async (networkData: NetworkData) => {
-  const [
+const networkMap = new WeakMap<XMLHttpRequest, NetworkData>();
+
+const createNetworkData = (): NetworkData => ({
+  id: '',
+  url: '',
+  method: '',
+  requestBody: '',
+  requestBodySize: 0,
+  responseBody: '',
+  responseBodySize: 0,
+  responseCode: 0,
+  requestHeaders: {},
+  responseHeaders: {},
+  contentType: '',
+  errorDomain: '',
+  errorCode: 0,
+  startTime: 0,
+  duration: 0,
+  gqlQueryName: '',
+  serverErrorMessage: '',
+  requestContentType: '',
+  isW3cHeaderFound: null,
+  partialId: null,
+  networkStartTimeInSeconds: null,
+  w3cGeneratedHeader: null,
+  w3cCaughtHeader: null,
+});
+
+const getTraceparentHeader = (networkData: NetworkData) => {
+  const {
     isW3cExternalTraceIDEnabled,
     isW3cExternalGeneratedHeaderEnabled,
     isW3cCaughtHeaderEnabled,
-  ] = await Promise.all([
-    FeatureFlags.isW3ExternalTraceID(),
-    FeatureFlags.isW3ExternalGeneratedHeader(),
-    FeatureFlags.isW3CaughtHeader(),
-  ]);
+  } = getCachedW3cFlags();
 
   return injectHeaders(networkData, {
     isW3cExternalTraceIDEnabled,
@@ -147,10 +146,12 @@ export default {
     onProgressCallback = callback;
   },
   enableInterception() {
-    // Prevents infinite calls to XMLHttpRequest.open when enabling interception multiple times
     if (isInterceptorEnabled) {
+      Logger.debug(TAG, 'enableInterception called but already enabled, skipping');
       return;
     }
+
+    Logger.debug(TAG, 'Enabling XHR network interception');
 
     originalXHROpen = XMLHttpRequest.prototype.open;
     originalXHRSend = XMLHttpRequest.prototype.send;
@@ -158,33 +159,64 @@ export default {
     // An error code that signifies an issue with the RN client.
     const clientErrorCode = 9876;
     XMLHttpRequest.prototype.open = function (method, url, ...args) {
-      _reset();
-      network.url = url;
-      network.method = method;
+      const networkData = createNetworkData();
+      networkData.url = url;
+      networkData.method = method;
+      networkMap.set(this, networkData);
+      Logger.debug(TAG, `[open] ${method} ${url}`);
       originalXHROpen.apply(this, [method, url, ...args]);
     };
 
     XMLHttpRequest.prototype.setRequestHeader = function (header, value) {
-      // According to the HTTP RFC, headers are case-insensitive, so we convert
-      // them to lower-case to make accessing headers predictable.
-      // This avoid issues like failing to get the Content-Type header for a request
-      // because the header is set as 'Content-Type' instead of 'content-type'.
       const key = header.toLowerCase();
-      network.requestHeaders[key] = stringifyIfNotString(value);
+      const networkData = networkMap.get(this);
+      if (networkData) {
+        networkData.requestHeaders[key] = stringifyIfNotString(value);
+      } else {
+        Logger.debug(
+          TAG,
+          `[setRequestHeader] No networkData found in WeakMap for header "${key}" — request may have been GC'd or open() was not called`,
+        );
+      }
       originalXHRSetRequestHeader.apply(this, [header, value]);
     };
 
-    XMLHttpRequest.prototype.send = async function (data) {
-      const cloneNetwork = JSON.parse(JSON.stringify(network));
+    XMLHttpRequest.prototype.send = function (data) {
+      const networkData = networkMap.get(this);
+      if (!networkData) {
+        Logger.debug(
+          TAG,
+          '[send] No networkData found in WeakMap — falling back to original send (open() was not intercepted)',
+        );
+        originalXHRSend.apply(this, [data]);
+        return;
+      }
+
+      Logger.debug(TAG, `[send] ${networkData.method} ${networkData.url}`);
+
+      const cloneNetwork = JSON.parse(JSON.stringify(networkData));
       cloneNetwork.requestBody = data ? data : '';
 
       if (typeof cloneNetwork.requestBody !== 'string') {
         cloneNetwork.requestBody = JSON.stringify(cloneNetwork.requestBody);
       }
 
+      let isReported = false;
+
       if (this.addEventListener) {
         this.addEventListener('readystatechange', async () => {
           if (!isInterceptorEnabled) {
+            Logger.debug(
+              TAG,
+              `[readystatechange] Interceptor disabled, ignoring state=${this.readyState} for ${cloneNetwork.url}`,
+            );
+            return;
+          }
+          if (isReported) {
+            Logger.debug(
+              TAG,
+              `[readystatechange] Already reported, ignoring state=${this.readyState} for ${cloneNetwork.url}`,
+            );
             return;
           }
           if (this.readyState === this.HEADERS_RECEIVED) {
@@ -217,6 +249,11 @@ export default {
               cloneNetwork.requestContentType =
                 cloneNetwork.requestHeaders['content-type'].split(';')[0];
             }
+
+            Logger.debug(
+              TAG,
+              `[readystatechange] HEADERS_RECEIVED for ${cloneNetwork.url}, contentType=${cloneNetwork.contentType}`,
+            );
           }
 
           if (this.readyState === this.DONE) {
@@ -239,12 +276,15 @@ export default {
                 typeof _response === 'string' ? _response : JSON.stringify(_response);
               cloneNetwork.responseBody = '';
 
-              // Detect a more descriptive error message.
               if (typeof _response === 'string' && _response.length > 0) {
                 cloneNetwork.errorDomain = _response;
               }
 
               cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
+              Logger.debug(
+                TAG,
+                `[readystatechange] DONE with client error for ${cloneNetwork.url}, errorDomain=${cloneNetwork.errorDomain}`,
+              );
 
               // @ts-ignore
             } else if (this._timedOut) {
@@ -253,6 +293,7 @@ export default {
               cloneNetwork.responseCode = 0;
               cloneNetwork.contentType = 'text/plain';
               cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
+              Logger.debug(TAG, `[readystatechange] DONE with timeout for ${cloneNetwork.url}`);
             }
 
             // Only set response body if not already set by error handlers
@@ -300,8 +341,18 @@ export default {
               delete cloneNetwork.gqlQueryName;
             }
 
+            isReported = true;
+            Logger.debug(
+              TAG,
+              `[readystatechange] DONE for ${cloneNetwork.method} ${cloneNetwork.url} — status=${cloneNetwork.responseCode}, duration=${cloneNetwork.duration}ms, hasCallback=${!!onDoneCallback}`,
+            );
             if (onDoneCallback) {
               onDoneCallback(cloneNetwork);
+            } else {
+              Logger.debug(
+                TAG,
+                `[readystatechange] WARNING: onDoneCallback is null, network log for ${cloneNetwork.url} will be LOST`,
+              );
             }
           }
         });
@@ -310,7 +361,6 @@ export default {
           if (!isInterceptorEnabled) {
             return;
           }
-          // check if will be able to compute progress
           if (event.lengthComputable && onProgressCallback) {
             const totalBytesSent = event.loaded;
             const totalBytesExpectedToSend = event.total - event.loaded;
@@ -320,34 +370,57 @@ export default {
         this.addEventListener('progress', downloadUploadProgressCallback);
         this.upload.addEventListener('progress', downloadUploadProgressCallback);
 
-        // Handler for abort events (works with fetch, Axios, and any XHR-based requests)
         this.addEventListener('abort', () => {
           if (!isInterceptorEnabled) {
+            Logger.debug(
+              TAG,
+              `[abort] Interceptor disabled, ignoring abort for ${cloneNetwork.url}`,
+            );
             return;
           }
+          if (isReported) {
+            Logger.debug(
+              TAG,
+              `[abort] Already reported via readystatechange DONE, ignoring duplicate abort for ${cloneNetwork.url}`,
+            );
+            return;
+          }
+          isReported = true;
           cloneNetwork.duration = Date.now() - cloneNetwork.startTime;
           cloneNetwork.responseCode = 0;
           cloneNetwork.errorCode = clientErrorCode;
           cloneNetwork.errorDomain = 'cancelled';
           cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
+          Logger.debug(
+            TAG,
+            `[abort] Request cancelled: ${cloneNetwork.method} ${cloneNetwork.url}, duration=${cloneNetwork.duration}ms, hasCallback=${!!onDoneCallback}`,
+          );
+          if (onDoneCallback) {
+            onDoneCallback(cloneNetwork);
+          } else {
+            Logger.debug(
+              TAG,
+              `[abort] WARNING: onDoneCallback is null, cancelled log for ${cloneNetwork.url} will be LOST`,
+            );
+          }
         });
       }
 
       cloneNetwork.startTime = Date.now();
-      const traceparent = await getTraceparentHeader(cloneNetwork);
+      const traceparent = getTraceparentHeader(cloneNetwork);
       if (traceparent) {
         this.setRequestHeader('Traceparent', traceparent);
-      }
-      if (this.readyState === this.UNSENT) {
-        return; // Prevent sending the request if not opened
+        Logger.debug(TAG, `[send] Injected traceparent header for ${cloneNetwork.url}`);
       }
 
       originalXHRSend.apply(this, [data]);
     };
     isInterceptorEnabled = true;
+    Logger.debug(TAG, 'XHR network interception enabled');
   },
 
   disableInterception() {
+    Logger.debug(TAG, 'Disabling XHR network interception');
     isInterceptorEnabled = false;
     XMLHttpRequest.prototype.send = originalXHRSend;
     XMLHttpRequest.prototype.open = originalXHROpen;

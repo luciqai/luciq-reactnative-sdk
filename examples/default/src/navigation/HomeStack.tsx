@@ -57,6 +57,7 @@ import { LargeImageListScreen } from '../screens/user-steps/LargeImageListScreen
 import { APMScreen } from '../screens/apm/APMScreen';
 import { CustomUITraceScreen } from '../screens/apm/CustomUITraceScreen';
 import { NetworkScreen } from '../screens/apm/network/NetworkScreen';
+import { ColdStartRaceScreen } from '../screens/apm/network/ColdStartRaceScreen';
 import { FlowsScreen } from '../screens/apm/FlowsScreen';
 import { CustomSpansScreen } from '../screens/apm/CustomSpansScreen';
 import { SessionReplayScreen } from '../screens/SessionReplayScreen';
@@ -140,6 +141,7 @@ export type HomeStackParamList = {
   // APM //
   APM: undefined;
   NetworkTraces: undefined;
+  ColdStartRace: undefined;
   CustomUITraces: undefined;
   AppFlows: undefined;
   CustomSpans: undefined;
@@ -310,6 +312,11 @@ export const HomeStackNavigator: React.FC = () => {
       <HomeStack.Screen name="Gestures" component={GesturesScreen} />
       <HomeStack.Screen name="APM" component={APMScreen} />
       <HomeStack.Screen name="NetworkTraces" component={NetworkScreen} />
+      <HomeStack.Screen
+        name="ColdStartRace"
+        component={ColdStartRaceScreen}
+        options={{ title: 'Cold-Start Network Race' }}
+      />
       <HomeStack.Screen name="CustomUITraces" component={CustomUITraceScreen} />
       <HomeStack.Screen name="AppFlows" component={FlowsScreen} />
       <HomeStack.Screen

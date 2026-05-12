@@ -86,6 +86,7 @@ import javax.annotation.Nullable;
 public class RNLuciqReactnativeModule extends EventEmitterModule {
 
     private static final String TAG = "Luciq-RN-Core";
+    private static final String NET_TAG = "LCQ-RN-NET";
 
     private LuciqCustomTextPlaceHolder placeHolders;
     private static Report currentReport;
@@ -163,6 +164,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
 
 
     ) {
+        Log.d(NET_TAG, "[init] Called — logLevel=" + logLevel + ", useNativeNetworkInterception=" + useNativeNetworkInterception + ", codePushVersion=" + codePushVersion + ", appVariant=" + appVariant);
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -204,6 +206,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 }
 
                 builder.build();
+                Log.d(NET_TAG, "[init] SDK build complete");
             }
         });
     }
@@ -969,6 +972,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                                   final String requestHeaders,
                                   final String responseHeaders,
                                   final double duration) {
+        Log.d(NET_TAG, "[networkLogAndroid-Core] Received from JS: " + method + " " + url + ", status=" + (int) responseCode + ", duration=" + (long) duration + "ms, reqBodyLen=" + (requestBody != null ? requestBody.length() : 0) + ", resBodyLen=" + (responseBody != null ? responseBody.length() : 0));
         try {
             final String date = String.valueOf(System.currentTimeMillis());
 
@@ -985,11 +989,14 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 networkLog.setRequestHeaders(requestHeaders);
                 networkLog.setResponseHeaders(responseHeaders);
             } catch (OutOfMemoryError | Exception exception) {
+                Log.e(NET_TAG, "[networkLogAndroid-Core] OOM/Error setting log contents: " + exception.getMessage() + " for " + method + " " + url);
                 Log.d(TAG, "Error: " + exception.getMessage() + "while trying to set network log contents (request body, response body, request headers, and response headers).");
             }
 
             networkLog.insert();
+            Log.d(NET_TAG, "[networkLogAndroid-Core] Successfully inserted NetworkLog: " + method + " " + url);
         } catch (OutOfMemoryError | Exception exception) {
+            Log.e(NET_TAG, "[networkLogAndroid-Core] OOM/Error inserting network log: " + exception.getMessage() + " for " + method + " " + url);
             Log.d(TAG, "Error: " + exception.getMessage() + "while trying to insert a network log");
         }
     }
@@ -1172,7 +1179,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void registerFeatureFlagsChangeListener() {
-
+        Log.d(NET_TAG, "[registerFeatureFlagsChangeListener] Registering native feature flags listener");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -1180,6 +1187,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                     InternalCore.INSTANCE._setFeaturesStateListener(new FeaturesStateListener() {
                         @Override
                         public void invoke(@NonNull CoreFeaturesState featuresState) {
+                            Log.d(NET_TAG, "[FeatureFlagsListener] Received update — W3CTraceID=" + featuresState.isW3CExternalTraceIdEnabled() + ", generatedHeader=" + featuresState.isAttachingGeneratedHeaderEnabled() + ", caughtHeader=" + featuresState.isAttachingCapturedHeaderEnabled() + ", networkBodyLimit=" + featuresState.getNetworkLogCharLimit());
                             WritableMap params = Arguments.createMap();
                             params.putBoolean("isW3ExternalTraceIDEnabled", featuresState.isW3CExternalTraceIdEnabled());
                             params.putBoolean("isW3ExternalGeneratedHeaderEnabled", featuresState.isAttachingGeneratedHeaderEnabled());
@@ -1187,9 +1195,11 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                             params.putInt("networkBodyLimit",featuresState.getNetworkLogCharLimit());
 
                             sendEvent(Constants.LCQ_ON_FEATURE_FLAGS_UPDATE_RECEIVED_CALLBACK, params);
+                            Log.d(NET_TAG, "[FeatureFlagsListener] Sent event to JS: " + Constants.LCQ_ON_FEATURE_FLAGS_UPDATE_RECEIVED_CALLBACK);
                         }
                     });
                 } catch (Exception e) {
+                    Log.e(NET_TAG, "[registerFeatureFlagsChangeListener] Failed to register listener", e);
                     e.printStackTrace();
                 }
 
@@ -1204,13 +1214,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void isW3ExternalTraceIDEnabled(Promise promise) {
-
+        Log.d(NET_TAG, "[isW3ExternalTraceIDEnabled] Querying native flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    promise.resolve(InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_EXTERNAL_TRACE_ID));
+                    boolean enabled = InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_EXTERNAL_TRACE_ID);
+                    Log.d(NET_TAG, "[isW3ExternalTraceIDEnabled] Result=" + enabled);
+                    promise.resolve(enabled);
                 } catch (Exception e) {
+                    Log.e(NET_TAG, "[isW3ExternalTraceIDEnabled] Error querying flag", e);
                     e.printStackTrace();
                     promise.resolve(false);
                 }
@@ -1226,13 +1239,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void isW3ExternalGeneratedHeaderEnabled(Promise promise) {
-
+        Log.d(NET_TAG, "[isW3ExternalGeneratedHeaderEnabled] Querying native flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    promise.resolve(InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_ATTACHING_GENERATED_HEADER));
+                    boolean enabled = InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_ATTACHING_GENERATED_HEADER);
+                    Log.d(NET_TAG, "[isW3ExternalGeneratedHeaderEnabled] Result=" + enabled);
+                    promise.resolve(enabled);
                 } catch (Exception e) {
+                    Log.e(NET_TAG, "[isW3ExternalGeneratedHeaderEnabled] Error querying flag", e);
                     e.printStackTrace();
                     promise.resolve(false);
                 }
@@ -1247,13 +1263,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void isW3CaughtHeaderEnabled(Promise promise) {
-
+        Log.d(NET_TAG, "[isW3CaughtHeaderEnabled] Querying native flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    promise.resolve(InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_ATTACHING_CAPTURED_HEADER));
+                    boolean enabled = InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_ATTACHING_CAPTURED_HEADER);
+                    Log.d(NET_TAG, "[isW3CaughtHeaderEnabled] Result=" + enabled);
+                    promise.resolve(enabled);
                 } catch (Exception e) {
+                    Log.e(NET_TAG, "[isW3CaughtHeaderEnabled] Error querying flag", e);
                     e.printStackTrace();
                     promise.resolve(false);
                 }
@@ -1347,13 +1366,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void getNetworkBodyMaxSize(Promise promise) {
-
+        Log.d(NET_TAG, "[getNetworkBodyMaxSize] Querying network body size limit");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    promise.resolve(InternalCore.INSTANCE.get_networkLogCharLimit());
+                    Object limit = InternalCore.INSTANCE.get_networkLogCharLimit();
+                    Log.d(NET_TAG, "[getNetworkBodyMaxSize] Result=" + limit);
+                    promise.resolve(limit);
                 } catch (Exception e) {
+                    Log.e(NET_TAG, "[getNetworkBodyMaxSize] Error querying limit", e);
                     e.printStackTrace();
                     promise.resolve(false);
                 }

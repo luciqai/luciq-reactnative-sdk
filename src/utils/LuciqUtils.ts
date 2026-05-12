@@ -12,6 +12,7 @@ import { NativeCrashReporting } from '../native/NativeCrashReporting';
 import type { NetworkData } from './XhrNetworkInterceptor';
 import { NativeLuciq } from '../native/NativeLuciq';
 import { NativeAPM } from '../native/NativeAPM';
+import { Logger } from './logger';
 import * as NetworkLogger from '../modules/NetworkLogger';
 import {
   NativeNetworkLogger,
@@ -231,6 +232,11 @@ export const reportNetworkLog = (network: NetworkData) => {
     const requestHeaders = JSON.stringify(network.requestHeaders);
     const responseHeaders = JSON.stringify(network.responseHeaders);
 
+    Logger.debug(
+      'LCQ-RN-NET:',
+      `[reportNetworkLog] Sending to NativeLuciq.networkLogAndroid: ${network.method} ${network.url}, status=${network.responseCode}, duration=${network.duration}ms, error=${network.errorDomain || 'none'}`,
+    );
+
     NativeLuciq.networkLogAndroid(
       network.url,
       network.requestBody,
@@ -246,6 +252,10 @@ export const reportNetworkLog = (network: NetworkData) => {
       !apmFlags.hasAPMNetworkPlugin ||
       !apmFlags.shouldEnableNativeInterception
     ) {
+      Logger.debug(
+        'LCQ-RN-NET:',
+        `[reportNetworkLog] Also sending to NativeAPM.networkLogAndroid (native interception disabled): ${network.method} ${network.url}`,
+      );
       NativeAPM.networkLogAndroid(
         network.startTime,
         network.duration,
@@ -270,6 +280,11 @@ export const reportNetworkLog = (network: NetworkData) => {
         },
         network.gqlQueryName,
         network.serverErrorMessage,
+      );
+    } else {
+      Logger.debug(
+        'LCQ-RN-NET:',
+        `[reportNetworkLog] Skipping NativeAPM.networkLogAndroid (native interception enabled): nativeFeature=${apmFlags.isNativeInterceptionFeatureEnabled}, hasPlugin=${apmFlags.hasAPMNetworkPlugin}, shouldEnable=${apmFlags.shouldEnableNativeInterception}`,
       );
     }
   } else {

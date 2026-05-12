@@ -39,10 +39,17 @@ function getPortFromUrl(url: string) {
  * It is enabled by default.
  * @param isEnabled
  */
+const NET_TAG = 'LCQ-RN-NET:';
+
 export const setEnabled = (isEnabled: boolean) => {
   if (isEnabled) {
     xhr.enableInterception();
     xhr.setOnDoneCallback(async (network) => {
+      Logger.debug(
+        NET_TAG,
+        `[NetworkLogger] onDoneCallback received: ${network.method} ${network.url}, status=${network.responseCode}`,
+      );
+
       // eslint-disable-next-line no-new-func
       const predicate = Function('network', 'return ' + _requestFilterExpression);
 
@@ -50,12 +57,17 @@ export const setEnabled = (isEnabled: boolean) => {
         const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeLuciq.getNetworkBodyMaxSize();
         try {
           if (_networkDataObfuscationHandler) {
+            Logger.debug(NET_TAG, `[NetworkLogger] Running obfuscation handler for ${network.url}`);
             network = await _networkDataObfuscationHandler(network);
           }
 
           if (__DEV__) {
             const urlPort = getPortFromUrl(network.url);
             if (urlPort === LuciqRNConfig.metroDevServerPort) {
+              Logger.debug(
+                NET_TAG,
+                `[NetworkLogger] Skipping Metro dev server request: ${network.url}`,
+              );
               return;
             }
           }
@@ -97,10 +109,23 @@ export const setEnabled = (isEnabled: boolean) => {
             );
           }
 
+          Logger.debug(
+            NET_TAG,
+            `[NetworkLogger] Reporting network log to native: ${network.method} ${network.url}`,
+          );
           reportNetworkLog(network);
         } catch (e) {
-          Logger.error(e);
+          Logger.error(
+            NET_TAG,
+            `[NetworkLogger] Error processing network log for ${network.url}:`,
+            e,
+          );
         }
+      } else {
+        Logger.debug(
+          NET_TAG,
+          `[NetworkLogger] Request filtered out by predicate: ${network.method} ${network.url}, expression="${_requestFilterExpression}"`,
+        );
       }
     });
   } else {

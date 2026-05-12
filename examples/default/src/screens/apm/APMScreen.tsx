@@ -34,6 +34,10 @@ export const APMScreen: React.FC<NativeStackScreenProps<HomeStackParamList, 'APM
       {CustomGap.smallV}
       <ListTile title="End App launch" onPress={() => APM.endAppLaunch()} />
       <ListTile title="Network Screen" onPress={() => navigation.navigate('NetworkTraces')} />
+      <ListTile
+        title="Cold-Start Network Race (INSD-14886)"
+        onPress={() => navigation.navigate('ColdStartRace')}
+      />
       <ListTile title="Custom UI Traces" onPress={() => navigation.navigate('CustomUITraces')} />
       <ListTile title="Flows" onPress={() => navigation.navigate('AppFlows')} />
       <ListTile title="Custom Spans" onPress={() => navigation.navigate('CustomSpans')} />

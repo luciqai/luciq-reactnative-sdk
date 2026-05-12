@@ -70,17 +70,17 @@ public class RNLuciqReactnativeModuleTest {
 
     // Mock Objects
     private MockedStatic<Looper> mockLooper;
+    private MockedStatic<Log> mockLog;
     private MockedStatic <MainThreadHandler> mockMainThreadHandler;
     private MockedStatic <Luciq> mockLuciq;
-    private MockedStatic<Log> mockLog;
 
     @Before
     public void mockMainThreadHandler() throws Exception {
         // Mock static functions
+        mockLog = mockStatic(Log.class);
         mockLuciq = mockStatic(Luciq.class);
         mockLooper = mockStatic(Looper.class);
         mockMainThreadHandler = mockStatic(MainThreadHandler.class);
-        mockLog = mockStatic(Log.class);
 
         // Mock Looper class
         Looper mockMainThreadLooper = mock(Looper.class);
@@ -100,10 +100,10 @@ public class RNLuciqReactnativeModuleTest {
     @After
     public void tearDown() {
         // Remove static mocks
+        mockLog.close();
         mockLooper.close();
         mockMainThreadHandler.close();
         mockLuciq.close();
-        mockLog.close();
     }
 
     /********Luciq*********/

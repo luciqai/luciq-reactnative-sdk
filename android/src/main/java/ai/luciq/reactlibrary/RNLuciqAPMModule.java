@@ -31,6 +31,8 @@ import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 public class RNLuciqAPMModule extends EventEmitterModule {
 
+    private static final String NET_TAG = "LCQ-RN-NET";
+
     public RNLuciqAPMModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
     }
@@ -328,6 +330,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                                    @Nullable final String gqLCQueryName,
                                    @Nullable final String serverErrorMessage
     ) {
+        Log.d(NET_TAG, "[networkLogAndroid-APM] Received from JS: " + requestMethod + " " + requestUrl + ", status=" + (int) statusCode + ", duration=" + (long) requestDuration + "ms, startTime=" + (long) requestStartTime + ", error=" + errorDomain + ", gqlQuery=" + gqLCQueryName);
         try {
             APMNetworkLogger networkLogger = new APMNetworkLogger();
 
@@ -349,8 +352,10 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 }
 
             } catch (Exception e) {
+                Log.e(NET_TAG, "[networkLogAndroid-APM] Error parsing W3C attributes for " + requestMethod + " " + requestUrl, e);
                 e.printStackTrace();
             }
+            Log.d(NET_TAG, "[networkLogAndroid-APM] W3C attrs — isW3cHeaderFound=" + isW3cHeaderFound + ", partialId=" + partialId + ", networkStartTimeInSeconds=" + networkStartTimeInSeconds + ", generatedHeader=" + (w3cAttributes != null && !w3cAttributes.isNull("w3cGeneratedHeader") ? w3cAttributes.getString("w3cGeneratedHeader") : "null") + ", caughtHeader=" + (w3cAttributes != null && !w3cAttributes.isNull("w3cCaughtHeader") ? w3cAttributes.getString("w3cCaughtHeader") : "null"));
             APMCPNetworkLog.W3CExternalTraceAttributes w3cExternalTraceAttributes = new APMCPNetworkLog.W3CExternalTraceAttributes(isW3cHeaderFound, partialId, networkStartTimeInSeconds, w3cAttributes.getString("w3cGeneratedHeader"), w3cAttributes.getString("w3cCaughtHeader"));
             try {
                 Method method = getMethod(Class.forName("ai.luciq.apm.networking.APMNetworkLogger"), "log", long.class, long.class, String.class, String.class, long.class, String.class, String.class, String.class, String.class, String.class, long.class, int.class, String.class, String.class, String.class, String.class, APMCPNetworkLog.W3CExternalTraceAttributes.class);
@@ -375,13 +380,17 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                             serverErrorMessage,
                             w3cExternalTraceAttributes
                     );
+                    Log.d(NET_TAG, "[networkLogAndroid-APM] Successfully invoked APMNetworkLogger.log via reflection: " + requestMethod + " " + requestUrl);
                 } else {
+                    Log.e(NET_TAG, "[networkLogAndroid-APM] APMNetworkLogger.log method NOT found by reflection — network log will be lost: " + requestMethod + " " + requestUrl);
                     Log.e("IB-CP-Bridge", "APMNetworkLogger.log was not found by reflection");
                 }
             } catch (Throwable e) {
+                Log.e(NET_TAG, "[networkLogAndroid-APM] Exception invoking APMNetworkLogger.log: " + e.getMessage() + " for " + requestMethod + " " + requestUrl, e);
                 e.printStackTrace();
             }
         } catch (Throwable e) {
+            Log.e(NET_TAG, "[networkLogAndroid-APM] Top-level exception: " + e.getMessage() + " for " + requestMethod + " " + requestUrl, e);
             e.printStackTrace();
         }
     }
