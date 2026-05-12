@@ -9,6 +9,8 @@ import * as FeatureFlagsModule from '../../src/utils/FeatureFlags';
 
 jest.setTimeout(15000);
 
+jest.setTimeout(15000);
+
 const url = 'http://api.luciq.ai';
 const method = 'GET';
 
