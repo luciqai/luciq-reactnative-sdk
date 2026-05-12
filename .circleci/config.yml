@@ -132,6 +132,20 @@ commands:
           name: Post comment on GitHub
           command: ./scripts/notify-github.sh "<< parameters.data >>"
 
+  generate_luciq_github_app_token:
+    parameters:
+      script-path:
+        type: string
+        default: scripts/get-github-app-token.sh
+    steps:
+      - run:
+          name: Generate Instabug GitHub App Token
+          command: |
+            TOKEN=$(bash << parameters.script-path >> LUCIQ_APP_ID LUCIQ_PRIVATE_KEY LUCIQ_INSTALLATION_ID)
+            echo "export GH_TOKEN='$TOKEN'" >> "$BASH_ENV"
+            echo "export DANGER_GITHUB_API_TOKEN='$TOKEN'" >> "$BASH_ENV"
+            echo "export RELEASE_GITHUB_TOKEN='$TOKEN'" >> "$BASH_ENV"
+
   notify_slack_with_release:
     parameters:
       channel:
@@ -177,6 +191,7 @@ jobs:
       - install_node_modules
       - attach_workspace:
           at: coverage
+      - generate_luciq_github_app_token
       - run:
           name: Run Danger
           command: yarn danger ci
@@ -210,7 +225,7 @@ jobs:
       - install_node_modules
       - run:
           name: Run Tests
-          command: yarn test
+          command: yarn test --workerIdleMemoryLimit=1024MB --maxWorkers=2
       - when:
           condition: << parameters.collect_coverage >>
           steps:
@@ -469,6 +484,8 @@ jobs:
       - run:
           working_directory: project
           command: yarn build
+      - generate_luciq_github_app_token:
+          script-path: project/scripts/get-github-app-token.sh
       - run:
           name: Publish Official Package with Escape
           working_directory: project
@@ -501,6 +518,7 @@ jobs:
           files: scripts/snapshot-comment.md
           search: '{VERSION}'
           replace: $SNAPSHOT_VERSION
+      - generate_luciq_github_app_token
       - notify_github:
           data: "$(jq -Rcs '{ body: . }' scripts/snapshot-comment.md)"
 

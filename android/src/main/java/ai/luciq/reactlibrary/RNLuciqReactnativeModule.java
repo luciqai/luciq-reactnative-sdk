@@ -1078,16 +1078,18 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      * Reports that the screen has been changed (Repro Steps) the screen sent to this method will be the 'current view' on the dashboard
      *
      * @param screenName string containing the screen name
+     * @param spanId the span ID for screen loading tracking (nullable)
      */
     @ReactMethod
-    public void reportScreenChange(final String screenName) {
+    public void reportScreenChange(final String screenName, @Nullable final String spanId) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Method method = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class);
+                    Long uiTraceId = spanId != null ? Long.parseLong(spanId) : null;
+                    Method method = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class , Long.class);
                     if (method != null) {
-                        method.invoke(null, null, screenName);
+                        method.invoke(null, null, screenName , uiTraceId);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
