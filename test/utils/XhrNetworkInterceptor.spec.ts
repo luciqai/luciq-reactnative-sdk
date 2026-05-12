@@ -546,12 +546,10 @@ describe('Network Interceptor Edge Cases', () => {
     Interceptor.enableInterception();
     Interceptor.setOnDoneCallback(callback);
 
-    const xhr = new global.XMLHttpRequest();
-    xhr.open('GET', url);
-    // @ts-ignore
-    xhr._timedOut = true;
-    request.once().reply(200, 'ok');
-    xhr.send();
+    FakeRequest.mockResponse(request);
+    FakeRequest.open(method, url);
+    FakeRequest.mockTimedOut();
+    FakeRequest.send();
 
     await waitForExpect(() => {
       expect(callback).toBeCalledWith(
