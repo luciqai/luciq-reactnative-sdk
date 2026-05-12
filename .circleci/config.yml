@@ -225,7 +225,7 @@ jobs:
       - install_node_modules
       - run:
           name: Run Tests
-          command: yarn test
+          command: yarn test --workerIdleMemoryLimit=1024MB --maxWorkers=2
       - when:
           condition: << parameters.collect_coverage >>
           steps:

@@ -6,6 +6,7 @@ import * as APM from '../../src/modules/APM';
 import { CustomSpan } from '../../src';
 import * as CustomSpansManager from '../../src/utils/CustomSpansManager';
 import { ScreenLoadingManager } from '../../src/modules/apm/ScreenLoadingManager';
+import { Logger } from '../../src/utils/logger';
 
 describe('APM Module', () => {
   it('should call the native method setEnabled', () => {
@@ -117,6 +118,20 @@ describe('APM Module', () => {
 
     expect(NativeAPM.setScreenLoadingEnabled).toBeCalledTimes(1);
     expect(NativeAPM.setScreenLoadingEnabled).toBeCalledWith(true);
+  });
+
+  it('should swallow errors from NativeAPM.setScreenLoadingEnabled and log them', () => {
+    const failure = new Error('native bridge unavailable');
+    const nativeSpy = jest.spyOn(NativeAPM, 'setScreenLoadingEnabled').mockImplementation(() => {
+      throw failure;
+    });
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
+
+    expect(() => APM.setScreenLoadingEnabled(true)).not.toThrow();
+    expect(loggerSpy).toHaveBeenCalledWith('[APM] Failed to set screen loading enabled:', failure);
+
+    nativeSpy.mockRestore();
+    loggerSpy.mockRestore();
   });
 
   it('should call ScreenLoadingManager.endScreenLoading', () => {

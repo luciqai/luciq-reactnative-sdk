@@ -805,3 +805,56 @@ describe('registerFilteringAndObfuscationListener callback', () => {
     );
   });
 });
+
+describe('getIntValue', () => {
+  it('returns null for null input', () => {
+    expect(LuciqUtils.getIntValue(null)).toBeNull();
+  });
+
+  it('parses a numeric string to an integer', () => {
+    expect(LuciqUtils.getIntValue('42')).toBe(42);
+  });
+
+  it('parses a leading-numeric string up to the first non-digit', () => {
+    expect(LuciqUtils.getIntValue('100abc')).toBe(100);
+  });
+
+  it('returns null for a non-numeric string', () => {
+    expect(LuciqUtils.getIntValue('not-a-number')).toBeNull();
+  });
+
+  it('returns null for an empty string', () => {
+    expect(LuciqUtils.getIntValue('')).toBeNull();
+  });
+
+  it('parses negative integers', () => {
+    expect(LuciqUtils.getIntValue('-7')).toBe(-7);
+  });
+});
+
+describe('high-resolution time helpers', () => {
+  it('nowMicros returns performance.now() in microseconds', () => {
+    const spy = jest.spyOn(performance, 'now').mockReturnValue(123.456);
+    expect(LuciqUtils.nowMicros()).toBe(123.456 * 1000);
+    spy.mockRestore();
+  });
+
+  it('toEpochMicros preserves the delta between two monotonic timestamps', () => {
+    const a = 1_000_000;
+    const b = a + 1_500_000;
+    const aEpoch = LuciqUtils.toEpochMicros(a);
+    const bEpoch = LuciqUtils.toEpochMicros(b);
+    expect(bEpoch - aEpoch).toBe(1_500_000);
+  });
+
+  it('fromEpochMicros is monotonic with input', () => {
+    const earlier = LuciqUtils.fromEpochMicros(10_000_000);
+    const later = LuciqUtils.fromEpochMicros(10_000_000 + 2_000_000);
+    expect(later - earlier).toBe(2_000_000);
+  });
+
+  it('toEpochMicros and fromEpochMicros are exact inverses', () => {
+    const epochUs = LuciqUtils.toEpochMicros(42_000_000);
+    expect(LuciqUtils.fromEpochMicros(epochUs)).toBe(42_000_000);
+  });
+});

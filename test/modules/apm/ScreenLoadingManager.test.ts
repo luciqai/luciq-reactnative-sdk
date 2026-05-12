@@ -361,6 +361,7 @@ describe('ScreenLoadingManager', () => {
     });
 
     it('should retry fetching frame timestamp up to 3 times', async () => {
+      jest.useFakeTimers();
       (NativeAPM.getScreenTimeToDisplay as jest.Mock)
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce(null)
@@ -368,15 +369,21 @@ describe('ScreenLoadingManager', () => {
 
       const span = ScreenLoadingManager.createSpan('RetryScreen');
       if (span) {
-        await ScreenLoadingManager.endSpan(span.spanId);
+        const endSpanPromise = ScreenLoadingManager.endSpan(span.spanId);
+        await jest.advanceTimersByTimeAsync(20);
+        await jest.advanceTimersByTimeAsync(20);
+        await endSpanPromise;
 
         expect(NativeAPM.getScreenTimeToDisplay).toHaveBeenCalledTimes(3);
         const updatedSpan = ScreenLoadingManager.getActiveSpan(span.spanId);
         expect(updatedSpan?.status).toBe('completed');
       }
+      jest.clearAllTimers();
+      jest.useRealTimers();
     });
 
     it('should set error status after all retries fail', async () => {
+      jest.useFakeTimers();
       (NativeAPM.getScreenTimeToDisplay as jest.Mock)
         .mockResolvedValueOnce(null)
         .mockResolvedValueOnce(null)
@@ -384,11 +391,16 @@ describe('ScreenLoadingManager', () => {
 
       const span = ScreenLoadingManager.createSpan('FailScreen');
       if (span) {
-        await ScreenLoadingManager.endSpan(span.spanId);
+        const endSpanPromise = ScreenLoadingManager.endSpan(span.spanId);
+        await jest.advanceTimersByTimeAsync(20);
+        await jest.advanceTimersByTimeAsync(20);
+        await endSpanPromise;
 
         const updatedSpan = ScreenLoadingManager.getActiveSpan(span.spanId);
         expect(updatedSpan?.status).toBe('error');
       }
+      jest.clearAllTimers();
+      jest.useRealTimers();
     });
 
     it('should complete span with frame timestamp', async () => {
