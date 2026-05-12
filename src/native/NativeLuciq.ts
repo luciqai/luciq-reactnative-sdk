@@ -92,7 +92,7 @@ export interface LuciqNativeModule extends NativeModule {
     sessionReplay: ReproStepsMode,
   ): void;
   setTrackUserSteps(isEnabled: boolean): void;
-  reportScreenChange(firstScreen: string): void;
+  reportScreenChange(screenName: string, spanId: string | null): void;
   reportCurrentViewChange(screenName: string): void;
   addPrivateView(nativeTag: number | null): void;
   removePrivateView(nativeTag: number | null): void;

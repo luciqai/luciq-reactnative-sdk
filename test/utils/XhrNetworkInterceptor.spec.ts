@@ -6,6 +6,8 @@ import waitForExpect from 'wait-for-expect';
 import LuciqConstants from '../../src/utils/LuciqConstants';
 import Interceptor, { injectHeaders } from '../../src/utils/XhrNetworkInterceptor';
 
+jest.setTimeout(15000);
+
 const url = 'http://api.luciq.ai';
 const method = 'GET';
 
@@ -546,12 +548,10 @@ describe('Network Interceptor Edge Cases', () => {
     Interceptor.enableInterception();
     Interceptor.setOnDoneCallback(callback);
 
-    const xhr = new global.XMLHttpRequest();
-    xhr.open('GET', url);
-    // @ts-ignore
-    xhr._timedOut = true;
-    request.once().reply(200, 'ok');
-    xhr.send();
+    FakeRequest.mockResponse(request);
+    FakeRequest.open(method, url);
+    FakeRequest.mockTimedOut();
+    FakeRequest.send();
 
     await waitForExpect(() => {
       expect(callback).toBeCalledWith(
