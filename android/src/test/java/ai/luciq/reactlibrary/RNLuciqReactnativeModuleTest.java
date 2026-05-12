@@ -73,7 +73,6 @@ public class RNLuciqReactnativeModuleTest {
     private MockedStatic<Log> mockLog;
     private MockedStatic <MainThreadHandler> mockMainThreadHandler;
     private MockedStatic <Luciq> mockLuciq;
-    private MockedStatic<Log> mockLog;
 
     @Before
     public void mockMainThreadHandler() throws Exception {
@@ -82,7 +81,6 @@ public class RNLuciqReactnativeModuleTest {
         mockLuciq = mockStatic(Luciq.class);
         mockLooper = mockStatic(Looper.class);
         mockMainThreadHandler = mockStatic(MainThreadHandler.class);
-        mockLog = mockStatic(Log.class);
 
         // Mock Looper class
         Looper mockMainThreadLooper = mock(Looper.class);
@@ -106,7 +104,6 @@ public class RNLuciqReactnativeModuleTest {
         mockLooper.close();
         mockMainThreadHandler.close();
         mockLuciq.close();
-        mockLog.close();
     }
 
     /********Luciq*********/
