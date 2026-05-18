@@ -614,6 +614,7 @@ workflows:
           dashboard_token_env: INJAZAT_TOKEN
 
       - release_slack_notification:
+          channel: C8PDY2Q8H
           requires:
             - publish
           context: slack-app
