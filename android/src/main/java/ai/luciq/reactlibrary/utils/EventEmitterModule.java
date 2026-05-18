@@ -1,7 +1,5 @@
 package ai.luciq.reactlibrary.utils;
 
-import android.util.Log;
-
 import androidx.annotation.Nullable;
 import androidx.annotation.VisibleForTesting;
 
@@ -26,17 +24,17 @@ public abstract class EventEmitterModule extends ReactContextBaseJavaModule {
                     .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                     .emit(event, params);
         } else {
-            Log.w(NET_TAG, "[EventEmitter] Event DROPPED (no JS listeners): event=" + event + ", module=" + getName() + ", listenerCount=0");
+            LuciqRNLogger.w(NET_TAG, "[EventEmitter] Event DROPPED (no JS listeners): event=" + event + ", module=" + getName() + ", listenerCount=0");
         }
     }
 
     protected void addListener(String ignoredEvent) {
         listenerCount++;
-        Log.d(NET_TAG, "[EventEmitter] addListener — module=" + getName() + ", event=" + ignoredEvent + ", listenerCount=" + listenerCount);
+        LuciqRNLogger.d(NET_TAG, "[EventEmitter] addListener — module=" + getName() + ", event=" + ignoredEvent + ", listenerCount=" + listenerCount);
     }
 
     protected void removeListeners(Integer count) {
         listenerCount -= count;
-        Log.d(NET_TAG, "[EventEmitter] removeListeners — module=" + getName() + ", removed=" + count + ", listenerCount=" + listenerCount);
+        LuciqRNLogger.d(NET_TAG, "[EventEmitter] removeListeners — module=" + getName() + ", removed=" + count + ", listenerCount=" + listenerCount);
     }
 }

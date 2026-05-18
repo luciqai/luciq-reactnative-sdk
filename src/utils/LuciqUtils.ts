@@ -288,6 +288,11 @@ export const reportNetworkLog = (network: NetworkData) => {
       );
     }
   } else {
+    Logger.debug(
+      'LCQ-RN-NET:',
+      `[reportNetworkLog] Sending to NativeLuciq.networkLogIOS: ${network.method} ${network.url}, status=${network.responseCode}, duration=${network.duration}ms, error=${network.errorDomain || 'none'}`,
+    );
+
     NativeLuciq.networkLogIOS(
       network.url,
       network.method,
