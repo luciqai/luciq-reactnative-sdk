@@ -3,16 +3,17 @@
 
   <p><strong>🚀 The Agentic Observability Platform built for Mobile</strong></p>
 
-  [![npm version](https://img.shields.io/npm/v/@luciq/react-native.svg?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@luciq/react-native)
-  [![npm downloads](https://img.shields.io/npm/dt/@luciq/react-native.svg?style=for-the-badge)](https://www.npmjs.com/package/@luciq/react-native)
-  [![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-lightgrey.svg?style=for-the-badge)](https://www.npmjs.com/package/@luciq/react-native)
-  [![License](https://img.shields.io/npm/l/@luciq/react-native.svg?style=for-the-badge)](https://github.com/luciqai/luciq-reactnative-sdk/blob/master/LICENSE)
+[![npm version](https://img.shields.io/npm/v/@luciq/react-native.svg?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@luciq/react-native)
+[![npm downloads](https://img.shields.io/npm/dt/@luciq/react-native.svg?style=for-the-badge)](https://www.npmjs.com/package/@luciq/react-native)
+[![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-lightgrey.svg?style=for-the-badge)](https://www.npmjs.com/package/@luciq/react-native)
+[![License](https://img.shields.io/npm/l/@luciq/react-native.svg?style=for-the-badge)](https://github.com/luciqai/luciq-reactnative-sdk/blob/master/LICENSE)
 
   <br />
 
-  Our intelligent AI agents help you capture rich, contextual data for every issue, including full session replays, console logs, and detailed network requests, to proactively detect, prioritize, and resolve problems automatically.
+Our intelligent AI agents help you capture rich, contextual data for every issue, including full session replays, console logs, and detailed network requests, to proactively detect, prioritize, and resolve problems automatically.
 
-  <strong>Ship faster, deliver frustration-free user sessions, and focus on building what matters.</strong>
+<strong>Ship faster, deliver frustration-free user sessions, and focus on building what matters.</strong>
+
 </div>
 
 ---
@@ -131,12 +132,12 @@ For your app crashes to show fully symbolicated stack traces, the build scripts 
 
 If your token is defined as a constant or imported from elsewhere, override the lookup with environment variables:
 
-| Variable                            | Purpose                                 |
-| ----------------------------------- | --------------------------------------- |
-| `LUCIQ_APP_TOKEN`                   | App token used for the upload           |
-| `LUCIQ_APP_VERSION_NAME`            | Overrides the inferred `versionName`    |
-| `LUCIQ_APP_VERSION_CODE`            | Overrides the inferred `versionCode`    |
-| `LUCIQ_SOURCEMAPS_UPLOAD_DISABLE`   | Set to `TRUE` to skip the upload step   |
+| Variable                          | Purpose                               |
+| --------------------------------- | ------------------------------------- |
+| `LUCIQ_APP_TOKEN`                 | App token used for the upload         |
+| `LUCIQ_APP_VERSION_NAME`          | Overrides the inferred `versionName`  |
+| `LUCIQ_APP_VERSION_CODE`          | Overrides the inferred `versionCode`  |
+| `LUCIQ_SOURCEMAPS_UPLOAD_DISABLE` | Set to `TRUE` to skip the upload step |
 
 ## Network Logging
 
@@ -160,9 +161,7 @@ Luciq Repro Steps record the screens a user visits. Each screen is attached to a
 import { NavigationContainer } from '@react-navigation/native';
 import Luciq from '@luciq/react-native';
 
-<NavigationContainer onStateChange={Luciq.onStateChange}>
-  {/* ... */}
-</NavigationContainer>;
+<NavigationContainer onStateChange={Luciq.onStateChange}>{/* ... */}</NavigationContainer>;
 ```
 
 **v4 and below** — wire `Luciq.onNavigationStateChange` to the root app:
@@ -273,7 +272,6 @@ import Luciq, {
   type LuciqConfig,
 } from '@luciq/react-native';
 ```
-
 
 ## Support
 
