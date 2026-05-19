@@ -80,21 +80,21 @@ Luciq.init({
 
 Available `InvocationEvent` values: `shake`, `screenshot`, `twoFingersSwipe`, `floatingButton`, `none`.
 
-Find your app token in your [**Luciq dashboard**](https://dashboard.luciq.ai) under the SDK tab.
+Find your app token in your [**Luciq dashboard**](https://dashboard.luciq.ai) under **Settings → SDK Integration**.
 
 ## iOS Usage Descriptions
 
-To let users attach voice notes and images, Luciq needs the microphone and photo library. Apple rejects apps that omit these usage descriptions, so add the following keys to your app's `Info.plist`:
+Luciq needs microphone access to capture audio during screen recordings, and photo-library access to let users attach images to bug reports. Apple rejects apps that omit usage descriptions for either, so add the following keys to your app's `Info.plist`:
 
 - `NSMicrophoneUsageDescription`
 - `NSPhotoLibraryUsageDescription`
 
 Suggested copy:
 
-- _"`<app name>` needs access to the microphone to attach voice notes."_
-- _"`<app name>` needs access to your photo library to attach images."_
+- _"`<app name>` needs microphone access to record audio with screen recordings attached to bug reports."_
+- _"`<app name>` needs photo-library access to attach images to bug reports."_
 
-The permission prompts only appear when a user actually tries to attach a voice note or photo from the Luciq UI.
+The permission prompts only appear when a user actually starts a screen recording or attaches a photo from the Luciq UI.
 
 ## Source Map Uploads for Crash Reports
 
