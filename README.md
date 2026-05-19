@@ -1,15 +1,21 @@
-# Luciq for React Native
+<div align="center">
+  <img src=".github/assets/luciq-logo.png" alt="Luciq" width="120" />
 
-[![npm](https://img.shields.io/npm/v/@luciq/react-native.svg)](https://www.npmjs.com/package/@luciq/react-native)
-[![npm](https://img.shields.io/npm/dt/@luciq/react-native.svg)](https://www.npmjs.com/package/@luciq/react-native)
-[![npm](https://img.shields.io/npm/l/@luciq/react-native.svg)](https://github.com/luciqai/luciq-reactnative-sdk/blob/master/LICENSE)
-[![Twitter](https://img.shields.io/badge/twitter-@Luciq-blue.svg)](https://twitter.com/Luciqai)
+  <p><strong>🚀 The Agentic Observability Platform built for Mobile</strong></p>
 
-Luciq is the Agentic Observability Platform built for Mobile.
+  [![npm version](https://img.shields.io/npm/v/@luciq/react-native.svg?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@luciq/react-native)
+  [![npm downloads](https://img.shields.io/npm/dt/@luciq/react-native.svg?style=for-the-badge)](https://www.npmjs.com/package/@luciq/react-native)
+  [![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-lightgrey.svg?style=for-the-badge)](https://www.npmjs.com/package/@luciq/react-native)
+  [![License](https://img.shields.io/npm/l/@luciq/react-native.svg?style=for-the-badge)](https://github.com/luciqai/luciq-reactnative-sdk/blob/master/LICENSE)
 
-Our intelligent AI agents capture rich, contextual data for every issue — session replays, console logs, and detailed network requests — so you can proactively detect, prioritize, and resolve problems automatically. From traditional bug reporting to proactive resolution, Luciq equips you with the building blocks for your app's success.
+  <br />
 
-Ship faster, deliver frustration-free user sessions, and focus on building what matters. Visit [luciq.ai](https://luciq.ai) for more.
+  Our intelligent AI agents help you capture rich, contextual data for every issue, including full session replays, console logs, and detailed network requests, to proactively detect, prioritize, and resolve problems automatically.
+
+  <strong>Ship faster, deliver frustration-free user sessions, and focus on building what matters.</strong>
+</div>
+
+---
 
 ## Requirements
 
@@ -248,3 +254,26 @@ import Luciq, {
 ## Documentation
 
 For the full API reference and integration guides, see the [**Luciq documentation**](https://docs.luciq.ai/docs/react-native-overview).
+
+---
+
+## 💬 Support
+
+<div align="center">
+
+### Need Help?
+
+🌐 **[Visit our website](https://luciq.ai)** • 📖 **[Read the docs](https://docs.luciq.ai/)** • 💬 **[Get help](https://help.luciq.ai)**
+
+### 📞 Contact Us
+
+📧 **Primary Contact Email:** [support@luciq.ai](mailto:support@luciq.ai)
+💼 **LinkedIn:** [linkedin.com/company/luciq](https://linkedin.com/company/luciq)
+
+---
+
+<p>Made with ❤️ by the Luciq team</p>
+
+<img src=".github/assets/luciq-logo.png" alt="Luciq" width="60" />
+
+</div>
