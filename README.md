@@ -1,48 +1,82 @@
-# Luciq for React Native
+<div align="center">
+  <img src=".github/assets/luciq-logo.png" alt="Luciq" width="120" />
 
-[![npm](https://img.shields.io/npm/v/@luciq/react-native.svg)](https://www.npmjs.com/package/@luciq/react-native)
-[![npm](https://img.shields.io/npm/dt/@luciq/react-native.svg)](https://www.npmjs.com/package/@luciq/react-native)
-[![npm](https://img.shields.io/npm/l/@luciq/react-native.svg)](https://github.com/luciqai/luciq-reactnative-sdk/blob/master/LICENSE)
-[![Twitter](https://img.shields.io/badge/twitter-@Luciq-blue.svg)](https://twitter.com/Luciqai)
-[![Analytics](https://luciq-ga.appspot.com/UA-41982088-6/github/Luciq/@luciq/react-native?pixel)](https://luciq.ai)
+  <p><strong>🚀 The Agentic Observability Platform built for Mobile</strong></p>
 
-Luciq is the Agentic Observability Platform built for Mobile.
+[![npm version](https://img.shields.io/npm/v/@luciq/react-native.svg?style=for-the-badge&color=blue)](https://www.npmjs.com/package/@luciq/react-native)
+[![npm downloads](https://img.shields.io/npm/dt/@luciq/react-native.svg?style=for-the-badge)](https://www.npmjs.com/package/@luciq/react-native)
+[![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-lightgrey.svg?style=for-the-badge)](https://www.npmjs.com/package/@luciq/react-native)
+[![License](https://img.shields.io/npm/l/@luciq/react-native.svg?style=for-the-badge)](https://github.com/luciqai/luciq-reactnative-sdk/blob/master/LICENSE)
 
-Our intelligent AI agents help you capture rich, contextual data for every issue, including full session replays, console logs, and detailed network requests, to proactively detect, prioritize, and resolve problems automatically. From traditional bug reporting to proactive resolution, Luciq equips you with the building blocks to your app’s success.
+  <br />
 
-Ship faster, deliver frustration-free user sessions, and focus on building what matters.
+Our intelligent AI agents help you capture rich, contextual data for every issue, including full session replays, console logs, and detailed network requests, to proactively detect, prioritize, and resolve problems automatically.
 
-For more info, visit Luciq.ai.
+<strong>Ship faster, deliver frustration-free user sessions, and focus on building what matters.</strong>
+
+</div>
+
+---
+
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Initializing Luciq](#initializing-luciq)
+- [iOS Usage Descriptions](#ios-usage-descriptions)
+- [Source Map Uploads for Crash Reports](#source-map-uploads-for-crash-reports)
+- [Network Logging](#network-logging)
+- [Repro Steps](#repro-steps)
+  - [React Navigation](#react-navigation)
+  - [React Native Navigation (Wix)](#react-native-navigation-wix)
+  - [Manual screen reporting](#manual-screen-reporting)
+  - [Disabling Repro Steps](#disabling-repro-steps)
+- [Custom Spans (APM)](#custom-spans-apm)
+  - [Start / end a span](#start--end-a-span)
+  - [Record a completed span](#record-a-completed-span)
+  - [Behavior](#behavior)
+  - [API reference](#api-reference)
+- [TypeScript](#typescript)
+- [Support](#support)
+
+---
+
+## Requirements
+
+- React Native `>= 0.72.3`
+- iOS `>= 13.4`
+- Android `minSdkVersion >= 21`
 
 ## Installation
 
-1. In Terminal, navigate to your React Native directory and install the `@luciq/react-native` package:
+1. Install the package:
 
    ```bash
    npm install @luciq/react-native
-   ```
-
-   Or if you prefer to use Yarn instead of npm:
-
-   ```bash
+   # or
    yarn add @luciq/react-native
    ```
 
-2. if you are using expo you need to add `@luciq/react-native` plugin to `app.json`:
+2. **Expo only.** Add the Luciq config plugin to `app.json`:
 
    ```json
-      "plugins" : [
+   {
+     "expo": {
+       "plugins": [
          [
            "@luciq/react-native",
            {
-              // optional that add Mic,Photo permission on iOS and FOREGROUND_SERVICE_MEDIA_PROJECTION on android
              "addScreenRecordingBugReportingPermission": true
            }
          ]
-   ]
+       ]
+     }
+   }
    ```
 
-3. CocoaPods on iOS needs this extra step:
+   `addScreenRecordingBugReportingPermission` is optional — when `true`, the plugin adds the iOS microphone & photo-library usage descriptions and the Android `FOREGROUND_SERVICE_MEDIA_PROJECTION` permission required for screen recording in bug reports.
+
+3. **iOS only.** Install CocoaPods:
 
    ```bash
    cd ios && pod install && cd ..
@@ -50,184 +84,213 @@ For more info, visit Luciq.ai.
 
 ## Initializing Luciq
 
-To start using Luciq, import it as follows, then initialize it in the `constructor` or `componentWillMount`. This line will let the SDK work with the default behavior. The SDK will be invoked when the device is shaken. You can customize this behavior through the APIs.
+Call `Luciq.init` once, as early as possible — at the top of your entry file (`index.js` or `App.tsx`), outside any component. `InvocationEvent` is a named export, not a property on the default `Luciq` namespace.
 
-```javascript
-import Luciq from '@luciq/react-native';
+```ts
+import Luciq, { InvocationEvent } from '@luciq/react-native';
 
 Luciq.init({
   token: 'APP_TOKEN',
-  invocationEvents: [Luciq.invocationEvent.shake],
+  invocationEvents: [InvocationEvent.shake],
 });
 ```
 
-_You can find your app token by selecting the SDK tab from your [**Luciq dashboard**](https://dashboard.luciq.ai)._
+You can combine multiple invocation events:
 
-## Microphone and Photo Library Usage Description (iOS Only)
+```ts
+Luciq.init({
+  token: 'APP_TOKEN',
+  invocationEvents: [
+    InvocationEvent.shake,
+    InvocationEvent.screenshot,
+    InvocationEvent.floatingButton,
+  ],
+});
+```
 
-Luciq needs access to the microphone and photo library to be able to let users add audio and video attachments. Starting from iOS 10, apps that don’t provide a usage description for those 2 permissions would be rejected when submitted to the App Store.
+Available `InvocationEvent` values: `shake`, `screenshot`, `twoFingersSwipe`, `floatingButton`, `none`.
 
-For your app not to be rejected, you’ll need to add the following 2 keys to your app’s info.plist file with text explaining to the user why those permissions are needed:
+Find your app token in your [**Luciq dashboard**](https://dashboard.luciq.ai) under **Settings → SDK Integration**.
+
+## iOS Usage Descriptions
+
+Luciq needs microphone access to capture audio during screen recordings, and photo-library access to let users attach images to bug reports. Apple rejects apps that omit usage descriptions for either, so add the following keys to your app's `Info.plist`:
 
 - `NSMicrophoneUsageDescription`
 - `NSPhotoLibraryUsageDescription`
 
-If your app doesn’t already access the microphone or photo library, we recommend using a usage description like:
+Suggested copy:
 
-- "`<app name>` needs access to the microphone to be able to attach voice notes."
-- "`<app name>` needs access to your photo library for you to be able to attach images."
+- _"`<app name>` needs microphone access to record audio with screen recordings attached to bug reports."_
+- _"`<app name>` needs photo-library access to attach images to bug reports."_
 
-**The permission alert for accessing the microphone/photo library will NOT appear unless users attempt to attach a voice note/photo while using Luciq.**
+The permission prompts only appear when a user actually starts a screen recording or attaches a photo from the Luciq UI.
 
-## Uploading Source Map Files for Crash Reports
+## Source Map Uploads for Crash Reports
 
-For your app crashes to show up with a fully symbolicated stack trace, we will automatically generate the source map files and upload them to your dashboard on release build. To do so, we rely on your app token being explicitly added to `Luciq.init({token: 'YOUR_APP_TOKEN'})` in JavaScript.
+For your app crashes to show fully symbolicated stack traces, the build scripts in `@luciq/react-native` will generate and upload source maps to your dashboard on release builds. The uploader reads your app token from the `Luciq.init({ token: 'YOUR_APP_TOKEN' })` call in JavaScript.
 
-If your app token is defined as a constant, you can set an environment variable `LUCIQ_APP_TOKEN` to be used instead.
-We also automatically read your `versionName` and `versionCode` to upload your sourcemap file. alternatively, can also set the environment variables `LUCIQ_APP_VERSION_NAME` and `LUCIQ_APP_VERSION_CODE` to be used instead.
+If your token is defined as a constant or imported from elsewhere, override the lookup with environment variables:
 
-To disable the automatic upload, you can set the environment variable `LUCIQ_SOURCEMAPS_UPLOAD_DISABLE` to TRUE.
+| Variable                          | Purpose                               |
+| --------------------------------- | ------------------------------------- |
+| `LUCIQ_APP_TOKEN`                 | App token used for the upload         |
+| `LUCIQ_APP_VERSION_NAME`          | Overrides the inferred `versionName`  |
+| `LUCIQ_APP_VERSION_CODE`          | Overrides the inferred `versionCode`  |
+| `LUCIQ_SOURCEMAPS_UPLOAD_DISABLE` | Set to `TRUE` to skip the upload step |
 
 ## Network Logging
 
-Luciq network logging is enabled by default. It intercepts any requests performed with `fetch` or `XMLHttpRequest` and attaches them to the report that will be sent to the dashboard. To disable network logs:
+Network logging is enabled by default. It intercepts `fetch` and `XMLHttpRequest` calls and attaches them to outgoing reports. Disable it with:
 
-```javascript
+```ts
 import { NetworkLogger } from '@luciq/react-native';
-```
 
-```javascript
 NetworkLogger.setEnabled(false);
 ```
 
 ## Repro Steps
 
-Luciq Repro Steps are enabled by default. It captures a screenshot of each screen the user navigates to. These screens are attached to the BugReport when sent.
+Luciq Repro Steps record the screens a user visits. Each screen is attached to a bug report when it's sent. Repro Steps are enabled by default.
 
-We support the two most popular React Native navigation libraries:
+### React Navigation
 
-- **[react-navigation](https://github.com/react-navigation/react-navigation)**
-  - **v5**
-    set the `onStateChange` to `Luciq.onStateChange` in your NavigationContainer as follows:
+**v5+** — pass `Luciq.onStateChange` to your `NavigationContainer`:
 
-    ```javascript
-    <NavigationContainer onStateChange={Luciq.onStateChange} />
-    ```
+```tsx
+import { NavigationContainer } from '@react-navigation/native';
+import Luciq from '@luciq/react-native';
 
-  - **<=v4**
-    set the `onNavigationStateChange` to `Luciq.onNavigationStateChange` in your App wrapper as follows:
-
-    ```javascript
-    export default () => <App onNavigationStateChange={Luciq.onNavigationStateChange} />;
-    ```
-
-- **[react-native-navigation](https://github.com/wix/react-native-navigation)**
-
-  Register `luciq.aiponentDidAppearListener` listener using:
-
-  ```javascript
-  Navigation.events().registerComponentDidAppearListener(luciq.aiponentDidAppearListener);
-  ```
-
-Alternatively, you can report your screen changes manually using the following API
-
-```javascript
-Luciq.reportScreenChange('screenName');
+<NavigationContainer onStateChange={Luciq.onStateChange}>{/* ... */}</NavigationContainer>;
 ```
 
-You can disable Repro Steps using the following API:
+**v4 and below** — wire `Luciq.onNavigationStateChange` to the root app:
 
-```javascript
+```tsx
+export default () => <App onNavigationStateChange={Luciq.onNavigationStateChange} />;
+```
+
+### React Native Navigation (Wix)
+
+Register `Luciq.componentDidAppearListener`:
+
+```ts
+import { Navigation } from 'react-native-navigation';
+import Luciq from '@luciq/react-native';
+
+Navigation.events().registerComponentDidAppearListener(Luciq.componentDidAppearListener);
+```
+
+### Manual screen reporting
+
+For custom navigation, report screen changes yourself:
+
+```ts
+Luciq.reportScreenChange('CheckoutScreen');
+```
+
+### Disabling Repro Steps
+
+```ts
+import Luciq, { ReproStepsMode } from '@luciq/react-native';
+
 Luciq.setReproStepsConfig({ all: ReproStepsMode.disabled });
 ```
 
-## Custom Spans
+`ReproStepsMode` values: `enabled`, `enabledWithNoScreenshots`, `disabled`.
 
-Custom spans allow you to manually instrument arbitrary code paths for performance tracking. This feature enables tracking of operations not covered by automatic instrumentation.
+## Custom Spans (APM)
 
-### Starting and Ending a Span
+Custom spans let you manually instrument arbitrary code paths for performance tracking — useful for operations that aren't covered by the automatic instrumentation.
 
-```javascript
+### Start / end a span
+
+```ts
 import { APM } from '@luciq/react-native';
 
-// Start a custom span
 const span = await APM.startCustomSpan('Load User Profile');
 
 if (span) {
   try {
-    // Perform your operation
     await loadUserProfile();
   } finally {
-    // Always end the span, even if operation fails
     await span.end();
   }
 }
 ```
 
-### Recording a Completed Span
+### Record a completed span
 
-```javascript
-const start = new Date();
-// ... operation already completed ...
+```ts
+import { APM } from '@luciq/react-native';
+
+const start = new Date(Date.now() - 1500);
 const end = new Date();
 
 await APM.addCompletedCustomSpan('Cache Lookup', start, end);
 ```
 
-### Important Notes
+### Behavior
 
-- **Span Limit**: Maximum of 100 concurrent spans at any time
-- **Name Length**: Span names are truncated to 150 characters
-- **Validation**: Empty names or invalid timestamps will be rejected
-- **Idempotent**: Calling `span.end()` multiple times is safe
-- **Feature Flags**: Spans are only created when SDK is initialized, APM is enabled, and custom spans feature is enabled
+- **Limit:** up to 100 concurrent spans at a time.
+- **Name length:** truncated to 150 characters; empty names are rejected.
+- **Timestamps:** `endDate` must be after `startDate`; otherwise the span is rejected.
+- **Idempotent:** calling `span.end()` more than once is safe.
+- **Gating:** spans are only created when the SDK is initialized, APM is enabled, and the custom-spans feature is enabled for your account.
 
-### API Reference
+### API reference
 
 #### `APM.startCustomSpan(name: string): Promise<CustomSpan | null>`
 
-Starts a custom span for performance tracking.
-
-**Parameters:**
-
-- `name` (string): The name of the span. Cannot be empty. Max 150 characters.
-
-**Returns:**
-
-- `Promise<CustomSpan | null>`: The span object to end later, or `null` if the span could not be created.
-
-**Example:**
-
-```javascript
-const span = await APM.startCustomSpan('Database Query');
-if (span) {
-  // ... perform operation ...
-  await span.end();
-}
-```
+Starts a custom span. Returns the span object, or `null` if the span couldn't be created (e.g. feature disabled, span cap reached, invalid name).
 
 #### `CustomSpan.end(): Promise<void>`
 
-Ends the custom span and reports it to the SDK. This method is idempotent.
+Ends the span and reports it. Idempotent.
 
 #### `APM.addCompletedCustomSpan(name: string, startDate: Date, endDate: Date): Promise<void>`
 
-Records a completed custom span with pre-recorded timestamps.
+Records a span whose start and end times are already known.
 
-**Parameters:**
+## TypeScript
 
-- `name` (string): The name of the span. Cannot be empty. Max 150 characters.
-- `startDate` (Date): The start time of the operation.
-- `endDate` (Date): The end time of the operation (must be after startDate).
+The package ships with type definitions. The public surface is exposed as:
 
-**Example:**
+- `Luciq` (default export) — top-level SDK actions: `init`, `onStateChange`, `onNavigationStateChange`, `componentDidAppearListener`, `reportScreenChange`, `setReproStepsConfig`, and many more.
+- Named modules: `APM`, `BugReporting`, `CrashReporting`, `FeatureRequests`, `NetworkLogger`, `Replies`, `SessionReplay`, `Surveys`.
+- Named enums: `InvocationEvent`, `ReproStepsMode`, `LogLevel`, `NetworkInterceptionMode`, `Locale`, `ColorTheme`, `WelcomeMessageMode`, `ExtendedBugReportMode`, `NonFatalErrorLevel`, and more.
+- Named types: `LuciqConfig`, `ThemeConfig`, `NetworkData`, `Survey`, `SessionMetadata`.
 
-```javascript
-const start = new Date(Date.now() - 1500);
-const end = new Date();
-await APM.addCompletedCustomSpan('Background Task', start, end);
+```ts
+import Luciq, {
+  APM,
+  BugReporting,
+  CrashReporting,
+  InvocationEvent,
+  NetworkLogger,
+  ReproStepsMode,
+  type LuciqConfig,
+} from '@luciq/react-native';
 ```
 
-## Documentation
+## Support
 
-For more details about the supported APIs and how to use them, check our [**Documentation**](https://docs.luciq.ai/docs/react-native-overview).
+<div align="center">
+
+### Need Help?
+
+🌐 **[Visit our website](https://luciq.ai)** • 📖 **[Read the docs](https://docs.luciq.ai/)** • 💬 **[Get help](https://help.luciq.ai)**
+
+### Contact Us
+
+**Primary Contact Email:** [support@luciq.ai](mailto:support@luciq.ai)
+
+**LinkedIn:** [linkedin.com/company/luciq](https://linkedin.com/company/luciq)
+
+---
+
+<p>Made with ❤️ by the Luciq team</p>
+
+<img src=".github/assets/luciq-logo.png" alt="Luciq" width="60" />
+
+</div>
