@@ -251,13 +251,8 @@ import Luciq, {
 } from '@luciq/react-native';
 ```
 
-## Documentation
 
-For the full API reference and integration guides, see the [**Luciq documentation**](https://docs.luciq.ai/docs/react-native-overview).
-
----
-
-## 💬 Support
+## Support
 
 <div align="center">
 
@@ -265,10 +260,11 @@ For the full API reference and integration guides, see the [**Luciq documentatio
 
 🌐 **[Visit our website](https://luciq.ai)** • 📖 **[Read the docs](https://docs.luciq.ai/)** • 💬 **[Get help](https://help.luciq.ai)**
 
-### 📞 Contact Us
+### Contact Us
 
-📧 **Primary Contact Email:** [support@luciq.ai](mailto:support@luciq.ai)
-💼 **LinkedIn:** [linkedin.com/company/luciq](https://linkedin.com/company/luciq)
+**Primary Contact Email:** [support@luciq.ai](mailto:support@luciq.ai)
+
+**LinkedIn:** [linkedin.com/company/luciq](https://linkedin.com/company/luciq)
 
 ---
 
