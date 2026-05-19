@@ -17,6 +17,29 @@
 
 ---
 
+## Table of Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Initializing Luciq](#initializing-luciq)
+- [iOS Usage Descriptions](#ios-usage-descriptions)
+- [Source Map Uploads for Crash Reports](#source-map-uploads-for-crash-reports)
+- [Network Logging](#network-logging)
+- [Repro Steps](#repro-steps)
+  - [React Navigation](#react-navigation)
+  - [React Native Navigation (Wix)](#react-native-navigation-wix)
+  - [Manual screen reporting](#manual-screen-reporting)
+  - [Disabling Repro Steps](#disabling-repro-steps)
+- [Custom Spans (APM)](#custom-spans-apm)
+  - [Start / end a span](#start--end-a-span)
+  - [Record a completed span](#record-a-completed-span)
+  - [Behavior](#behavior)
+  - [API reference](#api-reference)
+- [TypeScript](#typescript)
+- [Support](#support)
+
+---
+
 ## Requirements
 
 - React Native `>= 0.72.3`
