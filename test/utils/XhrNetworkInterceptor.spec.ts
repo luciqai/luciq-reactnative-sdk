@@ -1,10 +1,13 @@
-import FakeRequest from '../mocks/fakeNetworkRequest';
+import FakeRequest, { createRequest } from '../mocks/fakeNetworkRequest';
 
 import nock from 'nock';
 import waitForExpect from 'wait-for-expect';
 
 import LuciqConstants from '../../src/utils/LuciqConstants';
 import Interceptor, { injectHeaders } from '../../src/utils/XhrNetworkInterceptor';
+import * as FeatureFlagsModule from '../../src/utils/FeatureFlags';
+
+jest.setTimeout(15000);
 
 jest.setTimeout(15000);
 
@@ -643,5 +646,228 @@ describe('Network Interceptor Edge Cases', () => {
     FakeRequest.mockResponse(request, 200, 'not-valid-json');
     FakeRequest.setRequestHeaders(headers);
     FakeRequest.send();
+  });
+});
+
+describe('Network Interceptor Concurrent Requests', () => {
+  beforeEach(() => {
+    nock.cleanAll();
+    Interceptor.disableInterception();
+  });
+
+  it('should isolate URL and method for concurrent requests', async () => {
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+
+    const usersUrl = 'http://api.luciq.ai/users';
+    const dataUrl = 'http://api.luciq.ai/data';
+    nock('http://api.luciq.ai').get('/users').reply(200, 'users-response');
+    nock('http://api.luciq.ai').post('/data').reply(200, 'data-response');
+
+    const reqA = createRequest();
+    const reqB = createRequest();
+
+    reqA.open('GET', usersUrl);
+    reqB.open('POST', dataUrl);
+    reqA.send();
+    reqB.send('body');
+
+    await waitForExpect(() => {
+      const calls = callback.mock.calls.map((c: any[]) => c[0]);
+      const reqAResult = calls.find((c: any) => c.url === usersUrl);
+      const reqBResult = calls.find((c: any) => c.url === dataUrl);
+      expect(reqAResult).toBeDefined();
+      expect(reqBResult).toBeDefined();
+    });
+
+    const calls = callback.mock.calls.map((c: any[]) => c[0]);
+    const reqAResult = calls.find((c: any) => c.url === usersUrl);
+    const reqBResult = calls.find((c: any) => c.url === dataUrl);
+
+    expect(reqAResult.method).toBe('GET');
+    expect(reqBResult.method).toBe('POST');
+  });
+
+  it('should isolate headers for concurrent requests', async () => {
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+
+    const usersUrl = 'http://api.luciq.ai/users';
+    const dataUrl = 'http://api.luciq.ai/data';
+    nock('http://api.luciq.ai').get('/users').reply(200, 'ok');
+    nock('http://api.luciq.ai').post('/data').reply(200, 'ok');
+
+    const reqA = createRequest();
+    const reqB = createRequest();
+
+    reqA.open('GET', usersUrl);
+    reqA.setRequestHeaders({ authorization: 'Bearer token-A' });
+    reqB.open('POST', dataUrl);
+    reqB.setRequestHeaders({ authorization: 'Bearer token-B' });
+    reqA.send();
+    reqB.send('body');
+
+    await waitForExpect(() => {
+      expect(callback).toHaveBeenCalledTimes(2);
+    });
+
+    const calls = callback.mock.calls.map((c: any[]) => c[0]);
+    const reqAResult = calls.find((c: any) => c.url === usersUrl);
+    const reqBResult = calls.find((c: any) => c.url === dataUrl);
+
+    expect(reqAResult.requestHeaders.authorization).toBe('Bearer token-A');
+    expect(reqBResult.requestHeaders.authorization).toBe('Bearer token-B');
+  });
+
+  it('should handle rapid sequential open-send cycles without data corruption', async () => {
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+
+    const count = 5;
+    for (let i = 0; i < count; i++) {
+      const reqUrl = `http://api.luciq.ai/endpoint${i}`;
+      nock('http://api.luciq.ai').get(`/endpoint${i}`).reply(200, `response-${i}`);
+      const req = createRequest();
+      req.open('GET', reqUrl);
+      req.send();
+    }
+
+    await waitForExpect(() => {
+      expect(callback).toHaveBeenCalledTimes(count);
+    });
+
+    const urls = callback.mock.calls.map((c: any[]) => c[0].url);
+    for (let i = 0; i < count; i++) {
+      expect(urls).toContain(`http://api.luciq.ai/endpoint${i}`);
+    }
+  });
+});
+
+describe('Network Interceptor Abort Handling', () => {
+  beforeEach(() => {
+    nock.cleanAll();
+    Interceptor.disableInterception();
+  });
+
+  it('should invoke onDoneCallback with cancelled status on abort', async () => {
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+
+    nock('http://api.luciq.ai').get('/slow').delayConnection(5000).reply(200, 'ok');
+
+    FakeRequest.open('GET', 'http://api.luciq.ai/slow');
+    FakeRequest.send();
+    FakeRequest.abort();
+
+    await waitForExpect(() => {
+      expect(callback).toHaveBeenCalled();
+    });
+
+    const result = callback.mock.calls[0][0];
+    expect(result.errorDomain).toBe('cancelled');
+    expect(result.errorCode).toBe(9876);
+    expect(result.responseCode).toBe(0);
+    expect(result.responseBody).toBe('ERROR: cancelled');
+  });
+
+  it('should invoke onDoneCallback exactly once on abort (no double-report)', async () => {
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+
+    nock('http://api.luciq.ai').get('/slow').delayConnection(5000).reply(200, 'ok');
+
+    FakeRequest.open('GET', 'http://api.luciq.ai/slow');
+    FakeRequest.send();
+    FakeRequest.abort();
+
+    await waitForExpect(() => {
+      expect(callback).toHaveBeenCalled();
+    });
+
+    // Allow extra time for any potential duplicate callback
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect(callback).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Network Interceptor Feature Flag Caching', () => {
+  beforeEach(() => {
+    nock.cleanAll();
+    Interceptor.disableInterception();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('should inject traceparent header when W3C flags are cached as enabled', async () => {
+    jest.spyOn(FeatureFlagsModule, 'getCachedW3cFlags').mockReturnValue({
+      isW3cExternalTraceIDEnabled: true,
+      isW3cExternalGeneratedHeaderEnabled: true,
+      isW3cCaughtHeaderEnabled: false,
+    });
+
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+
+    nock('http://api.luciq.ai').get('/').reply(200, 'ok');
+    FakeRequest.open('GET', url);
+    FakeRequest.send();
+
+    await waitForExpect(() => {
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    const result = callback.mock.calls[0][0];
+    expect(result.w3cGeneratedHeader).not.toBeNull();
+    expect(result.w3cGeneratedHeader).toHaveLength(55);
+    expect(result.isW3cHeaderFound).toBe(false);
+  });
+
+  it('should not inject traceparent header when W3C flags are cached as disabled', async () => {
+    jest.spyOn(FeatureFlagsModule, 'getCachedW3cFlags').mockReturnValue({
+      isW3cExternalTraceIDEnabled: false,
+      isW3cExternalGeneratedHeaderEnabled: false,
+      isW3cCaughtHeaderEnabled: false,
+    });
+
+    const callback = jest.fn();
+    Interceptor.enableInterception();
+    Interceptor.setOnDoneCallback(callback);
+
+    nock('http://api.luciq.ai').get('/').reply(200, 'ok');
+    FakeRequest.open('GET', url);
+    FakeRequest.send();
+
+    await waitForExpect(() => {
+      expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    const result = callback.mock.calls[0][0];
+    expect(result.w3cGeneratedHeader).toBeNull();
+    expect(result.isW3cHeaderFound).toBeNull();
+  });
+
+  it('should use cached flags synchronously without async delay', () => {
+    jest.spyOn(FeatureFlagsModule, 'getCachedW3cFlags').mockReturnValue({
+      isW3cExternalTraceIDEnabled: false,
+      isW3cExternalGeneratedHeaderEnabled: false,
+      isW3cCaughtHeaderEnabled: false,
+    });
+
+    Interceptor.enableInterception();
+
+    nock('http://api.luciq.ai').get('/sync-check').reply(200, 'ok');
+    const req = createRequest();
+    req.open('GET', 'http://api.luciq.ai/sync-check');
+    const result = req.xhr.send();
+
+    expect(result).not.toBeInstanceOf(Promise);
   });
 });

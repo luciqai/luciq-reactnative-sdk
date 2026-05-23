@@ -2,6 +2,7 @@ package ai.luciq.reactlibrary;
 
 import static ai.luciq.apm.configuration.cp.APMFeature.APM_NETWORK_PLUGIN_INSTALLED;
 import static ai.luciq.apm.configuration.cp.APMFeature.CP_NATIVE_INTERCEPTION_ENABLED;
+import static ai.luciq.reactlibrary.Constants.NET_TAG;
 import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
 import android.app.Application;
@@ -12,8 +13,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 import android.view.View;
-
-import com.facebook.react.bridge.ReactApplicationContext;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
@@ -32,36 +31,6 @@ import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.UIManagerModule;
-import ai.luciq.apm.InternalAPM;
-import ai.luciq.apm.configuration.cp.APMFeature;
-import ai.luciq.library.Feature;
-import ai.luciq.library.Luciq;
-import ai.luciq.library.LuciqColorTheme;
-import ai.luciq.library.LuciqCustomTextPlaceHolder;
-import ai.luciq.library.IssueType;
-import ai.luciq.library.LogLevel;
-import ai.luciq.library.ReproConfigurations;
-import ai.luciq.library.core.InstabugCore;
-import ai.luciq.library.internal.crossplatform.CoreFeature;
-import ai.luciq.library.internal.crossplatform.CoreFeaturesState;
-import ai.luciq.library.internal.crossplatform.FeaturesStateListener;
-import ai.luciq.library.internal.crossplatform.InternalCore;
-import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
-import ai.luciq.library.internal.crossplatform.InternalCore;
-import ai.luciq.library.internal.crossplatform.OnFeaturesUpdatedListener;
-import ai.luciq.library.internal.module.LuciqLocale;
-import ai.luciq.library.invocation.LuciqInvocationEvent;
-import ai.luciq.library.logging.LuciqLog;
-import ai.luciq.library.model.LuciqTheme;
-import ai.luciq.library.model.NetworkLog;
-import ai.luciq.library.model.Report;
-import ai.luciq.library.ui.onboarding.WelcomeMessage;
-import ai.luciq.library.util.LuciqSDKLogger;
-import ai.luciq.reactlibrary.utils.ArrayUtil;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
-import ai.luciq.reactlibrary.utils.MainThreadHandler;
-
-import ai.luciq.reactlibrary.utils.RNTouchedViewExtractor;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -79,6 +48,34 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
+import ai.luciq.apm.InternalAPM;
+import ai.luciq.library.Feature;
+import ai.luciq.library.IssueType;
+import ai.luciq.library.LogLevel;
+import ai.luciq.library.Luciq;
+import ai.luciq.library.LuciqColorTheme;
+import ai.luciq.library.LuciqCustomTextPlaceHolder;
+import ai.luciq.library.ReproConfigurations;
+import ai.luciq.library.core.InstabugCore;
+import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
+import ai.luciq.library.internal.crossplatform.CoreFeature;
+import ai.luciq.library.internal.crossplatform.CoreFeaturesState;
+import ai.luciq.library.internal.crossplatform.FeaturesStateListener;
+import ai.luciq.library.internal.crossplatform.InternalCore;
+import ai.luciq.library.internal.crossplatform.OnFeaturesUpdatedListener;
+import ai.luciq.library.internal.module.LuciqLocale;
+import ai.luciq.library.invocation.LuciqInvocationEvent;
+import ai.luciq.library.logging.LuciqLog;
+import ai.luciq.library.model.LuciqTheme;
+import ai.luciq.library.model.NetworkLog;
+import ai.luciq.library.model.Report;
+import ai.luciq.library.ui.onboarding.WelcomeMessage;
+import ai.luciq.reactlibrary.utils.ArrayUtil;
+import ai.luciq.reactlibrary.utils.EventEmitterModule;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
+import ai.luciq.reactlibrary.utils.MainThreadHandler;
+import ai.luciq.reactlibrary.utils.RNTouchedViewExtractor;
+
 
 /**
  * The type Rn luciq reactnative module.
@@ -86,6 +83,7 @@ import javax.annotation.Nullable;
 public class RNLuciqReactnativeModule extends EventEmitterModule {
 
     private static final String TAG = "Luciq-RN-Core";
+    ;
 
     private LuciqCustomTextPlaceHolder placeHolders;
     private static Report currentReport;
@@ -123,6 +121,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
 
     /**
      * Enables or disables Luciq functionality.
+     *
      * @param isEnabled A boolean to enable/disable Luciq.
      */
     @ReactMethod
@@ -163,6 +162,9 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
 
 
     ) {
+        final int parsedLogLevel = ArgsRegistry.sdkLogLevels.getOrDefault(logLevel, LogLevel.ERROR);
+        LuciqRNLogger.setLevel(parsedLogLevel);
+        LuciqRNLogger.d(NET_TAG, "[init] Called — logLevel=" + logLevel + ", useNativeNetworkInterception=" + useNativeNetworkInterception + ", codePushVersion=" + codePushVersion + ", appVariant=" + appVariant);
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -171,7 +173,6 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 final ArrayList<String> keys = ArrayUtil.parseReadableArrayOfStrings(invocationEventValues);
                 final ArrayList<LuciqInvocationEvent> parsedInvocationEvents = ArgsRegistry.invocationEvents.getAll(keys);
                 final LuciqInvocationEvent[] invocationEvents = parsedInvocationEvents.toArray(new LuciqInvocationEvent[0]);
-                final int parsedLogLevel = ArgsRegistry.sdkLogLevels.getOrDefault(logLevel, LogLevel.ERROR);
 
                 final Application application = (Application) reactContext.getApplicationContext();
 
@@ -179,7 +180,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                         .setInvocationEvents(invocationEvents)
                         .setLogLevel(parsedLogLevel);
 
-                if (map!=null&&map.hasKey("ignoreAndroidSecureFlag")) {
+                if (map != null && map.hasKey("ignoreAndroidSecureFlag")) {
                     builder.ignoreFlagSecure(map.getBoolean("ignoreAndroidSecureFlag"));
                 }
 
@@ -190,12 +191,12 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                         builder.setCodePushVersion(codePushVersion);
                     }
                 }
-                 if (appVariant != null) {
-                            builder.setAppVariant(appVariant);
-                    }
+                if (appVariant != null) {
+                    builder.setAppVariant(appVariant);
+                }
 
-                if(overAirVersion != null ) {
-                    if(Luciq.isBuilt()) {
+                if (overAirVersion != null) {
+                    if (Luciq.isBuilt()) {
                         Luciq.setOverAirVersion(overAirVersion.getString("version"),
                                 ArgsRegistry.overAirUpdateService.get(overAirVersion.getString("service")));
                     } else {
@@ -204,6 +205,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 }
 
                 builder.build();
+                LuciqRNLogger.d(NET_TAG, "[init] SDK build complete");
             }
         });
     }
@@ -545,7 +547,6 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             }
         });
     }
-
 
 
     /**
@@ -969,6 +970,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                                   final String requestHeaders,
                                   final String responseHeaders,
                                   final double duration) {
+        LuciqRNLogger.d(NET_TAG, "[networkLogAndroid-Core] Received from JS: " + method + " " + url + ", status=" + (int) responseCode + ", duration=" + (long) duration + "ms, reqBodyLen=" + (requestBody != null ? requestBody.length() : 0) + ", resBodyLen=" + (responseBody != null ? responseBody.length() : 0));
         try {
             final String date = String.valueOf(System.currentTimeMillis());
 
@@ -985,11 +987,14 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 networkLog.setRequestHeaders(requestHeaders);
                 networkLog.setResponseHeaders(responseHeaders);
             } catch (OutOfMemoryError | Exception exception) {
+                LuciqRNLogger.e(NET_TAG, "[networkLogAndroid-Core] OOM/Error setting log contents: " + exception.getMessage() + " for " + method + " " + url);
                 Log.d(TAG, "Error: " + exception.getMessage() + "while trying to set network log contents (request body, response body, request headers, and response headers).");
             }
 
             networkLog.insert();
+            LuciqRNLogger.d(NET_TAG, "[networkLogAndroid-Core] Successfully inserted NetworkLog: " + method + " " + url);
         } catch (OutOfMemoryError | Exception exception) {
+            LuciqRNLogger.e(NET_TAG, "[networkLogAndroid-Core] OOM/Error inserting network log: " + exception.getMessage() + " for " + method + " " + url);
             Log.d(TAG, "Error: " + exception.getMessage() + "while trying to insert a network log");
         }
     }
@@ -998,18 +1003,18 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
     @Nullable
     private View resolveReactView(final int reactTag) {
         try {
-        final ReactApplicationContext reactContext = getReactApplicationContext();
-        final UIManagerModule uiManagerModule = reactContext.getNativeModule(UIManagerModule.class);
+            final ReactApplicationContext reactContext = getReactApplicationContext();
+            final UIManagerModule uiManagerModule = reactContext.getNativeModule(UIManagerModule.class);
 
-        if (uiManagerModule == null) {
+            if (uiManagerModule == null) {
                 UIManager uiNewManagerModule = UIManagerHelper.getUIManagerForReactTag(reactContext, reactTag);
                 if (uiNewManagerModule != null) {
                     return uiNewManagerModule.resolveView(reactTag);
                 }
-            return null;
-        }
+                return null;
+            }
 
-        return uiManagerModule.resolveView(reactTag);
+            return uiManagerModule.resolveView(reactTag);
         } catch (Exception e) {
             return null;
         }
@@ -1024,8 +1029,8 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 try {
                     final View view = resolveReactView(reactTag);
 
-                    if(view !=null){
-                    Luciq.addPrivateViews(view);
+                    if (view != null) {
+                        Luciq.addPrivateViews(view);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1041,9 +1046,9 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             public void run() {
                 try {
                     final View view = resolveReactView(reactTag);
-                    if(view !=null){
+                    if (view != null) {
 
-                    Luciq.removePrivateViews(view);
+                        Luciq.removePrivateViews(view);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1078,7 +1083,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      * Reports that the screen has been changed (Repro Steps) the screen sent to this method will be the 'current view' on the dashboard
      *
      * @param screenName string containing the screen name
-     * @param spanId the span ID for screen loading tracking (nullable)
+     * @param spanId     the span ID for screen loading tracking (nullable)
      */
     @ReactMethod
     public void reportScreenChange(final String screenName, @Nullable final String spanId) {
@@ -1087,9 +1092,9 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             public void run() {
                 try {
                     Long uiTraceId = spanId != null ? Long.parseLong(spanId) : null;
-                    Method method = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class , Long.class);
+                    Method method = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class, Long.class);
                     if (method != null) {
-                        method.invoke(null, null, screenName , uiTraceId);
+                        method.invoke(null, null, screenName, uiTraceId);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -1097,7 +1102,6 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             }
         });
     }
-
 
 
     @ReactMethod
@@ -1172,7 +1176,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void registerFeatureFlagsChangeListener() {
-
+        LuciqRNLogger.d(NET_TAG, "[registerFeatureFlagsChangeListener] Registering native feature flags listener");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -1180,16 +1184,19 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                     InternalCore.INSTANCE._setFeaturesStateListener(new FeaturesStateListener() {
                         @Override
                         public void invoke(@NonNull CoreFeaturesState featuresState) {
+                            LuciqRNLogger.d(NET_TAG, "[FeatureFlagsListener] Received update — W3CTraceID=" + featuresState.isW3CExternalTraceIdEnabled() + ", generatedHeader=" + featuresState.isAttachingGeneratedHeaderEnabled() + ", caughtHeader=" + featuresState.isAttachingCapturedHeaderEnabled() + ", networkBodyLimit=" + featuresState.getNetworkLogCharLimit());
                             WritableMap params = Arguments.createMap();
                             params.putBoolean("isW3ExternalTraceIDEnabled", featuresState.isW3CExternalTraceIdEnabled());
                             params.putBoolean("isW3ExternalGeneratedHeaderEnabled", featuresState.isAttachingGeneratedHeaderEnabled());
                             params.putBoolean("isW3CaughtHeaderEnabled", featuresState.isAttachingCapturedHeaderEnabled());
-                            params.putInt("networkBodyLimit",featuresState.getNetworkLogCharLimit());
+                            params.putInt("networkBodyLimit", featuresState.getNetworkLogCharLimit());
 
                             sendEvent(Constants.LCQ_ON_FEATURE_FLAGS_UPDATE_RECEIVED_CALLBACK, params);
+                            LuciqRNLogger.d(NET_TAG, "[FeatureFlagsListener] Sent event to JS: " + Constants.LCQ_ON_FEATURE_FLAGS_UPDATE_RECEIVED_CALLBACK);
                         }
                     });
                 } catch (Exception e) {
+                    LuciqRNLogger.e(NET_TAG, "[registerFeatureFlagsChangeListener] Failed to register listener", e);
                     e.printStackTrace();
                 }
 
@@ -1204,13 +1211,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void isW3ExternalTraceIDEnabled(Promise promise) {
-
+        LuciqRNLogger.d(NET_TAG, "[isW3ExternalTraceIDEnabled] Querying native flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    promise.resolve(InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_EXTERNAL_TRACE_ID));
+                    boolean enabled = InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_EXTERNAL_TRACE_ID);
+                    LuciqRNLogger.d(NET_TAG, "[isW3ExternalTraceIDEnabled] Result=" + enabled);
+                    promise.resolve(enabled);
                 } catch (Exception e) {
+                    LuciqRNLogger.e(NET_TAG, "[isW3ExternalTraceIDEnabled] Error querying flag", e);
                     e.printStackTrace();
                     promise.resolve(false);
                 }
@@ -1226,13 +1236,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void isW3ExternalGeneratedHeaderEnabled(Promise promise) {
-
+        LuciqRNLogger.d(NET_TAG, "[isW3ExternalGeneratedHeaderEnabled] Querying native flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    promise.resolve(InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_ATTACHING_GENERATED_HEADER));
+                    boolean enabled = InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_ATTACHING_GENERATED_HEADER);
+                    LuciqRNLogger.d(NET_TAG, "[isW3ExternalGeneratedHeaderEnabled] Result=" + enabled);
+                    promise.resolve(enabled);
                 } catch (Exception e) {
+                    LuciqRNLogger.e(NET_TAG, "[isW3ExternalGeneratedHeaderEnabled] Error querying flag", e);
                     e.printStackTrace();
                     promise.resolve(false);
                 }
@@ -1247,13 +1260,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void isW3CaughtHeaderEnabled(Promise promise) {
-
+        LuciqRNLogger.d(NET_TAG, "[isW3CaughtHeaderEnabled] Querying native flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    promise.resolve(InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_ATTACHING_CAPTURED_HEADER));
+                    boolean enabled = InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_ATTACHING_CAPTURED_HEADER);
+                    LuciqRNLogger.d(NET_TAG, "[isW3CaughtHeaderEnabled] Result=" + enabled);
+                    promise.resolve(enabled);
                 } catch (Exception e) {
+                    LuciqRNLogger.e(NET_TAG, "[isW3CaughtHeaderEnabled] Error querying flag", e);
                     e.printStackTrace();
                     promise.resolve(false);
                 }
@@ -1268,7 +1284,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      * Map between the exported JS constant and the arg key in {@link ArgsRegistry}.
      * The constant name and the arg key should match to be able to resolve the
      * constant with its actual value from the {@link ArgsRegistry} maps.
-     *
+     * <p>
      * This is a workaround, because RN cannot resolve enums in the constants map.
      */
     @Override
@@ -1299,23 +1315,25 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
             }
         });
     }
+
     /**
-    * Enables or disables capturing network body.
-    * @param isEnabled A boolean to enable/disable capturing network body.
-    */
-   @ReactMethod
-   public void setNetworkLogBodyEnabled(final boolean isEnabled) {
-       MainThreadHandler.runOnMainThread(new Runnable() {
-           @Override
-           public void run() {
-               try {
-                   Luciq.setNetworkLogBodyEnabled(isEnabled);
-               } catch (Exception e) {
-                   e.printStackTrace();
-               }
-           }
-       });
-   }
+     * Enables or disables capturing network body.
+     *
+     * @param isEnabled A boolean to enable/disable capturing network body.
+     */
+    @ReactMethod
+    public void setNetworkLogBodyEnabled(final boolean isEnabled) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Luciq.setNetworkLogBodyEnabled(isEnabled);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
     /**
      * Sets the auto mask screenshots types.
@@ -1347,13 +1365,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      */
     @ReactMethod
     public void getNetworkBodyMaxSize(Promise promise) {
-
+        LuciqRNLogger.d(NET_TAG, "[getNetworkBodyMaxSize] Querying network body size limit");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    promise.resolve(InternalCore.INSTANCE.get_networkLogCharLimit());
+                    Object limit = InternalCore.INSTANCE.get_networkLogCharLimit();
+                    LuciqRNLogger.d(NET_TAG, "[getNetworkBodyMaxSize] Result=" + limit);
+                    promise.resolve(limit);
                 } catch (Exception e) {
+                    LuciqRNLogger.e(NET_TAG, "[getNetworkBodyMaxSize] Error querying limit", e);
                     e.printStackTrace();
                     promise.resolve(false);
                 }
@@ -1361,20 +1382,20 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         });
     }
 
-     /**
-         * Sets current App variant
-         *
-         * @param appVariant The app variant name .
-         */
-       @ReactMethod
-        public void setAppVariant(@NonNull String appVariant) {
-            try {
-                Luciq.setAppVariant(appVariant);
+    /**
+     * Sets current App variant
+     *
+     * @param appVariant The app variant name .
+     */
+    @ReactMethod
+    public void setAppVariant(@NonNull String appVariant) {
+        try {
+            Luciq.setAppVariant(appVariant);
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
 
     /**
      * Enables or disables WebView monitoring.
@@ -1505,17 +1526,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
     }
 
 
-
     /**
      * Applies a color to the theme builder if present in the configuration.
      *
      * @param themeConfig The theme configuration map
-     * @param builder The theme builder
-     * @param key The configuration key
-     * @param setter The color setter function
+     * @param builder     The theme builder
+     * @param key         The configuration key
+     * @param setter      The color setter function
      */
     private void applyColorIfPresent(ReadableMap themeConfig, ai.luciq.library.model.LuciqTheme.Builder builder,
-                                   String key, java.util.function.BiConsumer<ai.luciq.library.model.LuciqTheme.Builder, Integer> setter) {
+                                     String key, java.util.function.BiConsumer<ai.luciq.library.model.LuciqTheme.Builder, Integer> setter) {
         if (themeConfig.hasKey(key)) {
             int color = getColor(themeConfig, key);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -1528,12 +1548,12 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      * Applies a text style to the theme builder if present in the configuration.
      *
      * @param themeConfig The theme configuration map
-     * @param builder The theme builder
-     * @param key The configuration key
-     * @param setter The text style setter function
+     * @param builder     The theme builder
+     * @param key         The configuration key
+     * @param setter      The text style setter function
      */
     private void applyTextStyleIfPresent(ReadableMap themeConfig, ai.luciq.library.model.LuciqTheme.Builder builder,
-                                       String key, java.util.function.BiConsumer<ai.luciq.library.model.LuciqTheme.Builder, Integer> setter) {
+                                         String key, java.util.function.BiConsumer<ai.luciq.library.model.LuciqTheme.Builder, Integer> setter) {
         if (themeConfig.hasKey(key)) {
             int style = getTextStyle(themeConfig, key);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -1546,13 +1566,13 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      * Sets a font on the theme builder if the font configuration is present in the theme config.
      *
      * @param themeConfig The theme configuration map
-     * @param builder The theme builder
-     * @param fileKey The key for font file path
-     * @param assetKey The key for font asset path
-     * @param fontType The type of font (for logging purposes)
+     * @param builder     The theme builder
+     * @param fileKey     The key for font file path
+     * @param assetKey    The key for font asset path
+     * @param fontType    The type of font (for logging purposes)
      */
     private void setFontIfPresent(ReadableMap themeConfig, ai.luciq.library.model.LuciqTheme.Builder builder,
-                                 String fileKey, String assetKey, String fontType) {
+                                  String fileKey, String assetKey, String fontType) {
         if (themeConfig.hasKey(fileKey) || themeConfig.hasKey(assetKey)) {
             Typeface typeface = getTypeface(themeConfig, fileKey, assetKey);
             if (typeface != null) {
@@ -1637,27 +1657,28 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         return Typeface.DEFAULT;
     }
 
-/**
- * Extracts the filename from a path, removing any directory prefixes.
- *
- * @param path The full path to the file
- * @return Just the filename with extension
- */
-private String getFileName(String path) {
-    if (path == null || path.isEmpty()) {
+    /**
+     * Extracts the filename from a path, removing any directory prefixes.
+     *
+     * @param path The full path to the file
+     * @return Just the filename with extension
+     */
+    private String getFileName(String path) {
+        if (path == null || path.isEmpty()) {
+            return path;
+        }
+
+        int lastSeparator = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+        if (lastSeparator >= 0 && lastSeparator < path.length() - 1) {
+            return path.substring(lastSeparator + 1);
+        }
+
         return path;
     }
 
-    int lastSeparator = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
-    if (lastSeparator >= 0 && lastSeparator < path.length() - 1) {
-        return path.substring(lastSeparator + 1);
-    }
-
-    return path;
-}
-
- /**
+    /**
      * Enables or disables displaying in full-screen mode, hiding the status and navigation bars.
+     *
      * @param isEnabled A boolean to enable/disable setFullscreen.
      */
     @ReactMethod
@@ -1666,7 +1687,7 @@ private String getFileName(String path) {
             @Override
             public void run() {
                 try {
-                        Luciq.setFullscreen(isEnabled);
+                    Luciq.setFullscreen(isEnabled);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

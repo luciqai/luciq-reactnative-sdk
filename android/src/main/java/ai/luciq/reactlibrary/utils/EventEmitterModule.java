@@ -10,6 +10,7 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
 public abstract class EventEmitterModule extends ReactContextBaseJavaModule {
+    private static final String NET_TAG = "LCQ-RN-NET";
     private int listenerCount = 0;
 
     public EventEmitterModule(ReactApplicationContext context) {
@@ -22,14 +23,18 @@ public abstract class EventEmitterModule extends ReactContextBaseJavaModule {
             getReactApplicationContext()
                     .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                     .emit(event, params);
+        } else {
+            LuciqRNLogger.w(NET_TAG, "[EventEmitter] Event DROPPED (no JS listeners): event=" + event + ", module=" + getName() + ", listenerCount=0");
         }
     }
 
     protected void addListener(String ignoredEvent) {
         listenerCount++;
+        LuciqRNLogger.d(NET_TAG, "[EventEmitter] addListener — module=" + getName() + ", event=" + ignoredEvent + ", listenerCount=" + listenerCount);
     }
 
     protected void removeListeners(Integer count) {
         listenerCount -= count;
+        LuciqRNLogger.d(NET_TAG, "[EventEmitter] removeListeners — module=" + getName() + ", removed=" + count + ", listenerCount=" + listenerCount);
     }
 }

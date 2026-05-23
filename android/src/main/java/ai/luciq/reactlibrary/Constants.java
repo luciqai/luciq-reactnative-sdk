@@ -17,4 +17,7 @@ final class Constants {
 
     final static String LCQ_SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION = "LCQSessionReplayOnSyncCallback";
 
+    final static String NET_TAG = "LCQ-RN-NET";
+    final static String Bridge_TAG = "LCQ-CP-Bridge";
+
 }
