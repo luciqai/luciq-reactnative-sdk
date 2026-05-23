@@ -2,7 +2,6 @@
 
 ## [19.7.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.7.0...19.6.0)
 
-
 ### Fixed
 
 - Fix NetworkLogger late initialization on Android.
@@ -12,7 +11,6 @@
 - Bump Luciq iOS SDK to v19.7.0 ([#54](https://github.com/luciqai/luciq-reactnative-sdk/pull/49)). [See release notes](https://github.com/luciqai/luciq-ios-sdk/releases/tag/19.7.0).
 
 - Bump Luciq Android SDK to v19.7.0 ([#54](https://github.com/luciqai/luciq-reactnative-sdk/pull/49)). [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.7.0).
-
 
 ## [19.6.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.6.0...19.4.0)
 
