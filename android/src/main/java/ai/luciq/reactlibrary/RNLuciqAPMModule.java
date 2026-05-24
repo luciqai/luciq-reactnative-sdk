@@ -1,9 +1,10 @@
 package ai.luciq.reactlibrary;
 
+import static ai.luciq.reactlibrary.Constants.Bridge_TAG;
+import static ai.luciq.reactlibrary.Constants.NET_TAG;
 import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
 import android.os.SystemClock;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,6 +28,7 @@ import ai.luciq.apm.configuration.cp.FeatureAvailabilityCallback;
 import ai.luciq.apm.networking.APMNetworkLogger;
 import ai.luciq.apm.networkinterception.cp.APMCPNetworkLog;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 public class RNLuciqAPMModule extends EventEmitterModule {
@@ -328,6 +330,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                                    @Nullable final String gqLCQueryName,
                                    @Nullable final String serverErrorMessage
     ) {
+        LuciqRNLogger.d(NET_TAG, "[networkLogAndroid-APM] Received from JS: " + requestMethod + " " + requestUrl + ", status=" + (int) statusCode + ", duration=" + (long) requestDuration + "ms, startTime=" + (long) requestStartTime + ", error=" + errorDomain + ", gqlQuery=" + gqLCQueryName);
         try {
             APMNetworkLogger networkLogger = new APMNetworkLogger();
 
@@ -349,8 +352,10 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                 }
 
             } catch (Exception e) {
+                LuciqRNLogger.e(NET_TAG, "[networkLogAndroid-APM] Error parsing W3C attributes for " + requestMethod + " " + requestUrl, e);
                 e.printStackTrace();
             }
+            LuciqRNLogger.d(NET_TAG, "[networkLogAndroid-APM] W3C attrs — isW3cHeaderFound=" + isW3cHeaderFound + ", partialId=" + partialId + ", networkStartTimeInSeconds=" + networkStartTimeInSeconds + ", generatedHeader=" + (w3cAttributes != null && !w3cAttributes.isNull("w3cGeneratedHeader") ? w3cAttributes.getString("w3cGeneratedHeader") : "null") + ", caughtHeader=" + (w3cAttributes != null && !w3cAttributes.isNull("w3cCaughtHeader") ? w3cAttributes.getString("w3cCaughtHeader") : "null"));
             APMCPNetworkLog.W3CExternalTraceAttributes w3cExternalTraceAttributes = new APMCPNetworkLog.W3CExternalTraceAttributes(isW3cHeaderFound, partialId, networkStartTimeInSeconds, w3cAttributes.getString("w3cGeneratedHeader"), w3cAttributes.getString("w3cCaughtHeader"));
             try {
                 Method method = getMethod(Class.forName("ai.luciq.apm.networking.APMNetworkLogger"), "log", long.class, long.class, String.class, String.class, long.class, String.class, String.class, String.class, String.class, String.class, long.class, int.class, String.class, String.class, String.class, String.class, APMCPNetworkLog.W3CExternalTraceAttributes.class);
@@ -375,13 +380,16 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                             serverErrorMessage,
                             w3cExternalTraceAttributes
                     );
+                    LuciqRNLogger.d(NET_TAG, "[networkLogAndroid-APM] Successfully invoked APMNetworkLogger.log via reflection: " + requestMethod + " " + requestUrl);
                 } else {
-                    Log.e("IB-CP-Bridge", "APMNetworkLogger.log was not found by reflection");
+                    LuciqRNLogger.e(NET_TAG, "[networkLogAndroid-APM] APMNetworkLogger.log method NOT found by reflection — network log will be lost: " + requestMethod + " " + requestUrl);
                 }
             } catch (Throwable e) {
+                LuciqRNLogger.e(NET_TAG, "[networkLogAndroid-APM] Exception invoking APMNetworkLogger.log: " + e.getMessage() + " for " + requestMethod + " " + requestUrl, e);
                 e.printStackTrace();
             }
         } catch (Throwable e) {
+            LuciqRNLogger.e(NET_TAG, "[networkLogAndroid-APM] Top-level exception: " + e.getMessage() + " for " + requestMethod + " " + requestUrl, e);
             e.printStackTrace();
         }
     }
@@ -430,7 +438,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
 
                     promise.resolve(true);
                 } catch (Exception e) {
-                    Log.e("IB-CP-Bridge", "Error syncing span", e);
+                    LuciqRNLogger.e(Bridge_TAG, "Error syncing span", e);
                     promise.resolve(false);
                 }
             }
@@ -455,7 +463,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                         }
                     });
                 } catch (Exception e) {
-                    Log.e("IB-CP-Bridge", "Error checking feature flag", e);
+                    LuciqRNLogger.e(Bridge_TAG, "Error checking feature flag", e);
                     promise.resolve(false);
                 }
             }
@@ -480,7 +488,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
                         }
                     });
                 } catch (Exception e) {
-                    Log.e("IB-CP-Bridge", "Error checking APM enabled", e);
+                    LuciqRNLogger.e(Bridge_TAG, "Error checking APM enabled", e);
                     promise.resolve(false);
                 }
             }
