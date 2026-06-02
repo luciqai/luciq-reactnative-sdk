@@ -1,12 +1,17 @@
 import { Platform } from 'react-native';
 
 import { NativeEvents, NativeReplies, emitter } from '../native/NativeReplies';
+import { Logger } from '../utils/logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
+
+const TAG = LuciqDebugTags.REPLIES;
 
 /**
  * Enables and disables everything related to receiving replies.
  * @param isEnabled
  */
 export const setEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setEnabled', { isEnabled });
   NativeReplies.setEnabled(isEnabled);
 };
 
@@ -14,7 +19,9 @@ export const setEnabled = (isEnabled: boolean) => {
  * Tells whether the user has chats already or not.
  */
 export const hasChats = async (): Promise<boolean> => {
+  Logger.debug(TAG, 'hasChats invoked');
   const result = await NativeReplies.hasChats();
+  Logger.debug(TAG, 'hasChats resolved', { hasChats: result });
 
   return result;
 };
@@ -23,6 +30,7 @@ export const hasChats = async (): Promise<boolean> => {
  * Manual invocation for replies.
  */
 export const show = () => {
+  Logger.debug(TAG, 'show called');
   NativeReplies.show();
 };
 
@@ -31,7 +39,12 @@ export const show = () => {
  * @param handler A callback that gets executed when a new message is received.
  */
 export const setOnNewReplyReceivedHandler = (handler: () => void) => {
-  emitter.addListener(NativeEvents.ON_REPLY_RECEIVED_HANDLER, handler);
+  Logger.debug(TAG, 'setOnNewReplyReceivedHandler registered');
+  const wrappedHandler = () => {
+    Logger.debug(TAG, 'native event: ON_REPLY_RECEIVED_HANDLER fired');
+    handler();
+  };
+  emitter.addListener(NativeEvents.ON_REPLY_RECEIVED_HANDLER, wrappedHandler);
   NativeReplies.setOnNewReplyReceivedHandler(handler);
 };
 
@@ -42,7 +55,9 @@ export const setOnNewReplyReceivedHandler = (handler: () => void) => {
  * Notifications count, or -1 in case the SDK has not been initialized.
  */
 export const getUnreadRepliesCount = async (): Promise<number> => {
+  Logger.debug(TAG, 'getUnreadRepliesCount invoked');
   const count = await NativeReplies.getUnreadRepliesCount();
+  Logger.debug(TAG, 'getUnreadRepliesCount resolved', { count });
 
   return count;
 };
@@ -54,6 +69,7 @@ export const getUnreadRepliesCount = async (): Promise<number> => {
  * notifications are enabled or disabled.
  */
 export const setInAppNotificationsEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setInAppNotificationsEnabled', { isEnabled });
   NativeReplies.setInAppNotificationEnabled(isEnabled);
 };
 
@@ -65,6 +81,7 @@ export const setInAppNotificationsEnabled = (isEnabled: boolean) => {
  * @param isEnabled desired state of conversation sounds
  */
 export const setInAppNotificationSound = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setInAppNotificationSound', { isEnabled, platform: Platform.OS });
   if (Platform.OS === 'android') {
     NativeReplies.setInAppNotificationSound(isEnabled);
   }
@@ -76,6 +93,7 @@ export const setInAppNotificationSound = (isEnabled: boolean) => {
  * @param isEnabled A boolean to indicate whether push notifications are enabled or disabled.
  */
 export const setPushNotificationsEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setPushNotificationsEnabled', { isEnabled });
   NativeReplies.setPushNotificationsEnabled(isEnabled);
 };
 
@@ -85,6 +103,12 @@ export const setPushNotificationsEnabled = (isEnabled: boolean) => {
  * @param token the GCM registration token
  */
 export const setPushNotificationRegistrationTokenAndroid = (token: string) => {
+  // Push tokens are sensitive credentials - log only presence and length, never the value.
+  Logger.debug(TAG, 'setPushNotificationRegistrationTokenAndroid', {
+    tokenPresent: !!token,
+    tokenLength: token?.length ?? 0,
+    platform: Platform.OS,
+  });
   if (Platform.OS === 'android') {
     NativeReplies.setPushNotificationRegistrationToken(token);
   }
@@ -96,6 +120,11 @@ export const setPushNotificationRegistrationTokenAndroid = (token: string) => {
  * @param data the data bundle related to Luciq
  */
 export const showNotificationAndroid = (data: Record<string, string>) => {
+  // Notification data bundle can carry message content / user IDs - log only the keys.
+  Logger.debug(TAG, 'showNotificationAndroid', {
+    dataKeys: data ? Object.keys(data) : [],
+    platform: Platform.OS,
+  });
   if (Platform.OS === 'android') {
     NativeReplies.showNotification(data);
   }
@@ -107,6 +136,7 @@ export const showNotificationAndroid = (data: Record<string, string>) => {
  * @param resourceId the notification icon resource ID
  */
 export const setNotificationIconAndroid = (resourceId: number) => {
+  Logger.debug(TAG, 'setNotificationIconAndroid', { resourceId, platform: Platform.OS });
   if (Platform.OS === 'android') {
     NativeReplies.setNotificationIcon(resourceId);
   }
@@ -119,6 +149,7 @@ export const setNotificationIconAndroid = (resourceId: number) => {
  * @param id an id to a notification channel that notifications
  */
 export const setPushNotificationChannelIdAndroid = (id: string) => {
+  Logger.debug(TAG, 'setPushNotificationChannelIdAndroid', { id, platform: Platform.OS });
   if (Platform.OS === 'android') {
     NativeReplies.setPushNotificationChannelId(id);
   }
@@ -131,6 +162,10 @@ export const setPushNotificationChannelIdAndroid = (id: string) => {
  * @param isEnabled desired state of conversation sounds
  */
 export const setSystemReplyNotificationSoundEnabledAndroid = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setSystemReplyNotificationSoundEnabledAndroid', {
+    isEnabled,
+    platform: Platform.OS,
+  });
   if (Platform.OS === 'android') {
     NativeReplies.setSystemReplyNotificationSoundEnabled(isEnabled);
   }

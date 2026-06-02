@@ -3,6 +3,7 @@ import { sendCrashReport } from './LuciqUtils';
 import { NativeCrashReporting } from '../native/NativeCrashReporting';
 import { NonFatalErrorLevel } from './Enums';
 import { Logger } from './logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
 
 export interface HermesInternalType {
   enablePromiseRejectionTracker?: (options?: RejectionTrackingOptions) => void;
@@ -110,9 +111,9 @@ function _originalOnUnhandled(id: number, rejection: unknown = {}) {
     }
   }
 
-  const warning =
-    `Possible Unhandled Promise Rejection (id: ${id}):\n` +
-    `${message ?? ''}\n` +
-    (stack == null ? '' : stack);
-  Logger.warn(warning);
+  Logger.warn(LuciqDebugTags.CRASH_REPORTING, 'possible unhandled promise rejection', {
+    id,
+    message: message ?? '',
+    stack: stack ?? '',
+  });
 }

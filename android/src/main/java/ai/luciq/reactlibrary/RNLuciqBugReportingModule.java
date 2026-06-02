@@ -21,6 +21,8 @@ import ai.luciq.library.invocation.util.LuciqFloatingButtonEdge;
 import ai.luciq.library.invocation.util.LuciqVideoRecordingButtonPosition;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import ai.luciq.bug.userConsent.ActionType;
 import java.util.ArrayList;
@@ -60,13 +62,14 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setEnabled] called isEnabled=" + isEnabled);
                     if (isEnabled) {
                         BugReporting.setState(Feature.State.ENABLED);
                     } else {
                         BugReporting.setState(Feature.State.DISABLED);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setEnabled] failed", e);
                 }
             }
         });
@@ -87,9 +90,10 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setAutoScreenRecordingEnabled] called autoScreenRecordingEnabled=" + autoScreenRecordingEnabled);
                     BugReporting.setAutoScreenRecordingEnabled(autoScreenRecordingEnabled);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setAutoScreenRecordingEnabled] failed", e);
                 }
             }
         });
@@ -107,11 +111,12 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setExtendedBugReportMode] called extendedBugReportMode=" + extendedBugReportMode);
                     final ExtendedBugReport.State parsedState = ArgsRegistry.extendedBugReportStates.get(extendedBugReportMode);
                     if (parsedState == null) return;
                     BugReporting.setExtendedBugReportState(parsedState);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setExtendedBugReportMode] failed", e);
                 }
             }
         });
@@ -127,13 +132,14 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setViewHierarchyEnabled] called isEnabled=" + isEnabled);
                     if (isEnabled) {
                         BugReporting.setViewHierarchyState(Feature.State.ENABLED);
                     } else {
                         BugReporting.setViewHierarchyState(Feature.State.DISABLED);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setViewHierarchyEnabled] failed", e);
                 }
             }
         });
@@ -150,11 +156,12 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setVideoRecordingFloatingButtonPosition] called corner=" + corner);
                     final LuciqVideoRecordingButtonPosition parsedPosition = ArgsRegistry.recordButtonPositions.get(corner);
                     if (parsedPosition == null) return;
                     BugReporting.setVideoRecordingFloatingButtonPosition(parsedPosition);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setVideoRecordingFloatingButtonPosition] failed", e);
                 }
             }
         });
@@ -175,10 +182,11 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setEnabledAttachmentTypes] called screenshot=" + screenshot + " extraScreenshot=" + extraScreenshot + " galleryImage=" + galleryImage + " screenRecording=" + screenRecording);
                     BugReporting.setAttachmentTypesEnabled(screenshot, extraScreenshot, galleryImage,
                             screenRecording);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setEnabledAttachmentTypes] failed", e);
                 }
             }
         });
@@ -196,11 +204,12 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setInvocationEvents] called present=" + (invocationEventValues != null));
                     final ArrayList<String> keys = ArrayUtil.parseReadableArrayOfStrings(invocationEventValues);
                     final ArrayList<LuciqInvocationEvent> parsedInvocationEvents = ArgsRegistry.invocationEvents.getAll(keys);
                     BugReporting.setInvocationEvents(parsedInvocationEvents.toArray(new LuciqInvocationEvent[0]));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setInvocationEvents] failed", e);
                 }
             }
         });
@@ -218,6 +227,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setOptions] called present=" + (optionValues != null));
                     final ArrayList<String> keys = ArrayUtil.parseReadableArrayOfStrings(optionValues);
                     final ArrayList<Integer> options = ArgsRegistry.invocationOptions.getAll(keys);
 
@@ -226,7 +236,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
                     }
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setOptions] failed", e);
                 }
             }
         });
@@ -246,14 +256,16 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setOnInvokeHandler] called");
                     BugReporting.setOnInvokeCallback(new OnInvokeCallback() {
                         @Override
                         public void onInvoke() {
+                            LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[" + Constants.LCQ_PRE_INVOCATION_HANDLER + "] emitted");
                             sendEvent(Constants.LCQ_PRE_INVOCATION_HANDLER, null);
                         }
                     });
                 } catch (java.lang.Exception exception) {
-                    exception.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setOnInvokeHandler] failed", exception);
                 }
             }
         });
@@ -269,6 +281,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setFloatingButtonEdge] called floatingButtonEdge=" + floatingButtonEdge + " floatingButtonOffset=" + floatingButtonOffset);
                 final LuciqFloatingButtonEdge parsedEdge = ArgsRegistry.floatingButtonEdges
                         .getOrDefault(floatingButtonEdge, LuciqFloatingButtonEdge.RIGHT);
                 BugReporting.setFloatingButtonOffset(floatingButtonOffset);
@@ -291,9 +304,11 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @Override
             public void run() {
                 try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setOnSDKDismissedHandler] called");
                     BugReporting.setOnDismissCallback(new OnSdkDismissCallback() {
                         @Override
                         public void call(DismissType dismissType, ReportType reportType) {
+                            LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[" + Constants.LCQ_POST_INVOCATION_HANDLER + "] emitted");
                             WritableMap params = Arguments.createMap();
                             params.putString("dismissType", dismissType.toString());
                             params.putString("reportType", reportType.toString());
@@ -301,7 +316,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
                         }
                     });
                 } catch (java.lang.Exception exception) {
-                    exception.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setOnSDKDismissedHandler] failed", exception);
                 }
             }
         });
@@ -320,10 +335,11 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setShakingThresholdForAndroid] called androidThreshold=" + androidThreshold);
                 try {
                     BugReporting.setShakingThreshold(androidThreshold);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setShakingThresholdForAndroid] failed", e);
                 }
             }
         });
@@ -340,6 +356,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @SuppressLint("WrongConstant")
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setReportTypes] called typesCount=" + (types == null ? 0 : types.size()));
                 try {
                     final ArrayList<String> keys = ArrayUtil.parseReadableArrayOfStrings(types);
                     final ArrayList<Integer> types = ArgsRegistry.reportTypes.getAll(keys);
@@ -351,7 +368,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
 
                     BugReporting.setReportTypes(typesInts);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setReportTypes] failed", e);
                 }
             }
         });
@@ -369,6 +386,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[show] called reportType=" + reportType + " optionsCount=" + (options == null ? 0 : options.size()));
                 final Integer parsedReportType = ArgsRegistry.reportTypes.get(reportType);
                 if (parsedReportType == null) return;
                 BugReporting.show(parsedReportType);
@@ -386,6 +404,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setDisclaimerText] called textLen=" + (text == null ? 0 : text.length()) + " present=" + (text != null));
                 BugReporting.setDisclaimerText(text);
             }
         });
@@ -401,6 +420,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             @SuppressLint("WrongConstant")
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setCommentMinimumCharacterCount] called limit=" + limit + " reportTypesCount=" + (reportTypes == null ? 0 : reportTypes.size()));
                 try {
                     final ArrayList<String> keys = ArrayUtil.parseReadableArrayOfStrings(reportTypes);
                     final ArrayList<Integer> types = ArgsRegistry.reportTypes.getAll(keys);
@@ -411,7 +431,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
                     }
 
                     BugReporting.setCommentMinimumCharacterCountForBugReportType(limit, typesInts);                } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setCommentMinimumCharacterCount] failed", e);
                 }
             }
         });
@@ -430,13 +450,14 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
-            try {
-            String mappedActionType = ArgsRegistry.userConsentActionType.get(actionType);
-        BugReporting.addUserConsent(key, description, mandatory, checked, mappedActionType);
-            } catch (Exception e) {
-                e.printStackTrace();
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[addUserConsent] called keyLen=" + (key == null ? 0 : key.length()) + " descLen=" + (description == null ? 0 : description.length()) + " mandatory=" + mandatory + " checked=" + checked + " actionType=" + actionType);
+                try {
+                    String mappedActionType = ArgsRegistry.userConsentActionType.get(actionType);
+                    BugReporting.addUserConsent(key, description, mandatory, checked, mappedActionType);
+                } catch (Exception e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[addUserConsent] failed", e);
+                }
             }
-        }
     });
 
     }
@@ -452,6 +473,7 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setProactiveReportingConfigurations] called enabled=" + enabled + " gapBetweenModals=" + gapBetweenModals + " modalDelayAfterDetection=" + modalDelayAfterDetection);
                 ProactiveReportingConfigs configs = new ProactiveReportingConfigs.Builder()
                         .setGapBetweenModals(gapBetweenModals) // Time in seconds
                         .setModalDelayAfterDetection(modalDelayAfterDetection) // Time in seconds

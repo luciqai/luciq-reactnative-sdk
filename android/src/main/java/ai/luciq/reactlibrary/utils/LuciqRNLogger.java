@@ -50,4 +50,34 @@ public final class LuciqRNLogger {
             Log.e(tag, message, throwable);
         }
     }
+
+    /**
+     * Returns {@code url} with its query string and fragment stripped for
+     * safe logging. Mirrors {@code redactUrlForLog} in
+     * src/utils/LuciqUtils.ts: when a query was present (i.e. a {@code ?}
+     * preceded any {@code #}), the result has {@code ?<redacted>} appended;
+     * otherwise the cutoff is silent. null/empty input returns {@code ""}.
+     */
+    public static String redactUrl(String url) {
+        if (url == null || url.isEmpty()) {
+            return "";
+        }
+        int queryIdx = url.indexOf('?');
+        int fragIdx = url.indexOf('#');
+        int cutoff = -1;
+        if (queryIdx != -1) {
+            cutoff = queryIdx;
+        }
+        if (fragIdx != -1 && (cutoff == -1 || fragIdx < cutoff)) {
+            cutoff = fragIdx;
+        }
+        if (cutoff == -1) {
+            return url;
+        }
+        // Only mark a redacted query when the `?` preceded any `#`. A `?`
+        // inside a fragment is part of the fragment, not a query.
+        boolean cutAtQuery = queryIdx != -1 && (fragIdx == -1 || queryIdx < fragIdx);
+        String base = url.substring(0, cutoff);
+        return cutAtQuery ? base + "?<redacted>" : base;
+    }
 }

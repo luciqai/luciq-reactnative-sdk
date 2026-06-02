@@ -13,6 +13,8 @@
 #import <os/log.h>
 #import <LuciqSDK/LCQTypes.h>
 #import <React/RCTUIManager.h>
+#import "Util/LuciqRNDebugTags.h"
+#import "Util/LuciqRNLogger.h"
 
 @implementation LuciqFeatureRequestsBridge
 
@@ -32,11 +34,13 @@
 RCT_EXPORT_MODULE(LCQFeatureRequests)
 
 RCT_EXPORT_METHOD(show) {
+    [LuciqRNLogger d:[LuciqRNDebugTags featureRequests] format:@"[show] called"];
     [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[LCQFeatureRequests class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
 }
 
 RCT_EXPORT_METHOD(setEmailFieldRequiredForFeatureRequests:(BOOL)isEmailFieldRequired
                   forAction:(NSArray *)actionTypesArray) {
+    [LuciqRNLogger d:[LuciqRNDebugTags featureRequests] format:@"[setEmailFieldRequiredForFeatureRequests] called isEmailFieldRequired=%@ actionTypesCount=%lu", (isEmailFieldRequired ? @"YES" : @"NO"), (unsigned long)actionTypesArray.count];
     LCQAction actionTypes = 0;
 
     for (NSNumber *boxedValue in actionTypesArray) {
@@ -47,6 +51,7 @@ RCT_EXPORT_METHOD(setEmailFieldRequiredForFeatureRequests:(BOOL)isEmailFieldRequ
 }
 
 RCT_EXPORT_METHOD(setEnabled: (BOOL) isEnabled) {
+    [LuciqRNLogger d:[LuciqRNDebugTags featureRequests] format:@"[setEnabled] called isEnabled=%@", (isEnabled ? @"YES" : @"NO")];
     LCQFeatureRequests.enabled = isEnabled;
 }
 

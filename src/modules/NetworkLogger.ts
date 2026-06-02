@@ -4,9 +4,11 @@ import LuciqConstants from '../utils/LuciqConstants';
 import xhr, { NetworkData, ProgressCallback } from '../utils/XhrNetworkInterceptor';
 import { LuciqRNConfig } from '../utils/config';
 import { Logger } from '../utils/logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
 import { NativeLuciq } from '../native/NativeLuciq';
 import {
   isContentTypeNotAllowed,
+  redactUrlForLog,
   registerFilteringAndObfuscationListener,
   registerFilteringListener,
   registerObfuscationListener,
@@ -39,16 +41,19 @@ function getPortFromUrl(url: string) {
  * It is enabled by default.
  * @param isEnabled
  */
-const NET_TAG = 'LCQ-RN-NET:';
+const NET_TAG = LuciqDebugTags.NETWORK;
 
 export const setEnabled = (isEnabled: boolean) => {
   if (isEnabled) {
     xhr.enableInterception();
     xhr.setOnDoneCallback(async (network) => {
-      Logger.debug(
-        NET_TAG,
-        `[NetworkLogger] onDoneCallback received: ${network.method} ${network.url}, status=${network.responseCode}`,
-      );
+      if (Logger.isDebugEnabled()) {
+        Logger.debug(NET_TAG, 'onDoneCallback received', {
+          method: network.method,
+          url: redactUrlForLog(network.url),
+          status: network.responseCode,
+        });
+      }
 
       // eslint-disable-next-line no-new-func
       const predicate = Function('network', 'return ' + _requestFilterExpression);
@@ -57,17 +62,22 @@ export const setEnabled = (isEnabled: boolean) => {
         const MAX_NETWORK_BODY_SIZE_IN_BYTES = await NativeLuciq.getNetworkBodyMaxSize();
         try {
           if (_networkDataObfuscationHandler) {
-            Logger.debug(NET_TAG, `[NetworkLogger] Running obfuscation handler for ${network.url}`);
+            if (Logger.isDebugEnabled()) {
+              Logger.debug(NET_TAG, 'running obfuscation handler', {
+                url: redactUrlForLog(network.url),
+              });
+            }
             network = await _networkDataObfuscationHandler(network);
           }
 
           if (__DEV__) {
             const urlPort = getPortFromUrl(network.url);
             if (urlPort === LuciqRNConfig.metroDevServerPort) {
-              Logger.debug(
-                NET_TAG,
-                `[NetworkLogger] Skipping Metro dev server request: ${network.url}`,
-              );
+              if (Logger.isDebugEnabled()) {
+                Logger.debug(NET_TAG, 'skipping Metro dev server request', {
+                  url: redactUrlForLog(network.url),
+                });
+              }
               return;
             }
           }
@@ -75,57 +85,60 @@ export const setEnabled = (isEnabled: boolean) => {
             network.requestBody = `${LuciqConstants.MAX_REQUEST_BODY_SIZE_EXCEEDED_MESSAGE}${
               MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024
             } Kb`;
-            Logger.warn(
-              'LCQ-RN:',
-              `${LuciqConstants.MAX_REQUEST_BODY_SIZE_EXCEEDED_MESSAGE}${
-                MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024
-              } Kb`,
-            );
+            Logger.warn(NET_TAG, LuciqConstants.MAX_REQUEST_BODY_SIZE_EXCEEDED_MESSAGE, {
+              url: redactUrlForLog(network.url),
+              requestBodySize: network.requestBodySize,
+              maxKb: MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024,
+            });
           }
 
           if (network.responseBodySize > MAX_NETWORK_BODY_SIZE_IN_BYTES) {
             network.responseBody = `${LuciqConstants.MAX_RESPONSE_BODY_SIZE_EXCEEDED_MESSAGE}${
               MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024
             } Kb`;
-            Logger.warn(
-              'LCQ-RN:',
-              `${LuciqConstants.MAX_RESPONSE_BODY_SIZE_EXCEEDED_MESSAGE}${
-                MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024
-              } Kb`,
-            );
+            Logger.warn(NET_TAG, LuciqConstants.MAX_RESPONSE_BODY_SIZE_EXCEEDED_MESSAGE, {
+              url: redactUrlForLog(network.url),
+              responseBodySize: network.responseBodySize,
+              maxKb: MAX_NETWORK_BODY_SIZE_IN_BYTES / 1024,
+            });
           }
 
           if (network.requestBody && isContentTypeNotAllowed(network.requestContentType)) {
             network.requestBody = `Body is omitted because content type ${network.requestContentType} isn't supported`;
-            Logger.warn(
-              `LCQ-RN: The request body for the network request with URL ${network.url} has been omitted because the content type ${network.requestContentType} isn't supported.`,
-            );
+            Logger.warn(NET_TAG, 'request body omitted: unsupported content type', {
+              url: redactUrlForLog(network.url),
+              requestContentType: network.requestContentType,
+            });
           }
 
           if (network.responseBody && isContentTypeNotAllowed(network.contentType)) {
             network.responseBody = `Body is omitted because content type ${network.contentType} isn't supported`;
-            Logger.warn(
-              `LCQ-RN: The response body for the network request with URL ${network.url} has been omitted because the content type ${network.contentType} isn't supported.`,
-            );
+            Logger.warn(NET_TAG, 'response body omitted: unsupported content type', {
+              url: redactUrlForLog(network.url),
+              contentType: network.contentType,
+            });
           }
 
-          Logger.debug(
-            NET_TAG,
-            `[NetworkLogger] Reporting network log to native: ${network.method} ${network.url}`,
-          );
+          if (Logger.isDebugEnabled()) {
+            Logger.debug(NET_TAG, 'reporting network log to native', {
+              method: network.method,
+              url: redactUrlForLog(network.url),
+            });
+          }
           reportNetworkLog(network);
         } catch (e) {
-          Logger.error(
-            NET_TAG,
-            `[NetworkLogger] Error processing network log for ${network.url}:`,
-            e,
-          );
+          Logger.error(NET_TAG, 'error processing network log', {
+            url: redactUrlForLog(network.url),
+            message: (e as Error)?.message,
+            name: (e as Error)?.name,
+          });
         }
-      } else {
-        Logger.debug(
-          NET_TAG,
-          `[NetworkLogger] Request filtered out by predicate: ${network.method} ${network.url}, expression="${_requestFilterExpression}"`,
-        );
+      } else if (Logger.isDebugEnabled()) {
+        Logger.debug(NET_TAG, 'request filtered out by predicate', {
+          method: network.method,
+          url: redactUrlForLog(network.url),
+          expression: _requestFilterExpression,
+        });
       }
     });
   } else {
@@ -199,7 +212,11 @@ export const apolloLinkRequestHandler: RequestHandler = (operation, forward) => 
       return { headers: newHeaders };
     });
   } catch (e) {
-    Logger.error(e);
+    Logger.error(LuciqDebugTags.NETWORK, 'apolloLinkRequestHandler setContext failed', {
+      message: (e as Error)?.message,
+      name: (e as Error)?.name,
+      stack: (e as Error)?.stack,
+    });
   }
 
   return forward(operation);
@@ -222,9 +239,9 @@ export const resetNetworkListener = () => {
     _networkListener = null;
     NativeNetworkLogger.resetNetworkLogsListener();
   } else {
-    Logger.error(
-      `${LuciqConstants.LCQ_APM_TAG}: The \`resetNetworkListener()\` method is intended solely for testing purposes.`,
-    );
+    Logger.error(NET_TAG, 'resetNetworkListener() called outside test environment', {
+      nodeEnv: process.env.NODE_ENV,
+    });
   }
 };
 

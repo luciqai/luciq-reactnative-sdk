@@ -3,6 +3,8 @@
 #import "RNLuciq.h"
 #import "Util/LCQNetworkLogger+CP.h"
 #import "Util/Luciq+CP.h"
+#import "Util/LuciqRNDebugTags.h"
+#import "Util/LuciqRNLogger.h"
 
 @implementation RNLuciq
 
@@ -16,6 +18,8 @@ static BOOL didInit = NO;
 + (void)initWithToken:(NSString *)token
      invocationEvents:(LCQInvocationEvent)invocationEvents
 useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
+
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[initWithToken] called tokenPresent=%@, tokenLength=%lu, invocationEvents=%lu, useNativeNetworkInterception=%@", (token.length > 0 ? @"YES" : @"NO"), (unsigned long)token.length, (unsigned long)invocationEvents, (useNativeNetworkInterception ? @"YES" : @"NO")];
 
     didInit = YES;
 
@@ -42,10 +46,12 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
 }
 
 + (void)initWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents {
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[initWithToken:invocationEvents] called tokenPresent=%@, tokenLength=%lu, invocationEvents=%lu", (token.length > 0 ? @"YES" : @"NO"), (unsigned long)token.length, (unsigned long)invocationEvents];
     [self initWithToken:token invocationEvents:invocationEvents useNativeNetworkInterception:NO];
 }
 
 + (void)initWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents debugLogsLevel:(LCQSDKDebugLogsLevel)debugLogsLevel useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[initWithToken:invocationEvents:debugLogsLevel:useNativeNetworkInterception] called tokenPresent=%@, tokenLength=%lu, invocationEvents=%lu, debugLogsLevel=%lu, useNativeNetworkInterception=%@", (token.length > 0 ? @"YES" : @"NO"), (unsigned long)token.length, (unsigned long)invocationEvents, (unsigned long)debugLogsLevel, (useNativeNetworkInterception ? @"YES" : @"NO")];
     [Luciq setSdkDebugLogsLevel:debugLogsLevel];
     [self initWithToken:token invocationEvents:invocationEvents useNativeNetworkInterception:useNativeNetworkInterception];
 }
@@ -53,15 +59,18 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
 + (void)initWithToken:(NSString *)token
      invocationEvents:(LCQInvocationEvent)invocationEvents
        debugLogsLevel:(LCQSDKDebugLogsLevel)debugLogsLevel {
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[initWithToken:invocationEvents:debugLogsLevel] called tokenPresent=%@, tokenLength=%lu, invocationEvents=%lu, debugLogsLevel=%lu", (token.length > 0 ? @"YES" : @"NO"), (unsigned long)token.length, (unsigned long)invocationEvents, (unsigned long)debugLogsLevel];
     [Luciq setSdkDebugLogsLevel:debugLogsLevel];
     [self initWithToken:token invocationEvents:invocationEvents];
 }
 
 + (void)setCodePushVersion:(NSString *)codePushVersion {
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[setCodePushVersion] called codePushVersionPresent=%@, codePushVersionLength=%lu", (codePushVersion.length > 0 ? @"YES" : @"NO"), (unsigned long)codePushVersion.length];
     [Luciq setCodePushVersion:codePushVersion];
 }
 
 + (void)setOverAirVersion:(NSDictionary *)overAirVersion {
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[setOverAirVersion] called overAirVersionCount=%lu", (unsigned long)overAirVersion.count];
     [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
 }
 

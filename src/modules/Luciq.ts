@@ -37,6 +37,7 @@ import { NativeNetworkLogger } from '../native/NativeNetworkLogger';
 import LuciqConstants from '../utils/LuciqConstants';
 import { LuciqRNConfig } from '../utils/config';
 import { Logger } from '../utils/logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
 import type { OverAirUpdate } from '../models/OverAirUpdate';
 import type { ThemeConfig } from '../models/ThemeConfig';
 
@@ -89,6 +90,14 @@ function reportCurrentViewForAndroid(screenName: string | null) {
  * @param config SDK configurations. See {@link LuciqConfig} for more info.
  */
 export const init = (config: LuciqConfig) => {
+  Logger.debug(LuciqDebugTags.CORE, 'init invoked', {
+    tokenPresent: !!config.token,
+    invocationEvents: config.invocationEvents,
+    debugLogsLevel: config.debugLogsLevel,
+    networkInterceptionMode: config.networkInterceptionMode,
+    appVariant: config.appVariant,
+    overAirVersionPresent: !!config.overAirVersion,
+  });
   initFeatureFlagsCache();
 
   if (Platform.OS === 'android') {
@@ -140,6 +149,27 @@ export const init = (config: LuciqConfig) => {
       _currentScreen = null;
     }
   }, 1000);
+
+  Logger.debug(LuciqDebugTags.CORE, 'init completed (JS-side setup)', {
+    debugLogsLevel: LuciqRNConfig.debugLogsLevel,
+  });
+};
+
+/**
+ * Changes the JS-side debug log verbosity at runtime.
+ *
+ * Use this when you need to capture a debug trace mid-session (e.g. a support
+ * flow where the user reproduces an issue) without re-initializing the SDK.
+ * Affects only the JS Logger - the native SDK's own log level is set at
+ * `init()` time and is not changed by this call.
+ *
+ * @param level One of LogLevel.error / debug / verbose / none.
+ */
+export const setDebugLogsLevel = (level: LogLevel) => {
+  const previous = LuciqRNConfig.debugLogsLevel;
+  // Emit BEFORE mutating so the transition is visible even when lowering to none.
+  Logger.debug(LuciqDebugTags.CORE, 'setDebugLogsLevel changed', { previous, level });
+  LuciqRNConfig.debugLogsLevel = level;
 };
 
 /**
@@ -329,6 +359,11 @@ const initializeNativeLuciq = (config: LuciqConfig) => {
       : undefined,
     config.overAirVersion,
   );
+  Logger.debug(LuciqDebugTags.CORE, 'native init dispatched', {
+    nativeInterception:
+      shouldEnableNativeInterception &&
+      config.networkInterceptionMode === NetworkInterceptionMode.native,
+  });
 };
 
 /**
@@ -664,7 +699,11 @@ export const setReproStepsConfig = (config: ReproConfig) => {
  */
 export const setUserAttribute = (key: string, value: string) => {
   if (!key || typeof key !== 'string' || typeof value !== 'string') {
-    Logger.error(LuciqConstants.SET_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE);
+    Logger.error(LuciqDebugTags.CORE, LuciqConstants.SET_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE, {
+      keyType: typeof key,
+      valueType: typeof value,
+      keyPresent: !!key,
+    });
     return;
   }
 
@@ -689,7 +728,10 @@ export const getUserAttribute = async (key: string): Promise<string | null> => {
  */
 export const removeUserAttribute = (key: string) => {
   if (!key || typeof key !== 'string') {
-    Logger.error(LuciqConstants.REMOVE_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE);
+    Logger.error(LuciqDebugTags.CORE, LuciqConstants.REMOVE_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE, {
+      keyType: typeof key,
+      keyPresent: !!key,
+    });
 
     return;
   }
@@ -748,6 +790,16 @@ export const addFileAttachment = (filePath: string, fileName: string) => {
  */
 export const addPrivateView = (viewRef: number | React.Component | React.ComponentClass) => {
   const nativeTag = findNodeHandle(viewRef);
+  Logger.debug(LuciqDebugTags.PRIVATE_VIEW, 'addPrivateView called', {
+    nativeTag,
+    resolved: nativeTag != null,
+  });
+  if (nativeTag == null) {
+    Logger.warn(LuciqDebugTags.PRIVATE_VIEW, 'addPrivateView could not resolve native tag', {
+      consequence: 'view will NOT be masked',
+      hint: 'ensure the ref is attached to a mounted native view',
+    });
+  }
   NativeLuciq.addPrivateView(nativeTag);
 };
 
@@ -758,6 +810,15 @@ export const addPrivateView = (viewRef: number | React.Component | React.Compone
  */
 export const removePrivateView = (viewRef: number | React.Component | React.ComponentClass) => {
   const nativeTag = findNodeHandle(viewRef);
+  Logger.debug(LuciqDebugTags.PRIVATE_VIEW, 'removePrivateView called', {
+    nativeTag,
+    resolved: nativeTag != null,
+  });
+  if (nativeTag == null) {
+    Logger.warn(LuciqDebugTags.PRIVATE_VIEW, 'removePrivateView could not resolve native tag', {
+      consequence: 'no-op',
+    });
+  }
   NativeLuciq.removePrivateView(nativeTag);
 };
 
@@ -795,7 +856,7 @@ const _clearStateChangeTimeout = (): void => {
 const _onNavigationAction = (event?: any): void => {
   // Check for noop actions that shouldn't create spans
   if (event?.data?.noop) {
-    Logger.log('[ScreenLoading] Navigation action is a noop, not starting span');
+    Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'navigation noop, no span');
     return;
   }
 
@@ -805,14 +866,18 @@ const _onNavigationAction = (event?: any): void => {
     actionType &&
     ['SET_PARAMS', 'OPEN_DRAWER', 'CLOSE_DRAWER', 'TOGGLE_DRAWER'].includes(actionType)
   ) {
-    Logger.log(`[ScreenLoading] Skipping non-navigation action: ${actionType}`);
+    Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'skipping non-navigation action', {
+      actionType,
+    });
     return;
   }
 
   // If there's an existing active span, it means navigation was interrupted
   // Discard the previous span as it never completed
   if (_activeNavigationSpanId) {
-    Logger.log('[ScreenLoading] Discarding incomplete previous navigation span');
+    Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'discarding incomplete previous span', {
+      spanId: _activeNavigationSpanId,
+    });
     // Mark the span as cancelled/error since state change never occurred
     const span = ScreenLoadingManager.getActiveSpan(_activeNavigationSpanId);
     if (span) {
@@ -828,15 +893,18 @@ const _onNavigationAction = (event?: any): void => {
     const span = ScreenLoadingManager.createSpan('NavigationPending', false);
     if (span) {
       _activeNavigationSpanId = span.spanId;
-      Logger.log(`[ScreenLoading] Started span ${span.spanId} on navigation dispatch`);
+      Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'span started on navigation dispatch', {
+        spanId: span.spanId,
+      });
 
       // Set a safety timeout to discard the span if state never changes
       // This prevents memory leaks from incomplete navigations
       _stateChangeTimeout = setTimeout(() => {
         if (_activeNavigationSpanId === span.spanId) {
-          Logger.warn(
-            `[ScreenLoading] Navigation span ${span.spanId} timed out - state never changed`,
-          );
+          Logger.warn(LuciqDebugTags.APM_SCREEN_LOADING, 'navigation span timed out', {
+            spanId: span.spanId,
+            timeoutMs: STATE_CHANGE_TIMEOUT_MS,
+          });
           ScreenLoadingManager.endSpan(span.spanId);
           _activeNavigationSpanId = null;
         }
@@ -862,7 +930,10 @@ const _onNavigationStateChange = (): void => {
   if (!currentRouteName || previousRouteName === currentRouteName) {
     // Still need to clean up the span if one was created
     if (_activeNavigationSpanId) {
-      Logger.log('[ScreenLoading] Navigation resulted in same route, discarding span');
+      Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'navigation resulted in same route', {
+        spanId: _activeNavigationSpanId,
+        currentRouteName,
+      });
       ScreenLoadingManager.endSpan(_activeNavigationSpanId);
       _activeNavigationSpanId = null;
       _clearStateChangeTimeout();
@@ -877,7 +948,10 @@ const _onNavigationStateChange = (): void => {
   if (_activeNavigationSpanId) {
     // Now that we know the actual route name, check if it's excluded
     if (ScreenLoadingManager.isRouteExcluded(currentRouteName)) {
-      Logger.log(`[ScreenLoading] Route "${currentRouteName}" is excluded, discarding span`);
+      Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'route excluded, discarding span', {
+        spanId: _activeNavigationSpanId,
+        currentRouteName,
+      });
       ScreenLoadingManager.discardSpan(_activeNavigationSpanId);
       spanIdForReport = null;
       _activeNavigationSpanId = null;
@@ -891,10 +965,15 @@ const _onNavigationStateChange = (): void => {
         // End the span - the native frame tracker will provide the actual render timestamp
         ScreenLoadingManager.endSpan(_activeNavigationSpanId)
           .then(() => {
-            Logger.log(`[ScreenLoading] Completed span for navigation to ${currentRouteName}`);
+            Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'span completed for navigation', {
+              currentRouteName,
+            });
           })
           .catch((error) => {
-            Logger.warn('[ScreenLoading] Failed to end navigation span:', error);
+            Logger.warn(LuciqDebugTags.APM_SCREEN_LOADING, 'endSpan failed on navigation', {
+              message: (error as Error)?.message,
+              name: (error as Error)?.name,
+            });
           });
       }
 
@@ -918,6 +997,14 @@ export const onNavigationStateChange = (
 ) => {
   const currentScreen = LuciqUtils.getActiveRouteName(currentState);
   const prevScreen = LuciqUtils.getActiveRouteName(prevState);
+
+  if (Logger.isDebugEnabled()) {
+    Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'onNavigationStateChange (react-navigation v4)', {
+      prevScreen,
+      currentScreen,
+      changed: prevScreen !== currentScreen,
+    });
+  }
 
   if (prevScreen !== currentScreen) {
     // Start Screen Loading measurement for v4
@@ -944,7 +1031,11 @@ export const onNavigationStateChange = (
       // End Screen Loading measurement for v4
       if (screenLoadingSpanId) {
         ScreenLoadingManager.endSpan(screenLoadingSpanId).catch((error) => {
-          Logger.warn('[ScreenLoading] Failed to end span:', error);
+          Logger.warn(LuciqDebugTags.APM_SCREEN_LOADING, 'endSpan failed (v4)', {
+            spanId: screenLoadingSpanId,
+            message: (error as Error)?.message,
+            name: (error as Error)?.name,
+          });
         });
       }
     }, 1000);
@@ -952,6 +1043,12 @@ export const onNavigationStateChange = (
 };
 
 export const onStateChange = (state?: NavigationStateV5) => {
+  if (Logger.isDebugEnabled()) {
+    Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'onStateChange (react-navigation v5/v6)', {
+      hasState: !!state,
+      hasNavigationRef: !!_navigationRef?.current,
+    });
+  }
   if (!state) {
     return;
   }
@@ -994,8 +1091,18 @@ export const setNavigationListener = (
   // Store the navigationRef for Screen Loading tracking
   _navigationRef = navigationRef;
 
+  if (Logger.isDebugEnabled()) {
+    Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'setNavigationListener called', {
+      hasNavigationRef: !!navigationRef,
+      refIsReady: !!navigationRef?.current,
+    });
+  }
+
   if (!navigationRef?.current) {
-    Logger.warn('[Luciq] Navigation ref not available, cannot set listeners');
+    Logger.warn(
+      LuciqDebugTags.SCREEN_TRACKING,
+      'setNavigationListener: navigation ref not available, cannot set listeners',
+    );
     return;
   }
 
@@ -1007,12 +1114,20 @@ export const setNavigationListener = (
   // to pass Luciq.onStateChange to NavigationContainer's onStateChange prop.
   // Registering both would cause duplicate reportScreenChange calls.
 
-  Logger.log('[Luciq] Registered Screen Loading listener (__unsafe_action__)');
+  Logger.debug(
+    LuciqDebugTags.SCREEN_TRACKING,
+    'screen loading listener registered (__unsafe_action__)',
+  );
 
   // return stateListener;
 };
 
 export const reportScreenChange = (screenName: string) => {
+  if (Logger.isDebugEnabled()) {
+    Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'reportScreenChange', {
+      screenNameLength: screenName?.length ?? 0,
+    });
+  }
   NativeLuciq.reportScreenChange(screenName, null);
 };
 
@@ -1071,6 +1186,13 @@ export const setMetroDevServerPort = (port: number) => {
 };
 
 export const componentDidAppearListener = (event: ComponentDidAppearEvent) => {
+  if (Logger.isDebugEnabled()) {
+    Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'componentDidAppear (RNN)', {
+      componentNameLength: event.componentName?.length ?? 0,
+      isFirstScreen: _isFirstScreen,
+      hasLastScreen: !!_lastScreen,
+    });
+  }
   if (_isFirstScreen) {
     _lastScreen = event.componentName;
     _isFirstScreen = false;

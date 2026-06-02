@@ -12,6 +12,8 @@ import ai.luciq.library.Luciq;
 import ai.luciq.library.LogLevel;
 import ai.luciq.library.Platform;
 import ai.luciq.library.invocation.LuciqInvocationEvent;
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
 
 import java.lang.reflect.Method;
@@ -94,7 +96,7 @@ public class RNLuciq {
             // Temporarily disabling APM hot launches
             APM.setHotAppLaunchEnabled(false);
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[RNLuciq.init] failed", e);
         }
 
     }
@@ -138,7 +140,7 @@ public class RNLuciq {
                 Log.e("LCQ-CP-Bridge", "setCurrentPlatform was not found by reflection");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setCurrentPlatform] failed", e);
         }
     }
 
@@ -150,7 +152,7 @@ public class RNLuciq {
                 method.invoke(null, "https://docs.luciq.ai/docs/react-native-sdk-migration-guide");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setBaseUrlForDeprecationLogs] failed", e);
         }
     }
 
@@ -321,7 +323,7 @@ public class RNLuciq {
                 // Temporarily disabling APM hot launches
                 APM.setHotAppLaunchEnabled(false);
             } catch (Exception e) {
-                e.printStackTrace();
+                LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[RNLuciq.Builder.build] failed", e);
             }
         }
     }

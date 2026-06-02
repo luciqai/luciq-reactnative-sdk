@@ -1,10 +1,11 @@
 import LuciqConstants from './LuciqConstants';
-import { stringifyIfNotString, generateW3CHeader } from './LuciqUtils';
+import { stringifyIfNotString, generateW3CHeader, redactUrlForLog } from './LuciqUtils';
 
 import { getCachedW3cFlags } from './FeatureFlags';
 import { Logger } from './logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
 
-const TAG = 'LCQ-RN-NET:';
+const TAG = LuciqDebugTags.NETWORK;
 
 export type ProgressCallback = (totalBytesSent: number, totalBytesExpectedToSend: number) => void;
 export type NetworkDataCallback = (data: NetworkData) => void;
@@ -151,7 +152,7 @@ export default {
       return;
     }
 
-    Logger.debug(TAG, 'Enabling XHR network interception');
+    Logger.debug(TAG, 'enabling XHR network interception');
 
     originalXHROpen = XMLHttpRequest.prototype.open;
     originalXHRSend = XMLHttpRequest.prototype.send;
@@ -163,7 +164,9 @@ export default {
       networkData.url = url;
       networkData.method = method;
       networkMap.set(this, networkData);
-      Logger.debug(TAG, `[open] ${method} ${url}`);
+      if (Logger.isDebugEnabled()) {
+        Logger.debug(TAG, 'xhr open', { method, url: redactUrlForLog(url) });
+      }
       originalXHROpen.apply(this, [method, url, ...args]);
     };
 
@@ -173,10 +176,10 @@ export default {
       if (networkData) {
         networkData.requestHeaders[key] = stringifyIfNotString(value);
       } else {
-        Logger.debug(
-          TAG,
-          `[setRequestHeader] No networkData found in WeakMap for header "${key}" — request may have been GC'd or open() was not called`,
-        );
+        Logger.debug(TAG, 'setRequestHeader: no networkData in WeakMap', {
+          header: key,
+          reason: "request may have been GC'd or open() was not called",
+        });
       }
       originalXHRSetRequestHeader.apply(this, [header, value]);
     };
@@ -184,15 +187,19 @@ export default {
     XMLHttpRequest.prototype.send = function (data) {
       const networkData = networkMap.get(this);
       if (!networkData) {
-        Logger.debug(
-          TAG,
-          '[send] No networkData found in WeakMap — falling back to original send (open() was not intercepted)',
-        );
+        Logger.debug(TAG, 'send: no networkData in WeakMap, falling back to original send', {
+          reason: 'open() was not intercepted',
+        });
         originalXHRSend.apply(this, [data]);
         return;
       }
 
-      Logger.debug(TAG, `[send] ${networkData.method} ${networkData.url}`);
+      if (Logger.isDebugEnabled()) {
+        Logger.debug(TAG, 'xhr send', {
+          method: networkData.method,
+          url: redactUrlForLog(networkData.url),
+        });
+      }
 
       const cloneNetwork = JSON.parse(JSON.stringify(networkData));
       cloneNetwork.requestBody = data ? data : '';
@@ -206,17 +213,17 @@ export default {
       if (this.addEventListener) {
         this.addEventListener('readystatechange', async () => {
           if (!isInterceptorEnabled) {
-            Logger.debug(
-              TAG,
-              `[readystatechange] Interceptor disabled, ignoring state=${this.readyState} for ${cloneNetwork.url}`,
-            );
+            Logger.debug(TAG, 'readystatechange ignored: interceptor disabled', {
+              readyState: this.readyState,
+              url: redactUrlForLog(cloneNetwork.url),
+            });
             return;
           }
           if (isReported) {
-            Logger.debug(
-              TAG,
-              `[readystatechange] Already reported, ignoring state=${this.readyState} for ${cloneNetwork.url}`,
-            );
+            Logger.debug(TAG, 'readystatechange ignored: already reported', {
+              readyState: this.readyState,
+              url: redactUrlForLog(cloneNetwork.url),
+            });
             return;
           }
           if (this.readyState === this.HEADERS_RECEIVED) {
@@ -250,10 +257,10 @@ export default {
                 cloneNetwork.requestHeaders['content-type'].split(';')[0];
             }
 
-            Logger.debug(
-              TAG,
-              `[readystatechange] HEADERS_RECEIVED for ${cloneNetwork.url}, contentType=${cloneNetwork.contentType}`,
-            );
+            Logger.debug(TAG, 'readystatechange: HEADERS_RECEIVED', {
+              url: redactUrlForLog(cloneNetwork.url),
+              contentType: cloneNetwork.contentType,
+            });
           }
 
           if (this.readyState === this.DONE) {
@@ -281,10 +288,10 @@ export default {
               }
 
               cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
-              Logger.debug(
-                TAG,
-                `[readystatechange] DONE with client error for ${cloneNetwork.url}, errorDomain=${cloneNetwork.errorDomain}`,
-              );
+              Logger.debug(TAG, 'readystatechange: DONE with client error', {
+                url: redactUrlForLog(cloneNetwork.url),
+                errorDomain: cloneNetwork.errorDomain,
+              });
 
               // @ts-ignore
             } else if (this._timedOut) {
@@ -293,7 +300,9 @@ export default {
               cloneNetwork.responseCode = 0;
               cloneNetwork.contentType = 'text/plain';
               cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
-              Logger.debug(TAG, `[readystatechange] DONE with timeout for ${cloneNetwork.url}`);
+              Logger.debug(TAG, 'readystatechange: DONE with timeout', {
+                url: redactUrlForLog(cloneNetwork.url),
+              });
             }
 
             // Only set response body if not already set by error handlers
@@ -342,17 +351,19 @@ export default {
             }
 
             isReported = true;
-            Logger.debug(
-              TAG,
-              `[readystatechange] DONE for ${cloneNetwork.method} ${cloneNetwork.url} — status=${cloneNetwork.responseCode}, duration=${cloneNetwork.duration}ms, hasCallback=${!!onDoneCallback}`,
-            );
+            Logger.debug(TAG, 'readystatechange: DONE', {
+              method: cloneNetwork.method,
+              url: redactUrlForLog(cloneNetwork.url),
+              status: cloneNetwork.responseCode,
+              durationMs: cloneNetwork.duration,
+              hasCallback: !!onDoneCallback,
+            });
             if (onDoneCallback) {
               onDoneCallback(cloneNetwork);
             } else {
-              Logger.debug(
-                TAG,
-                `[readystatechange] WARNING: onDoneCallback is null, network log for ${cloneNetwork.url} will be LOST`,
-              );
+              Logger.warn(TAG, 'onDoneCallback is null, network log will be lost', {
+                url: redactUrlForLog(cloneNetwork.url),
+              });
             }
           }
         });
@@ -372,17 +383,15 @@ export default {
 
         this.addEventListener('abort', () => {
           if (!isInterceptorEnabled) {
-            Logger.debug(
-              TAG,
-              `[abort] Interceptor disabled, ignoring abort for ${cloneNetwork.url}`,
-            );
+            Logger.debug(TAG, 'abort ignored: interceptor disabled', {
+              url: redactUrlForLog(cloneNetwork.url),
+            });
             return;
           }
           if (isReported) {
-            Logger.debug(
-              TAG,
-              `[abort] Already reported via readystatechange DONE, ignoring duplicate abort for ${cloneNetwork.url}`,
-            );
+            Logger.debug(TAG, 'abort ignored: already reported via DONE', {
+              url: redactUrlForLog(cloneNetwork.url),
+            });
             return;
           }
           isReported = true;
@@ -391,17 +400,18 @@ export default {
           cloneNetwork.errorCode = clientErrorCode;
           cloneNetwork.errorDomain = 'cancelled';
           cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
-          Logger.debug(
-            TAG,
-            `[abort] Request cancelled: ${cloneNetwork.method} ${cloneNetwork.url}, duration=${cloneNetwork.duration}ms, hasCallback=${!!onDoneCallback}`,
-          );
+          Logger.debug(TAG, 'request cancelled (abort)', {
+            method: cloneNetwork.method,
+            url: redactUrlForLog(cloneNetwork.url),
+            durationMs: cloneNetwork.duration,
+            hasCallback: !!onDoneCallback,
+          });
           if (onDoneCallback) {
             onDoneCallback(cloneNetwork);
           } else {
-            Logger.debug(
-              TAG,
-              `[abort] WARNING: onDoneCallback is null, cancelled log for ${cloneNetwork.url} will be LOST`,
-            );
+            Logger.warn(TAG, 'onDoneCallback is null, cancelled log will be lost', {
+              url: redactUrlForLog(cloneNetwork.url),
+            });
           }
         });
       }
@@ -410,7 +420,9 @@ export default {
       const traceparent = getTraceparentHeader(cloneNetwork);
       if (traceparent) {
         this.setRequestHeader('Traceparent', traceparent);
-        Logger.debug(TAG, `[send] Injected traceparent header for ${cloneNetwork.url}`);
+        Logger.debug(TAG, 'injected traceparent header', {
+          url: redactUrlForLog(cloneNetwork.url),
+        });
       }
 
       originalXHRSend.apply(this, [data]);
@@ -420,7 +432,7 @@ export default {
   },
 
   disableInterception() {
-    Logger.debug(TAG, 'Disabling XHR network interception');
+    Logger.debug(TAG, 'disabling XHR network interception');
     isInterceptorEnabled = false;
     XMLHttpRequest.prototype.send = originalXHRSend;
     XMLHttpRequest.prototype.open = originalXHROpen;

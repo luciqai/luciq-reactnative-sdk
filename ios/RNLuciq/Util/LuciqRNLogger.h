@@ -27,6 +27,14 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)w:(NSString *)tag format:(NSString *)format, ... NS_FORMAT_FUNCTION(2, 3);
 + (void)e:(NSString *)tag format:(NSString *)format, ... NS_FORMAT_FUNCTION(2, 3);
 
+/**
+ * Returns @c url with its query string and fragment stripped for safe logging.
+ * Mirrors @c redactUrlForLog in src/utils/LuciqUtils.ts: when a query was
+ * present (i.e. a @c ? preceded any @c # ), the result has @c ?<redacted>
+ * appended; otherwise the cutoff is silent. nil/empty input returns @c "" .
+ */
++ (NSString *)redactURL:(nullable NSString *)url;
+
 @end
 
 NS_ASSUME_NONNULL_END
