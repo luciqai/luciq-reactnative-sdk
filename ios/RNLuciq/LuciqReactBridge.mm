@@ -15,6 +15,9 @@
 #import <React/RCTUIManager.h>
 #import "RNLuciq.h"
 #import "Util/LCQNetworkLogger+CP.h"
+#import "Util/LuciqRNLogger.h"
+
+static NSString *const LCQRNNetTag = @"LCQ-RN-NET";
 
 @interface Luciq (PrivateWillSendAPI)
 + (void)setWillSendReportHandler_private:(void(^)(LCQReport *report, void(^reportCompletionHandler)(LCQReport *)))willSendReportHandler_private;
@@ -46,6 +49,8 @@ RCT_EXPORT_METHOD(init:(NSString *)token
           options:(nullable NSDictionary *)options
           overAirVersion :(NSDictionary *)overAirVersion
           ) {
+    [LuciqRNLogger setLevel:sdkDebugLogsLevel];
+    [LuciqRNLogger d:LCQRNNetTag format:@"[init] Called - logLevel=%ld, useNativeNetworkInterception=%d, codePushVersion=%@, appVariant=%@", (long)sdkDebugLogsLevel, useNativeNetworkInterception, codePushVersion, appVariant];
 
            if(appVariant != nil){
                   Luciq.appVariant = appVariant;
@@ -65,6 +70,7 @@ RCT_EXPORT_METHOD(init:(NSString *)token
              invocationEvents:invocationEvents
                debugLogsLevel:sdkDebugLogsLevel
  useNativeNetworkInterception:useNativeNetworkInterception];
+    [LuciqRNLogger d:LCQRNNetTag format:@"[init] SDK build complete"];
 }
 
 RCT_EXPORT_METHOD(setCodePushVersion:(NSString *)version) {
@@ -405,11 +411,13 @@ RCT_EXPORT_METHOD(networkLogIOS:(NSString * _Nonnull)url
                    gqlQueryName:(NSString * _Nullable)gqlQueryName
              serverErrorMessage:(NSString * _Nullable)serverErrorMessage
                   w3cExternalTraceAttributes:(NSDictionary * _Nullable)w3cExternalTraceAttributes){
+    [LuciqRNLogger d:LCQRNNetTag format:@"[networkLogIOS] Received from JS: %@ %@, status=%d, duration=%.0fms, startTime=%.0f, error=%@, gqlQuery=%@, reqBodyLen=%lu, resBodyLen=%lu", method, url, (int)responseCode, duration * 1000, startTime, errorDomain, gqlQueryName, (unsigned long)requestBody.length, (unsigned long)responseBody.length];
    NSNumber *isW3cCaught = (w3cExternalTraceAttributes[@"isW3cHeaderFound"] != [NSNull null]) ? w3cExternalTraceAttributes[@"isW3cHeaderFound"] : nil;
         NSNumber * partialID = (w3cExternalTraceAttributes[@"partialId"] != [NSNull null]) ? w3cExternalTraceAttributes[@"partialId"] : nil;
         NSNumber * timestamp = (w3cExternalTraceAttributes[@"networkStartTimeInSeconds"] != [NSNull null]) ? w3cExternalTraceAttributes[@"networkStartTimeInSeconds"] : nil;
         NSString * generatedW3CTraceparent = (w3cExternalTraceAttributes[@"w3cGeneratedHeader"] != [NSNull null]) ? w3cExternalTraceAttributes[@"w3cGeneratedHeader"] : nil;
         NSString * caughtW3CTraceparent = (w3cExternalTraceAttributes[@"w3cCaughtHeader"] != [NSNull null]) ? w3cExternalTraceAttributes[@"w3cCaughtHeader"] : nil;
+    [LuciqRNLogger d:LCQRNNetTag format:@"[networkLogIOS] W3C attrs - isW3cCaughted=%@, partialID=%@, timestamp=%@, generatedHeader=%@, caughtHeader=%@", isW3cCaught, partialID, timestamp, generatedW3CTraceparent, caughtW3CTraceparent];
 
     [LCQNetworkLogger addNetworkLogWithUrl:url
                                     method:method
@@ -433,6 +441,7 @@ RCT_EXPORT_METHOD(networkLogIOS:(NSString * _Nonnull)url
                         generatedW3CTraceparent:generatedW3CTraceparent
                         caughtedW3CTraceparent:caughtW3CTraceparent
                         ];
+    [LuciqRNLogger d:LCQRNNetTag format:@"[networkLogIOS] Forwarded to LCQNetworkLogger: %@ %@", method, url];
 }
 
 RCT_EXPORT_METHOD(addPrivateView: (nonnull NSNumber *)reactTag) {
@@ -449,7 +458,7 @@ RCT_EXPORT_METHOD(show) {
     [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[Luciq class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
 }
 
-RCT_EXPORT_METHOD(reportScreenChange:(NSString *)screenName) {
+RCT_EXPORT_METHOD(reportScreenChange:(NSString *)screenName spanId:(NSString * _Nullable)spanId) {
     SEL setPrivateApiSEL = NSSelectorFromString(@"logViewDidAppearEvent:");
     if ([[Luciq class] respondsToSelector:setPrivateApiSEL]) {
         NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[[Luciq class] methodSignatureForSelector:setPrivateApiSEL]];
@@ -497,13 +506,19 @@ RCT_EXPORT_METHOD(willRedirectToStore){
 }
 
 RCT_EXPORT_METHOD(isW3ExternalTraceIDEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve(@(LCQNetworkLogger.w3ExternalTraceIDEnabled));
+    BOOL enabled = LCQNetworkLogger.w3ExternalTraceIDEnabled;
+    [LuciqRNLogger d:LCQRNNetTag format:@"[isW3ExternalTraceIDEnabled] Result=%d", enabled];
+    resolve(@(enabled));
 }
 RCT_EXPORT_METHOD(isW3ExternalGeneratedHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve(@(LCQNetworkLogger.w3ExternalGeneratedHeaderEnabled));
+    BOOL enabled = LCQNetworkLogger.w3ExternalGeneratedHeaderEnabled;
+    [LuciqRNLogger d:LCQRNNetTag format:@"[isW3ExternalGeneratedHeaderEnabled] Result=%d", enabled];
+    resolve(@(enabled));
 }
 RCT_EXPORT_METHOD(isW3CaughtHeaderEnabled:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve(@(LCQNetworkLogger.w3CaughtHeaderEnabled));
+    BOOL enabled = LCQNetworkLogger.w3CaughtHeaderEnabled;
+    [LuciqRNLogger d:LCQRNNetTag format:@"[isW3CaughtHeaderEnabled] Result=%d", enabled];
+    resolve(@(enabled));
 }
 
 
@@ -550,7 +565,9 @@ RCT_EXPORT_METHOD(enableAutoMasking:(NSArray *)autoMaskingTypes) {
 };
 
 RCT_EXPORT_METHOD(getNetworkBodyMaxSize:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
-    resolve(@(LCQNetworkLogger.getNetworkBodyMaxSize));
+    NSUInteger limit = LCQNetworkLogger.getNetworkBodyMaxSize;
+    [LuciqRNLogger d:LCQRNNetTag format:@"[getNetworkBodyMaxSize] Result=%lu", (unsigned long)limit];
+    resolve(@(limit));
 }
 
 RCT_EXPORT_METHOD(setNetworkLogBodyEnabled:(BOOL)isEnabled) {

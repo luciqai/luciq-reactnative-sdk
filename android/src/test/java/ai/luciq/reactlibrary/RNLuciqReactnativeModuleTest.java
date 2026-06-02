@@ -4,6 +4,7 @@ import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
 import android.graphics.Bitmap;
 import android.os.Looper;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.JavaOnlyArray;
@@ -69,12 +70,14 @@ public class RNLuciqReactnativeModuleTest {
 
     // Mock Objects
     private MockedStatic<Looper> mockLooper;
+    private MockedStatic<Log> mockLog;
     private MockedStatic <MainThreadHandler> mockMainThreadHandler;
     private MockedStatic <Luciq> mockLuciq;
 
     @Before
     public void mockMainThreadHandler() throws Exception {
         // Mock static functions
+        mockLog = mockStatic(Log.class);
         mockLuciq = mockStatic(Luciq.class);
         mockLooper = mockStatic(Looper.class);
         mockMainThreadHandler = mockStatic(MainThreadHandler.class);
@@ -97,6 +100,7 @@ public class RNLuciqReactnativeModuleTest {
     @After
     public void tearDown() {
         // Remove static mocks
+        mockLog.close();
         mockLooper.close();
         mockMainThreadHandler.close();
         mockLuciq.close();
@@ -529,13 +533,13 @@ public class RNLuciqReactnativeModuleTest {
     @Test
     public void givenString$reportScreenChange_whenQuery_thenShouldCallNativeApiWithString() throws Exception {
         // when
-        rnModule.reportScreenChange("screen");
-        Method privateStringMethod = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class);
+        rnModule.reportScreenChange("screen", null);
+        Method privateStringMethod = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class, Long.class);
         privateStringMethod.setAccessible(true);
 
         // then
         verify(Luciq.class, VerificationModeFactory.times(1));
-        privateStringMethod.invoke("reportScreenChange", null,"screen");
+        privateStringMethod.invoke("reportScreenChange", null, "screen", null);
 
     }
 

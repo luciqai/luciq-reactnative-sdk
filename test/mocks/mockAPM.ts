@@ -18,6 +18,15 @@ const mockAPM: ApmNativeModule = {
   syncCustomSpan: jest.fn().mockResolvedValue(undefined),
   isCustomSpanEnabled: jest.fn().mockResolvedValue(true),
   isAPMEnabled: jest.fn().mockResolvedValue(true),
+  initScreenFrameTracking: jest.fn().mockResolvedValue(undefined),
+  setActiveScreenSpanId: jest.fn(),
+  getScreenTimeToDisplay: jest.fn().mockResolvedValue(null),
+  isScreenLoadingEnabled: jest.fn().mockResolvedValue(false),
+  isEndScreenLoadingEnabled: jest.fn().mockResolvedValue(true),
+  endScreenLoading: jest.fn(),
+  setScreenLoadingEnabled: jest.fn(),
+  syncScreenLoading: jest.fn(),
+  syncManualScreenLoading: jest.fn(),
 };
 
 export default mockAPM;

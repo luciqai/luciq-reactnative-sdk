@@ -12,6 +12,7 @@ import { NativeCrashReporting } from '../native/NativeCrashReporting';
 import type { NetworkData } from './XhrNetworkInterceptor';
 import { NativeLuciq } from '../native/NativeLuciq';
 import { NativeAPM } from '../native/NativeAPM';
+import { Logger } from './logger';
 import * as NetworkLogger from '../modules/NetworkLogger';
 import {
   NativeNetworkLogger,
@@ -227,6 +228,11 @@ export const reportNetworkLog = (network: NetworkData) => {
     const requestHeaders = JSON.stringify(network.requestHeaders);
     const responseHeaders = JSON.stringify(network.responseHeaders);
 
+    Logger.debug(
+      'LCQ-RN-NET:',
+      `[reportNetworkLog] Sending to NativeLuciq.networkLogAndroid: ${network.method} ${network.url}, status=${network.responseCode}, duration=${network.duration}ms, error=${network.errorDomain || 'none'}`,
+    );
+
     NativeLuciq.networkLogAndroid(
       network.url,
       network.requestBody,
@@ -242,6 +248,10 @@ export const reportNetworkLog = (network: NetworkData) => {
       !apmFlags.hasAPMNetworkPlugin ||
       !apmFlags.shouldEnableNativeInterception
     ) {
+      Logger.debug(
+        'LCQ-RN-NET:',
+        `[reportNetworkLog] Also sending to NativeAPM.networkLogAndroid (native interception disabled): ${network.method} ${network.url}`,
+      );
       NativeAPM.networkLogAndroid(
         network.startTime,
         network.duration,
@@ -267,8 +277,18 @@ export const reportNetworkLog = (network: NetworkData) => {
         network.gqlQueryName,
         network.serverErrorMessage,
       );
+    } else {
+      Logger.debug(
+        'LCQ-RN-NET:',
+        `[reportNetworkLog] Skipping NativeAPM.networkLogAndroid (native interception enabled): nativeFeature=${apmFlags.isNativeInterceptionFeatureEnabled}, hasPlugin=${apmFlags.hasAPMNetworkPlugin}, shouldEnable=${apmFlags.shouldEnableNativeInterception}`,
+      );
     }
   } else {
+    Logger.debug(
+      'LCQ-RN-NET:',
+      `[reportNetworkLog] Sending to NativeLuciq.networkLogIOS: ${network.method} ${network.url}, status=${network.responseCode}, duration=${network.duration}ms, error=${network.errorDomain || 'none'}`,
+    );
+
     NativeLuciq.networkLogIOS(
       network.url,
       network.method,
@@ -416,6 +436,54 @@ export function updateNetworkLogSnapshot(networkSnapshot: NetworkData) {
   );
 }
 
+/**
+ * @internal
+ * This method is for internal use only.
+ *
+ * Parses a string value to an integer, returning null if the value is null or cannot be parsed.
+ * @param value The string value to parse
+ * @returns The parsed integer or null
+ */
+export function getIntValue(value: string | null): number | null {
+  if (value === null) {
+    return null;
+  }
+  const parsed = parseInt(value, 10);
+  return isNaN(parsed) ? null : parsed;
+}
+
+// One-time anchor captured at module load to convert performance.now() to epoch time.
+// performance.now() gives high-resolution monotonic time (sub-ms precision) but relative
+// to app start. We pair it with Date.now() once, then derive epoch from the offset.
+const perfAnchorMs: number = performance.now();
+const epochAnchorUs: number = Date.now() * 1000;
+
+/**
+ * Returns a high-resolution monotonic timestamp in microseconds.
+ * Use this for all internal duration measurements.
+ */
+export function nowMicros(): number {
+  return performance.now() * 1000;
+}
+
+/**
+ * Converts an internal monotonic microsecond timestamp to epoch microseconds.
+ * Use this only when reporting to the native layer or external systems.
+ */
+export function toEpochMicros(monotonicUs: number): number {
+  const offsetUs = monotonicUs - perfAnchorMs * 1000;
+  return epochAnchorUs + offsetUs;
+}
+
+/**
+ * Converts an epoch microsecond timestamp to internal monotonic microseconds.
+ * Use this when receiving timestamps from the native layer that are epoch-based.
+ */
+export function fromEpochMicros(epochUs: number): number {
+  const offsetUs = epochUs - epochAnchorUs;
+  return perfAnchorMs * 1000 + offsetUs;
+}
+
 export default {
   parseErrorStack,
   captureJsErrors,
@@ -423,6 +491,7 @@ export default {
   getFullRoute,
   getStackTrace,
   stringifyIfNotString,
+  getIntValue,
   sendCrashReport,
   reportNetworkLog,
   generateTracePartialId,

@@ -225,7 +225,7 @@ jobs:
       - install_node_modules
       - run:
           name: Run Tests
-          command: yarn test
+          command: yarn test --workerIdleMemoryLimit=1024MB --maxWorkers=2
       - when:
           condition: << parameters.collect_coverage >>
           steps:
@@ -518,6 +518,7 @@ jobs:
           files: scripts/snapshot-comment.md
           search: '{VERSION}'
           replace: $SNAPSHOT_VERSION
+      - generate_luciq_github_app_token
       - notify_github:
           data: "$(jq -Rcs '{ body: . }' scripts/snapshot-comment.md)"
 
@@ -613,6 +614,7 @@ workflows:
           dashboard_token_env: INJAZAT_TOKEN
 
       - release_slack_notification:
+          channel: C8PDY2Q8H
           requires:
             - publish
           context: slack-app
