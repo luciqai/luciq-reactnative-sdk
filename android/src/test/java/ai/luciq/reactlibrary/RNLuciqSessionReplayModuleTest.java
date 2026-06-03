@@ -166,7 +166,7 @@ public class RNLuciqSessionReplayModuleTest {
 
             WritableMap params = Arguments.createMap();
 
-            SRModule.setSyncCallback();
+            SRModule.setSyncCallback(mock(Promise.class));
 
             assertEquals(shouldSync, actual.get());
             verify(SRModule).sendEvent(Constants.LCQ_SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION, params);

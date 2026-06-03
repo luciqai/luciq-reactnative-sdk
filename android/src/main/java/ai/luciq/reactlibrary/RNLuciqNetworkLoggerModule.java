@@ -7,6 +7,7 @@ import static ai.luciq.apm.configuration.cp.APMFeature.CP_NATIVE_INTERCEPTION_EN
 import static ai.luciq.reactlibrary.Constants.NET_TAG;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -16,6 +17,7 @@ import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import ai.luciq.apm.InternalAPM;
 import ai.luciq.apm.sanitization.OnCompleteCallback;
 import ai.luciq.library.logging.listeners.networklogs.NetworkLogSnapshot;
@@ -31,31 +33,48 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
+public class RNLuciqNetworkLoggerModule extends NativeNetworkLoggerSpec {
 
     public final ConcurrentHashMap<String, OnCompleteCallback<NetworkLogSnapshot>> callbackMap = new ConcurrentHashMap<String, OnCompleteCallback<NetworkLogSnapshot>>();
+
+    private int listenerCount = 0;
 
     public RNLuciqNetworkLoggerModule(ReactApplicationContext reactContext) {
         super(reactContext);
     }
 
-
-    @NonNull
-    @Override
-    public String getName() {
-        return "LCQNetworkLogger";
+    protected void sendEvent(String event, @Nullable ReadableMap params) {
+        if (listenerCount > 0) {
+            getReactApplicationContext()
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit(event, params);
+        }
     }
-
 
     @ReactMethod
     public void addListener(String event) {
-        super.addListener(event);
+        listenerCount++;
     }
 
     @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
+    public void removeListeners(double count) {
+        listenerCount = Math.max(0, listenerCount - (int) count);
     }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public boolean isNativeInterceptionEnabled() {
+        return getFlagValue(CP_NATIVE_INTERCEPTION_ENABLED);
+    }
+
+    // iOS-only stubs; present to satisfy TurboModule spec contract.
+    @ReactMethod
+    public void setNetworkLoggingRequestFilterPredicateIOS(String id, boolean value) {}
+
+    @ReactMethod
+    public void forceStartNetworkLoggingIOS() {}
+
+    @ReactMethod
+    public void forceStopNetworkLoggingIOS() {}
 
     private boolean getFlagValue(String key) {
         boolean value = InternalAPM._isFeatureEnabledCP(key, "");
@@ -134,7 +153,7 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
 
 
     @ReactMethod
-    public void registerNetworkLogsListener() {
+    public void registerNetworkLogsListener(@Nullable final String type) {
         LuciqRNLogger.d(NET_TAG, "[registerNetworkLogsListener] Registering network log sanitizer");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
@@ -182,9 +201,9 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
     public void updateNetworkLogSnapshot(
             String url,
             String callbackID,
-            String requestBody,
-            String responseBody,
-            int responseCode,
+            @Nullable String requestBody,
+            @Nullable String responseBody,
+            double responseCode,
             ReadableMap requestHeaders,
             ReadableMap responseHeaders
     ) {
@@ -195,7 +214,7 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
 
             NetworkLogSnapshot modifiedSnapshot = null;
             if (!url.isEmpty()) {
-                modifiedSnapshot = new NetworkLogSnapshot(url, requestHeadersMap, requestBody, responseHeadersMap, responseBody, responseCode);
+                modifiedSnapshot = new NetworkLogSnapshot(url, requestHeadersMap, requestBody, responseHeadersMap, responseBody, (int) responseCode);
             } else {
                 LuciqRNLogger.d(NET_TAG, "[updateNetworkLogSnapshot] Empty URL — snapshot will be null (request filtered/removed)");
             }

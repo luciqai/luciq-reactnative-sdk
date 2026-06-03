@@ -1,14 +1,16 @@
 package ai.luciq.reactlibrary;
 
+import androidx.annotation.Nullable;
+
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import ai.luciq.survey.callbacks.*;
@@ -19,29 +21,35 @@ import org.json.JSONArray;
 
 import java.util.List;
 
-import javax.annotation.Nonnull;
+public class RNLuciqSurveysModule extends NativeSurveysSpec {
 
-public class RNLuciqSurveysModule extends EventEmitterModule {
+    private int listenerCount = 0;
 
     public RNLuciqSurveysModule(ReactApplicationContext reactContext) {
         super(reactContext);
     }
 
-    @Nonnull
-    @Override
-    public String getName() {
-        return "LCQSurveys";
+    protected void sendEvent(String event, @Nullable ReadableMap params) {
+        if (listenerCount > 0) {
+            getReactApplicationContext()
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit(event, params);
+        }
     }
 
     @ReactMethod
     public void addListener(String event) {
-        super.addListener(event);
+        listenerCount++;
     }
 
     @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
+    public void removeListeners(double count) {
+        listenerCount = Math.max(0, listenerCount - (int) count);
     }
+
+    // iOS-only stub; present to satisfy TurboModule spec contract.
+    @ReactMethod
+    public void setAppStoreURL(String appStoreURL) {}
 
     /**
      * Returns true if the survey with a specific token was answered before.
@@ -139,7 +147,7 @@ public class RNLuciqSurveysModule extends EventEmitterModule {
      * @param handler to run on the UI thread before showing any valid survey
      */
     @ReactMethod
-    public void setOnShowHandler(final Callback handler) {
+    public void setOnShowHandler() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -161,7 +169,7 @@ public class RNLuciqSurveysModule extends EventEmitterModule {
      * @param handler to run on the UI thread after showing any valid survey
      */
     @ReactMethod
-    public void setOnDismissHandler(final Callback handler) {
+    public void setOnDismissHandler() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {

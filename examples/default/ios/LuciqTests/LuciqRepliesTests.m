@@ -64,8 +64,7 @@
 
 - (void) testgivenOnNewReplyReceivedHandler$setOnNewReplyReceivedCallback_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnNewReplyReceivedHandler:callback];
+  [partialMock setOnNewReplyReceivedHandler];
   XCTAssertNotNil(LCQReplies.didReceiveReplyHandler);
 
   OCMStub([partialMock sendEventWithName:@"LCQOnNewReplyReceivedCallback" body:nil]);

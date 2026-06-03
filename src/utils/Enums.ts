@@ -1,6 +1,6 @@
 import { NativeLuciq } from '../native/NativeLuciq';
 
-const constants = NativeLuciq.getConstants();
+const constants = NativeLuciq.getAllConstants();
 
 /**
  * Verbosity level of the SDK debug logs. This has nothing to do with `Luciq.log`,

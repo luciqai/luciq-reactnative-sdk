@@ -62,7 +62,7 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
 }
 
 + (void)setOverAirVersion:(NSDictionary *)overAirVersion {
-    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 }
 
 

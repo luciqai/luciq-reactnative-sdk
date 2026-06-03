@@ -139,7 +139,7 @@ commands:
         default: scripts/get-github-app-token.sh
     steps:
       - run:
-          name: Generate Instabug GitHub App Token
+          name: Generate Luciq GitHub App Token
           command: |
             TOKEN=$(bash << parameters.script-path >> LUCIQ_APP_ID LUCIQ_PRIVATE_KEY LUCIQ_INSTALLATION_ID)
             echo "export GH_TOKEN='$TOKEN'" >> "$BASH_ENV"

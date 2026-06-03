@@ -12,39 +12,41 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import ai.luciq.library.OnSessionReplayLinkReady;
 import ai.luciq.library.SessionSyncListener;
 import ai.luciq.library.sessionreplay.SessionReplay;
 import ai.luciq.library.sessionreplay.model.SessionMetadata;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import javax.annotation.Nonnull;
+public class RNLuciqSessionReplayModule extends NativeSessionReplaySpec {
 
-public class RNLuciqSessionReplayModule extends EventEmitterModule {
+    private int listenerCount = 0;
 
     public RNLuciqSessionReplayModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
     }
 
+    protected void sendEvent(String event, @Nullable ReadableMap params) {
+        if (listenerCount > 0) {
+            getReactApplicationContext()
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit(event, params);
+        }
+    }
+
     @ReactMethod
     public void addListener(String event) {
-        super.addListener(event);
+        listenerCount++;
     }
 
     @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
-    }
-
-    @Nonnull
-    @Override
-    public String getName() {
-        return "LCQSessionReplay";
+    public void removeListeners(double count) {
+        listenerCount = Math.max(0, listenerCount - (int) count);
     }
 
     @ReactMethod
@@ -168,7 +170,7 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
     private boolean shouldSync = true;
     private CountDownLatch latch;
     @ReactMethod
-    public void setSyncCallback() {
+    public void setSyncCallback(final Promise promise) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -191,6 +193,7 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
                             return shouldSync;
                         }
                     });
+                    promise.resolve(null);
                 }
                 catch(Exception e){
                     e.printStackTrace();
@@ -248,12 +251,12 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
     }
 
     @ReactMethod
-    public void setScreenshotCaptureInterval(final int intervalMs) {
+    public void setScreenshotCaptureInterval(final double intervalMs) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    SessionReplay.setScreenshotCaptureInterval(intervalMs);
+                    SessionReplay.setScreenshotCaptureInterval((int) intervalMs);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

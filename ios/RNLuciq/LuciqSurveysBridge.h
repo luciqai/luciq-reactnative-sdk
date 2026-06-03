@@ -22,9 +22,9 @@
 
 - (void)showSurveysIfAvailable;
 
-- (void)setOnShowHandler:(RCTResponseSenderBlock)callBack;
+- (void)setOnShowHandler;
 
-- (void)setOnDismissHandler:(RCTResponseSenderBlock)callBack;
+- (void)setOnDismissHandler;
 
 - (void)setAutoShowingEnabled:(BOOL)autoShowingSurveysEnabled;
 

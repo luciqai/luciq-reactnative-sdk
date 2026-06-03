@@ -44,21 +44,21 @@ describe('Test global error handler', () => {
     expect(NativeCrashReporting.sendJSCrash).toHaveBeenCalledWith(expected);
   });
 
-  it('should call sendJSCrash with stringified JSON object when an error arises and platform is Android', () => {
+  it('should call sendJSCrash with JSON object when an error arises and platform is Android', () => {
     Platform.OS = 'android';
     Platform.constants.reactNativeVersion = { major: 0, minor: 64, patch: 0 };
 
     const handler = ErrorUtils.getGlobalHandler();
     handler({ name: 'TypeError', message: 'This is a type error.' }, false);
 
-    const expected = JSON.stringify({
+    const expected = {
       message: 'TypeError - This is a type error.',
       e_message: 'This is a type error.',
       e_name: 'TypeError',
       os: 'android',
       platform: 'react_native',
       exception: [],
-    });
+    };
 
     expect(NativeCrashReporting.sendJSCrash).toHaveBeenCalledWith(expected);
   });
@@ -209,10 +209,9 @@ describe('Luciq Utils', () => {
       platform: 'react_native',
       exception: jsStackTrace,
     };
-    const expectedJsonObject = JSON.stringify(expectedMap);
     expect(remoteSenderCallback).toHaveBeenCalledTimes(1);
     expect(remoteSenderCallback).toHaveBeenCalledWith(
-      expectedJsonObject,
+      expectedMap,
       null,
       null,
       NonFatalErrorLevel.error,

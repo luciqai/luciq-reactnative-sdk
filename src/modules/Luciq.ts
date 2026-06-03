@@ -775,7 +775,7 @@ export const onReportSubmitHandler = (handler?: (report: Report) => void) => {
     handler && handler(reportObj);
   });
 
-  NativeLuciq.setPreSendingHandler(handler);
+  NativeLuciq.setPreSendingHandler();
 };
 
 /**

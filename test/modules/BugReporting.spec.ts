@@ -131,7 +131,7 @@ describe('Testing BugReporting Module', () => {
     BugReporting.onInvokeHandler(callback);
 
     expect(NativeBugReporting.setOnInvokeHandler).toBeCalledTimes(1);
-    expect(NativeBugReporting.setOnInvokeHandler).toBeCalledWith(callback);
+    expect(NativeBugReporting.setOnInvokeHandler).toBeCalledWith();
   });
 
   it('should invoke callback on emitting the event LCQpreInvocationHandler', () => {
@@ -148,7 +148,7 @@ describe('Testing BugReporting Module', () => {
     BugReporting.onSDKDismissedHandler(callback);
 
     expect(NativeBugReporting.setOnSDKDismissedHandler).toBeCalledTimes(1);
-    expect(NativeBugReporting.setOnSDKDismissedHandler).toBeCalledWith(callback);
+    expect(NativeBugReporting.setOnSDKDismissedHandler).toBeCalledWith();
   });
 
   it('should invoke callback on emitting the event LCQpostInvocationHandler', () => {
@@ -223,7 +223,7 @@ describe('Testing BugReporting Module', () => {
     BugReporting.setDidSelectPromptOptionHandler(callback);
 
     expect(NativeBugReporting.setDidSelectPromptOptionHandler).toBeCalledTimes(1);
-    expect(NativeBugReporting.setDidSelectPromptOptionHandler).toBeCalledWith(callback);
+    expect(NativeBugReporting.setDidSelectPromptOptionHandler).toBeCalledWith();
   });
 
   it('should call the native method setFloatingButtonEdge', () => {

@@ -91,5 +91,13 @@
     "expo": {
       "optional": true
     }
+  },
+  "codegenConfig": {
+    "name": "RNLuciqSpec",
+    "type": "modules",
+    "jsSrcsDir": "src/specs",
+    "android": {
+      "javaPackageName": "ai.luciq.reactlibrary"
+    }
   }
 }

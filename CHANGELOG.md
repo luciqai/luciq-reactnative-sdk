@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Add support for React Native's new architecture (TurboModules) while maintaining backward compatibility with the old bridge architecture. ([#44](https://github.com/luciqai/luciq-reactnative-sdk/pull/44))
+
 ## [19.7.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.7.0...19.6.0)
 
 ### Fixed

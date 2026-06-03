@@ -18,7 +18,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
@@ -29,6 +28,7 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.bridge.WritableNativeArray;
 import com.facebook.react.bridge.WritableNativeMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.UIManagerModule;
 
@@ -71,7 +71,6 @@ import ai.luciq.library.model.NetworkLog;
 import ai.luciq.library.model.Report;
 import ai.luciq.library.ui.onboarding.WelcomeMessage;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import ai.luciq.reactlibrary.utils.RNTouchedViewExtractor;
@@ -80,14 +79,14 @@ import ai.luciq.reactlibrary.utils.RNTouchedViewExtractor;
 /**
  * The type Rn luciq reactnative module.
  */
-public class RNLuciqReactnativeModule extends EventEmitterModule {
+public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     private static final String TAG = "Luciq-RN-Core";
-    ;
 
     private LuciqCustomTextPlaceHolder placeHolders;
     private static Report currentReport;
     private final ReactApplicationContext reactContext;
+    private int listenerCount = 0;
 
     /**
      * Instantiates a new Rn Luciq ReactNative module.
@@ -103,20 +102,22 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         placeHolders = new LuciqCustomTextPlaceHolder();
     }
 
-    @Override
-    public String getName() {
-        return "Luciq";
+    protected void sendEvent(String event, @Nullable ReadableMap params) {
+        if (listenerCount > 0) {
+            getReactApplicationContext()
+                    .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                    .emit(event, params);
+        }
     }
-
 
     @ReactMethod
     public void addListener(String event) {
-        super.addListener(event);
+        listenerCount++;
     }
 
     @ReactMethod
-    public void removeListeners(Integer count) {
-        super.removeListeners(count);
+    public void removeListeners(double count) {
+        listenerCount = Math.max(0, listenerCount - (int) count);
     }
 
     /**
@@ -699,12 +700,9 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      * This block is executed in the background before sending each report. Could
      * be used for attaching logs and extra data to reports.
      *
-     * @param preSendingHandler - A callback that gets executed before
-     *                          sending each bug
-     *                          report.
      */
     @ReactMethod
-    public void setPreSendingHandler(final Callback preSendingHandler) {
+    public void setPreSendingHandler() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -1022,12 +1020,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
 
 
     @ReactMethod
-    public void addPrivateView(final int reactTag) {
+    public void addPrivateView(@Nullable final Double reactTag) {
+        if (reactTag == null) {
+            return;
+        }
+        final int tag = reactTag.intValue();
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    final View view = resolveReactView(reactTag);
+                    final View view = resolveReactView(tag);
 
                     if (view != null) {
                         Luciq.addPrivateViews(view);
@@ -1040,12 +1042,16 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
     }
 
     @ReactMethod
-    public void removePrivateView(final int reactTag) {
+    public void removePrivateView(@Nullable final Double reactTag) {
+        if (reactTag == null) {
+            return;
+        }
+        final int tag = reactTag.intValue();
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    final View view = resolveReactView(reactTag);
+                    final View view = resolveReactView(tag);
                     if (view != null) {
 
                         Luciq.removePrivateViews(view);
@@ -1382,15 +1388,71 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         });
     }
 
-    /**
-     * Sets current App variant
-     *
-     * @param appVariant The app variant name .
-     */
+    // iOS-only stubs; present to satisfy TurboModule spec contract.
     @ReactMethod
-    public void setAppVariant(@NonNull String appVariant) {
-        try {
-            Luciq.setAppVariant(appVariant);
+    public void setTrackUserSteps(final boolean isEnabled) {}
+
+    @ReactMethod
+    public void setLCQLogPrintsToConsole(final boolean printsToConsole) {}
+
+    @ReactMethod
+    public void setNetworkLoggingEnabled(final boolean isEnabled) {}
+
+    @ReactMethod
+    public void setPrimaryColor(@Nullable final Double color) {}
+
+    @ReactMethod
+    public void networkLogIOS(
+            String url,
+            String method,
+            @Nullable String requestBody,
+            double requestBodySize,
+            @Nullable String responseBody,
+            double responseBodySize,
+            double responseCode,
+            ReadableMap requestHeaders,
+            ReadableMap responseHeaders,
+            String contentType,
+            String errorDomain,
+            double errorCode,
+            double startTime,
+            double duration,
+            @Nullable String gqlQueryName,
+            @Nullable String serverErrorMessage,
+            ReadableMap w3cExternalTraceAttributes) {}
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    public WritableMap getAllConstants() {
+        final WritableMap out = Arguments.createMap();
+        for (Map.Entry<String, Object> entry : getConstants().entrySet()) {
+            final String key = entry.getKey();
+            final Object value = entry.getValue();
+            if (value == null) {
+                out.putNull(key);
+            } else if (value instanceof String) {
+                out.putString(key, (String) value);
+            } else if (value instanceof Boolean) {
+                out.putBoolean(key, (Boolean) value);
+            } else if (value instanceof Integer) {
+                out.putInt(key, (Integer) value);
+            } else if (value instanceof Number) {
+                out.putDouble(key, ((Number) value).doubleValue());
+            } else {
+                out.putString(key, value.toString());
+            }
+        }
+        return out;
+    }
+
+     /**
+         * Sets current App variant
+         *
+         * @param appVariant The app variant name .
+         */
+       @ReactMethod
+        public void setAppVariant(@NonNull String appVariant) {
+            try {
+                Luciq.setAppVariant(appVariant);
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -8,7 +8,7 @@ import type { LuciqNativeModule } from '../../src/native/NativeLuciq';
 const fakeNativeConstants = new Proxy({}, { get: (_, prop) => prop });
 
 const mockLuciq: LuciqNativeModule = {
-  getConstants: jest.fn().mockReturnValue(fakeNativeConstants),
+  getAllConstants: jest.fn().mockReturnValue(fakeNativeConstants),
   addListener: jest.fn(),
   removeListeners: jest.fn(),
   setEnabled: jest.fn(),

@@ -31,11 +31,17 @@ import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
-public class RNLuciqAPMModule extends EventEmitterModule {
+public class RNLuciqAPMModule extends NativeAPMSpec {
 
     public RNLuciqAPMModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
     }
+
+   @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 
     @Nonnull
     @Override
@@ -47,7 +53,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
      * Pauses the current thread for 3 seconds.
      */
     @ReactMethod
-    public void LCQSleep() {
+    public void lcqSleep() {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -312,7 +318,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
      *                            debugging and troubleshooting network-related issues.
      */
     @ReactMethod
-    private void networkLogAndroid(final double requestStartTime,
+    public void networkLogAndroid(final double requestStartTime,
                                    final double requestDuration,
                                    final String requestHeaders,
                                    final String requestBody,
