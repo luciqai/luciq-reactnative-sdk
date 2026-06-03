@@ -273,10 +273,6 @@ import Luciq, {
 } from '@luciq/react-native';
 ```
 
-## Support
-
-<div align="center">
-
 ## Adding a new feature
 
 The library supports both the old bridge architecture and the new architecture (TurboModules) from a single source tree. Adding a new API — either a new method on an existing module or a brand-new module — requires touching the JS layer, the Codegen spec, and both native platforms in lockstep so that the types stay aligned.
@@ -298,7 +294,7 @@ In addition to the steps above, register the new module in each arch-specific lo
 2. **JS native wrapper** — create `src/native/Native<Module>.ts` with a fallback: `(TurboSpec ?? ReactNativeModules.LCQ<Module>) as unknown as <Module>NativeModule`. Add the module to the `LuciqNativePackage` interface in `src/native/NativePackage.ts`.
 3. **JS module and public export** — create `src/modules/<Module>.ts` and re-export it from `src/index.ts`.
 4. **Android Codegen spec** — add `android/src/oldarch/java/ai/luciq/reactlibrary/Native<Module>Spec.java` extending `ReactContextBaseJavaModule`, with `public static final String NAME = "LCQ<Module>"`. The newarch variant is generated into `build/generated/source/codegen/java` by React Gradle Plugin at build time, so nothing is hand-authored under `android/src/newarch/`.
-5. **Android module** — create `android/src/main/java/ai/luciq/reactlibrary/RNLuciq<Module>Module.java` extending `Native<Module>Spec`, and register it inside `createNativeModules` in `RNLuciqReactnativePackage.java`.
+5. **Android module** — create `android/src/main/java/ai/luciq/reactlibrary/RNLuciq<Module>Module.java` extending `Native<Module>Spec`, and register it in `RNLuciqReactnativePackage.java` (which extends `TurboReactPackage`): add a `case "LCQ<Module>"` returning a new instance in `getModule(...)`, and a matching `ReactModuleInfo` entry in `getReactModuleInfoProvider()`. The `isTurboModule` flag is driven by `BuildConfig.IS_NEW_ARCHITECTURE_ENABLED`, so the same registration works on both architectures.
 6. **iOS bridge** — create `ios/RNLuciq/Luciq<Module>Bridge.h` / `.mm`. Use `RCT_EXPORT_MODULE(LCQ<Module>)` so the name resolves on both architectures.
 
 ### Running Codegen locally

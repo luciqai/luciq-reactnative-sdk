@@ -214,7 +214,7 @@ public class RNLuciqNetworkLoggerModule extends NativeNetworkLoggerSpec {
 
             NetworkLogSnapshot modifiedSnapshot = null;
             if (!url.isEmpty()) {
-                modifiedSnapshot = new NetworkLogSnapshot(url, requestHeadersMap, requestBody, responseHeadersMap, responseBody, responseCode);
+                modifiedSnapshot = new NetworkLogSnapshot(url, requestHeadersMap, requestBody, responseHeadersMap, responseBody, (int) responseCode);
             } else {
                 LuciqRNLogger.d(NET_TAG, "[updateNetworkLogSnapshot] Empty URL — snapshot will be null (request filtered/removed)");
             }

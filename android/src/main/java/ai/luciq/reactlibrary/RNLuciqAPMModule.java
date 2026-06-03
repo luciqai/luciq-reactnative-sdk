@@ -19,6 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Date;
 
+import javax.annotation.Nonnull;
+
 import ai.luciq.apm.APM;
 import ai.luciq.apm.InternalAPM;
 import ai.luciq.apm.configuration.cp.APMFeature;

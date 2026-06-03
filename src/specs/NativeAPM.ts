@@ -43,6 +43,27 @@ export interface Spec extends TurboModule {
   isCustomSpanEnabled(): Promise<boolean>;
   isAPMEnabled(): Promise<boolean>;
 
+  initScreenFrameTracking(): Promise<void>;
+  setActiveScreenSpanId(spanId: string): void;
+  getScreenTimeToDisplay(spanId: string): Promise<number | null>;
+  isScreenLoadingEnabled(): Promise<boolean>;
+  isEndScreenLoadingEnabled(): Promise<boolean>;
+  endScreenLoading(timeStampMicro: number, uiTraceId: number): void;
+  setScreenLoadingEnabled(isEnabled: boolean): void;
+  syncScreenLoading(
+    spanId: number,
+    screenName: string,
+    startTimestamp: number,
+    durationUS: number,
+    attributes: UnsafeObject,
+  ): void;
+  syncManualScreenLoading(
+    screenName: string,
+    startTimestamp: number,
+    durationUS: number,
+    attributes: UnsafeObject,
+  ): void;
+
   addListener(eventName: string): void;
   removeListeners(count: number): void;
 }

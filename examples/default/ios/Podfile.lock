@@ -1731,7 +1731,13 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - RNLuciq (19.7.0):
+    - DoubleConversion
+    - glog
+    - hermes-engine
     - Luciq (= 19.7.0)
+    - RCT-Folly (= 2024.01.01.00)
+    - RCTRequired
+    - RCTTypeSafety
     - React-Core
     - React-debug
     - React-Fabric
@@ -2270,16 +2276,16 @@ SPEC CHECKSUMS:
   React-utils: 02526ea15628a768b8db9517b6017a1785c734d2
   ReactCodegen: 8b5341ecb61898b8bd40a73ebc443c6bf2d14423
   ReactCommon: 36d48f542b4010786d6b2bcee615fe5f906b7105
-  RNCClipboard: 7c3e3b5f71d84ef61690ad377b6c50cf27864ff5
-  RNGestureHandler: 27a63f2218affdf1a426d56682f9b174904838b3
-  RNLuciq: 7129cf6c3663f23237b5b5935cc0537cb94ceba7
-  RNReanimated: 8bf536bd3964d10a9bacabf179897e79f6bea34f
-  RNScreens: 35bb8e81aeccf111baa0ea01a54231390dbbcfd9
-  RNSVG: 8542aa11770b27563714bbd8494a8436385fc85f
-  RNVectorIcons: 182892e7d1a2f27b52d3c627eca5d2665a22ee28
+  RNCClipboard: 65367ee0429c61ea5cb9d819921877730d59b039
+  RNGestureHandler: 16ef3dc2d7ecb09f240f25df5255953c4098819b
+  RNLuciq: db991e2f29d339020f38852af39e6a83e323ce94
+  RNReanimated: f9abf36c3dae792c600f26a6107d0daa37eaeacf
+  RNScreens: 74536418fef8086457d39df36a55b36efd5329c9
+  RNSVG: 030717ff82ea8f2117347c2fcf52a2d1eafba9ba
+  RNVectorIcons: a24016b773380b1aa37fca501ec6b94a951890a0
   SocketRocket: abac6f5de4d4d62d24e11868d7a2f427e0ef940d
   Yoga: 055f92ad73f8c8600a93f0e25ac0b2344c3b07e6
 
-PODFILE CHECKSUM: 209cbd69f55fb63bb53913f76ecf225a4ef5f42a
+PODFILE CHECKSUM: 36316ccdfcf6ac8b2c5b5de0f0c7f1303603c801
 
 COCOAPODS: 1.16.2

@@ -71,7 +71,6 @@ import ai.luciq.library.model.NetworkLog;
 import ai.luciq.library.model.Report;
 import ai.luciq.library.ui.onboarding.WelcomeMessage;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
-import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import ai.luciq.reactlibrary.utils.RNTouchedViewExtractor;
@@ -83,7 +82,6 @@ import ai.luciq.reactlibrary.utils.RNTouchedViewExtractor;
 public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     private static final String TAG = "Luciq-RN-Core";
-    ;
 
     private LuciqCustomTextPlaceHolder placeHolders;
     private static Report currentReport;
@@ -702,9 +700,6 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
      * This block is executed in the background before sending each report. Could
      * be used for attaching logs and extra data to reports.
      *
-     * @param preSendingHandler - A callback that gets executed before
-     *                          sending each bug
-     *                          report.
      */
     @ReactMethod
     public void setPreSendingHandler() {

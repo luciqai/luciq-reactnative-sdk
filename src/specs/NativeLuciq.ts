@@ -71,7 +71,7 @@ export interface Spec extends TurboModule {
   // Repro Steps APIs //
   setReproStepsConfig(bugMode: string, crashMode: string, sessionReplay: string): void;
   setTrackUserSteps(isEnabled: boolean): void;
-  reportScreenChange(firstScreen: string): void;
+  reportScreenChange(firstScreen: string, spanId: string | null): void;
   reportCurrentViewChange(screenName: string): void;
   addPrivateView(nativeTag: number | null): void;
   removePrivateView(nativeTag: number | null): void;

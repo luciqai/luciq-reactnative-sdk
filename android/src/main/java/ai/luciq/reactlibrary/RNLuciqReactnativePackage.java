@@ -1,43 +1,85 @@
 package ai.luciq.reactlibrary;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import com.facebook.react.ReactPackage;
+import com.facebook.react.TurboReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.uimanager.ViewManager;
+import com.facebook.react.module.model.ReactModuleInfo;
+import com.facebook.react.module.model.ReactModuleInfoProvider;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-public class RNLuciqReactnativePackage implements ReactPackage {
-
-    private static final String TAG = RNLuciqReactnativePackage.class.getSimpleName();
+public class RNLuciqReactnativePackage extends TurboReactPackage {
 
     public RNLuciqReactnativePackage() {}
 
-    @NonNull
+    @Nullable
     @Override
-    public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
+    public NativeModule getModule(@NonNull String name, @NonNull ReactApplicationContext reactContext) {
         RNLuciq.getInstance().setCurrentPlatform();
 
-        List<NativeModule> modules = new ArrayList<>();
-        modules.add(new RNLuciqReactnativeModule(reactContext));
-        modules.add(new RNLuciqBugReportingModule(reactContext));
-        modules.add(new RNLuciqCrashReportingModule(reactContext));
-        modules.add(new RNLuciqSurveysModule(reactContext));
-        modules.add(new RNLuciqFeatureRequestsModule(reactContext));
-        modules.add(new RNLuciqRepliesModule(reactContext));
-        modules.add(new RNLuciqAPMModule(reactContext));
-        modules.add(new RNLuciqSessionReplayModule(reactContext));
-        modules.add(new RNLuciqNetworkLoggerModule(reactContext));
-        return modules;
+        switch (name) {
+            case "Luciq":
+                return new RNLuciqReactnativeModule(reactContext);
+            case "LCQBugReporting":
+                return new RNLuciqBugReportingModule(reactContext);
+            case "LCQCrashReporting":
+                return new RNLuciqCrashReportingModule(reactContext);
+            case "LCQSurveys":
+                return new RNLuciqSurveysModule(reactContext);
+            case "LCQFeatureRequests":
+                return new RNLuciqFeatureRequestsModule(reactContext);
+            case "LCQReplies":
+                return new RNLuciqRepliesModule(reactContext);
+            case "LCQAPM":
+                return new RNLuciqAPMModule(reactContext);
+            case "LCQSessionReplay":
+                return new RNLuciqSessionReplayModule(reactContext);
+            case "LCQNetworkLogger":
+                return new RNLuciqNetworkLoggerModule(reactContext);
+            default:
+                return null;
+        }
     }
 
-    @NonNull
     @Override
-    public List<ViewManager> createViewManagers(@NonNull ReactApplicationContext reactContext) {
-        return Collections.emptyList();
+    public ReactModuleInfoProvider getReactModuleInfoProvider() {
+        return () -> {
+            boolean isTurboModule = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED;
+            Map<String, ReactModuleInfo> moduleInfos = new HashMap<>();
+
+            String[][] modules = {
+                {"Luciq", RNLuciqReactnativeModule.class.getName()},
+                {"LCQBugReporting", RNLuciqBugReportingModule.class.getName()},
+                {"LCQCrashReporting", RNLuciqCrashReportingModule.class.getName()},
+                {"LCQSurveys", RNLuciqSurveysModule.class.getName()},
+                {"LCQFeatureRequests", RNLuciqFeatureRequestsModule.class.getName()},
+                {"LCQReplies", RNLuciqRepliesModule.class.getName()},
+                {"LCQAPM", RNLuciqAPMModule.class.getName()},
+                {"LCQSessionReplay", RNLuciqSessionReplayModule.class.getName()},
+                {"LCQNetworkLogger", RNLuciqNetworkLoggerModule.class.getName()},
+            };
+
+            for (String[] module : modules) {
+                String moduleName = module[0];
+                String className = module[1];
+                moduleInfos.put(
+                    moduleName,
+                    new ReactModuleInfo(
+                        moduleName,
+                        className,
+                        false, // canOverrideExistingModule
+                        false, // needsEagerInit
+                        false, // isCxxModule
+                        isTurboModule
+                    )
+                );
+            }
+
+            return moduleInfos;
+        };
     }
 }
