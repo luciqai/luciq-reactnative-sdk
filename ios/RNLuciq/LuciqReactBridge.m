@@ -84,7 +84,7 @@ RCT_EXPORT_METHOD(setOverAirVersion:(NSDictionary *)overAirVersion) {
 }
 
 RCT_EXPORT_METHOD(setAppVariant:(NSString *)appVariant) {
-    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[setAppVariant] called appVariant=%@", appVariant];
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[setAppVariant] called appVariantLength=%lu, present=%@", (unsigned long)appVariant.length, (appVariant != nil ? @"YES" : @"NO")];
     Luciq.appVariant = appVariant;
 }
 
@@ -325,9 +325,14 @@ RCT_EXPORT_METHOD(resetTags) {
 
 RCT_EXPORT_METHOD(getTags:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[getTags] called"];
-    NSArray *result = [Luciq getTags];
-    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[getTags] success result.count=%lu", (unsigned long)result.count];
-    resolve(result);
+    @try {
+        NSArray *result = [Luciq getTags];
+        [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[getTags] success result.count=%lu", (unsigned long)result.count];
+        resolve(result);
+    } @catch (NSException *exception) {
+        [LuciqRNLogger e:[LuciqRNDebugTags core] format:@"[getTags] failed: %@", exception];
+        reject(@"GET_TAGS_ERROR", exception.reason ?: @"Failed to get tags", nil);
+    }
 }
 
 RCT_EXPORT_METHOD(setString:(NSString*)value toKey:(NSString*)key) {
@@ -367,7 +372,8 @@ RCT_EXPORT_METHOD(getUserAttribute:(NSString *)key :(RCTPromiseResolveBlock)reso
         [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[getUserAttribute] success resultLength=%lu present=%@", (unsigned long)result.length, (result != nil ? @"YES" : @"NO")];
         resolve(result);
     } @catch (NSException *exception) {
-        [LuciqRNLogger e:[LuciqRNDebugTags core] format:@"[getUserAttribute] failed: %@", exception];
+        // Resolve with "" for backward compatibility (callers expect a string), but log at warn since this is a non-fatal lookup miss / native exception.
+        [LuciqRNLogger w:[LuciqRNDebugTags core] format:@"[getUserAttribute] exception caught, resolving with empty string: %@", exception];
         resolve(@"");
     }
 }
@@ -379,9 +385,14 @@ RCT_EXPORT_METHOD(removeUserAttribute:(NSString *)key) {
 
 RCT_EXPORT_METHOD(getAllUserAttributes:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[getAllUserAttributes] called"];
-    NSDictionary *result = [Luciq userAttributes];
-    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[getAllUserAttributes] success result.count=%lu", (unsigned long)result.count];
-    resolve(result);
+    @try {
+        NSDictionary *result = [Luciq userAttributes];
+        [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[getAllUserAttributes] success result.count=%lu", (unsigned long)result.count];
+        resolve(result);
+    } @catch (NSException *exception) {
+        [LuciqRNLogger e:[LuciqRNDebugTags core] format:@"[getAllUserAttributes] failed: %@", exception];
+        reject(@"GET_ALL_USER_ATTRIBUTES_ERROR", exception.reason ?: @"Failed to get user attributes", nil);
+    }
 }
 
 RCT_EXPORT_METHOD(clearAllUserAttributes) {
@@ -508,12 +519,20 @@ RCT_EXPORT_METHOD(networkLogIOS:(NSString * _Nonnull)url
 RCT_EXPORT_METHOD(addPrivateView: (nonnull NSNumber *)reactTag) {
     [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[addPrivateView] called reactTag=%@", reactTag];
     UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
+    if (view == nil) {
+        [LuciqRNLogger w:[LuciqRNDebugTags privateView] format:@"[addPrivateView] view not found for reactTag=%@ (will NOT be masked)", reactTag];
+        return;
+    }
     view.Luciq_privateView = true;
 }
 
 RCT_EXPORT_METHOD(removePrivateView: (nonnull NSNumber *)reactTag) {
     [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[removePrivateView] called reactTag=%@", reactTag];
     UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
+    if (view == nil) {
+        [LuciqRNLogger w:[LuciqRNDebugTags privateView] format:@"[removePrivateView] view not found for reactTag=%@ (no-op)", reactTag];
+        return;
+    }
     view.Luciq_privateView = false;
 }
 

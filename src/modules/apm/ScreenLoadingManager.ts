@@ -377,6 +377,12 @@ class ScreenLoadingManagerClass {
     );
 
     const toRemove = Math.max(0, sortedSpans.length - 30);
+    if (toRemove > 0) {
+      Logger.warn(LuciqDebugTags.APM_SCREEN_LOADING, 'evicting oldest spans (capacity reached)', {
+        removed: toRemove,
+        retained: sortedSpans.length - toRemove,
+      });
+    }
     for (let i = 0; i < toRemove; i++) {
       this.activeSpans.delete(sortedSpans[i][0]);
     }

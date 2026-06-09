@@ -113,7 +113,10 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
                 try {
                     LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setExtendedBugReportMode] called extendedBugReportMode=" + extendedBugReportMode);
                     final ExtendedBugReport.State parsedState = ArgsRegistry.extendedBugReportStates.get(extendedBugReportMode);
-                    if (parsedState == null) return;
+                    if (parsedState == null) {
+                        LuciqRNLogger.w(LuciqRNDebugTags.BUG_REPORTING, "[setExtendedBugReportMode] ignored: unknown mode=" + extendedBugReportMode);
+                        return;
+                    }
                     BugReporting.setExtendedBugReportState(parsedState);
                 } catch (Exception e) {
                     LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setExtendedBugReportMode] failed", e);
@@ -158,7 +161,10 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
                 try {
                     LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setVideoRecordingFloatingButtonPosition] called corner=" + corner);
                     final LuciqVideoRecordingButtonPosition parsedPosition = ArgsRegistry.recordButtonPositions.get(corner);
-                    if (parsedPosition == null) return;
+                    if (parsedPosition == null) {
+                        LuciqRNLogger.w(LuciqRNDebugTags.BUG_REPORTING, "[setVideoRecordingFloatingButtonPosition] ignored: unknown corner=" + corner);
+                        return;
+                    }
                     BugReporting.setVideoRecordingFloatingButtonPosition(parsedPosition);
                 } catch (Exception e) {
                     LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setVideoRecordingFloatingButtonPosition] failed", e);
@@ -388,7 +394,10 @@ public class RNLuciqBugReportingModule extends EventEmitterModule {
             public void run() {
                 LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[show] called reportType=" + reportType + " optionsCount=" + (options == null ? 0 : options.size()));
                 final Integer parsedReportType = ArgsRegistry.reportTypes.get(reportType);
-                if (parsedReportType == null) return;
+                if (parsedReportType == null) {
+                    LuciqRNLogger.w(LuciqRNDebugTags.BUG_REPORTING, "[show] ignored: unknown reportType=" + reportType);
+                    return;
+                }
                 BugReporting.show(parsedReportType);
                 setOptions(options);
             }

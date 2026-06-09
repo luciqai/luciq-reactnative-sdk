@@ -191,7 +191,12 @@ export const setScreenRenderingEnabled = (isEnabled: boolean) => {
  * ```
  */
 export const startCustomSpan = async (name: string): Promise<CustomSpan | null> => {
-  return startCustomSpanInternal(name);
+  Logger.debug(LuciqDebugTags.APM_CUSTOM_SPAN, 'startCustomSpan invoked', {
+    nameLength: name?.length ?? 0,
+  });
+  const span = await startCustomSpanInternal(name);
+  Logger.debug(LuciqDebugTags.APM_CUSTOM_SPAN, 'startCustomSpan resolved', { created: !!span });
+  return span;
 };
 
 /**
@@ -225,6 +230,10 @@ export const addCompletedCustomSpan = async (
   startDate: Date,
   endDate: Date,
 ): Promise<void> => {
+  Logger.debug(LuciqDebugTags.APM_CUSTOM_SPAN, 'addCompletedCustomSpan invoked', {
+    nameLength: name?.length ?? 0,
+    durationMs: startDate && endDate ? endDate.getTime() - startDate.getTime() : null,
+  });
   return addCompletedCustomSpanInternal(name, startDate, endDate);
 };
 

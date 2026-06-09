@@ -115,7 +115,15 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
       .then(() => {
         const completedSpan = ScreenLoadingManager.getActiveSpan(spanId);
         if (completedSpan?.ttid && onMeasuredRef.current) {
-          onMeasuredRef.current(completedSpan.ttid / 1000);
+          try {
+            onMeasuredRef.current(completedSpan.ttid / 1000);
+          } catch (error) {
+            Logger.error(TAG, 'onMeasured callback failed', {
+              spanId,
+              message: (error as Error)?.message,
+              name: (error as Error)?.name,
+            });
+          }
         }
       })
       .catch((error) => {

@@ -10,7 +10,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -863,6 +862,8 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
         }
         if (json instanceof JSONObject) {
             jsonObject = (JSONObject) json;
+        } else if (json != null) {
+            LuciqRNLogger.w(LuciqRNDebugTags.CORE, "[objectToJSONObject] parsed value not a JSONObject; actualType=" + json.getClass().getSimpleName());
         }
         return jsonObject;
     }
@@ -877,6 +878,10 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 writableArray.pushString((String) object);
             } else {
                 JSONObject jsonObject = objectToJSONObject(object);
+                if (jsonObject == null) {
+                    LuciqRNLogger.w(LuciqRNDebugTags.CORE, "[convertArrayListToWritableArray] skipping non-string entry at index=" + i + " (failed JSON conversion)");
+                    continue;
+                }
                 writableArray.pushMap((WritableMap) jsonObject);
             }
         }
@@ -1037,14 +1042,12 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                 networkLog.setResponseHeaders(responseHeaders);
             } catch (OutOfMemoryError | Exception exception) {
                 LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[networkLogAndroid-Core] OOM/Error setting log contents: " + exception.getMessage() + " for " + method + " " + LuciqRNLogger.redactUrl(url));
-                Log.d(TAG, "Error: " + exception.getMessage() + "while trying to set network log contents (request body, response body, request headers, and response headers).");
             }
 
             networkLog.insert();
             LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[networkLogAndroid-Core] Successfully inserted NetworkLog: " + method + " " + LuciqRNLogger.redactUrl(url));
         } catch (OutOfMemoryError | Exception exception) {
             LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[networkLogAndroid-Core] OOM/Error inserting network log: " + exception.getMessage() + " for " + method + " " + LuciqRNLogger.redactUrl(url));
-            Log.d(TAG, "Error: " + exception.getMessage() + "while trying to insert a network log");
         }
     }
 
@@ -1649,7 +1652,7 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
                         break;
                 }
             } else {
-                Log.e("LuciqModule", "Failed to load " + fontType + " font");
+                LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setTheme] failed to load " + fontType + " font");
             }
         }
     }

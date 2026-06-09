@@ -116,6 +116,7 @@
 
     NSInteger itemsToRemove = self.spanIdToTimestamp.count - 30;
     if (itemsToRemove > 0) {
+        [LuciqRNLogger w:[LuciqRNDebugTags apmScreenLoading] format:@"[cleanupStorage] Evicting frame timestamps (capacity reached) removed=%ld, retained=%lu, capacityLimit=%ld", (long)itemsToRemove, (unsigned long)(self.spanIdToTimestamp.count - itemsToRemove), (long)self.maxStorageCapacity];
         for (NSInteger i = 0; i < itemsToRemove; i++) {
             [self.spanIdToTimestamp removeObjectForKey:sortedKeys[i]];
         }

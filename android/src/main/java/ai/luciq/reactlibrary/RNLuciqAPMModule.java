@@ -225,7 +225,7 @@ public class RNLuciqAPMModule extends EventEmitterModule {
     }
 
     @ReactMethod
-    private void networkLogAndroid(final double requestStartTime,
+    public void networkLogAndroid(final double requestStartTime,
                                    final double requestDuration,
                                    final String requestHeaders,
                                    final String requestBody,

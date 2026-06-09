@@ -60,7 +60,11 @@ export function captureUnhandledRejections() {
     onUnhandled: _onUnhandled,
   };
 
-  if (_isHermesPromise()) {
+  const isHermes = _isHermesPromise();
+  Logger.debug(LuciqDebugTags.CRASH_REPORTING, 'rejection tracking enabled', {
+    isHermesPromise: isHermes,
+  });
+  if (isHermes) {
     _enableHermesRejectionTracking(options);
   } else {
     _enableDefaultRejectionTracking(options);

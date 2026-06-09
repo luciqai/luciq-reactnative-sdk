@@ -28,6 +28,7 @@ import type { FeatureFlag } from '../../src/models/FeatureFlag';
 import { Logger } from '../../src/utils/logger';
 import { NativeNetworkLogger } from '../../src/native/NativeNetworkLogger';
 import LuciqConstants from '../../src/utils/LuciqConstants';
+import { LuciqDebugTags } from '../../src/constants/DebugTags';
 
 jest.mock('../../src/modules/NetworkLogger');
 
@@ -1089,7 +1090,8 @@ describe('Luciq iOS initialization tests', () => {
 
     expect(logSpy).toBeCalledTimes(1);
     expect(logSpy).toBeCalledWith(
-      LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
+      LuciqDebugTags.APM_NETWORK,
+      LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
     );
   });
 });

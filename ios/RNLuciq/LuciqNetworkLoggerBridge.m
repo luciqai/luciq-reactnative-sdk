@@ -174,7 +174,7 @@ RCT_EXPORT_METHOD(setNetworkLoggingRequestFilterPredicateIOS: (NSString * _Nonnu
             [self sendEventWithName:@"LCQNetworkLoggerHandler" body:dict];
             [LuciqRNLogger d:[LuciqRNDebugTags network] format:@"[LCQNetworkLoggerHandler] emitted (filtering) url=%@", [LuciqRNLogger redactURL:request.URL.absoluteString]];
         } else {
-            [LuciqRNLogger w:[LuciqRNDebugTags network] format:@"[FilteringHandler] Event DROPPED (no JS listeners) for url=%@", [LuciqRNLogger redactURL:request.URL.absoluteString]];
+            [LuciqRNLogger d:[LuciqRNDebugTags network] format:@"[FilteringHandler] Event DROPPED (no JS listeners) for url=%@", [LuciqRNLogger redactURL:request.URL.absoluteString]];
         }
 
     }];
@@ -194,7 +194,7 @@ RCT_EXPORT_METHOD(setNetworkLoggingRequestFilterPredicateIOS: (NSString * _Nonnu
             [self sendEventWithName:@"LCQNetworkLoggerHandler" body:dict];
             [LuciqRNLogger d:[LuciqRNDebugTags network] format:@"[LCQNetworkLoggerHandler] emitted (obfuscation) url=%@", [LuciqRNLogger redactURL:request.URL.absoluteString]];
         } else {
-            [LuciqRNLogger w:[LuciqRNDebugTags network] format:@"[ObfuscationHandler] Event DROPPED (no JS listeners) for url=%@", [LuciqRNLogger redactURL:request.URL.absoluteString]];
+            [LuciqRNLogger d:[LuciqRNDebugTags network] format:@"[ObfuscationHandler] Event DROPPED (no JS listeners) for url=%@", [LuciqRNLogger redactURL:request.URL.absoluteString]];
         }
 
     }];

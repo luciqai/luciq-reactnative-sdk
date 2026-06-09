@@ -178,7 +178,7 @@ export default {
       } else {
         Logger.debug(TAG, 'setRequestHeader: no networkData in WeakMap', {
           header: key,
-          reason: "request may have been GC'd or open() was not called",
+          reason: 'open() was not intercepted',
         });
       }
       originalXHRSetRequestHeader.apply(this, [header, value]);
@@ -288,7 +288,7 @@ export default {
               }
 
               cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
-              Logger.debug(TAG, 'readystatechange: DONE with client error', {
+              Logger.error(TAG, 'readystatechange: DONE with client error', {
                 url: redactUrlForLog(cloneNetwork.url),
                 errorDomain: cloneNetwork.errorDomain,
               });
@@ -300,7 +300,7 @@ export default {
               cloneNetwork.responseCode = 0;
               cloneNetwork.contentType = 'text/plain';
               cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
-              Logger.debug(TAG, 'readystatechange: DONE with timeout', {
+              Logger.error(TAG, 'readystatechange: DONE with timeout', {
                 url: redactUrlForLog(cloneNetwork.url),
               });
             }

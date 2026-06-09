@@ -13,6 +13,7 @@
 + (NSString *)apmScreenRendering { return @"LCQ-RN-iOS-APM-SR:"; }
 + (NSString *)apmUITrace         { return @"LCQ-RN-iOS-APM-UI:"; }
 + (NSString *)apmAppLaunch       { return @"LCQ-RN-iOS-APM-LAUNCH:"; }
++ (NSString *)apm                { return @"LCQ-RN-iOS-APM:"; }
 + (NSString *)apmCustomSpan      { return @"LCQ-RN-iOS-APM-SPAN:"; }
 + (NSString *)apmFlow            { return @"LCQ-RN-iOS-APM-FLOW:"; }
 + (NSString *)apmNetwork         { return @"LCQ-RN-iOS-APM-NET:"; }

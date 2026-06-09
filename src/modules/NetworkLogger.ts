@@ -215,7 +215,6 @@ export const apolloLinkRequestHandler: RequestHandler = (operation, forward) => 
     Logger.error(LuciqDebugTags.NETWORK, 'apolloLinkRequestHandler setContext failed', {
       message: (e as Error)?.message,
       name: (e as Error)?.name,
-      stack: (e as Error)?.stack,
     });
   }
 

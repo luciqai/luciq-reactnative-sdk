@@ -25,6 +25,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (class, nonatomic, readonly) NSString *apmScreenRendering;
 @property (class, nonatomic, readonly) NSString *apmUITrace;
 @property (class, nonatomic, readonly) NSString *apmAppLaunch;
+@property (class, nonatomic, readonly) NSString *apm;
 @property (class, nonatomic, readonly) NSString *apmCustomSpan;
 @property (class, nonatomic, readonly) NSString *apmFlow;
 @property (class, nonatomic, readonly) NSString *apmNetwork;

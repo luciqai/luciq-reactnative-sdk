@@ -430,11 +430,21 @@ export function registerFilteringListener(filterExpression: string) {
       const predicate = Function('network', 'return ' + filterExpression);
       const value = predicate(networkSnapshot);
       if (Platform.OS === 'ios') {
+        if (value && Logger.isDebugEnabled()) {
+          Logger.debug(LuciqDebugTags.NETWORK, 'request filtered by host filter', {
+            url: redactUrlForLog(networkSnapshot.url),
+          });
+        }
         // For iOS True == Request will be saved, False == will be ignored
         NativeNetworkLogger.setNetworkLoggingRequestFilterPredicateIOS(networkSnapshot.id, !value);
       } else {
         // For Android Setting the [url] to an empty string will ignore the request;
         if (value) {
+          if (Logger.isDebugEnabled()) {
+            Logger.debug(LuciqDebugTags.NETWORK, 'request filtered by host filter', {
+              url: redactUrlForLog(networkSnapshot.url),
+            });
+          }
           networkSnapshot.url = '';
           updateNetworkLogSnapshot(networkSnapshot);
         }

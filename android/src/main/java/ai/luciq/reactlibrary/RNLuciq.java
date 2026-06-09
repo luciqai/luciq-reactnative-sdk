@@ -1,7 +1,6 @@
 package ai.luciq.reactlibrary;
 
 import android.app.Application;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
@@ -134,10 +133,10 @@ public class RNLuciq {
         try {
             Method method = LuciqUtil.getMethod(Class.forName("ai.luciq.library.Luciq"), "setCurrentPlatform", int.class);
             if (method != null) {
-                Log.i("LCQ-CP-Bridge", "invoking setCurrentPlatform with platform: " + Platform.RN);
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setCurrentPlatform] invoking with platform=" + Platform.RN);
                 method.invoke(null, Platform.RN);
             } else {
-                Log.e("LCQ-CP-Bridge", "setCurrentPlatform was not found by reflection");
+                LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setCurrentPlatform] not found by reflection");
             }
         } catch (Exception e) {
             LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setCurrentPlatform] failed", e);

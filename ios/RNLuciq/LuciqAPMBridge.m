@@ -43,7 +43,7 @@ RCT_EXPORT_METHOD(LCQSleep) {
 
 // Enables or disables APM.
 RCT_EXPORT_METHOD(setEnabled:(BOOL)isEnabled) {
-    [LuciqRNLogger d:[LuciqRNDebugTags apmCustomSpan] format:@"[setEnabled] called isEnabled=%@", (isEnabled ? @"YES" : @"NO")];
+    [LuciqRNLogger d:[LuciqRNDebugTags apm] format:@"[setEnabled] called isEnabled=%@", (isEnabled ? @"YES" : @"NO")];
     LCQAPM.enabled = isEnabled;
 }
 
@@ -155,13 +155,13 @@ RCT_EXPORT_METHOD(isCustomSpanEnabled:(RCTPromiseResolveBlock)resolve
 // Checks if APM is enabled
 RCT_EXPORT_METHOD(isAPMEnabled:(RCTPromiseResolveBlock)resolve
                   rejecter:(RCTPromiseRejectBlock)reject) {
-    [LuciqRNLogger d:[LuciqRNDebugTags apmCustomSpan] format:@"[isAPMEnabled] called"];
+    [LuciqRNLogger d:[LuciqRNDebugTags apm] format:@"[isAPMEnabled] called"];
     @try {
         BOOL enabled = LCQAPM.enabled;
-        [LuciqRNLogger d:[LuciqRNDebugTags apmCustomSpan] format:@"[isAPMEnabled] success result=%@", (enabled ? @"YES" : @"NO")];
+        [LuciqRNLogger d:[LuciqRNDebugTags apm] format:@"[isAPMEnabled] success result=%@", (enabled ? @"YES" : @"NO")];
         resolve(@(enabled));
     } @catch (NSException *exception) {
-        [LuciqRNLogger e:[LuciqRNDebugTags apmCustomSpan] format:@"[isAPMEnabled] failed: %@", exception];
+        [LuciqRNLogger e:[LuciqRNDebugTags apm] format:@"[isAPMEnabled] failed: %@", exception];
         resolve(@NO);
     }
 }
