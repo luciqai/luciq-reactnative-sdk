@@ -288,7 +288,7 @@ export default {
               }
 
               cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
-              Logger.error(TAG, 'readystatechange: DONE with client error', {
+              Logger.debug(TAG, 'readystatechange: DONE with client error', {
                 url: redactUrlForLog(cloneNetwork.url),
                 errorDomain: cloneNetwork.errorDomain,
               });
@@ -300,7 +300,7 @@ export default {
               cloneNetwork.responseCode = 0;
               cloneNetwork.contentType = 'text/plain';
               cloneNetwork.responseBody = `ERROR: ${cloneNetwork.errorDomain}`;
-              Logger.error(TAG, 'readystatechange: DONE with timeout', {
+              Logger.debug(TAG, 'readystatechange: DONE with timeout', {
                 url: redactUrlForLog(cloneNetwork.url),
               });
             }

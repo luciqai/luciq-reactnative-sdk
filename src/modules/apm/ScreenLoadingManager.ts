@@ -321,7 +321,7 @@ class ScreenLoadingManagerClass {
    */
   endScreenLoading(): void {
     if (!this.isEndScreenLoadingFeatureEnabled()) {
-      Logger.error(TAG, 'endScreenLoading feature is not enabled', {
+      Logger.warn(TAG, 'endScreenLoading feature is not enabled', {
         isEnabled: this.isEnabled,
         isEndScreenLoadingEnabled: this.isEndScreenLoadingEnabled,
       });

@@ -587,7 +587,7 @@ export const logOut = () => {
  * @param name Event name.
  */
 export const logUserEvent = (name: string) => {
-  Logger.debug(LuciqDebugTags.CORE, 'logUserEvent', { name });
+  Logger.debug(LuciqDebugTags.CORE, 'logUserEvent', { nameLength: name?.length ?? 0 });
   NativeLuciq.logUserEvent(name);
 };
 
@@ -844,7 +844,7 @@ export const addPrivateView = (viewRef: number | React.Component | React.Compone
     resolved: nativeTag != null,
   });
   if (nativeTag == null) {
-    Logger.warn(LuciqDebugTags.PRIVATE_VIEW, 'addPrivateView could not resolve native tag', {
+    Logger.error(LuciqDebugTags.PRIVATE_VIEW, 'addPrivateView could not resolve native tag', {
       consequence: 'view will NOT be masked',
       hint: 'ensure the ref is attached to a mounted native view',
     });
@@ -864,7 +864,7 @@ export const removePrivateView = (viewRef: number | React.Component | React.Comp
     resolved: nativeTag != null,
   });
   if (nativeTag == null) {
-    Logger.warn(LuciqDebugTags.PRIVATE_VIEW, 'removePrivateView could not resolve native tag', {
+    Logger.error(LuciqDebugTags.PRIVATE_VIEW, 'removePrivateView could not resolve native tag', {
       consequence: 'no-op',
     });
   }

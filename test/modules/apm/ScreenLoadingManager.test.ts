@@ -546,7 +546,7 @@ describe('ScreenLoadingManager', () => {
       ScreenLoadingManager.endScreenLoading();
 
       expect(NativeAPM.endScreenLoading).not.toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(
+      expect(Logger.warn).toHaveBeenCalledWith(
         'LCQ-RN-APM-SL:',
         'endScreenLoading feature is not enabled',
         expect.any(Object),

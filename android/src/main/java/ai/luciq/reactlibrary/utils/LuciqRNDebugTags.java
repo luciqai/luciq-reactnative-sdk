@@ -15,6 +15,7 @@ public final class LuciqRNDebugTags {
 
     public static final String CORE = "LCQ-RN-Android-CORE:";
     public static final String SCREEN_TRACKING = "LCQ-RN-Android-SCREEN:";
+    public static final String APM = "LCQ-RN-Android-APM:";
     public static final String APM_SCREEN_LOADING = "LCQ-RN-Android-APM-SL:";
     public static final String APM_SCREEN_RENDERING = "LCQ-RN-Android-APM-SR:";
     public static final String APM_UI_TRACE = "LCQ-RN-Android-APM-UI:";

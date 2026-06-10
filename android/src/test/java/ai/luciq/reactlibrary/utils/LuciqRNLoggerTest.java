@@ -210,4 +210,51 @@ public class LuciqRNLoggerTest {
             org.junit.Assert.assertEquals("fragment '#' should not leak: " + url, -1, out.indexOf('#'));
         }
     }
+
+    // userinfo cases - mirror the userinfo block in test/utils/redactUrlForLog.spec.ts.
+
+    @Test
+    public void redactUrl_stripsUserPasswordFromAuthority() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users/123",
+                LuciqRNLogger.redactUrl("https://user:pass@api.example.com/users/123"));
+    }
+
+    @Test
+    public void redactUrl_stripsUsernameOnlyUserinfo() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users",
+                LuciqRNLogger.redactUrl("https://alice@api.example.com/users"));
+    }
+
+    @Test
+    public void redactUrl_neverLeaksPassword() {
+        String secret = "p@ssw0rd-do-not-leak";
+        String result = LuciqRNLogger.redactUrl("https://user:" + secret + "@api.example.com/x");
+        org.junit.Assert.assertFalse(result.contains(secret));
+        org.junit.Assert.assertFalse(result.contains("user:"));
+    }
+
+    @Test
+    public void redactUrl_stripsUserinfoAndQueryTogether() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users?<redacted>",
+                LuciqRNLogger.redactUrl("https://u:p@api.example.com/users?token=abc"));
+    }
+
+    @Test
+    public void redactUrl_doesNotStripAtInPath() {
+        // No userinfo present; the `@` is part of the path segment.
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users/@me/profile",
+                LuciqRNLogger.redactUrl("https://api.example.com/users/@me/profile"));
+    }
+
+    @Test
+    public void redactUrl_noSchemeIsNoOpForUserinfo() {
+        // No `://`, so authority parsing is skipped.
+        org.junit.Assert.assertEquals(
+                "user@host/path",
+                LuciqRNLogger.redactUrl("user@host/path"));
+    }
 }

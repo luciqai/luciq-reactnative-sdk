@@ -52,18 +52,46 @@ public final class LuciqRNLogger {
     }
 
     /**
-     * Returns {@code url} with its query string and fragment stripped for
-     * safe logging. Mirrors {@code redactUrlForLog} in
-     * src/utils/LuciqUtils.ts: when a query was present (i.e. a {@code ?}
-     * preceded any {@code #}), the result has {@code ?<redacted>} appended;
-     * otherwise the cutoff is silent. null/empty input returns {@code ""}.
+     * Returns {@code url} with its userinfo, query string, and fragment
+     * stripped for safe logging. Mirrors {@code redactUrlForLog} in
+     * src/utils/LuciqUtils.ts:
+     * <ul>
+     *   <li>Userinfo ({@code scheme://user:pass@host/...}) is removed from the
+     *       authority. Only {@code @} characters appearing inside the
+     *       authority (between {@code ://} and the next {@code /}, {@code ?},
+     *       or {@code #}) are treated as userinfo - {@code @} in a path is
+     *       preserved.</li>
+     *   <li>When a query was present (a {@code ?} preceded any {@code #}),
+     *       the result has {@code ?<redacted>} appended.</li>
+     *   <li>Fragment-only cutoff is silent.</li>
+     *   <li>null/empty input returns {@code ""}.</li>
+     * </ul>
      */
     public static String redactUrl(String url) {
         if (url == null || url.isEmpty()) {
             return "";
         }
-        int queryIdx = url.indexOf('?');
-        int fragIdx = url.indexOf('#');
+        // Strip userinfo from the authority, if present.
+        String stripped = url;
+        int schemeEnd = stripped.indexOf("://");
+        if (schemeEnd != -1) {
+            int authorityStart = schemeEnd + 3;
+            int authorityEnd = stripped.length();
+            for (int i = authorityStart; i < stripped.length(); i++) {
+                char c = stripped.charAt(i);
+                if (c == '/' || c == '?' || c == '#') {
+                    authorityEnd = i;
+                    break;
+                }
+            }
+            int atIdx = stripped.lastIndexOf('@', authorityEnd - 1);
+            if (atIdx >= authorityStart && atIdx < authorityEnd) {
+                stripped = stripped.substring(0, authorityStart) + stripped.substring(atIdx + 1);
+            }
+        }
+
+        int queryIdx = stripped.indexOf('?');
+        int fragIdx = stripped.indexOf('#');
         int cutoff = -1;
         if (queryIdx != -1) {
             cutoff = queryIdx;
@@ -72,12 +100,12 @@ public final class LuciqRNLogger {
             cutoff = fragIdx;
         }
         if (cutoff == -1) {
-            return url;
+            return stripped;
         }
         // Only mark a redacted query when the `?` preceded any `#`. A `?`
         // inside a fragment is part of the fragment, not a query.
         boolean cutAtQuery = queryIdx != -1 && (fragIdx == -1 || queryIdx < fragIdx);
-        String base = url.substring(0, cutoff);
+        String base = stripped.substring(0, cutoff);
         return cutAtQuery ? base + "?<redacted>" : base;
     }
 }

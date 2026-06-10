@@ -115,9 +115,13 @@ function _originalOnUnhandled(id: number, rejection: unknown = {}) {
     }
   }
 
-  Logger.warn(LuciqDebugTags.CRASH_REPORTING, 'possible unhandled promise rejection', {
-    id,
-    message: message ?? '',
-    stack: stack ?? '',
-  });
+  // Pass the formatted multiline string as a separate positional arg so Metro
+  // renders the stack with real newlines instead of object-inspector escaping.
+  const formatted = `Possible Unhandled Promise Rejection (id: ${id}):\n${message ?? ''}\n${stack ?? ''}`;
+  Logger.warn(
+    LuciqDebugTags.CRASH_REPORTING,
+    'possible unhandled promise rejection',
+    { id },
+    formatted,
+  );
 }
