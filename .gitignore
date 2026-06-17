@@ -41,6 +41,9 @@ project.xcworkspace
 # Cocoapods
 Pods/
 
+# Swift Package Manager artifacts
+**/xcshareddata/swiftpm/
+
 # Android/IJ
 .classpath
 .cxx
