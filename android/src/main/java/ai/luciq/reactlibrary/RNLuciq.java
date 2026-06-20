@@ -1,7 +1,6 @@
 package ai.luciq.reactlibrary;
 
 import android.app.Application;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
@@ -12,6 +11,8 @@ import ai.luciq.library.Luciq;
 import ai.luciq.library.LogLevel;
 import ai.luciq.library.Platform;
 import ai.luciq.library.invocation.LuciqInvocationEvent;
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
 
 import java.lang.reflect.Method;
@@ -94,7 +95,7 @@ public class RNLuciq {
             // Temporarily disabling APM hot launches
             APM.setHotAppLaunchEnabled(false);
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[RNLuciq.init] failed", e);
         }
 
     }
@@ -132,13 +133,13 @@ public class RNLuciq {
         try {
             Method method = LuciqUtil.getMethod(Class.forName("ai.luciq.library.Luciq"), "setCurrentPlatform", int.class);
             if (method != null) {
-                Log.i("LCQ-CP-Bridge", "invoking setCurrentPlatform with platform: " + Platform.RN);
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setCurrentPlatform] invoking with platform=" + Platform.RN);
                 method.invoke(null, Platform.RN);
             } else {
-                Log.e("LCQ-CP-Bridge", "setCurrentPlatform was not found by reflection");
+                LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setCurrentPlatform] not found by reflection");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setCurrentPlatform] failed", e);
         }
     }
 
@@ -150,7 +151,7 @@ public class RNLuciq {
                 method.invoke(null, "https://docs.luciq.ai/docs/react-native-sdk-migration-guide");
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setBaseUrlForDeprecationLogs] failed", e);
         }
     }
 
@@ -321,7 +322,7 @@ public class RNLuciq {
                 // Temporarily disabling APM hot launches
                 APM.setHotAppLaunchEnabled(false);
             } catch (Exception e) {
-                e.printStackTrace();
+                LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[RNLuciq.Builder.build] failed", e);
             }
         }
     }

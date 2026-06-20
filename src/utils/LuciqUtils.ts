@@ -13,6 +13,7 @@ import type { NetworkData } from './XhrNetworkInterceptor';
 import { NativeLuciq } from '../native/NativeLuciq';
 import { NativeAPM } from '../native/NativeAPM';
 import { Logger } from './logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
 import * as NetworkLogger from '../modules/NetworkLogger';
 import {
   NativeNetworkLogger,
@@ -25,6 +26,67 @@ type ApmNetworkFlags = {
   isNativeInterceptionFeatureEnabled: boolean;
   hasAPMNetworkPlugin: boolean;
   shouldEnableNativeInterception: boolean;
+};
+
+/**
+ * Strips query string, fragment, and userinfo from a URL for safe inclusion
+ * in debug logs.
+ *
+ * URLs commonly carry user identifiers, tokens, and PII in query parameters
+ * (e.g. `?email=u@x.com`, `?token=...`). They can also carry credentials in
+ * the userinfo segment (`https://user:pass@host/...`). Both are removed here.
+ * The path itself can carry IDs but is preserved because it's typically
+ * needed for diagnostics and is the boundary the user approved.
+ *
+ * @param url The URL to redact. May be empty / undefined-safe.
+ * @returns The URL with `?...`, `#...`, and any `userinfo@` portion removed;
+ *          a `?<redacted>` suffix is appended when a query string was
+ *          stripped, so the trace remains unambiguous about whether a query
+ *          was present.
+ */
+export const redactUrlForLog = (url: string | undefined | null): string => {
+  if (!url) {
+    return '';
+  }
+  // Strip userinfo (`scheme://user:pass@host/...` -> `scheme://host/...`).
+  // Only treat `@` as userinfo when it appears in the authority (between
+  // `://` and the next `/`, `?`, or `#`), to avoid mangling `@` in paths.
+  let stripped = url;
+  const schemeEnd = stripped.indexOf('://');
+  if (schemeEnd !== -1) {
+    const authorityStart = schemeEnd + 3;
+    let authorityEnd = stripped.length;
+    for (let i = authorityStart; i < stripped.length; i++) {
+      const c = stripped.charCodeAt(i);
+      // '/'=47, '?'=63, '#'=35
+      if (c === 47 || c === 63 || c === 35) {
+        authorityEnd = i;
+        break;
+      }
+    }
+    const atIdx = stripped.lastIndexOf('@', authorityEnd - 1);
+    if (atIdx > authorityStart - 1 && atIdx < authorityEnd) {
+      stripped = stripped.substring(0, authorityStart) + stripped.substring(atIdx + 1);
+    }
+  }
+
+  const queryIdx = stripped.indexOf('?');
+  const fragIdx = stripped.indexOf('#');
+  let cutoff = -1;
+  if (queryIdx !== -1) {
+    cutoff = queryIdx;
+  }
+  if (fragIdx !== -1 && (cutoff === -1 || fragIdx < cutoff)) {
+    cutoff = fragIdx;
+  }
+  if (cutoff === -1) {
+    return stripped;
+  }
+  // Only mark a redacted query when a real query string was cut (i.e. the `?`
+  // preceded the fragment). A `?` that appears inside a fragment is part of
+  // the fragment, not a query, and must not be advertised as redacted.
+  const cutAtQuery = queryIdx !== -1 && (fragIdx === -1 || queryIdx < fragIdx);
+  return stripped.substring(0, cutoff) + (cutAtQuery ? '?<redacted>' : '');
 };
 
 let apmFlags: ApmNetworkFlags = {
@@ -232,10 +294,15 @@ export const reportNetworkLog = (network: NetworkData) => {
     const requestHeaders = JSON.stringify(network.requestHeaders);
     const responseHeaders = JSON.stringify(network.responseHeaders);
 
-    Logger.debug(
-      'LCQ-RN-NET:',
-      `[reportNetworkLog] Sending to NativeLuciq.networkLogAndroid: ${network.method} ${network.url}, status=${network.responseCode}, duration=${network.duration}ms, error=${network.errorDomain || 'none'}`,
-    );
+    if (Logger.isDebugEnabled()) {
+      Logger.debug(LuciqDebugTags.NETWORK, 'reportNetworkLog -> NativeLuciq.networkLogAndroid', {
+        method: network.method,
+        url: redactUrlForLog(network.url),
+        status: network.responseCode,
+        durationMs: network.duration,
+        error: network.errorDomain || 'none',
+      });
+    }
 
     NativeLuciq.networkLogAndroid(
       network.url,
@@ -252,10 +319,13 @@ export const reportNetworkLog = (network: NetworkData) => {
       !apmFlags.hasAPMNetworkPlugin ||
       !apmFlags.shouldEnableNativeInterception
     ) {
-      Logger.debug(
-        'LCQ-RN-NET:',
-        `[reportNetworkLog] Also sending to NativeAPM.networkLogAndroid (native interception disabled): ${network.method} ${network.url}`,
-      );
+      if (Logger.isDebugEnabled()) {
+        Logger.debug(
+          LuciqDebugTags.NETWORK,
+          'reportNetworkLog -> NativeAPM.networkLogAndroid (native interception disabled)',
+          { method: network.method, url: redactUrlForLog(network.url) },
+        );
+      }
       NativeAPM.networkLogAndroid(
         network.startTime,
         network.duration,
@@ -281,17 +351,27 @@ export const reportNetworkLog = (network: NetworkData) => {
         network.gqlQueryName,
         network.serverErrorMessage,
       );
-    } else {
+    } else if (Logger.isDebugEnabled()) {
       Logger.debug(
-        'LCQ-RN-NET:',
-        `[reportNetworkLog] Skipping NativeAPM.networkLogAndroid (native interception enabled): nativeFeature=${apmFlags.isNativeInterceptionFeatureEnabled}, hasPlugin=${apmFlags.hasAPMNetworkPlugin}, shouldEnable=${apmFlags.shouldEnableNativeInterception}`,
+        LuciqDebugTags.NETWORK,
+        'reportNetworkLog skipping NativeAPM.networkLogAndroid (native interception enabled)',
+        {
+          nativeFeature: apmFlags.isNativeInterceptionFeatureEnabled,
+          hasPlugin: apmFlags.hasAPMNetworkPlugin,
+          shouldEnable: apmFlags.shouldEnableNativeInterception,
+        },
       );
     }
   } else {
-    Logger.debug(
-      'LCQ-RN-NET:',
-      `[reportNetworkLog] Sending to NativeLuciq.networkLogIOS: ${network.method} ${network.url}, status=${network.responseCode}, duration=${network.duration}ms, error=${network.errorDomain || 'none'}`,
-    );
+    if (Logger.isDebugEnabled()) {
+      Logger.debug(LuciqDebugTags.NETWORK, 'reportNetworkLog -> NativeLuciq.networkLogIOS', {
+        method: network.method,
+        url: redactUrlForLog(network.url),
+        status: network.responseCode,
+        durationMs: network.duration,
+        error: network.errorDomain || 'none',
+      });
+    }
 
     NativeLuciq.networkLogIOS(
       network.url,
@@ -350,11 +430,21 @@ export function registerFilteringListener(filterExpression: string) {
       const predicate = Function('network', 'return ' + filterExpression);
       const value = predicate(networkSnapshot);
       if (Platform.OS === 'ios') {
+        if (value && Logger.isDebugEnabled()) {
+          Logger.debug(LuciqDebugTags.NETWORK, 'request filtered by host filter', {
+            url: redactUrlForLog(networkSnapshot.url),
+          });
+        }
         // For iOS True == Request will be saved, False == will be ignored
         NativeNetworkLogger.setNetworkLoggingRequestFilterPredicateIOS(networkSnapshot.id, !value);
       } else {
         // For Android Setting the [url] to an empty string will ignore the request;
         if (value) {
+          if (Logger.isDebugEnabled()) {
+            Logger.debug(LuciqDebugTags.NETWORK, 'request filtered by host filter', {
+              url: redactUrlForLog(networkSnapshot.url),
+            });
+          }
           networkSnapshot.url = '';
           updateNetworkLogSnapshot(networkSnapshot);
         }

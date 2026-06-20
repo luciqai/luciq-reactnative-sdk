@@ -4,8 +4,6 @@ package ai.luciq.reactlibrary;
 import static ai.luciq.apm.configuration.cp.APMFeature.APM_NETWORK_PLUGIN_INSTALLED;
 import static ai.luciq.apm.configuration.cp.APMFeature.CP_NATIVE_INTERCEPTION_ENABLED;
 
-import static ai.luciq.reactlibrary.Constants.NET_TAG;
-
 import androidx.annotation.NonNull;
 
 import com.facebook.react.bridge.Arguments;
@@ -20,6 +18,7 @@ import ai.luciq.apm.InternalAPM;
 import ai.luciq.apm.sanitization.OnCompleteCallback;
 import ai.luciq.library.logging.listeners.networklogs.NetworkLogSnapshot;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
 import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
@@ -49,17 +48,19 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
 
     @ReactMethod
     public void addListener(String event) {
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[addListener] called event=" + event);
         super.addListener(event);
     }
 
     @ReactMethod
     public void removeListeners(Integer count) {
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[removeListeners] called count=" + count);
         super.removeListeners(count);
     }
 
     private boolean getFlagValue(String key) {
         boolean value = InternalAPM._isFeatureEnabledCP(key, "");
-        LuciqRNLogger.d(NET_TAG, "[getFlagValue] key=" + key + ", value=" + value);
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[getFlagValue] key=" + key + ", value=" + value);
         return value;
     }
 
@@ -89,17 +90,16 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
      */
     @ReactMethod
     public void isNativeInterceptionEnabled(Promise promise) {
-        LuciqRNLogger.d(NET_TAG, "[isNativeInterceptionEnabled] Querying CP_NATIVE_INTERCEPTION_ENABLED flag");
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[isNativeInterceptionEnabled] Querying CP_NATIVE_INTERCEPTION_ENABLED flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
                     boolean enabled = getFlagValue(CP_NATIVE_INTERCEPTION_ENABLED);
-                    LuciqRNLogger.d(NET_TAG, "[isNativeInterceptionEnabled] Result=" + enabled);
+                    LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[isNativeInterceptionEnabled] Result=" + enabled);
                     promise.resolve(enabled);
                 } catch (Exception e) {
-                    LuciqRNLogger.e(NET_TAG, "[isNativeInterceptionEnabled] Error — falling back to false (JS interceptor)", e);
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[isNativeInterceptionEnabled] Error - falling back to false (JS interceptor)", e);
                     promise.resolve(false);
                 }
 
@@ -114,17 +114,16 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
      */
     @ReactMethod
     public void hasAPMNetworkPlugin(Promise promise) {
-        LuciqRNLogger.d(NET_TAG, "[hasAPMNetworkPlugin] Querying APM_NETWORK_PLUGIN_INSTALLED flag");
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[hasAPMNetworkPlugin] Querying APM_NETWORK_PLUGIN_INSTALLED flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
                     boolean hasPlugin = getFlagValue(APM_NETWORK_PLUGIN_INSTALLED);
-                    LuciqRNLogger.d(NET_TAG, "[hasAPMNetworkPlugin] Result=" + hasPlugin);
+                    LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[hasAPMNetworkPlugin] Result=" + hasPlugin);
                     promise.resolve(hasPlugin);
                 } catch (Exception e) {
-                    LuciqRNLogger.e(NET_TAG, "[hasAPMNetworkPlugin] Error — falling back to false", e);
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[hasAPMNetworkPlugin] Error - falling back to false", e);
                     promise.resolve(false);
                 }
 
@@ -135,14 +134,14 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
 
     @ReactMethod
     public void registerNetworkLogsListener() {
-        LuciqRNLogger.d(NET_TAG, "[registerNetworkLogsListener] Registering network log sanitizer");
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[registerNetworkLogsListener] Registering network log sanitizer");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 InternalAPM._registerNetworkLogSanitizer((networkLogSnapshot, onCompleteCallback) -> {
                     final String id = String.valueOf(onCompleteCallback.hashCode());
                     callbackMap.put(id, onCompleteCallback);
-                    LuciqRNLogger.d(NET_TAG, "[NetworkLogSanitizer] Received snapshot — id=" + id + ", url=" + networkLogSnapshot.getUrl() + ", responseCode=" + networkLogSnapshot.getResponseCode() + ", callbackMapSize=" + callbackMap.size());
+                    LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[NetworkLogSanitizer] Received snapshot — id=" + id + ", url=" + LuciqRNLogger.redactUrl(networkLogSnapshot.getUrl()) + ", responseCode=" + networkLogSnapshot.getResponseCode() + ", callbackMapSize=" + callbackMap.size());
 
                     WritableMap networkSnapshotParams = Arguments.createMap();
                     networkSnapshotParams.putString("id", id);
@@ -160,7 +159,7 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
                     }
 
                     sendEvent(Constants.LCQ_NETWORK_LOGGER_HANDLER, networkSnapshotParams);
-                    LuciqRNLogger.d(NET_TAG, "[NetworkLogSanitizer] Sent event to JS: " + Constants.LCQ_NETWORK_LOGGER_HANDLER + " for " + networkLogSnapshot.getUrl());
+                    LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[NetworkLogSanitizer] Sent event to JS: " + Constants.LCQ_NETWORK_LOGGER_HANDLER + " for " + LuciqRNLogger.redactUrl(networkLogSnapshot.getUrl()));
                 });
             }
         });
@@ -168,12 +167,12 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
 
     @ReactMethod
     public void resetNetworkLogsListener() {
-        LuciqRNLogger.d(NET_TAG, "[resetNetworkLogsListener] Clearing network log sanitizer, callbackMapSize=" + callbackMap.size());
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[resetNetworkLogsListener] Clearing network log sanitizer, callbackMapSize=" + callbackMap.size());
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 InternalAPM._registerNetworkLogSanitizer(null);
-                LuciqRNLogger.d(NET_TAG, "[resetNetworkLogsListener] Sanitizer cleared");
+                LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[resetNetworkLogsListener] Sanitizer cleared");
             }
         });
     }
@@ -188,7 +187,7 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
             ReadableMap requestHeaders,
             ReadableMap responseHeaders
     ) {
-        LuciqRNLogger.d(NET_TAG, "[updateNetworkLogSnapshot] callbackID=" + callbackID + ", url=" + url + ", responseCode=" + responseCode + ", callbackMapSize=" + callbackMap.size());
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[updateNetworkLogSnapshot] callbackID=" + callbackID + ", url=" + LuciqRNLogger.redactUrl(url) + ", responseCode=" + responseCode + ", callbackMapSize=" + callbackMap.size());
         try {
             Map<String, Object> requestHeadersMap = convertReadableMapToMap(requestHeaders);
             Map<String, Object> responseHeadersMap = convertReadableMapToMap(responseHeaders);
@@ -197,19 +196,19 @@ public class RNLuciqNetworkLoggerModule extends EventEmitterModule {
             if (!url.isEmpty()) {
                 modifiedSnapshot = new NetworkLogSnapshot(url, requestHeadersMap, requestBody, responseHeadersMap, responseBody, responseCode);
             } else {
-                LuciqRNLogger.d(NET_TAG, "[updateNetworkLogSnapshot] Empty URL — snapshot will be null (request filtered/removed)");
+                LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[updateNetworkLogSnapshot] Empty URL — snapshot will be null (request filtered/removed)");
             }
 
             final OnCompleteCallback<NetworkLogSnapshot> callback = callbackMap.get(callbackID);
             if (callback != null) {
                 callback.onComplete(modifiedSnapshot);
                 callbackMap.remove(callbackID);
-                LuciqRNLogger.d(NET_TAG, "[updateNetworkLogSnapshot] Callback invoked and removed for " + callbackID + ", remaining=" + callbackMap.size());
+                LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[updateNetworkLogSnapshot] Callback invoked and removed for " + callbackID + ", remaining=" + callbackMap.size());
             } else {
-                LuciqRNLogger.e(NET_TAG, "[updateNetworkLogSnapshot] No callback found for callbackID=" + callbackID + " — possible leak or duplicate call, mapKeys=" + callbackMap.keySet());
+                LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[updateNetworkLogSnapshot] No callback found for callbackID=" + callbackID + " — possible leak or duplicate call, mapKeys=" + callbackMap.keySet());
             }
         } catch (Exception e) {
-            LuciqRNLogger.e(NET_TAG, "[updateNetworkLogSnapshot] Exception processing snapshot: " + e.getMessage() + " for callbackID=" + callbackID, e);
+            LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[updateNetworkLogSnapshot] Exception processing snapshot: " + e.getMessage() + " for callbackID=" + callbackID, e);
         }
     }
 }

@@ -12,12 +12,17 @@ import type {
   ReportType,
   userConsentActionType,
 } from '../utils/Enums';
+import { Logger } from '../utils/logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
+
+const TAG = LuciqDebugTags.BUG_REPORTING;
 
 /**
  * Enables and disables manual invocation and prompt options for bug and feedback.
  * @param isEnabled
  */
 export const setEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setEnabled', { isEnabled });
   NativeBugReporting.setEnabled(isEnabled);
 };
 
@@ -27,6 +32,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * @param events Array of events that invokes the feedback form.
  */
 export const setInvocationEvents = (events: InvocationEvent[]) => {
+  Logger.debug(TAG, 'setInvocationEvents', { events });
   NativeBugReporting.setInvocationEvents(events);
 };
 
@@ -36,6 +42,7 @@ export const setInvocationEvents = (events: InvocationEvent[]) => {
  * @param options Array of invocation options
  */
 export const setOptions = (options: InvocationOption[]) => {
+  Logger.debug(TAG, 'setOptions', { options });
   NativeBugReporting.setOptions(options);
 };
 
@@ -46,7 +53,12 @@ export const setOptions = (options: InvocationOption[]) => {
  * @param handler A callback that gets executed before invoking the SDK
  */
 export const onInvokeHandler = (handler: () => void) => {
-  emitter.addListener(NativeEvents.ON_INVOKE_HANDLER, handler);
+  Logger.debug(TAG, 'onInvokeHandler registered');
+  const wrappedHandler = () => {
+    Logger.debug(TAG, 'native event: ON_INVOKE_HANDLER fired');
+    handler();
+  };
+  emitter.addListener(NativeEvents.ON_INVOKE_HANDLER, wrappedHandler);
   NativeBugReporting.setOnInvokeHandler(handler);
 };
 
@@ -59,9 +71,15 @@ export const onInvokeHandler = (handler: () => void) => {
 export const onSDKDismissedHandler = (
   handler: (dismissType: DismissType, reportType: ReportType) => void,
 ) => {
-  emitter.addListener(NativeEvents.ON_DISMISS_HANDLER, (payload) => {
+  Logger.debug(TAG, 'onSDKDismissedHandler registered');
+  const wrappedHandler = (payload: { dismissType: DismissType; reportType: ReportType }) => {
+    Logger.debug(TAG, 'native event: ON_DISMISS_HANDLER fired', {
+      dismissType: payload?.dismissType,
+      reportType: payload?.reportType,
+    });
     handler(payload.dismissType, payload.reportType);
-  });
+  };
+  emitter.addListener(NativeEvents.ON_DISMISS_HANDLER, wrappedHandler);
   NativeBugReporting.setOnSDKDismissedHandler(handler);
 };
 
@@ -71,6 +89,7 @@ export const onSDKDismissedHandler = (
  * @param threshold Threshold for iPhone.
  */
 export const setShakingThresholdForiPhone = (threshold: number) => {
+  Logger.debug(TAG, 'setShakingThresholdForiPhone', { threshold, platform: Platform.OS });
   if (Platform.OS === 'ios') {
     NativeBugReporting.setShakingThresholdForiPhone(threshold);
   }
@@ -82,6 +101,7 @@ export const setShakingThresholdForiPhone = (threshold: number) => {
  * @param threshold Threshold for iPad.
  */
 export const setShakingThresholdForiPad = (threshold: number) => {
+  Logger.debug(TAG, 'setShakingThresholdForiPad', { threshold, platform: Platform.OS });
   if (Platform.OS === 'ios') {
     NativeBugReporting.setShakingThresholdForiPad(threshold);
   }
@@ -95,6 +115,7 @@ export const setShakingThresholdForiPad = (threshold: number) => {
  * @param threshold Threshold for android devices.
  */
 export const setShakingThresholdForAndroid = (threshold: number) => {
+  Logger.debug(TAG, 'setShakingThresholdForAndroid', { threshold, platform: Platform.OS });
   if (Platform.OS === 'android') {
     NativeBugReporting.setShakingThresholdForAndroid(threshold);
   }
@@ -107,6 +128,7 @@ export const setShakingThresholdForAndroid = (threshold: number) => {
  * enable it with required or with optional fields.
  */
 export const setExtendedBugReportMode = (mode: ExtendedBugReportMode) => {
+  Logger.debug(TAG, 'setExtendedBugReportMode', { mode });
   NativeBugReporting.setExtendedBugReportMode(mode);
 };
 
@@ -115,6 +137,7 @@ export const setExtendedBugReportMode = (mode: ExtendedBugReportMode) => {
  * @param types Array of reportTypes
  */
 export const setReportTypes = (types: ReportType[]) => {
+  Logger.debug(TAG, 'setReportTypes', { types });
   NativeBugReporting.setReportTypes(types);
 };
 
@@ -124,6 +147,7 @@ export const setReportTypes = (types: ReportType[]) => {
  * @param options
  */
 export const show = (type: ReportType, options: InvocationOption[]) => {
+  Logger.debug(TAG, 'show invoked', { type, options: options ?? [] });
   NativeBugReporting.show(type, options ?? []);
 };
 
@@ -132,6 +156,7 @@ export const show = (type: ReportType, options: InvocationOption[]) => {
  * @param isEnabled enable/disable screen recording on crash feature
  */
 export const setAutoScreenRecordingEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setAutoScreenRecordingEnabled', { isEnabled });
   NativeBugReporting.setAutoScreenRecordingEnabled(isEnabled);
 };
 
@@ -142,6 +167,7 @@ export const setAutoScreenRecordingEnabled = (isEnabled: boolean) => {
  * The maximum duration is 30 seconds
  */
 export const setAutoScreenRecordingDurationIOS = (maxDuration: number) => {
+  Logger.debug(TAG, 'setAutoScreenRecordingDurationIOS', { maxDuration, platform: Platform.OS });
   if (Platform.OS !== 'ios') {
     return;
   }
@@ -159,6 +185,7 @@ export const setAutoScreenRecordingDurationIOS = (maxDuration: number) => {
 export const setVideoRecordingFloatingButtonPosition = (
   buttonPosition: RecordingButtonPosition,
 ) => {
+  Logger.debug(TAG, 'setVideoRecordingFloatingButtonPosition', { buttonPosition });
   NativeBugReporting.setVideoRecordingFloatingButtonPosition(buttonPosition);
 };
 
@@ -167,6 +194,7 @@ export const setVideoRecordingFloatingButtonPosition = (
  * @param isEnabled A boolean to set whether view hierarchy are enabled or disabled.
  */
 export const setViewHierarchyEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setViewHierarchyEnabled', { isEnabled });
   NativeBugReporting.setViewHierarchyEnabled(isEnabled);
 };
 
@@ -185,6 +213,14 @@ export const addUserConsent = (
   checked: boolean,
   actionType?: userConsentActionType,
 ) => {
+  // description may contain end-user-facing copy; log only its length.
+  Logger.debug(TAG, 'addUserConsent', {
+    key,
+    descriptionLength: description?.length ?? 0,
+    mandatory,
+    checked,
+    actionType,
+  });
   NativeBugReporting.addUserConsent(key, description, mandatory, checked, actionType);
 };
 /**
@@ -192,12 +228,17 @@ export const addUserConsent = (
  * @param handler - A callback that gets executed when a prompt option is selected.
  */
 export const setDidSelectPromptOptionHandler = (handler: (promptOption: string) => void) => {
+  Logger.debug(TAG, 'setDidSelectPromptOptionHandler registered', { platform: Platform.OS });
   if (Platform.OS === 'android') {
     return;
   }
-  emitter.addListener(NativeEvents.DID_SELECT_PROMPT_OPTION_HANDLER, (payload) => {
+  const wrappedHandler = (payload: { promptOption: string }) => {
+    Logger.debug(TAG, 'native event: DID_SELECT_PROMPT_OPTION_HANDLER fired', {
+      promptOption: payload?.promptOption,
+    });
     handler(payload.promptOption);
-  });
+  };
+  emitter.addListener(NativeEvents.DID_SELECT_PROMPT_OPTION_HANDLER, wrappedHandler);
   NativeBugReporting.setDidSelectPromptOptionHandler(handler);
 };
 
@@ -208,6 +249,7 @@ export const setDidSelectPromptOptionHandler = (handler: (promptOption: string) 
  * @param offset The offset of the floating button from the top of the screen. Default is 50.
  */
 export const setFloatingButtonEdge = (edge: FloatingButtonPosition, offset: number) => {
+  Logger.debug(TAG, 'setFloatingButtonEdge', { edge, offset });
   NativeBugReporting.setFloatingButtonEdge(edge, offset);
 };
 
@@ -225,6 +267,12 @@ export const setEnabledAttachmentTypes = (
   galleryImage: boolean,
   screenRecording: boolean,
 ) => {
+  Logger.debug(TAG, 'setEnabledAttachmentTypes', {
+    screenshot,
+    extraScreenshot,
+    galleryImage,
+    screenRecording,
+  });
   NativeBugReporting.setEnabledAttachmentTypes(
     screenshot,
     extraScreenshot,
@@ -238,6 +286,7 @@ export const setEnabledAttachmentTypes = (
  * @param text String text.
  */
 export const setDisclaimerText = (text: string) => {
+  Logger.debug(TAG, 'setDisclaimerText', { textLength: text?.length ?? 0 });
   NativeBugReporting.setDisclaimerText(text);
 };
 
@@ -248,6 +297,11 @@ export const setDisclaimerText = (text: string) => {
  * @platform iOS
  */
 export const setCommentMinimumCharacterCount = (limit: number, reportTypes?: ReportType[]) => {
+  Logger.debug(TAG, 'setCommentMinimumCharacterCount', {
+    limit,
+    reportTypes,
+    platform: Platform.OS,
+  });
   if (Platform.OS === 'ios') {
     NativeBugReporting.setCommentMinimumCharacterCount(limit, reportTypes ?? []);
   }
@@ -258,6 +312,11 @@ export const setCommentMinimumCharacterCount = (limit: number, reportTypes?: Rep
  * @param config configuration of proActive  bug report.
  */
 export const setProactiveReportingConfigurations = (config: ProactiveReportingConfigOptions) => {
+  Logger.debug(TAG, 'setProactiveReportingConfigurations', {
+    enabled: config.enabled,
+    gapBetweenModals: config.gapBetweenModals,
+    modalDelayAfterDetection: config.modalDelayAfterDetection,
+  });
   NativeBugReporting.setProactiveReportingConfigurations(
     config.enabled,
     config.gapBetweenModals,

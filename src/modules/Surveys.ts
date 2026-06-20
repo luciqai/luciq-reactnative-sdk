@@ -2,8 +2,12 @@ import { Platform } from 'react-native';
 
 import { NativeEvents, NativeSurveys, emitter } from '../native/NativeSurveys';
 import type { Survey } from '../native/NativeSurveys';
+import { Logger } from '../utils/logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
 
 export type { Survey };
+
+const TAG = LuciqDebugTags.SURVEYS;
 
 /**
  * Sets whether surveys are enabled or not.
@@ -15,6 +19,7 @@ export type { Survey };
  * @param isEnabled A boolean to set whether Luciq Surveys is enabled or disabled.
  */
 export const setEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setEnabled', { isEnabled });
   NativeSurveys.setEnabled(isEnabled);
 };
 
@@ -25,6 +30,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * in the current session.
  */
 export const showSurveyIfAvailable = () => {
+  Logger.debug(TAG, 'showSurveyIfAvailable called');
   NativeSurveys.showSurveysIfAvailable();
 };
 
@@ -32,7 +38,12 @@ export const showSurveyIfAvailable = () => {
  * Returns an array containing the available surveys.
  */
 export const getAvailableSurveys = async (): Promise<Survey[] | null> => {
+  Logger.debug(TAG, 'getAvailableSurveys invoked');
   const surveys = await NativeSurveys.getAvailableSurveys();
+  Logger.debug(TAG, 'getAvailableSurveys resolved', {
+    count: surveys?.length ?? 0,
+    hasSurveys: !!surveys,
+  });
 
   return surveys;
 };
@@ -43,6 +54,7 @@ export const getAvailableSurveys = async (): Promise<Survey[] | null> => {
  *                                surveys auto showing are enabled or not.
  */
 export const setAutoShowingEnabled = (autoShowingSurveysEnabled: boolean) => {
+  Logger.debug(TAG, 'setAutoShowingEnabled', { autoShowingSurveysEnabled });
   NativeSurveys.setAutoShowingEnabled(autoShowingSurveysEnabled);
 };
 
@@ -54,7 +66,12 @@ export const setAutoShowingEnabled = (autoShowingSurveysEnabled: boolean) => {
  * presenting the survey's UI.
  */
 export const setOnShowHandler = (onShowHandler: () => void) => {
-  emitter.addListener(NativeEvents.WILL_SHOW_SURVEY_HANDLER, onShowHandler);
+  Logger.debug(TAG, 'setOnShowHandler registered');
+  const wrappedHandler = () => {
+    Logger.debug(TAG, 'native event: WILL_SHOW_SURVEY_HANDLER fired');
+    onShowHandler();
+  };
+  emitter.addListener(NativeEvents.WILL_SHOW_SURVEY_HANDLER, wrappedHandler);
   NativeSurveys.setOnShowHandler(onShowHandler);
 };
 
@@ -66,7 +83,12 @@ export const setOnShowHandler = (onShowHandler: () => void) => {
  * the survey's UI is dismissed.
  */
 export const setOnDismissHandler = (onDismissHandler: () => void) => {
-  emitter.addListener(NativeEvents.DID_DISMISS_SURVEY_HANDLER, onDismissHandler);
+  Logger.debug(TAG, 'setOnDismissHandler registered');
+  const wrappedHandler = () => {
+    Logger.debug(TAG, 'native event: DID_DISMISS_SURVEY_HANDLER fired');
+    onDismissHandler();
+  };
+  emitter.addListener(NativeEvents.DID_DISMISS_SURVEY_HANDLER, wrappedHandler);
   NativeSurveys.setOnDismissHandler(onDismissHandler);
 };
 
@@ -78,6 +100,7 @@ export const setOnDismissHandler = (onDismissHandler: () => void) => {
  *
  */
 export const showSurvey = (surveyToken: string) => {
+  Logger.debug(TAG, 'showSurvey', { surveyToken });
   NativeSurveys.showSurvey(surveyToken);
 };
 
@@ -89,7 +112,9 @@ export const showSurvey = (surveyToken: string) => {
  *
  */
 export const hasRespondedToSurvey = async (surveyToken: string): Promise<boolean | null> => {
+  Logger.debug(TAG, 'hasRespondedToSurvey invoked', { surveyToken });
   const hasResponded = await NativeSurveys.hasRespondedToSurvey(surveyToken);
+  Logger.debug(TAG, 'hasRespondedToSurvey resolved', { surveyToken, hasResponded });
 
   return hasResponded;
 };
@@ -101,6 +126,7 @@ export const hasRespondedToSurvey = async (surveyToken: string): Promise<boolean
  *                                welcome screen should show.
  */
 export const setShouldShowWelcomeScreen = (shouldShowWelcomeScreen: boolean) => {
+  Logger.debug(TAG, 'setShouldShowWelcomeScreen', { shouldShowWelcomeScreen });
   NativeSurveys.setShouldShowWelcomeScreen(shouldShowWelcomeScreen);
 };
 
@@ -112,6 +138,8 @@ export const setShouldShowWelcomeScreen = (shouldShowWelcomeScreen: boolean) => 
  */
 
 export const setAppStoreURL = (appStoreURL: string) => {
+  // appStoreURL is a developer-supplied URL; log only presence to be safe.
+  Logger.debug(TAG, 'setAppStoreURL', { urlPresent: !!appStoreURL, platform: Platform.OS });
   if (Platform.OS === 'ios') {
     NativeSurveys.setAppStoreURL(appStoreURL);
   }

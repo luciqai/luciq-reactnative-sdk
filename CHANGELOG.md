@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Enhance Lucia debug logging across all modules and hot paths while ensuring user privacy is maintained through data masking.
+
 ## [19.7.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.7.0...19.6.0)
 
 ### Fixed
