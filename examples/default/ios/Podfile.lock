@@ -31,7 +31,7 @@ PODS:
   - hermes-engine (0.75.4):
     - hermes-engine/Pre-built (= 0.75.4)
   - hermes-engine/Pre-built (0.75.4)
-  - Luciq (19.7.0)
+  - Luciq (19.8.1)
   - OCMock (3.9.4)
   - RCT-Folly (2024.01.01.00):
     - boost
@@ -1625,8 +1625,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNLuciq (19.7.0):
-    - Luciq (= 19.7.0)
+  - RNLuciq (19.8.0):
+    - Luciq (= 19.8.1)
     - React-Core
   - RNReanimated (3.16.1):
     - DoubleConversion
