@@ -17,8 +17,9 @@ import ai.luciq.library.SessionSyncListener;
 import ai.luciq.library.sessionreplay.SessionReplay;
 import ai.luciq.library.sessionreplay.model.SessionMetadata;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
-import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -26,6 +27,8 @@ import java.util.concurrent.CountDownLatch;
 import javax.annotation.Nonnull;
 
 public class RNLuciqSessionReplayModule extends EventEmitterModule {
+
+    private static final String TAG = LuciqRNDebugTags.SESSION_REPLAY;
 
     public RNLuciqSessionReplayModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
@@ -52,10 +55,11 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setEnabled] called isEnabled=" + isEnabled);
                 try {
                     SessionReplay.setEnabled(isEnabled);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setEnabled] failed", e);
                 }
             }
         });
@@ -66,10 +70,11 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setNetworkLogsEnabled] called isEnabled=" + isEnabled);
                 try {
                     SessionReplay.setNetworkLogsEnabled(isEnabled);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setNetworkLogsEnabled] failed", e);
                 }
             }
         });
@@ -81,10 +86,11 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setLuciqLogsEnabled] called isEnabled=" + isEnabled);
                 try {
                     SessionReplay.setLuciqLogsEnabled(isEnabled);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setLuciqLogsEnabled] failed", e);
                 }
             }
         });
@@ -95,10 +101,11 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setUserStepsEnabled] called isEnabled=" + isEnabled);
                 try {
                     SessionReplay.setUserStepsEnabled(isEnabled);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setUserStepsEnabled] failed", e);
                 }
             }
         });
@@ -109,10 +116,11 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[getSessionReplayLink] called");
                 SessionReplay.getSessionReplayLink(new OnSessionReplayLinkReady() {
                     @Override
                     public void onSessionReplayLinkReady(@Nullable String link) {
-
+                        LuciqRNLogger.d(TAG, "[getSessionReplayLink] success link=" + LuciqRNLogger.redactUrl(link));
                         promise.resolve(link);
                     }
                 });
@@ -172,11 +180,12 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setSyncCallback] called");
                 try {
                     SessionReplay.setSyncCallback(new SessionSyncListener() {
                         @Override
                         public boolean onSessionReadyToSync(@NonNull SessionMetadata sessionMetadata) {
-
+                            LuciqRNLogger.d(TAG, "[" + Constants.LCQ_SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION + "] emitted");
                             sendEvent(Constants.LCQ_SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION,getSessionMetadataMap(sessionMetadata));
 
                             latch = new CountDownLatch(1);
@@ -184,7 +193,7 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
                             try {
                                 latch.await();
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                LuciqRNLogger.e(TAG, "[setSyncCallback] latch await interrupted", e);
                                 return true;
                             }
 
@@ -193,7 +202,7 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
                     });
                 }
                 catch(Exception e){
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setSyncCallback] failed", e);
                 }
 
             }
@@ -202,6 +211,7 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
 
     @ReactMethod
     public void evaluateSync(boolean result) {
+        LuciqRNLogger.d(TAG, "[evaluateSync] called result=" + result);
         shouldSync = result;
 
         if (latch != null) {
@@ -214,15 +224,16 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setCapturingMode] called mode=" + mode);
                 try {
                     Integer capturingMode = ArgsRegistry.capturingModes.get(mode);
                     if (capturingMode != null) {
                         SessionReplay.setCapturingMode(capturingMode);
                     } else {
-                        Log.w("LCQSessionReplay", "Invalid capturing mode: " + mode);
+                        LuciqRNLogger.w(TAG, "[setCapturingMode] invalid capturing mode: " + mode);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setCapturingMode] failed", e);
                 }
             }
         });
@@ -233,15 +244,16 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setScreenshotQuality] called quality=" + quality);
                 try {
                     Integer screenshotQuality = ArgsRegistry.screenshotQualities.get(quality);
                     if (screenshotQuality != null) {
                         SessionReplay.setScreenshotQuality(screenshotQuality);
                     } else {
-                        Log.w("LCQSessionReplay", "Invalid screenshot quality: " + quality);
+                        LuciqRNLogger.w(TAG, "[setScreenshotQuality] invalid screenshot quality: " + quality);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setScreenshotQuality] failed", e);
                 }
             }
         });
@@ -252,10 +264,11 @@ public class RNLuciqSessionReplayModule extends EventEmitterModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setScreenshotCaptureInterval] called intervalMs=" + intervalMs);
                 try {
                     SessionReplay.setScreenshotCaptureInterval(intervalMs);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setScreenshotCaptureInterval] failed", e);
                 }
             }
         });

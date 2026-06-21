@@ -109,4 +109,152 @@ public class LuciqRNLoggerTest {
         LuciqRNLogger.setLevel(LogLevel.NONE);
         org.junit.Assert.assertEquals(LogLevel.NONE, LuciqRNLogger.getLevel());
     }
+
+    // redactUrl: mirrors test/utils/redactUrlForLog.spec.ts so the JS and Android
+    // implementations stay observable through equivalent unit tests.
+
+    @Test
+    public void redactUrl_returnsEmptyForNull() {
+        org.junit.Assert.assertEquals("", LuciqRNLogger.redactUrl(null));
+    }
+
+    @Test
+    public void redactUrl_returnsEmptyForEmpty() {
+        org.junit.Assert.assertEquals("", LuciqRNLogger.redactUrl(""));
+    }
+
+    @Test
+    public void redactUrl_preservesUrlWithoutQueryOrFragment() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users/123",
+                LuciqRNLogger.redactUrl("https://api.example.com/users/123"));
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/v1/users/123/orders/456",
+                LuciqRNLogger.redactUrl("https://api.example.com/v1/users/123/orders/456"));
+        org.junit.Assert.assertEquals(
+                "http://localhost:8081/symbolicate",
+                LuciqRNLogger.redactUrl("http://localhost:8081/symbolicate"));
+    }
+
+    @Test
+    public void redactUrl_stripsSimpleQueryAndAppendsMarker() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users?<redacted>",
+                LuciqRNLogger.redactUrl("https://api.example.com/users?email=u@x.com"));
+    }
+
+    @Test
+    public void redactUrl_stripsMultiParamQuery() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/auth?<redacted>",
+                LuciqRNLogger.redactUrl("https://api.example.com/auth?token=abc&user=12345&hash=xyz"));
+    }
+
+    @Test
+    public void redactUrl_stripsTrailingQuestionMark() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users?<redacted>",
+                LuciqRNLogger.redactUrl("https://api.example.com/users?"));
+    }
+
+    @Test
+    public void redactUrl_neverLeaksSensitiveQueryValue() {
+        String sensitive = "super-secret-token-value-9876";
+        String result = LuciqRNLogger.redactUrl("https://api.example.com/users?token=" + sensitive);
+        org.junit.Assert.assertFalse(result.contains(sensitive));
+        org.junit.Assert.assertFalse(result.contains("token="));
+    }
+
+    @Test
+    public void redactUrl_stripsFragmentSilently() {
+        org.junit.Assert.assertEquals(
+                "https://app.example.com/page",
+                LuciqRNLogger.redactUrl("https://app.example.com/page#section-2"));
+    }
+
+    @Test
+    public void redactUrl_stripsFragmentWithSensitiveData() {
+        String result = LuciqRNLogger.redactUrl("https://app.example.com/page#access_token=abc");
+        org.junit.Assert.assertEquals("https://app.example.com/page", result);
+        org.junit.Assert.assertFalse(result.contains("abc"));
+        org.junit.Assert.assertFalse(result.contains("access_token"));
+    }
+
+    @Test
+    public void redactUrl_cutsAtQueryWhenQueryComesFirst() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users?<redacted>",
+                LuciqRNLogger.redactUrl("https://api.example.com/users?email=u@x.com#anchor"));
+    }
+
+    @Test
+    public void redactUrl_cutsAtFragmentWhenFragmentComesFirst() {
+        // Pathological but technically possible: fragment before query
+        org.junit.Assert.assertEquals(
+                "https://app.example.com/page",
+                LuciqRNLogger.redactUrl("https://app.example.com/page#frag?fake"));
+    }
+
+    @Test
+    public void redactUrl_neverReturnsUnredactedQueryParamValue() {
+        String[] inputs = {
+                "https://x.com/p?a=1",
+                "https://x.com/p?a=1&b=2",
+                "https://x.com/p#frag",
+                "https://x.com/p?a=1#frag",
+                "http://localhost:1234/foo?bar=baz",
+        };
+        for (String url : inputs) {
+            String out = LuciqRNLogger.redactUrl(url);
+            org.junit.Assert.assertEquals("query '=' should not leak: " + url, -1, out.indexOf('='));
+            org.junit.Assert.assertEquals("fragment '#' should not leak: " + url, -1, out.indexOf('#'));
+        }
+    }
+
+    // userinfo cases - mirror the userinfo block in test/utils/redactUrlForLog.spec.ts.
+
+    @Test
+    public void redactUrl_stripsUserPasswordFromAuthority() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users/123",
+                LuciqRNLogger.redactUrl("https://user:pass@api.example.com/users/123"));
+    }
+
+    @Test
+    public void redactUrl_stripsUsernameOnlyUserinfo() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users",
+                LuciqRNLogger.redactUrl("https://alice@api.example.com/users"));
+    }
+
+    @Test
+    public void redactUrl_neverLeaksPassword() {
+        String secret = "p@ssw0rd-do-not-leak";
+        String result = LuciqRNLogger.redactUrl("https://user:" + secret + "@api.example.com/x");
+        org.junit.Assert.assertFalse(result.contains(secret));
+        org.junit.Assert.assertFalse(result.contains("user:"));
+    }
+
+    @Test
+    public void redactUrl_stripsUserinfoAndQueryTogether() {
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users?<redacted>",
+                LuciqRNLogger.redactUrl("https://u:p@api.example.com/users?token=abc"));
+    }
+
+    @Test
+    public void redactUrl_doesNotStripAtInPath() {
+        // No userinfo present; the `@` is part of the path segment.
+        org.junit.Assert.assertEquals(
+                "https://api.example.com/users/@me/profile",
+                LuciqRNLogger.redactUrl("https://api.example.com/users/@me/profile"));
+    }
+
+    @Test
+    public void redactUrl_noSchemeIsNoOpForUserinfo() {
+        // No `://`, so authority parsing is skipped.
+        org.junit.Assert.assertEquals(
+                "user@host/path",
+                LuciqRNLogger.redactUrl("user@host/path"));
+    }
 }

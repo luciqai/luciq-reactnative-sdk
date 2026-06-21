@@ -1,5 +1,17 @@
 # Changelog
 
+## [19.8.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.8.0...19.7.0)
+
+### Added
+
+- Enhance Lucia debug logging across all modules and hot paths while ensuring user privacy is maintained through data masking.
+
+### Changed
+
+- Bump Luciq iOS SDK to v19.8.1 ([#59](https://github.com/luciqai/luciq-reactnative-sdk/pull/59)). [See release notes](https://github.com/luciqai/luciq-ios-sdk/releases/tag/19.8.1).
+
+- Bump Luciq Android SDK to v19.8.0 ([#59](https://github.com/luciqai/luciq-reactnative-sdk/pull/59)). [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.8.0).
+
 ## [19.7.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.7.0...19.6.0)
 
 ### Fixed

@@ -1,6 +1,11 @@
 import { NativeSessionReplay, NativeEvents, emitter } from '../native/NativeSessionReplay';
 import type { SessionMetadata } from '../models/SessionMetadata';
 import type { CapturingMode, ScreenshotQuality } from '../utils/Enums';
+import { Logger } from '../utils/logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
+
+const TAG = LuciqDebugTags.SESSION_REPLAY;
+
 /**
  * Enables or disables Session Replay for your Luciq integration.
  *
@@ -14,6 +19,7 @@ import type { CapturingMode, ScreenshotQuality } from '../utils/Enums';
  * ```
  */
 export const setEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setEnabled', { isEnabled });
   NativeSessionReplay.setEnabled(isEnabled);
 };
 
@@ -30,6 +36,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * ```
  */
 export const setNetworkLogsEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setNetworkLogsEnabled', { isEnabled });
   NativeSessionReplay.setNetworkLogsEnabled(isEnabled);
 };
 
@@ -46,6 +53,7 @@ export const setNetworkLogsEnabled = (isEnabled: boolean) => {
  * ```
  */
 export const setLuciqLogsEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setLuciqLogsEnabled', { isEnabled });
   NativeSessionReplay.setLuciqLogsEnabled(isEnabled);
 };
 
@@ -62,6 +70,7 @@ export const setLuciqLogsEnabled = (isEnabled: boolean) => {
  * ```
  */
 export const setUserStepsEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setUserStepsEnabled', { isEnabled });
   NativeSessionReplay.setUserStepsEnabled(isEnabled);
 };
 
@@ -74,7 +83,11 @@ export const setUserStepsEnabled = (isEnabled: boolean) => {
  * ```
  */
 export const getSessionReplayLink = async (): Promise<string> => {
-  return NativeSessionReplay.getSessionReplayLink();
+  Logger.debug(TAG, 'getSessionReplayLink invoked');
+  const link = await NativeSessionReplay.getSessionReplayLink();
+  // Avoid logging the link itself (may identify the session); log only presence.
+  Logger.debug(TAG, 'getSessionReplayLink resolved', { hasLink: !!link });
+  return link;
 };
 
 /**
@@ -95,13 +108,23 @@ export const getSessionReplayLink = async (): Promise<string> => {
 export const setSyncCallback = async (
   handler: (payload: SessionMetadata) => boolean,
 ): Promise<void> => {
+  Logger.debug(TAG, 'setSyncCallback registered');
   emitter.addListener(NativeEvents.SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION, (payload) => {
     const result = handler(payload);
     const shouldSync = Boolean(result);
 
+    if (Logger.isDebugEnabled()) {
+      Logger.debug(TAG, 'sync callback evaluated', {
+        payloadKeys: payload ? Object.keys(payload) : [],
+        resultType: typeof result,
+        shouldSync,
+      });
+    }
+
     if (typeof result !== 'boolean') {
-      console.warn(
-        `LCQ-RN: The callback passed to SessionReplay.setSyncCallback was expected to return a boolean but returned "${result}". The value has been cast to boolean, proceeding with ${shouldSync}.`,
+      Logger.warn(
+        TAG,
+        `The callback passed to SessionReplay.setSyncCallback was expected to return a boolean but returned "${result}". The value has been cast to boolean, proceeding with ${shouldSync}.`,
       );
     }
 
@@ -130,6 +153,7 @@ export const setSyncCallback = async (
  * ```
  */
 export const setCapturingMode = (mode: CapturingMode) => {
+  Logger.debug(TAG, 'setCapturingMode', { mode });
   NativeSessionReplay.setCapturingMode(mode);
 };
 
@@ -150,6 +174,7 @@ export const setCapturingMode = (mode: CapturingMode) => {
  * ```
  */
 export const setScreenshotQuality = (quality: ScreenshotQuality) => {
+  Logger.debug(TAG, 'setScreenshotQuality', { quality });
   NativeSessionReplay.setScreenshotQuality(quality);
 };
 
@@ -170,5 +195,6 @@ export const setScreenshotQuality = (quality: ScreenshotQuality) => {
  * ```
  */
 export const setScreenshotCaptureInterval = (intervalMs: number) => {
+  Logger.debug(TAG, 'setScreenshotCaptureInterval', { intervalMs });
   NativeSessionReplay.setScreenshotCaptureInterval(intervalMs);
 };

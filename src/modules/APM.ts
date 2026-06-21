@@ -9,10 +9,14 @@ import {
 import type { CustomSpan } from '../models/CustomSpan';
 import { ScreenLoadingManager } from './apm/ScreenLoadingManager';
 import { Logger } from '../utils/logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
 
 // Initialize Screen Loading on module load
 ScreenLoadingManager.initialize().catch((error) => {
-  Logger.error('[APM] Failed to initialize Screen Loading:', error);
+  Logger.error(LuciqDebugTags.APM_SCREEN_LOADING, 'Failed to initialize Screen Loading', {
+    message: (error as Error)?.message,
+    name: (error as Error)?.name,
+  });
 });
 
 /**
@@ -20,6 +24,7 @@ ScreenLoadingManager.initialize().catch((error) => {
  * @param isEnabled
  */
 export const setEnabled = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.APM_APP_LAUNCH, 'APM.setEnabled', { isEnabled });
   NativeAPM.setEnabled(isEnabled);
 };
 
@@ -29,6 +34,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * @param isEnabled
  */
 export const setAppLaunchEnabled = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.APM_APP_LAUNCH, 'setAppLaunchEnabled', { isEnabled });
   NativeAPM.setAppLaunchEnabled(isEnabled);
 };
 
@@ -38,6 +44,7 @@ export const setAppLaunchEnabled = (isEnabled: boolean) => {
  * You can then view this data with the automatic cold app launch.
  */
 export const endAppLaunch = () => {
+  Logger.debug(LuciqDebugTags.APM_APP_LAUNCH, 'endAppLaunch called');
   NativeAPM.endAppLaunch();
 };
 
@@ -46,6 +53,10 @@ export const endAppLaunch = () => {
  * @param isEnabled - a boolean indicates either iOS monitoring is enabled or disabled.
  */
 export const setNetworkEnabledIOS = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.APM_NETWORK, 'setNetworkEnabledIOS', {
+    isEnabled,
+    platform: Platform.OS,
+  });
   if (Platform.OS === 'ios') {
     NativeLuciq.setNetworkLoggingEnabled(isEnabled);
   }
@@ -56,6 +67,7 @@ export const setNetworkEnabledIOS = (isEnabled: boolean) => {
  * @param isEnabled
  */
 export const setAutoUITraceEnabled = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.APM_UI_TRACE, 'setAutoUITraceEnabled', { isEnabled });
   NativeAPM.setAutoUITraceEnabled(isEnabled);
 };
 
@@ -71,6 +83,7 @@ export const setAutoUITraceEnabled = (isEnabled: boolean) => {
  *               and the Luciq SDK is initialized.
  */
 export const startFlow = (name: string) => {
+  Logger.debug(LuciqDebugTags.APM_FLOW, 'startFlow', { name });
   NativeAPM.startFlow(name);
 };
 
@@ -80,6 +93,7 @@ export const startFlow = (name: string) => {
  * @param name - The name of the AppFlow to end. It cannot be an empty string or null.
  */
 export const endFlow = (name: string) => {
+  Logger.debug(LuciqDebugTags.APM_FLOW, 'endFlow', { name });
   NativeAPM.endFlow(name);
 };
 
@@ -101,6 +115,14 @@ export const endFlow = (name: string) => {
  */
 
 export const setFlowAttribute = (name: string, key: string, value?: string | null) => {
+  // Log the flow + key by name (developer-controlled identifiers), but the value
+  // may contain PII so we only log its length / removal flag.
+  Logger.debug(LuciqDebugTags.APM_FLOW, 'setFlowAttribute', {
+    name,
+    key,
+    valuePresent: value != null,
+    valueLength: value?.length ?? 0,
+  });
   NativeAPM.setFlowAttribute(name, key, value);
 };
 
@@ -111,6 +133,7 @@ export const setFlowAttribute = (name: string, key: string, value?: string | nul
  * the specific UI trace within the application.
  */
 export const startUITrace = (name: string) => {
+  Logger.debug(LuciqDebugTags.APM_UI_TRACE, 'startUITrace', { name });
   NativeAPM.startUITrace(name);
 };
 
@@ -118,6 +141,7 @@ export const startUITrace = (name: string) => {
  * Ends the currently running custom trace.
  */
 export const endUITrace = () => {
+  Logger.debug(LuciqDebugTags.APM_UI_TRACE, 'endUITrace called');
   NativeAPM.endUITrace();
 };
 
@@ -133,6 +157,7 @@ export const _lcqSleep = () => {
  * @param isEnabled
  */
 export const setScreenRenderingEnabled = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.APM_SCREEN_RENDERING, 'setScreenRenderingEnabled', { isEnabled });
   NativeAPM.setScreenRenderingEnabled(isEnabled);
 };
 
@@ -166,7 +191,12 @@ export const setScreenRenderingEnabled = (isEnabled: boolean) => {
  * ```
  */
 export const startCustomSpan = async (name: string): Promise<CustomSpan | null> => {
-  return startCustomSpanInternal(name);
+  Logger.debug(LuciqDebugTags.APM_CUSTOM_SPAN, 'startCustomSpan invoked', {
+    nameLength: name?.length ?? 0,
+  });
+  const span = await startCustomSpanInternal(name);
+  Logger.debug(LuciqDebugTags.APM_CUSTOM_SPAN, 'startCustomSpan resolved', { created: !!span });
+  return span;
 };
 
 /**
@@ -200,6 +230,10 @@ export const addCompletedCustomSpan = async (
   startDate: Date,
   endDate: Date,
 ): Promise<void> => {
+  Logger.debug(LuciqDebugTags.APM_CUSTOM_SPAN, 'addCompletedCustomSpan invoked', {
+    nameLength: name?.length ?? 0,
+    durationMs: startDate && endDate ? endDate.getTime() - startDate.getTime() : null,
+  });
   return addCompletedCustomSpanInternal(name, startDate, endDate);
 };
 
@@ -208,10 +242,14 @@ export const addCompletedCustomSpan = async (
  * @param isEnabled
  */
 export const setScreenLoadingEnabled = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'setScreenLoadingEnabled', { isEnabled });
   try {
     NativeAPM.setScreenLoadingEnabled(isEnabled);
   } catch (error) {
-    Logger.error('[APM] Failed to set screen loading enabled:', error);
+    Logger.error(LuciqDebugTags.APM_SCREEN_LOADING, 'setScreenLoadingEnabled failed', {
+      message: (error as Error)?.message,
+      name: (error as Error)?.name,
+    });
   }
 };
 
@@ -219,6 +257,7 @@ export const setScreenLoadingEnabled = (isEnabled: boolean) => {
  * Extends the currently running screen loading trace with a new end timestamp.
  */
 export const endScreenLoading = () => {
+  Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'endScreenLoading called');
   ScreenLoadingManager.endScreenLoading();
 };
 
@@ -227,6 +266,10 @@ export const endScreenLoading = () => {
  * @param routes Array of route names to exclude
  */
 export function excludeScreenLoadingRoutes(routes: string[]): void {
+  Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'excludeScreenLoadingRoutes', {
+    routes,
+    count: routes?.length ?? 0,
+  });
   ScreenLoadingManager.excludeRoutes(routes);
 }
 
@@ -235,5 +278,10 @@ export function excludeScreenLoadingRoutes(routes: string[]): void {
  * @param routes Array of route names to include (or empty to clear all exclusions)
  */
 export function includeScreenLoadingRoutes(routes?: string[]): void {
+  Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'includeScreenLoadingRoutes', {
+    routes,
+    count: routes?.length ?? 0,
+    clearAll: routes == null || routes.length === 0,
+  });
   ScreenLoadingManager.includeRoutes(routes);
 }

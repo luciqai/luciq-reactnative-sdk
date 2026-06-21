@@ -2,7 +2,10 @@ import React, { useState, useRef, useEffect, useLayoutEffect, useContext } from 
 import { View, ViewProps } from 'react-native';
 import { ScreenLoadingManager } from '../modules/apm/ScreenLoadingManager';
 import { Logger } from '../utils/logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
 import { nowMicros, toEpochMicros } from '../utils/LuciqUtils';
+
+const TAG = LuciqDebugTags.APM_SCREEN_LOADING;
 
 // Context to handle nested components
 const ScreenLoadingContext = React.createContext<boolean>(false);
@@ -48,11 +51,18 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
         );
         if (span) {
           initialSpanIdRef.current = span.spanId;
-          Logger.log(`[LuciqScreenLoading] Span ${span.spanId} created in constructor`);
+          Logger.debug(TAG, 'span created in constructor', {
+            spanId: span.spanId,
+            screenName,
+          });
         }
       }
     } catch (error) {
-      Logger.error('[LuciqScreenLoading] Failed to create span:', error);
+      Logger.error(TAG, 'createSpan failed in constructor', {
+        screenName,
+        message: (error as Error)?.message,
+        name: (error as Error)?.name,
+      });
     }
   }
 
@@ -82,9 +92,10 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
   useEffect(() => {
     // Check if we're nested and should ignore this component
     if (isNested && initialSpanIdRef.current) {
-      Logger.log(
-        `[LuciqScreenLoading] Nested component detected, ignoring span ${initialSpanIdRef.current}`,
-      );
+      Logger.debug(TAG, 'nested component detected, ignoring span', {
+        spanId: initialSpanIdRef.current,
+        screenName,
+      });
       // Cancel the span
       setSpanId(null);
     }
@@ -104,11 +115,23 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
       .then(() => {
         const completedSpan = ScreenLoadingManager.getActiveSpan(spanId);
         if (completedSpan?.ttid && onMeasuredRef.current) {
-          onMeasuredRef.current(completedSpan.ttid / 1000);
+          try {
+            onMeasuredRef.current(completedSpan.ttid / 1000);
+          } catch (error) {
+            Logger.error(TAG, 'onMeasured callback failed', {
+              spanId,
+              message: (error as Error)?.message,
+              name: (error as Error)?.name,
+            });
+          }
         }
       })
       .catch((error) => {
-        Logger.warn('[LuciqScreenLoading] Failed to end span:', error);
+        Logger.warn(TAG, 'endSpan failed', {
+          spanId,
+          message: (error as Error)?.message,
+          name: (error as Error)?.name,
+        });
       });
 
     attributesRecordedRef.current = true;
@@ -156,7 +179,9 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
         ScreenLoadingManager.addSpanAttribute(spanId, 'mnt_mus', mountDuration);
       }
 
-      Logger.log(`[LuciqScreenLoading] Lifecycle measurements for span ${spanId}:`, {
+      Logger.debug(TAG, 'lifecycle measurements', {
+        spanId,
+        screenName,
         constructor_us: renderStartTimestampRef.current
           ? renderStartTimestampRef.current - constructorTimestampRef.current
           : undefined,
@@ -170,7 +195,11 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
             : undefined,
       });
     } catch (error) {
-      Logger.error(`[LuciqScreenLoading] Failed to record attributes for span ${spanId}:`, error);
+      Logger.error(TAG, 'record attributes failed', {
+        spanId,
+        message: (error as Error)?.message,
+        name: (error as Error)?.name,
+      });
     }
 
     // End the span — mark as measured synchronously to guard against unmount race
@@ -185,7 +214,11 @@ export function LuciqCaptureScreenLoading(props: LuciqScreenLoadingProps) {
       // Cleanup on unmount if not measured
       if (spanIdRef.current && !isMeasuredRef.current) {
         ScreenLoadingManager.endSpan(spanIdRef.current).catch((error) => {
-          Logger.warn('[LuciqScreenLoading] Failed to end span on unmount:', error);
+          Logger.warn(TAG, 'endSpan failed on unmount', {
+            spanId: spanIdRef.current,
+            message: (error as Error)?.message,
+            name: (error as Error)?.name,
+          });
         });
       }
     };

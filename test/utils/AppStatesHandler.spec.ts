@@ -24,7 +24,14 @@ describe('AppState Listener', () => {
     addAppStateListener(mockHandleAppStateChange);
 
     expect(AppState.addEventListener).toHaveBeenCalledTimes(1);
-    expect(AppState.addEventListener).toHaveBeenCalledWith('change', mockHandleAppStateChange);
+    // Implementation wraps the user callback to emit a debug log per transition,
+    // so the registered listener is a wrapper - not the same reference. Verify
+    // it is registered for 'change' and that invoking it delegates to the user
+    // callback with the same state.
+    expect(AppState.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
+    const registered = (AppState.addEventListener as jest.Mock).mock.calls[0][1];
+    registered('background');
+    expect(mockHandleAppStateChange).toHaveBeenCalledWith('background');
   });
 
   it('should not add another listener if one already exists', () => {

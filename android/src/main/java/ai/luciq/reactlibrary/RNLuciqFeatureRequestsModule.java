@@ -9,6 +9,8 @@ import com.facebook.react.bridge.ReadableArray;
 import ai.luciq.featuresrequest.FeatureRequests;
 import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 import java.util.ArrayList;
@@ -16,6 +18,8 @@ import java.util.ArrayList;
 import javax.annotation.Nonnull;
 
 public class RNLuciqFeatureRequestsModule extends ReactContextBaseJavaModule {
+
+    private static final String TAG = LuciqRNDebugTags.FEATURE_REQUESTS;
 
     public RNLuciqFeatureRequestsModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
@@ -40,6 +44,7 @@ public class RNLuciqFeatureRequestsModule extends ReactContextBaseJavaModule {
             @SuppressLint("WrongConstant")
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setEmailFieldRequiredForFeatureRequests] called isEmailRequired=" + isEmailRequired + " actionTypesCount=" + (actionTypes == null ? 0 : actionTypes.size()));
                 try {
                     final ArrayList<String> keys = ArrayUtil.parseReadableArrayOfStrings(actionTypes);
                     final ArrayList<Integer> types = ArgsRegistry.actionTypes.getAll(keys);
@@ -51,7 +56,7 @@ public class RNLuciqFeatureRequestsModule extends ReactContextBaseJavaModule {
 
                     FeatureRequests.setEmailFieldRequired(isEmailRequired, typesInts);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setEmailFieldRequiredForFeatureRequests] failed", e);
                 }
             }
         });
@@ -65,10 +70,11 @@ public class RNLuciqFeatureRequestsModule extends ReactContextBaseJavaModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[show] called");
                 try {
                     FeatureRequests.show();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[show] failed", e);
                 }
             }
         });
@@ -83,6 +89,7 @@ public class RNLuciqFeatureRequestsModule extends ReactContextBaseJavaModule {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setEnabled] called isEnabled=" + isEnabled);
                 try {
                     if (isEnabled) {
                         FeatureRequests.setState(Feature.State.ENABLED);
@@ -90,7 +97,7 @@ public class RNLuciqFeatureRequestsModule extends ReactContextBaseJavaModule {
                         FeatureRequests.setState(Feature.State.DISABLED);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setEnabled] failed", e);
                 }
             }
         });
