@@ -1,4 +1,16 @@
-<manifest 
+<manifest
   xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <application>
+    <!--
+      Runs before Application.onCreate so the SDK can install its native crash handlers before the
+      React Native bridge and JS bundle load. No-op unless pre-init is enabled via meta-data.
+    -->
+    <provider
+      android:name="ai.luciq.reactlibrary.LuciqInitProvider"
+      android:authorities="${applicationId}.LuciqInitProvider"
+      android:exported="false"
+      android:initOrder="100" />
+  </application>
 
 </manifest>

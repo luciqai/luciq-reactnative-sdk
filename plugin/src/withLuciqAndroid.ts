@@ -1,6 +1,7 @@
 import type { ConfigPlugin } from 'expo/config-plugins';
 import { withAppBuildGradle, withAndroidManifest } from 'expo/config-plugins';
 import type { PluginProps } from './pluginProps';
+import { setMetaData } from './preInitHelpers';
 
 export const withLuciqAndroid: ConfigPlugin<PluginProps> = (config, props) => {
   config = withAppBuildGradle(config, (configAndroid) => {
@@ -25,6 +26,42 @@ export const withLuciqAndroid: ConfigPlugin<PluginProps> = (config, props) => {
     }
     return configAndroid;
   });
+
+  // Enable native pre-init crash capture via manifest meta-data read by LuciqInitProvider
+  if (props.enablePreInitCrashCapture) {
+    const token = props.token ?? (config.extra?.luciq?.token as string | undefined);
+
+    if (!token) {
+      console.warn(
+        '[Luciq] enablePreInitCrashCapture is true but no token was provided (plugin "token" prop or extra.luciq.token). Skipping Android pre-init.',
+      );
+    } else {
+      config = withAndroidManifest(config, (configAndroid) => {
+        const application = configAndroid.modResults.manifest.application?.[0];
+
+        if (!application) {
+          console.warn(
+            '[Luciq] No <application> found in AndroidManifest. Skipping Android pre-init.',
+          );
+          return configAndroid;
+        }
+
+        const entries: Record<string, string> = {
+          'ai.luciq.preinit.enabled': 'true',
+          'ai.luciq.preinit.token': token,
+        };
+        if (props.ignoreAndroidSecureFlag != null) {
+          entries['ai.luciq.preinit.ignoreAndroidSecureFlag'] = String(
+            props.ignoreAndroidSecureFlag,
+          );
+        }
+
+        application['meta-data'] = setMetaData(application['meta-data'], entries);
+
+        return configAndroid;
+      });
+    }
+  }
 
   // Inject the permission if requested
   if (props.addScreenRecordingBugReportingPermission) {

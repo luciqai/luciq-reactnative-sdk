@@ -1,6 +1,7 @@
 import type { ConfigPlugin, XcodeProject } from 'expo/config-plugins';
-import { withXcodeProject, withInfoPlist } from 'expo/config-plugins';
+import { withXcodeProject, withInfoPlist, withAppDelegate } from 'expo/config-plugins';
 import type { PluginProps } from './pluginProps';
+import { patchAppDelegate } from './preInitHelpers';
 import * as path from 'path';
 import * as fs from 'fs';
 
@@ -60,6 +61,33 @@ export const withLuciqIOS: ConfigPlugin<PluginProps> = (config, props) => {
       configXcode.ios.infoPlist = plist;
       return configXcode;
     });
+  }
+
+  // Enable native pre-init crash capture: write Info.plist keys + start the SDK from AppDelegate
+  if (props.enablePreInitCrashCapture) {
+    const token = props.token ?? (config.extra?.luciq?.token as string | undefined);
+
+    if (!token) {
+      console.warn(
+        '[Luciq] enablePreInitCrashCapture is true but no token was provided (plugin "token" prop or extra.luciq.token). Skipping iOS pre-init.',
+      );
+    } else {
+      updatedConfig = withInfoPlist(updatedConfig, (configXcode) => {
+        const plist = configXcode.ios.infoPlist ?? {};
+        plist.LuciqPreInitEnabled = true;
+        plist.LuciqToken = token;
+        configXcode.ios.infoPlist = plist;
+        return configXcode;
+      });
+
+      updatedConfig = withAppDelegate(updatedConfig, (configXcode) => {
+        configXcode.modResults.contents = patchAppDelegate(
+          configXcode.modResults.contents,
+          configXcode.modResults.language,
+        );
+        return configXcode;
+      });
+    }
   }
 
   return updatedConfig;

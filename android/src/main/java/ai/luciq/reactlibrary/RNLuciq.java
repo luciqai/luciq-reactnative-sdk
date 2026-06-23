@@ -7,6 +7,7 @@ import androidx.annotation.VisibleForTesting;
 
 import com.facebook.react.bridge.ReadableMap;
 import ai.luciq.apm.APM;
+import ai.luciq.bug.BugReporting;
 import ai.luciq.library.Luciq;
 import ai.luciq.library.LogLevel;
 import ai.luciq.library.Platform;
@@ -21,7 +22,19 @@ public class RNLuciq {
 
     private static RNLuciq instance;
 
+    /**
+     * Whether the native SDK was started before the JS bundle loaded via {@link #startPreInit}.
+     */
+    private static volatile boolean isPreInitialized = false;
+
     private RNLuciq() {
+    }
+
+    /**
+     * @return {@code true} if the native SDK was started before the JS bundle loaded.
+     */
+    public static boolean isPreInitialized() {
+        return isPreInitialized;
     }
 
 
@@ -126,6 +139,51 @@ public class RNLuciq {
             @NonNull LuciqInvocationEvent... invocationEvent
     ) {
         init(application, applicationToken, LogLevel.ERROR,codePushVersion,appVariant, null,invocationEvent);
+    }
+
+    /**
+     * Starts the native SDK before the React Native JS bundle loads, so crashes that happen during
+     * native startup (Application.onCreate, native module initialization, the window before
+     * {@code Luciq.init()} runs from JS) are captured. Invoked by {@link LuciqInitProvider} using
+     * build-time configuration read from the merged AndroidManifest.
+     *
+     * <p>Only a minimal configuration (token + log level) is applied here. The full configuration
+     * (invocation events, network mode, codePush, app variant, etc.) is applied later when the JS
+     * {@code Luciq.init()} call reaches {@link Builder#build()}; that path already reconciles with an
+     * already-built SDK via {@link Luciq#isBuilt()}.</p>
+     *
+     * @param application      The application context.
+     * @param applicationToken The app's identifying token, available on your dashboard.
+     * @param logLevel         The level of detail in logs to print. See {@link LogLevel}.
+     * @param ignoreFlagSecure Overrides the SDK screenshot security behavior, or {@code null} to
+     *                         leave the default. Applied here at build time because it has no
+     *                         runtime setter.
+     */
+    public void startPreInit(@NonNull Application application, @NonNull String applicationToken, int logLevel, Boolean ignoreFlagSecure) {
+        try {
+            if (Luciq.isBuilt()) {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[startPreInit] SDK already built, skipping pre-init");
+                return;
+            }
+
+            setBaseUrlForDeprecationLogs();
+            setCurrentPlatform();
+
+            Luciq.Builder builder = new Luciq.Builder(application, applicationToken)
+                    .setSdkDebugLogsLevel(logLevel);
+            if (ignoreFlagSecure != null) {
+                builder.ignoreFlagSecure(ignoreFlagSecure);
+            }
+            builder.build();
+
+            // Temporarily disabling APM hot launches
+            APM.setHotAppLaunchEnabled(false);
+
+            isPreInitialized = true;
+            LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[startPreInit] native pre-init complete");
+        } catch (Exception e) {
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[startPreInit] failed", e);
+        }
     }
 
     @VisibleForTesting
@@ -291,6 +349,14 @@ public class RNLuciq {
                 RNLuciq.getInstance().setBaseUrlForDeprecationLogs();
                 RNLuciq.getInstance().setCurrentPlatform();
 
+                if (Luciq.isBuilt()) {
+                    // The SDK was already started (e.g. by pre-init before the JS bundle loaded).
+                    // Re-building would be unsafe and would not apply the full JS config, so apply
+                    // each field via its runtime setter instead of constructing a new builder.
+                    applyConfigToRunningInstance();
+                    return;
+                }
+
                 Luciq.Builder luciqBuilder = new Luciq.Builder(application, applicationToken)
                         .setInvocationEvents(invocationEvents)
                         .setSdkDebugLogsLevel(logLevel);
@@ -324,6 +390,40 @@ public class RNLuciq {
             } catch (Exception e) {
                 LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[RNLuciq.Builder.build] failed", e);
             }
+        }
+
+        /**
+         * Applies the JS configuration to an already-running SDK instance using runtime setters,
+         * instead of re-building. Used when the SDK was started before the JS bundle loaded (see
+         * {@link RNLuciq#startPreInit}).
+         *
+         * <p>Note: {@code ignoreFlagSecure} has no runtime setter and is applied only at build time,
+         * so when pre-init is enabled it cannot be changed from the JS {@code Luciq.init()} call.</p>
+         */
+        private void applyConfigToRunningInstance() {
+            LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[RNLuciq.Builder.build] reconciling JS config with pre-initialized SDK");
+
+            if (invocationEvents != null) {
+                BugReporting.setInvocationEvents(invocationEvents);
+            }
+            if (codePushVersion != null) {
+                Luciq.setCodePushVersion(codePushVersion);
+            }
+            if (appVariant != null) {
+                Luciq.setAppVariant(appVariant);
+            }
+            if (overAirVersion != null
+                    && overAirVersion.hasKey("service") && overAirVersion.hasKey("version")
+                    && overAirVersion.getString("service") != null && overAirVersion.getString("version") != null) {
+                Luciq.setOverAirVersion(overAirVersion.getString("version"),
+                        ArgsRegistry.overAirUpdateService.get(overAirVersion.getString("service")));
+            }
+            if (ignoreFlagSecure != null) {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[RNLuciq.Builder.build] ignoreAndroidSecureFlag has no runtime setter; ignored because the SDK is already started");
+            }
+
+            // Temporarily disabling APM hot launches
+            APM.setHotAppLaunchEnabled(false);
         }
     }
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Pre-JS-init native crash capture: optionally start the native SDK before the JS bundle loads so crashes during native startup (`Application.onCreate`, `AppDelegate`, native module init) are captured and uploaded on the next launch. Enable via the Expo config plugin (`enablePreInitCrashCapture` + `token`) or manually for bare React Native. See [Pre-JS-Init Native Crash Capture](https://instabug.atlassian.net/wiki/spaces/CP/pages/6055854084/Pre-JS-Init+Native+Crash+Capture).
+
 ## [19.8.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.8.0...19.7.0)
 
 ### Added
