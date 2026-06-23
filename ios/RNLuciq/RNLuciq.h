@@ -30,6 +30,19 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception;
 
 + (void)setOverAirVersion:(NSDictionary *)overAirVersion;
 
+/**
+ @brief Starts the native SDK before the React Native bridge and JS bundle load.
+
+ @discussion Reads build-time configuration (token + log level) from the app's Info.plist and starts
+ the SDK so crashes that happen during native startup (AppDelegate, native module init, the window
+ before @c Luciq.init() runs from JS) are captured. No-op unless pre-init is enabled in Info.plist.
+
+ Call this as early as possible from
+ @c -[UIApplicationDelegate application:didFinishLaunchingWithOptions:]. The Expo config plugin
+ injects this call automatically; bare React Native apps call it manually.
+ */
++ (void)startPreInit;
+
 @end
 
 #endif /* RNLuciq_h */
