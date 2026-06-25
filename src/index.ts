@@ -49,4 +49,11 @@ export type {
 export { LuciqCaptureScreenLoading } from './components/LuciqCaptureScreenLoading';
 export type { LuciqScreenLoadingProps } from './components/LuciqCaptureScreenLoading';
 
+// Error Boundary Component
+export { LuciqErrorBoundary } from './components/LuciqErrorBoundary';
+export type {
+  LuciqErrorBoundaryProps,
+  LuciqErrorBoundaryFallbackProps,
+} from './components/LuciqErrorBoundary';
+
 export default Luciq;
