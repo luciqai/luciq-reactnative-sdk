@@ -223,7 +223,7 @@ jobs:
     parameters:
       prepare_steps:
         type: steps
-        default: []
+        default: [ ]
       collect_coverage:
         type: boolean
         default: false
@@ -248,7 +248,7 @@ jobs:
     parameters:
       prepare_steps:
         type: steps
-        default: []
+        default: [ ]
       collect_coverage:
         type: boolean
         default: false
@@ -310,7 +310,7 @@ jobs:
     parameters:
       prepare_steps:
         type: steps
-        default: []
+        default: [ ]
       collect_coverage:
         type: boolean
         default: false
@@ -354,7 +354,7 @@ jobs:
     parameters:
       prepare_steps:
         type: steps
-        default: []
+        default: [ ]
     macos:
       xcode: 16.4.0
     resource_class: m4pro.medium
@@ -404,7 +404,7 @@ jobs:
     parameters:
       prepare_steps:
         type: steps
-        default: []
+        default: [ ]
     executor:
       name: android/android-machine
       tag: '2024.01.1'
@@ -445,7 +445,7 @@ jobs:
     parameters:
       prepare_steps:
         type: steps
-        default: []
+        default: [ ]
       api_endpoint:
         type: string
       dashboard_token_env:
@@ -610,6 +610,9 @@ workflows:
           api_endpoint: st001009nn.instabug.com
           dashboard_token_env: NN_TOKEN
 
+      - hold_sync_public_docs_changelog:
+          type: approval
+
       - hold_release_injazat:
           requires: *release_dependencies
           type: approval
@@ -633,10 +636,8 @@ workflows:
 
       - sync_public_docs_changelog:
           requires:
-            - publish
-          filters:
-            branches:
-              only: master
+            - hold_sync_public_docs_changelog
+
 
       - release_slack_notification:
           channel: C8PDY2Q8H
