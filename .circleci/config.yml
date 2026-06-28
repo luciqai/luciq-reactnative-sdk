@@ -146,6 +146,16 @@ commands:
             echo "export DANGER_GITHUB_API_TOKEN='$TOKEN'" >> "$BASH_ENV"
             echo "export RELEASE_GITHUB_TOKEN='$TOKEN'" >> "$BASH_ENV"
 
+  update_public_docs_changelog:
+    steps:
+      - run:
+          name: Sync React Native changelog to public docs (luciq-docs)
+          command: |
+            RELEASE_OWNER=$(./scripts/releases/get_job_approver_username.sh 2>/dev/null || true)
+            echo "Release owner (docs PR reviewer): ${RELEASE_OWNER:-<none>}"
+            # Non-fatal: docs sync must never break a release.
+            DOCS_PR_REVIEWER="$RELEASE_OWNER" ./scripts/releases/update-public-docs-changelog.sh || echo "Docs changelog sync failed (non-fatal)"
+
   notify_slack_with_release:
     parameters:
       channel:
@@ -534,6 +544,14 @@ jobs:
       - notify_slack_with_release:
           channel: <<parameters.channel>>
 
+  sync_public_docs_changelog:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - advanced-checkout/shallow-checkout
+      - generate_luciq_github_app_token
+      - update_public_docs_changelog
+
 workflows:
   publish:
     jobs:
@@ -612,6 +630,13 @@ workflows:
                 api_endpoint: st001013mec1.instabug.com
           api_endpoint: st001013mec1.instabug.com
           dashboard_token_env: INJAZAT_TOKEN
+
+      - sync_public_docs_changelog:
+          requires:
+            - publish
+          filters:
+            branches:
+              only: master
 
       - release_slack_notification:
           channel: C8PDY2Q8H
