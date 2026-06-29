@@ -7,6 +7,7 @@ import Luciq, {
   Locale,
   WelcomeMessageMode,
   ReproStepsMode,
+  UserEventParam,
 } from '@luciq/react-native';
 import { InputGroup, InputLeftAddon, useToast, VStack, Button } from 'native-base';
 
@@ -32,6 +33,9 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
   const [userAttributeValue, setUserAttributeValue] = useState('');
   const [userData, setUserData] = useState('');
   const [userEvent, setUserEvent] = useState('');
+  const [userEventParams, setUserEventParams] = useState<Array<{ key: string; value: string }>>([
+    { key: '', value: '' },
+  ]);
   const [tag, setTag] = useState('');
   const [luciqLogLevel, setLuciqLogLevel] = useState<
     'verbose' | 'debug' | 'info' | 'warn' | 'error'
@@ -71,9 +75,17 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
   };
   const validateUserEventForm = () => {
     const errors: any = {};
-    if (userData.length === 0) {
+    if (userEvent.length === 0) {
       errors.userEventValue = 'Value is required';
     }
+    userEventParams.forEach((param, index) => {
+      if (param.key.length > 0 && param.value.length === 0) {
+        errors[`userEventParamValue_${index}`] = 'Value is required';
+      }
+      if (param.value.length > 0 && param.key.length === 0) {
+        errors[`userEventParamKey_${index}`] = 'Key is required';
+      }
+    });
     setUserEventFormError(errors);
     return Object.keys(errors).length === 0;
   };
@@ -136,12 +148,27 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
   };
   const saveUserEvent = () => {
     if (validateUserEventForm()) {
-      Luciq.logUserEvent(userEvent);
+      const parameters = userEventParams
+        .filter((param) => param.key.length > 0)
+        .map((param) => new UserEventParam(param.key, param.value));
+      Luciq.logUserEvent(userEvent, parameters);
       toast.show({
         description: 'User Event added successfully',
       });
-      setUserData('');
+      setUserEvent('');
+      setUserEventParams([{ key: '', value: '' }]);
     }
+  };
+  const updateUserEventParam = (index: number, field: 'key' | 'value', text: string) => {
+    setUserEventParams((params) =>
+      params.map((param, i) => (i === index ? { ...param, [field]: text } : param)),
+    );
+  };
+  const addUserEventParam = () => {
+    setUserEventParams((params) => [...params, { key: '', value: '' }]);
+  };
+  const removeUserEventParam = (index: number) => {
+    setUserEventParams((params) => params.filter((_, i) => i !== index));
   };
   const saveTag = () => {
     if (validateTagForm()) {
@@ -450,8 +477,37 @@ export const SettingsScreen: React.FC<NativeStackScreenProps<HomeStackParamList,
                 />
               </View>
             </View>
+            {userEventParams.map((param, index) => (
+              <View style={styles.formContainer} key={`user-event-param-${index}`}>
+                <View style={styles.inputWrapper}>
+                  <InputField
+                    placeholder="Parameter key"
+                    onChangeText={(key) => updateUserEventParam(index, 'key', key)}
+                    value={param.key}
+                    errorText={userEventFormError[`userEventParamKey_${index}`]}
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <InputField
+                    placeholder="Parameter value"
+                    onChangeText={(value) => updateUserEventParam(index, 'value', value)}
+                    value={param.value}
+                    errorText={userEventFormError[`userEventParamValue_${index}`]}
+                  />
+                </View>
+                {userEventParams.length > 1 && (
+                  <Button colorScheme="danger" onPress={() => removeUserEventParam(index)}>
+                    -
+                  </Button>
+                )}
+              </View>
+            ))}
 
-            <Button mt="4" onPress={saveUserEvent}>
+            <Button mt="4" variant="outline" onPress={addUserEventParam}>
+              Add parameter
+            </Button>
+
+            <Button mt="2" onPress={saveUserEvent}>
               Save user event
             </Button>
           </VStack>
