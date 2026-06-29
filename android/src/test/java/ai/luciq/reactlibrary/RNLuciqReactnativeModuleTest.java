@@ -25,6 +25,7 @@ import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
 import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
 import ai.luciq.library.internal.module.LuciqLocale;
 import ai.luciq.library.ui.onboarding.WelcomeMessage;
+import ai.luciq.library.user.UserEventParam;
 import ai.luciq.library.util.overairversion.OverAirVersionType;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import ai.luciq.library.MaskingType;
@@ -276,10 +277,28 @@ public class RNLuciqReactnativeModuleTest {
 
         String eventName = "click";
         // when
-        rnModule.logUserEvent(eventName);
+        rnModule.logUserEvent(eventName, null);
         // then
         verify(Luciq.class,times(1));
         Luciq.logUserEvent(eventName);
+    }
+
+    @Test
+    public void given$logUserEventWithParameters_whenQuery_thenShouldCallNativeApi() {
+        // given
+
+        String eventName = "Completed Purchase";
+        JavaOnlyArray parameters = new JavaOnlyArray();
+        JavaOnlyMap itemParameter = new JavaOnlyMap();
+        itemParameter.putString("key", "item");
+        itemParameter.putString("value", "Premium Plan");
+        parameters.pushMap(itemParameter);
+
+        // when
+        rnModule.logUserEvent(eventName, parameters);
+        // then
+        verify(Luciq.class,times(1));
+        Luciq.logUserEvent(Matchers.eq(eventName), Matchers.<UserEventParam[]>any());
     }
 
     @Test

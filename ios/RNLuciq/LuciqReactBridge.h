@@ -60,7 +60,7 @@
 
 - (void)logOut;
 
-- (void)logUserEvent:(NSString *)name;
+- (void)logUserEvent:(NSString *)name parameters:(NSArray *)parameters;
 
 - (void)logVerbose:(NSString *)log;
 

@@ -22,6 +22,7 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.UIManager;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
@@ -68,6 +69,7 @@ import ai.luciq.library.model.LuciqTheme;
 import ai.luciq.library.model.NetworkLog;
 import ai.luciq.library.model.Report;
 import ai.luciq.library.ui.onboarding.WelcomeMessage;
+import ai.luciq.library.user.UserEventParam;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
@@ -708,20 +710,56 @@ public class RNLuciqReactnativeModule extends EventEmitterModule {
      * Logged user events are going to be sent with each report, as well as at the end of a session.
      *
      * @param name Event name.
+     * @param parameters User event parameters.
      */
     @ReactMethod
-    public void logUserEvent(final String name) {
+    public void logUserEvent(final String name, @Nullable final ReadableArray parameters) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logUserEvent] called nameLen=" + (name == null ? 0 : name.length()) + ", present=" + (name != null));
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logUserEvent] called nameLen=" + (name == null ? 0 : name.length()) + ", present=" + (name != null) + ", parametersCount=" + (parameters == null ? 0 : parameters.size()));
                 try {
-                    Luciq.logUserEvent(name);
+                    UserEventParam[] userEventParams = convertReadableArrayToUserEventParams(parameters);
+                    if (userEventParams.length == 0) {
+                        Luciq.logUserEvent(name);
+                    } else {
+                        Luciq.logUserEvent(name, userEventParams);
+                    }
                 } catch (java.lang.Exception exception) {
                     LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[logUserEvent] failed", exception);
                 }
             }
         });
+    }
+
+    private UserEventParam[] convertReadableArrayToUserEventParams(@Nullable ReadableArray parameters) {
+        if (parameters == null || parameters.size() == 0) {
+            return new UserEventParam[0];
+        }
+
+        List<UserEventParam> userEventParams = new ArrayList<>();
+        for (int i = 0; i < parameters.size(); i++) {
+            if (parameters.isNull(i) || parameters.getType(i) != ReadableType.Map) {
+                continue;
+            }
+            ReadableMap parameter = parameters.getMap(i);
+            String key = getUserEventParamString(parameter, "key");
+            String value = getUserEventParamString(parameter, "value");
+            if (key == null || value == null) {
+                continue;
+            }
+            userEventParams.add(new UserEventParam(key, value));
+        }
+
+        return userEventParams.toArray(new UserEventParam[0]);
+    }
+
+    @Nullable
+    private String getUserEventParamString(ReadableMap parameter, String field) {
+        if (!parameter.hasKey(field) || parameter.isNull(field) || parameter.getType(field) != ReadableType.String) {
+            return null;
+        }
+        return parameter.getString(field);
     }
 
     /**

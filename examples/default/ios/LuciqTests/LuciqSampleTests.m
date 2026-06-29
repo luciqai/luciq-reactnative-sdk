@@ -248,8 +248,18 @@
   NSString *name = @"event name";
 
   OCMStub([mock logUserEventWithName:name]);
-  [self.luciqBridge logUserEvent:name];
+  [self.luciqBridge logUserEvent:name parameters:@[]];
   OCMVerify([mock logUserEventWithName:name]);
+}
+
+- (void)testLogUserEventWithParameters {
+  id mock = OCMClassMock([Luciq class]);
+  NSString *name = @"event name";
+  NSArray *parameters = @[@{@"key": @"item", @"value": @"Premium Plan"}];
+
+  OCMStub([mock logUserEventWithName:name parameters:[OCMArg any]]);
+  [self.luciqBridge logUserEvent:name parameters:parameters];
+  OCMVerify([mock logUserEventWithName:name parameters:[OCMArg any]]);
 }
 
 - (void)testSetReproStepsConfig {

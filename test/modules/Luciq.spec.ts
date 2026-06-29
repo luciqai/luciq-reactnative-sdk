@@ -20,6 +20,7 @@ import {
   OverAirUpdateServices,
   ReproStepsMode,
   StringKey,
+  UserEventParam,
   WelcomeMessageMode,
 } from '../../src';
 import type { LuciqConfig } from '../../src';
@@ -635,7 +636,20 @@ describe('Luciq Module', () => {
     Luciq.logUserEvent(event);
 
     expect(NativeLuciq.logUserEvent).toBeCalledTimes(1);
-    expect(NativeLuciq.logUserEvent).toBeCalledWith(event);
+    expect(NativeLuciq.logUserEvent).toBeCalledWith(event, []);
+  });
+
+  it('should call the native method logUserEvent with parameters', () => {
+    const event = 'Completed Purchase';
+    const parameters = [
+      new UserEventParam('item', 'Premium Plan'),
+      new UserEventParam('currency', 'USD'),
+    ];
+
+    Luciq.logUserEvent(event, parameters);
+
+    expect(NativeLuciq.logUserEvent).toBeCalledTimes(1);
+    expect(NativeLuciq.logUserEvent).toBeCalledWith(event, parameters);
   });
 
   it('should call the native method logVerbose', () => {
