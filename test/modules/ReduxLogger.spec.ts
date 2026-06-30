@@ -1,11 +1,11 @@
 import { NativeAPM } from '../../src/native/NativeAPM';
 import { NativeLuciq } from '../../src/native/NativeLuciq';
-import { createReduxMiddleware } from '../../src/modules/ReduxLogger';
+import { createLuciqReduxMiddleware } from '../../src/modules/ReduxLogger';
 
 const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
 
 const setupDispatch = (
-  middleware: ReturnType<typeof createReduxMiddleware>,
+  middleware: ReturnType<typeof createLuciqReduxMiddleware>,
   next: (action: unknown) => unknown = (action) => action,
 ) => {
   const nextSpy = jest.fn(next);
@@ -19,7 +19,7 @@ describe('ReduxLogger Module', () => {
   });
 
   it('forwards the action to next and returns its result', () => {
-    const { dispatch, nextSpy } = setupDispatch(createReduxMiddleware(), () => 'result');
+    const { dispatch, nextSpy } = setupDispatch(createLuciqReduxMiddleware(), () => 'result');
     const action = { type: 'TEST_ACTION', payload: 1 };
 
     const result = dispatch(action);
@@ -30,7 +30,7 @@ describe('ReduxLogger Module', () => {
   });
 
   it('logs a breadcrumb with the action type and payload size', () => {
-    const { dispatch } = setupDispatch(createReduxMiddleware());
+    const { dispatch } = setupDispatch(createLuciqReduxMiddleware());
 
     dispatch({ type: 'TEST_ACTION', payload: 'data' });
 
@@ -40,7 +40,7 @@ describe('ReduxLogger Module', () => {
   });
 
   it('records an APM span named after the action type', async () => {
-    const { dispatch } = setupDispatch(createReduxMiddleware());
+    const { dispatch } = setupDispatch(createLuciqReduxMiddleware());
 
     dispatch({ type: 'TEST_ACTION' });
     await flushPromises();
@@ -52,7 +52,7 @@ describe('ReduxLogger Module', () => {
   });
 
   it('ignores thunk (function) actions', async () => {
-    const { dispatch, nextSpy } = setupDispatch(createReduxMiddleware());
+    const { dispatch, nextSpy } = setupDispatch(createLuciqReduxMiddleware());
 
     dispatch(() => {});
     await flushPromises();
@@ -63,7 +63,7 @@ describe('ReduxLogger Module', () => {
   });
 
   it('ignores actions without a string type', async () => {
-    const { dispatch, nextSpy } = setupDispatch(createReduxMiddleware());
+    const { dispatch, nextSpy } = setupDispatch(createLuciqReduxMiddleware());
 
     dispatch({ type: 123 });
     await flushPromises();
@@ -75,7 +75,7 @@ describe('ReduxLogger Module', () => {
 
   it('skips actions rejected by actionFilter', async () => {
     const actionFilter = jest.fn((action: { type: unknown }) => action.type !== 'IGNORED');
-    const { dispatch } = setupDispatch(createReduxMiddleware({ actionFilter }));
+    const { dispatch } = setupDispatch(createLuciqReduxMiddleware({ actionFilter }));
 
     dispatch({ type: 'IGNORED' });
     await flushPromises();
@@ -86,7 +86,9 @@ describe('ReduxLogger Module', () => {
   });
 
   it('respects the spans and breadcrumbs flags', async () => {
-    const { dispatch } = setupDispatch(createReduxMiddleware({ spans: false, breadcrumbs: true }));
+    const { dispatch } = setupDispatch(
+      createLuciqReduxMiddleware({ spans: false, breadcrumbs: true }),
+    );
 
     dispatch({ type: 'TEST_ACTION' });
     await flushPromises();
@@ -96,7 +98,7 @@ describe('ReduxLogger Module', () => {
   });
 
   it('uses a custom name prefix', async () => {
-    const { dispatch } = setupDispatch(createReduxMiddleware({ namePrefix: 'MyStore' }));
+    const { dispatch } = setupDispatch(createLuciqReduxMiddleware({ namePrefix: 'MyStore' }));
 
     dispatch({ type: 'TEST_ACTION' });
     await flushPromises();
@@ -116,7 +118,7 @@ describe('ReduxLogger Module', () => {
     const pending = new Promise<void>((resolve) => {
       resolveThunk = resolve;
     });
-    const { dispatch } = setupDispatch(createReduxMiddleware(), () => pending);
+    const { dispatch } = setupDispatch(createLuciqReduxMiddleware(), () => pending);
 
     dispatch({ type: 'ASYNC_ACTION' });
     await flushPromises();
@@ -133,7 +135,7 @@ describe('ReduxLogger Module', () => {
 
   it('records the span and rethrows when next throws', async () => {
     const error = new Error('reducer failed');
-    const { dispatch } = setupDispatch(createReduxMiddleware(), () => {
+    const { dispatch } = setupDispatch(createLuciqReduxMiddleware(), () => {
       throw error;
     });
 
