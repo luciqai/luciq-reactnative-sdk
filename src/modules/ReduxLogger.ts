@@ -8,9 +8,9 @@ import { LuciqDebugTags } from '../constants/DebugTags';
 const TAG = LuciqDebugTags.APM_REDUX;
 
 /**
- * Options for {@link createReduxMiddleware}.
+ * Options for {@link createLuciqReduxMiddleware}.
  */
-export interface ReduxMiddlewareOptions {
+export interface LuciqReduxMiddlewareOptions {
   /**
    * Prefix used for span and breadcrumb names. Default `'Redux'`.
    * The final name is `"<prefix>: <action.type>"`.
@@ -98,7 +98,7 @@ const formatBytes = (bytes: number): string => {
  * middleware never throws into the dispatch chain: tracking failures are logged
  * and the original action result is always returned.
  *
- * @param options - {@link ReduxMiddlewareOptions} to customize behavior.
+ * @param options - {@link LuciqReduxMiddlewareOptions} to customize behavior.
  * @returns A Redux-compatible middleware.
  *
  * @example
@@ -108,11 +108,13 @@ const formatBytes = (bytes: number): string => {
  *
  * const store = configureStore({
  *   reducer,
- *   middleware: (getDefault) => getDefault().concat(Luciq.createReduxMiddleware()),
+ *   middleware: (getDefault) => getDefault().concat(Luciq.createLuciqReduxMiddleware()),
  * });
  * ```
  */
-export const createReduxMiddleware = (options: ReduxMiddlewareOptions = {}): Middleware => {
+export const createLuciqReduxMiddleware = (
+  options: LuciqReduxMiddlewareOptions = {},
+): Middleware => {
   const {
     namePrefix = 'Redux',
     spans = true,
@@ -121,7 +123,7 @@ export const createReduxMiddleware = (options: ReduxMiddlewareOptions = {}): Mid
     actionFilter,
   } = options;
 
-  Logger.debug(TAG, 'createReduxMiddleware', {
+  Logger.debug(TAG, 'createLuciqReduxMiddleware', {
     namePrefix,
     spans,
     breadcrumbs,
