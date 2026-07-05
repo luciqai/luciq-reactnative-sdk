@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Add App Launch stages: split the cold app launch duration into named stages (Native/Pre-JS, JS Load & Execute, First Render, To Interactive) via the new `LuciqCaptureAppLaunch` root wrapper. Disabled by default until native support ships.
+
 ## [19.8.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.8.0...19.7.0)
 
 ### Added

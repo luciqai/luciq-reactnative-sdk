@@ -12,6 +12,8 @@ const mockAPM: ApmNativeModule = {
   startUITrace: jest.fn(),
   endUITrace: jest.fn(),
   endAppLaunch: jest.fn(),
+  isAppLaunchStagesEnabled: jest.fn().mockResolvedValue(false),
+  syncAppLaunchStages: jest.fn(),
   lcqSleep: jest.fn(),
   networkLogAndroid: jest.fn(),
   setScreenRenderingEnabled: jest.fn(),

@@ -8,12 +8,21 @@ import {
 } from '../utils/CustomSpansManager';
 import type { CustomSpan } from '../models/CustomSpan';
 import { ScreenLoadingManager } from './apm/ScreenLoadingManager';
+import { AppLaunchStagesManager } from './apm/AppLaunchStagesManager';
 import { Logger } from '../utils/logger';
 import { LuciqDebugTags } from '../constants/DebugTags';
 
 // Initialize Screen Loading on module load
 ScreenLoadingManager.initialize().catch((error) => {
   Logger.error(LuciqDebugTags.APM_SCREEN_LOADING, 'Failed to initialize Screen Loading', {
+    message: (error as Error)?.message,
+    name: (error as Error)?.name,
+  });
+});
+
+// Initialize App Launch Stages on module load
+AppLaunchStagesManager.initialize().catch((error) => {
+  Logger.error(LuciqDebugTags.APM_APP_LAUNCH, 'Failed to initialize App Launch Stages', {
     message: (error as Error)?.message,
     name: (error as Error)?.name,
   });
@@ -46,6 +55,7 @@ export const setAppLaunchEnabled = (isEnabled: boolean) => {
 export const endAppLaunch = () => {
   Logger.debug(LuciqDebugTags.APM_APP_LAUNCH, 'endAppLaunch called');
   NativeAPM.endAppLaunch();
+  AppLaunchStagesManager.markInteractive();
 };
 
 /**

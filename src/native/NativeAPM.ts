@@ -33,6 +33,10 @@ export interface ApmNativeModule extends NativeModule {
   setAppLaunchEnabled(isEnabled: boolean): void;
   endAppLaunch(): void;
 
+  // App Launch Stages APIs //
+  isAppLaunchStagesEnabled(): Promise<boolean>;
+  syncAppLaunchStages(jsStartTimestampMUS: number, stages: Record<string, number>): void;
+
   // Execution Traces APIs //
   // App Flows APIs //
   startFlow(name: string): void;

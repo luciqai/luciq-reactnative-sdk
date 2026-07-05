@@ -6,6 +6,7 @@ import * as APM from '../../src/modules/APM';
 import { CustomSpan } from '../../src';
 import * as CustomSpansManager from '../../src/utils/CustomSpansManager';
 import { ScreenLoadingManager } from '../../src/modules/apm/ScreenLoadingManager';
+import { AppLaunchStagesManager } from '../../src/modules/apm/AppLaunchStagesManager';
 import { Logger } from '../../src/utils/logger';
 
 describe('APM Module', () => {
@@ -43,6 +44,15 @@ describe('APM Module', () => {
 
     expect(NativeAPM.endAppLaunch).toBeCalledTimes(1);
     expect(NativeAPM.endAppLaunch).toBeCalledWith();
+  });
+
+  it('should notify AppLaunchStagesManager on endAppLaunch', () => {
+    const spy = jest.spyOn(AppLaunchStagesManager, 'markInteractive').mockImplementation();
+
+    APM.endAppLaunch();
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    spy.mockRestore();
   });
 
   it('should call the native method setAutoUITraceEnabled', () => {

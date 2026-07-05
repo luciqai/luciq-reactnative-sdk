@@ -49,4 +49,8 @@ export type {
 export { LuciqCaptureScreenLoading } from './components/LuciqCaptureScreenLoading';
 export type { LuciqScreenLoadingProps } from './components/LuciqCaptureScreenLoading';
 
+// App Launch Component
+export { LuciqCaptureAppLaunch } from './components/LuciqCaptureAppLaunch';
+export type { LuciqAppLaunchProps } from './components/LuciqCaptureAppLaunch';
+
 export default Luciq;
