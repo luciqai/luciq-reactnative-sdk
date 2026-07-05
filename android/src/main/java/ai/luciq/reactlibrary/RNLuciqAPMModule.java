@@ -115,6 +115,48 @@ public class RNLuciqAPMModule extends EventEmitterModule {
     }
 
     /**
+     * Determines whether the App Launch Stages feature is enabled.
+     * TODO: Replace the hardcoded true with the real native feature check once the
+     * Luciq Android SDK exposes an App Launch Stages flag (mirror the
+     * InternalAPM._isFeatureEnabledCP(APMFeature...) pattern used for screen loading).
+     */
+    @ReactMethod
+    public void isAppLaunchStagesEnabled(Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.APM_APP_LAUNCH, "[isAppLaunchStagesEnabled] called");
+                try {
+                    boolean isEnabled = true;
+                    LuciqRNLogger.d(LuciqRNDebugTags.APM_APP_LAUNCH, "[isAppLaunchStagesEnabled] success result=" + isEnabled);
+                    promise.resolve(isEnabled);
+                } catch (Exception e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.APM_APP_LAUNCH, "[isAppLaunchStagesEnabled] failed", e);
+                    promise.resolve(false);
+                }
+            }
+        });
+    }
+
+    /**
+     * Receives the JS-side app launch stage breakdown. The stages are logged so the
+     * captured split can be inspected end-to-end; native ingestion is pending.
+     */
+    @ReactMethod
+    public void syncAppLaunchStages(double jsStartTimestampMUS, ReadableMap stages) {
+        try {
+            LuciqRNLogger.d(LuciqRNDebugTags.APM_APP_LAUNCH, "[syncAppLaunchStages] called jsStartTimestampMUS=" + jsStartTimestampMUS + " stages=" + stages.toHashMap());
+            // TODO: Forward the JS-start anchor + stages to the native Luciq Android
+            // SDK once it exposes an App Launch Stages ingestion API (analogous to
+            // InternalAPM._reportScreenLoadingCP(...)). Native fuses
+            // jsStartTimestampMUS with its own process-start timestamp to compute
+            // Stage 1 (Native / Pre-JS) and attach Stages 2-4.
+        } catch (Exception e) {
+            LuciqRNLogger.e(LuciqRNDebugTags.APM_APP_LAUNCH, "[syncAppLaunchStages] failed", e);
+        }
+    }
+
+    /**
      * Enables or disables auto UI tracing
      *
      * @param isEnabled boolean indicating enabled or disabled.

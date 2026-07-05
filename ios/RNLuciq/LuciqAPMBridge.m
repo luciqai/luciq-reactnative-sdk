@@ -59,6 +59,29 @@ RCT_EXPORT_METHOD(endAppLaunch) {
     [LCQAPM endAppLaunch];
 }
 
+// Determines whether the App Launch Stages feature is enabled.
+// TODO: Replace the hardcoded YES with the real native feature check once the
+// Luciq iOS SDK exposes an App Launch Stages flag (mirror LCQAPM.screenLoadingEnabled).
+RCT_EXPORT_METHOD(isAppLaunchStagesEnabled:(RCTPromiseResolveBlock)resolve
+                  rejecter:(RCTPromiseRejectBlock)reject) {
+    [LuciqRNLogger d:[LuciqRNDebugTags apmAppLaunch] format:@"[isAppLaunchStagesEnabled] called"];
+    BOOL isEnabled = YES;
+    [LuciqRNLogger d:[LuciqRNDebugTags apmAppLaunch] format:@"[isAppLaunchStagesEnabled] success result=%@", (isEnabled ? @"YES" : @"NO")];
+    resolve(@(isEnabled));
+}
+
+// Receives the JS-side app launch stage breakdown. The stages are logged so the
+// captured split can be inspected end-to-end; native ingestion is pending.
+RCT_EXPORT_METHOD(syncAppLaunchStages:(double)jsStartTimestampMUS
+                  stages:(NSDictionary *)stages) {
+    [LuciqRNLogger d:[LuciqRNDebugTags apmAppLaunch] format:@"[syncAppLaunchStages] called jsStartTimestampMUS=%f, stagesCount=%lu, stages=%@", jsStartTimestampMUS, (unsigned long)stages.count, stages];
+    // TODO: Forward the JS-start anchor + stages to the native Luciq iOS SDK once
+    // it exposes an App Launch Stages ingestion API (analogous to
+    // -[LCQAPM reportScreenLoadingCPWithStartTimestampMUS:durationMUS:stages:]).
+    // Native fuses jsStartTimestampMUS with its own process-start timestamp to
+    // compute Stage 1 (Native / Pre-JS) and attach Stages 2-4.
+}
+
 // Controls whether automatic tracing of UI interactions is enabled or disabled within the SDK.
 RCT_EXPORT_METHOD(setAutoUITraceEnabled:(BOOL)isEnabled) {
     [LuciqRNLogger d:[LuciqRNDebugTags apmUITrace] format:@"[setAutoUITraceEnabled] called isEnabled=%@", (isEnabled ? @"YES" : @"NO")];

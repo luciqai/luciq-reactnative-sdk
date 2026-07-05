@@ -14,6 +14,10 @@
 - (void)setEnabled:(BOOL)isEnabled;
 - (void)setAppLaunchEnabled:(BOOL)isEnabled;
 - (void)endAppLaunch;
+- (void)isAppLaunchStagesEnabled:(RCTPromiseResolveBlock)resolve
+                        rejecter:(RCTPromiseRejectBlock)reject;
+- (void)syncAppLaunchStages:(double)jsStartTimestampMUS
+                     stages:(NSDictionary *)stages;
 - (void)setAutoUITraceEnabled:(BOOL)isEnabled;
 - (void)startFlow:(NSString *)name;
 - (void)endFlow:(NSString *)name;
