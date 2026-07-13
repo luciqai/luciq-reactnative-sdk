@@ -443,7 +443,6 @@ jobs:
     executor:
       name: android/android-machine
       tag: '2024.01.1'
-    working_directory: ~/project/examples/default
     environment:
       LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
     steps:
@@ -455,7 +454,7 @@ jobs:
           app-dir: examples/default
       - run:
           name: Assemble example app with old architecture
-          working_directory: android
+          working_directory: examples/default/android
           command: ./gradlew assembleRelease -PnewArchEnabled=false
 
   release_custom_package:
