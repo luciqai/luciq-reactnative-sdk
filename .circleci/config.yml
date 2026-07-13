@@ -13,6 +13,7 @@ references:
     - lint
     - test_module
     - test_android
+    - build_android_old_arch
     - e2e_android
     - e2e_ios
     - validate_shell_files
@@ -431,6 +432,32 @@ jobs:
           working_directory: examples/default
           command: maestro test e2e/bug-reporting-flow-android.yaml
 
+  # Builds the example app against the old bridge architecture (newArchEnabled=false)
+  # so the backward-compatible path is not silently regressed while the default
+  # example config builds new arch only.
+  build_android_old_arch:
+    parameters:
+      prepare_steps:
+        type: steps
+        default: []
+    executor:
+      name: android/android-machine
+      tag: '2024.01.1'
+    working_directory: ~/project/examples/default
+    environment:
+      LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
+    steps:
+      - advanced-checkout/shallow-checkout
+      - steps: << parameters.prepare_steps >>
+      - install_node_modules
+      - node/install-packages:
+          pkg-manager: yarn
+          app-dir: examples/default
+      - run:
+          name: Assemble example app with old architecture
+          working_directory: android
+          command: ./gradlew assembleRelease -PnewArchEnabled=false
+
   release_custom_package:
     parameters:
       prepare_steps:
@@ -551,6 +578,7 @@ workflows:
           collect_coverage: true
       - validate_shell_files
       - sync_generated_files
+      - build_android_old_arch
       - e2e_ios
       - e2e_android
       - hold_generate_snapshot:

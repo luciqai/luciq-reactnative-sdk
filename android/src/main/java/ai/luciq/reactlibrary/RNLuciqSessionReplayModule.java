@@ -197,6 +197,7 @@ public class RNLuciqSessionReplayModule extends NativeSessionReplaySpec {
                 }
                 catch(Exception e){
                     e.printStackTrace();
+                    promise.resolve(null);
                 }
 
             }

@@ -308,11 +308,11 @@ cd examples/default/ios && RCT_NEW_ARCH_ENABLED=1 pod install
 
 If the JS spec and the native implementation disagree on a type, Codegen will fail the build with a mismatch error — that's the signal to bring the three layers back in sync.
 
-### Need Help?
+## Need Help?
 
 🌐 **[Visit our website](https://luciq.ai)** • 📖 **[Read the docs](https://docs.luciq.ai/)** • 💬 **[Get help](https://help.luciq.ai)**
 
-### Contact Us
+## Contact Us
 
 **Primary Contact Email:** [support@luciq.ai](mailto:support@luciq.ai)
 
@@ -323,5 +323,3 @@ If the JS spec and the native implementation disagree on a type, Codegen will fa
 <p>Made with ❤️ by the Luciq team</p>
 
 <img src=".github/assets/luciq-logo.png" alt="Luciq" width="60" />
-
-</div>

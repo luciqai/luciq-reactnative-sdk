@@ -67,6 +67,7 @@ public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
             });
         } catch (Exception e) {
             e.printStackTrace();
+            promise.resolve(null);
         }
     }
 
