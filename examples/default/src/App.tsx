@@ -29,6 +29,12 @@ import { navigationTheme } from './theme/navigationTheme';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { CallbackHandlersProvider } from './contexts/callbackContext';
 import { ColdStartTelemetry, fireColdStartBurstOnce } from './utils/coldStartTelemetry';
+import { emitTtiOnce, runBridgeBenchmark } from './utils/benchmark';
+import {
+  BENCHMARK_AUTORUN,
+  BENCHMARK_AUTORUN_DELAY_MS,
+  BENCHMARK_ITERATIONS,
+} from './utils/benchmarkConfig';
 
 const queryClient = new QueryClient();
 
@@ -114,6 +120,23 @@ export const App: React.FC = () => {
     // @ts-ignore
     Luciq.setNavigationListener(navigationRef);
   }, [navigationRef]);
+
+  const benchStarted = React.useRef(false);
+  useEffect(() => {
+    // Benchmark: mark time-to-interactive, then optionally autorun the bridge
+    // benchmark once per cold start (scraped by benchmark/run-*.sh).
+    emitTtiOnce();
+    if (!BENCHMARK_AUTORUN || benchStarted.current) {
+      return;
+    }
+    benchStarted.current = true;
+    const timer = setTimeout(() => {
+      runBridgeBenchmark(BENCHMARK_ITERATIONS).catch((error) =>
+        console.error('[BENCH] error', error),
+      );
+    }, BENCHMARK_AUTORUN_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <GestureHandlerRootView style={styles.root}>
