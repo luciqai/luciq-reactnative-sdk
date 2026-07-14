@@ -84,8 +84,9 @@ describe('ScreenLoadingManager', () => {
 
       expect(ScreenLoadingManager.isFeatureEnabled()).toBe(false);
       expect(Logger.error).toHaveBeenCalledWith(
-        '[ScreenLoading] Failed to initialize:',
-        expect.any(Error),
+        'LCQ-RN-APM-SL:',
+        'initialize failed',
+        expect.objectContaining({ message: 'init failed', name: 'Error' }),
       );
     });
   });
@@ -131,8 +132,9 @@ describe('ScreenLoadingManager', () => {
       await ScreenLoadingManager.refreshFlags();
 
       expect(Logger.error).toHaveBeenCalledWith(
-        '[ScreenLoading] Failed to refresh flags:',
-        expect.any(Error),
+        'LCQ-RN-APM-SL:',
+        'refresh flags failed',
+        expect.objectContaining({ message: 'refresh failed', name: 'Error' }),
       );
     });
   });
@@ -428,7 +430,9 @@ describe('ScreenLoadingManager', () => {
         const updatedSpan = ScreenLoadingManager.getActiveSpan(span.spanId);
         expect(updatedSpan?.status).toBe('error');
         expect(Logger.warn).toHaveBeenCalledWith(
-          expect.stringContaining('No frame timestamp available'),
+          'LCQ-RN-APM-SL:',
+          'no frame timestamp available',
+          expect.objectContaining({ spanId: span.spanId }),
         );
       }
     });
@@ -445,8 +449,9 @@ describe('ScreenLoadingManager', () => {
         const updatedSpan = ScreenLoadingManager.getActiveSpan(span.spanId);
         expect(updatedSpan?.status).toBe('error');
         expect(Logger.error).toHaveBeenCalledWith(
-          expect.stringContaining('Failed to get timestamp'),
-          expect.any(Error),
+          'LCQ-RN-APM-SL:',
+          'getScreenTimeToDisplay failed',
+          expect.objectContaining({ spanId: span.spanId, message: 'Native error', name: 'Error' }),
         );
       }
     });
@@ -509,7 +514,11 @@ describe('ScreenLoadingManager', () => {
     it('should do nothing for non-existent span ID', () => {
       ScreenLoadingManager.discardSpan('non-existent-id');
 
-      expect(Logger.log).not.toHaveBeenCalledWith(expect.stringContaining('Discarded span'));
+      expect(Logger.debug).not.toHaveBeenCalledWith(
+        'LCQ-RN-APM-SL:',
+        'span discarded',
+        expect.anything(),
+      );
     });
   });
 
@@ -537,8 +546,10 @@ describe('ScreenLoadingManager', () => {
       ScreenLoadingManager.endScreenLoading();
 
       expect(NativeAPM.endScreenLoading).not.toHaveBeenCalled();
-      expect(Logger.error).toHaveBeenCalledWith(
-        '[ScreenLoading] End screen loading feature is not enabled',
+      expect(Logger.warn).toHaveBeenCalledWith(
+        'LCQ-RN-APM-SL:',
+        'endScreenLoading feature is not enabled',
+        expect.any(Object),
       );
     });
 
@@ -557,7 +568,8 @@ describe('ScreenLoadingManager', () => {
       ScreenLoadingManager.endScreenLoading();
 
       expect(Logger.warn).toHaveBeenCalledWith(
-        '[ScreenLoading] No active span to end screen loading',
+        'LCQ-RN-APM-SL:',
+        'no active span to end screen loading',
       );
       expect(NativeAPM.endScreenLoading).not.toHaveBeenCalled();
     });
@@ -571,8 +583,9 @@ describe('ScreenLoadingManager', () => {
       ScreenLoadingManager.endScreenLoading();
 
       expect(Logger.error).toHaveBeenCalledWith(
-        '[ScreenLoading] Failed to end screen loading:',
-        expect.any(Error),
+        'LCQ-RN-APM-SL:',
+        'endScreenLoading failed',
+        expect.objectContaining({ message: 'native error', name: 'Error' }),
       );
     });
   });
@@ -640,9 +653,10 @@ describe('ScreenLoadingManager', () => {
         ScreenLoadingManager.addSpanAttribute(span.spanId, 'test_attr', 12345);
         await ScreenLoadingManager.endSpan(span.spanId);
 
-        expect(Logger.log).toHaveBeenCalledWith(
-          '[ScreenLoading] Measurement:',
-          expect.stringContaining('screen_name'),
+        expect(Logger.debug).toHaveBeenCalledWith(
+          'LCQ-RN-APM-SL:',
+          'measurement',
+          expect.objectContaining({ screen_name: 'TestScreen' }),
         );
       }
     });

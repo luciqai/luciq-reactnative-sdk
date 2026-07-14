@@ -1,8 +1,9 @@
 import { NativeLuciq } from '../native/NativeLuciq';
 import { _registerFeatureFlagsChangeListener } from '../modules/Luciq';
+import { LuciqDebugTags } from '../constants/DebugTags';
 import { Logger } from './logger';
 
-const TAG = 'LCQ-RN-NET:';
+const TAG = LuciqDebugTags.FEATURE_FLAGS;
 
 let cachedW3cFlags = {
   isW3cExternalTraceIDEnabled: false,
@@ -11,7 +12,7 @@ let cachedW3cFlags = {
 };
 
 export async function initFeatureFlagsCache() {
-  Logger.debug(TAG, '[FeatureFlags] Initializing W3C feature flags cache from native bridge...');
+  Logger.debug(TAG, 'initializing W3C feature flags cache from native bridge');
   try {
     const [traceID, generatedHeader, caughtHeader] = await Promise.all([
       NativeLuciq.isW3ExternalTraceIDEnabled(),
@@ -23,12 +24,16 @@ export async function initFeatureFlagsCache() {
       isW3cExternalGeneratedHeaderEnabled: generatedHeader,
       isW3cCaughtHeaderEnabled: caughtHeader,
     };
-    Logger.debug(
-      TAG,
-      `[FeatureFlags] Cache initialized: traceID=${traceID}, generatedHeader=${generatedHeader}, caughtHeader=${caughtHeader}`,
-    );
+    Logger.debug(TAG, 'cache initialized', {
+      traceID,
+      generatedHeader,
+      caughtHeader,
+    });
   } catch (e) {
-    Logger.debug(TAG, '[FeatureFlags] Failed to initialize cache, using defaults (all false):', e);
+    Logger.error(TAG, 'failed to initialize cache, using defaults (all false)', {
+      message: (e as Error)?.message,
+      name: (e as Error)?.name,
+    });
   }
 }
 
@@ -51,10 +56,12 @@ export const registerFeatureFlagsListener = () => {
       isW3CaughtHeaderEnabled: boolean;
       networkBodyLimit: number;
     }) => {
-      Logger.debug(
-        TAG,
-        `[FeatureFlags] Flags updated from native listener: traceID=${res.isW3ExternalTraceIDEnabled}, generatedHeader=${res.isW3ExternalGeneratedHeaderEnabled}, caughtHeader=${res.isW3CaughtHeaderEnabled}, bodyLimit=${res.networkBodyLimit}`,
-      );
+      Logger.debug(TAG, 'flags updated from native listener', {
+        traceID: res.isW3ExternalTraceIDEnabled,
+        generatedHeader: res.isW3ExternalGeneratedHeaderEnabled,
+        caughtHeader: res.isW3CaughtHeaderEnabled,
+        bodyLimit: res.networkBodyLimit,
+      });
       cachedW3cFlags = {
         isW3cExternalTraceIDEnabled: res.isW3ExternalTraceIDEnabled,
         isW3cExternalGeneratedHeaderEnabled: res.isW3ExternalGeneratedHeaderEnabled,

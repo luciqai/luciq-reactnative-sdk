@@ -112,7 +112,11 @@ describe('ProactiveReportingConfigs', () => {
           enabled: true,
         });
         expect(Logger.warn).toHaveBeenCalledTimes(1);
-        expect(Logger.warn).toHaveBeenCalledWith(LuciqConstants.GAP_MODEL_ERROR_MESSAGE);
+        expect(Logger.warn).toHaveBeenCalledWith(
+          'LCQ-RN-BR:',
+          LuciqConstants.GAP_MODEL_ERROR_MESSAGE,
+          expect.objectContaining({ gapBetweenModals: expect.any(Number) }),
+        );
       });
 
       it('should use default value and log warning when gapBetweenModals is negative', () => {
@@ -130,7 +134,11 @@ describe('ProactiveReportingConfigs', () => {
           enabled: true,
         });
         expect(Logger.warn).toHaveBeenCalledTimes(1);
-        expect(Logger.warn).toHaveBeenCalledWith(LuciqConstants.GAP_MODEL_ERROR_MESSAGE);
+        expect(Logger.warn).toHaveBeenCalledWith(
+          'LCQ-RN-BR:',
+          LuciqConstants.GAP_MODEL_ERROR_MESSAGE,
+          expect.objectContaining({ gapBetweenModals: expect.any(Number) }),
+        );
       });
     });
 
@@ -150,7 +158,11 @@ describe('ProactiveReportingConfigs', () => {
           enabled: true,
         });
         expect(Logger.warn).toHaveBeenCalledTimes(1);
-        expect(Logger.warn).toHaveBeenCalledWith(LuciqConstants.MODAL_DETECTION_ERROR_MESSAGE);
+        expect(Logger.warn).toHaveBeenCalledWith(
+          'LCQ-RN-BR:',
+          LuciqConstants.MODAL_DETECTION_ERROR_MESSAGE,
+          expect.objectContaining({ modalDelayAfterDetection: expect.any(Number) }),
+        );
       });
 
       it('should use default value and log warning when modalDelayAfterDetection is negative', () => {
@@ -168,7 +180,11 @@ describe('ProactiveReportingConfigs', () => {
           enabled: true,
         });
         expect(Logger.warn).toHaveBeenCalledTimes(1);
-        expect(Logger.warn).toHaveBeenCalledWith(LuciqConstants.MODAL_DETECTION_ERROR_MESSAGE);
+        expect(Logger.warn).toHaveBeenCalledWith(
+          'LCQ-RN-BR:',
+          LuciqConstants.MODAL_DETECTION_ERROR_MESSAGE,
+          expect.objectContaining({ modalDelayAfterDetection: expect.any(Number) }),
+        );
       });
     });
 
@@ -188,10 +204,17 @@ describe('ProactiveReportingConfigs', () => {
           enabled: true,
         });
         expect(Logger.warn).toHaveBeenCalledTimes(2);
-        expect(Logger.warn).toHaveBeenNthCalledWith(1, LuciqConstants.GAP_MODEL_ERROR_MESSAGE);
+        expect(Logger.warn).toHaveBeenNthCalledWith(
+          1,
+          'LCQ-RN-BR:',
+          LuciqConstants.GAP_MODEL_ERROR_MESSAGE,
+          expect.objectContaining({ gapBetweenModals: expect.any(Number) }),
+        );
         expect(Logger.warn).toHaveBeenNthCalledWith(
           2,
+          'LCQ-RN-BR:',
           LuciqConstants.MODAL_DETECTION_ERROR_MESSAGE,
+          expect.objectContaining({ modalDelayAfterDetection: expect.any(Number) }),
         );
       });
     });

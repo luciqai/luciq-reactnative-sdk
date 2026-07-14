@@ -1,5 +1,7 @@
 #import "LuciqScreenLoadingFrameTracker.h"
 #import <QuartzCore/CADisplayLink.h>
+#import "Util/LuciqRNDebugTags.h"
+#import "Util/LuciqRNLogger.h"
 
 @interface LuciqScreenLoadingFrameTracker ()
 @property (nonatomic, strong) NSMutableDictionary<NSString *, NSNumber *> *spanIdToTimestamp;
@@ -33,6 +35,7 @@
 }
 
 - (void)initializeFrameTracking {
+    [LuciqRNLogger d:[LuciqRNDebugTags apmScreenLoading] format:@"[initializeFrameTracking] called isTracking=%@", (self.isTracking ? @"YES" : @"NO")];
     if (self.isTracking) {
         return;
     }
@@ -62,13 +65,13 @@
         for (NSString *spanId in self.activeSpanIds) {
             NSNumber *trackingStart = self.spanIdToTrackingStart[spanId];
             if (trackingStart && timestamp < trackingStart.doubleValue) {
-                NSLog(@"[ScreenLoading] Skipping frame for span %@ (VSync %.6fs < tracking start %.6fs)", spanId, timestamp, trackingStart.doubleValue);
+                [LuciqRNLogger d:[LuciqRNDebugTags apmScreenLoading] format:@"[frameRendered] Skipping frame for span %@ (VSync %.6fs < tracking start %.6fs)", spanId, timestamp, trackingStart.doubleValue];
                 continue;
             }
             self.spanIdToTimestamp[spanId] = timestampNumber;
             [resolvedSpanIds addObject:spanId];
             [self.spanIdToTrackingStart removeObjectForKey:spanId];
-            NSLog(@"[ScreenLoading] Frame rendered for span %@ at %.0fμs", spanId, epochTimestampMicroseconds);
+            [LuciqRNLogger d:[LuciqRNDebugTags apmScreenLoading] format:@"[frameRendered] Frame rendered for span %@ at %.0fus", spanId, epochTimestampMicroseconds];
         }
         [self.activeSpanIds minusSet:resolvedSpanIds];
 
@@ -80,21 +83,23 @@
 }
 
 - (void)startTrackingForSpanId:(NSString *)spanId {
+    [LuciqRNLogger d:[LuciqRNDebugTags apmScreenLoading] format:@"[startTrackingForSpanId] called spanId=%@", spanId];
     [self.activeSpanIds addObject:spanId];
     self.spanIdToTrackingStart[spanId] = @([[NSProcessInfo processInfo] systemUptime]);
-    NSLog(@"[ScreenLoading] Started tracking for span %@", spanId);
 }
 
 - (NSNumber *)getFrameTimestampForSpanId:(NSString *)spanId {
+    [LuciqRNLogger d:[LuciqRNDebugTags apmScreenLoading] format:@"[getFrameTimestampForSpanId] called spanId=%@", spanId];
     NSNumber *timestamp = self.spanIdToTimestamp[spanId];
     if (timestamp) {
         [self.spanIdToTimestamp removeObjectForKey:spanId];
-        NSLog(@"[ScreenLoading] Retrieved timestamp %@μs for span %@", timestamp, spanId);
+        [LuciqRNLogger d:[LuciqRNDebugTags apmScreenLoading] format:@"[getFrameTimestampForSpanId] Retrieved timestamp %@us for span %@", timestamp, spanId];
     }
     return timestamp;
 }
 
 - (void)cleanup {
+    [LuciqRNLogger d:[LuciqRNDebugTags apmScreenLoading] format:@"[cleanup] called isTracking=%@", (self.isTracking ? @"YES" : @"NO")];
     if (self.isTracking) {
         [self.displayLink invalidate];
         self.displayLink = nil;
@@ -111,6 +116,7 @@
 
     NSInteger itemsToRemove = self.spanIdToTimestamp.count - 30;
     if (itemsToRemove > 0) {
+        [LuciqRNLogger w:[LuciqRNDebugTags apmScreenLoading] format:@"[cleanupStorage] Evicting frame timestamps (capacity reached) removed=%ld, retained=%lu, capacityLimit=%ld", (long)itemsToRemove, (unsigned long)(self.spanIdToTimestamp.count - itemsToRemove), (long)self.maxStorageCapacity];
         for (NSInteger i = 0; i < itemsToRemove; i++) {
             [self.spanIdToTimestamp removeObjectForKey:sortedKeys[i]];
         }

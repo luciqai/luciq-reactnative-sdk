@@ -1,6 +1,9 @@
 import { NativeAPM } from '../../native/NativeAPM';
 import { Logger } from '../../utils/logger';
+import { LuciqDebugTags } from '../../constants/DebugTags';
 import { fromEpochMicros, nowMicros, toEpochMicros } from '../../utils/LuciqUtils';
+
+const TAG = LuciqDebugTags.APM_SCREEN_LOADING;
 
 export interface ScreenLoadingSpan {
   spanId: string;
@@ -64,13 +67,16 @@ class ScreenLoadingManagerClass {
       if (this.isEnabled) {
         await NativeAPM.initScreenFrameTracking();
         this.isFrameTrackingInitialized = true;
-        Logger.log('[ScreenLoading] Manager initialized, feature enabled');
+        Logger.debug(TAG, 'manager initialized', { isEnabled: true });
       } else {
-        Logger.log('[ScreenLoading] Feature disabled by flag');
+        Logger.debug(TAG, 'feature disabled by flag', { isEnabled: false });
       }
       this.isInitialized = true;
     } catch (error) {
-      Logger.error('[ScreenLoading] Failed to initialize:', error);
+      Logger.error(TAG, 'initialize failed', {
+        message: (error as Error)?.message,
+        name: (error as Error)?.name,
+      });
       this.isEnabled = false;
     }
   }
@@ -83,14 +89,18 @@ class ScreenLoadingManagerClass {
       if (this.isEnabled && !this.isFrameTrackingInitialized) {
         await NativeAPM.initScreenFrameTracking();
         this.isFrameTrackingInitialized = true;
-        Logger.log('[ScreenLoading] Frame tracking initialized after flag refresh');
+        Logger.debug(TAG, 'frame tracking initialized after flag refresh');
       }
 
-      Logger.log(
-        `[ScreenLoading] Flags refreshed - enabled: ${this.isEnabled}, endScreenLoading: ${this.isEndScreenLoadingEnabled}`,
-      );
+      Logger.debug(TAG, 'flags refreshed', {
+        isEnabled: this.isEnabled,
+        isEndScreenLoadingEnabled: this.isEndScreenLoadingEnabled,
+      });
     } catch (error) {
-      Logger.error('[ScreenLoading] Failed to refresh flags:', error);
+      Logger.error(TAG, 'refresh flags failed', {
+        message: (error as Error)?.message,
+        name: (error as Error)?.name,
+      });
     }
   }
 
@@ -100,7 +110,10 @@ class ScreenLoadingManagerClass {
    */
   excludeRoutes(routes: string[]): void {
     routes.forEach((route) => this.excludedRoutes.add(route));
-    Logger.log('[ScreenLoading] Excluded routes:', Array.from(this.excludedRoutes));
+    Logger.debug(TAG, 'excluded routes updated', {
+      added: routes,
+      excludedRoutes: Array.from(this.excludedRoutes),
+    });
   }
 
   /**
@@ -110,10 +123,10 @@ class ScreenLoadingManagerClass {
   includeRoutes(routes?: string[]): void {
     if (!routes || routes.length === 0) {
       this.excludedRoutes.clear();
-      Logger.log('[ScreenLoading] Cleared all route exclusions');
+      Logger.debug(TAG, 'cleared all route exclusions');
     } else {
       routes.forEach((route) => this.excludedRoutes.delete(route));
-      Logger.log('[ScreenLoading] Removed exclusions for:', routes);
+      Logger.debug(TAG, 'removed exclusions', { routes });
     }
   }
 
@@ -142,7 +155,7 @@ class ScreenLoadingManagerClass {
 
     // Check if route is excluded (only for automatic tracking)
     if (!isManual && this.isRouteExcluded(screenName)) {
-      Logger.log(`[ScreenLoading] Route "${screenName}" is excluded from automatic measurement`);
+      Logger.debug(TAG, 'route excluded from automatic measurement', { screenName });
       return null;
     }
 
@@ -169,16 +182,18 @@ class ScreenLoadingManagerClass {
     try {
       NativeAPM.setActiveScreenSpanId(spanId);
     } catch (error) {
-      Logger.error(`[ScreenLoading] Failed to set active span ID ${spanId}:`, error);
+      Logger.error(TAG, 'setActiveScreenSpanId failed', {
+        spanId,
+        message: (error as Error)?.message,
+        name: (error as Error)?.name,
+      });
     }
     if (!isManual) {
       this.activeSpanId = spanId;
     }
     span.status = 'measuring';
 
-    Logger.log(
-      `[ScreenLoading] Created span ${spanId} for screen "${screenName}" (${isManual ? 'manual' : 'automatic'})`,
-    );
+    Logger.debug(TAG, 'span created', { spanId, screenName, isManual });
 
     return span;
   }
@@ -230,11 +245,15 @@ class ScreenLoadingManagerClass {
         this.logScreenLoading(span);
       } else {
         span.status = 'error';
-        Logger.warn(`[ScreenLoading] No frame timestamp available for span ${spanId}`);
+        Logger.warn(TAG, 'no frame timestamp available', { spanId, retries: maxRetries });
       }
     } catch (error) {
       span.status = 'error';
-      Logger.error(`[ScreenLoading] Failed to get timestamp for span ${spanId}:`, error);
+      Logger.error(TAG, 'getScreenTimeToDisplay failed', {
+        spanId,
+        message: (error as Error)?.message,
+        name: (error as Error)?.name,
+      });
     }
 
     // Cleanup after a delay
@@ -262,10 +281,11 @@ class ScreenLoadingManagerClass {
       ttid_us: span.ttid ? Math.round(span.ttid) : undefined,
       ttid_ms: span.ttid ? Math.round(span.ttid) / 1000 : undefined,
       is_manual: span.isManual,
-      attributes: attributesObject,
+      // Log shape only — attribute values may be user-supplied and could contain PII.
+      attribute_keys: Object.keys(attributesObject),
     };
 
-    Logger.log('[ScreenLoading] Measurement:', JSON.stringify(logData, null, 2));
+    Logger.debug(TAG, 'measurement', logData);
 
     // Sync screen loading data to native layer (also pass converted object)
     try {
@@ -286,7 +306,13 @@ class ScreenLoadingManagerClass {
         );
       }
     } catch (error) {
-      Logger.error(`[ScreenLoading] Failed to sync screen loading for span ${span.spanId}:`, error);
+      Logger.error(TAG, 'sync screen loading failed', {
+        spanId: span.spanId,
+        screenName: span.screenName,
+        isManual: span.isManual,
+        message: (error as Error)?.message,
+        name: (error as Error)?.name,
+      });
     }
   }
 
@@ -295,22 +321,26 @@ class ScreenLoadingManagerClass {
    */
   endScreenLoading(): void {
     if (!this.isEndScreenLoadingFeatureEnabled()) {
-      Logger.error('[ScreenLoading] End screen loading feature is not enabled');
+      Logger.warn(TAG, 'endScreenLoading feature is not enabled', {
+        isEnabled: this.isEnabled,
+        isEndScreenLoadingEnabled: this.isEndScreenLoadingEnabled,
+      });
       return;
     }
     if (!this.activeSpanId) {
-      Logger.warn('[ScreenLoading] No active span to end screen loading');
+      Logger.warn(TAG, 'no active span to end screen loading');
       return;
     }
     try {
       const timeStampMicro = Math.round(toEpochMicros(nowMicros()));
       const uiTraceId = Number(this.activeSpanId);
       NativeAPM.endScreenLoading(timeStampMicro, uiTraceId);
-      Logger.log(
-        `[ScreenLoading] endScreenLoading() was called at ${timeStampMicro} for ui trace id "${uiTraceId}"`,
-      );
+      Logger.debug(TAG, 'endScreenLoading called', { timeStampMicro, uiTraceId });
     } catch (error) {
-      Logger.error('[ScreenLoading] Failed to end screen loading:', error);
+      Logger.error(TAG, 'endScreenLoading failed', {
+        message: (error as Error)?.message,
+        name: (error as Error)?.name,
+      });
     }
   }
 
@@ -322,7 +352,7 @@ class ScreenLoadingManagerClass {
     const span = this.activeSpans.get(spanId);
     if (span) {
       this.activeSpans.delete(spanId);
-      Logger.log(`[ScreenLoading] Discarded span ${spanId} for screen "${span.screenName}"`);
+      Logger.debug(TAG, 'span discarded', { spanId, screenName: span.screenName });
     }
   }
 
@@ -347,6 +377,12 @@ class ScreenLoadingManagerClass {
     );
 
     const toRemove = Math.max(0, sortedSpans.length - 30);
+    if (toRemove > 0) {
+      Logger.warn(LuciqDebugTags.APM_SCREEN_LOADING, 'evicting oldest spans (capacity reached)', {
+        removed: toRemove,
+        retained: sortedSpans.length - toRemove,
+      });
+    }
     for (let i = 0; i < toRemove; i++) {
       this.activeSpans.delete(sortedSpans[i][0]);
     }

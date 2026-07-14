@@ -27,6 +27,21 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)w:(NSString *)tag format:(NSString *)format, ... NS_FORMAT_FUNCTION(2, 3);
 + (void)e:(NSString *)tag format:(NSString *)format, ... NS_FORMAT_FUNCTION(2, 3);
 
+/**
+ * Returns @c url with its userinfo, query string, and fragment stripped for
+ * safe logging. Mirrors @c redactUrlForLog in src/utils/LuciqUtils.ts:
+ *
+ * - Userinfo (@c scheme://user:pass@host/... ) is removed from the authority.
+ *   Only @c @ characters inside the authority (between @c :// and the next
+ *   @c / , @c ? , or @c # ) are treated as userinfo - @c @ in a path is
+ *   preserved.
+ * - When a query was present (a @c ? preceded any @c # ), the result has
+ *   @c ?<redacted> appended.
+ * - Fragment-only cutoff is silent.
+ * - nil/empty input returns @c "" .
+ */
++ (NSString *)redactURL:(nullable NSString *)url;
+
 @end
 
 NS_ASSUME_NONNULL_END

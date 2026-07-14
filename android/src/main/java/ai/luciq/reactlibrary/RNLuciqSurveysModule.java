@@ -11,6 +11,9 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import ai.luciq.library.Feature;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
+import ai.luciq.reactlibrary.utils.EventEmitterModule;
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.LuciqUtil;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import ai.luciq.survey.callbacks.*;
@@ -24,6 +27,8 @@ import java.util.List;
 public class RNLuciqSurveysModule extends NativeSurveysSpec {
 
     private int listenerCount = 0;
+
+    private static final String TAG = LuciqRNDebugTags.SURVEYS;
 
     public RNLuciqSurveysModule(ReactApplicationContext reactContext) {
         super(reactContext);
@@ -65,11 +70,13 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[hasRespondedToSurvey] called surveyTokenLen=" + (surveyToken == null ? 0 : surveyToken.length()) + " present=" + (surveyToken != null));
                 boolean hasResponded = false;
                 try {
                     hasResponded = Surveys.hasRespondToSurvey(surveyToken);
+                    LuciqRNLogger.d(TAG, "[hasRespondedToSurvey] success result=" + hasResponded);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[hasRespondedToSurvey] failed", e);
                 }
                 promise.resolve(hasResponded);
             }
@@ -88,10 +95,11 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[showSurvey] called surveyTokenLen=" + (surveyToken == null ? 0 : surveyToken.length()) + " present=" + (surveyToken != null));
                 try {
                     Surveys.showSurvey(surveyToken);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[showSurvey] failed", e);
                 }
             }
         });
@@ -107,10 +115,11 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[showSurveysIfAvailable] called");
                 try {
                     Surveys.showSurveyIfAvailable();
                 } catch (java.lang.Exception exception) {
-                    exception.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[showSurveysIfAvailable] failed", exception);
                 }
             }
         });
@@ -126,6 +135,7 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setEnabled] called isEnabled=" + isEnabled);
                 try {
                     if (isEnabled) {
                         Surveys.setState(Feature.State.ENABLED);
@@ -133,7 +143,7 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
                         Surveys.setState(Feature.State.DISABLED);
                     }
                 } catch (java.lang.Exception exception) {
-                    exception.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setEnabled] failed", exception);
                 }
             }
         });
@@ -151,9 +161,11 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setOnShowHandler] called");
                 Surveys.setOnShowCallback(new OnShowCallback() {
                     @Override
                     public void onShow() {
+                        LuciqRNLogger.d(TAG, "[" + Constants.LCQ_ON_SHOW_SURVEY_HANDLER + "] emitted");
                         sendEvent(Constants.LCQ_ON_SHOW_SURVEY_HANDLER, null);
                     }
                 });
@@ -173,9 +185,11 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setOnDismissHandler] called");
                 Surveys.setOnDismissCallback(new OnDismissCallback() {
                     @Override
                     public void onDismiss() {
+                        LuciqRNLogger.d(TAG, "[" + Constants.LCQ_ON_DISMISS_SURVEY_HANDLER + "] emitted");
                         sendEvent(Constants.LCQ_ON_DISMISS_SURVEY_HANDLER, null);
                     }
                 });
@@ -191,13 +205,15 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[getAvailableSurveys] called");
                 try {
                     List<Survey> availableSurveys = Surveys.getAvailableSurveys();
                     JSONArray surveysArray = LuciqUtil.surveyObjectToJson(availableSurveys);
                     WritableArray array = ArrayUtil.convertJsonToWritableArray(surveysArray);
+                    LuciqRNLogger.d(TAG, "[getAvailableSurveys] success count=" + (availableSurveys == null ? 0 : availableSurveys.size()));
                     promise.resolve(array);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[getAvailableSurveys] failed", e);
                     promise.resolve(Arguments.createArray());
                 }
             }
@@ -214,10 +230,11 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setAutoShowingEnabled] called autoShowingSurveysEnabled=" + autoShowingSurveysEnabled);
                 try {
                     Surveys.setAutoShowingEnabled(autoShowingSurveysEnabled);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setAutoShowingEnabled] failed", e);
                 }
             }
         });
@@ -234,10 +251,11 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setShouldShowWelcomeScreen] called shouldShow=" + shouldShow);
                 try {
                     Surveys.setShouldShowWelcomeScreen(shouldShow);
                 } catch (java.lang.Exception exception) {
-                    exception.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setShouldShowWelcomeScreen] failed", exception);
                 }
             }
         });

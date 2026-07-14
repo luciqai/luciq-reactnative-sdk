@@ -28,6 +28,7 @@ import type { FeatureFlag } from '../../src/models/FeatureFlag';
 import { Logger } from '../../src/utils/logger';
 import { NativeNetworkLogger } from '../../src/native/NativeNetworkLogger';
 import LuciqConstants from '../../src/utils/LuciqConstants';
+import { LuciqDebugTags } from '../../src/constants/DebugTags';
 
 jest.mock('../../src/modules/NetworkLogger');
 
@@ -480,6 +481,58 @@ describe('Luciq Module', () => {
     expect(NativeLuciq.setSessionProfilerEnabled).toBeCalledWith(true);
   });
 
+  describe('setDebugLogsLevel', () => {
+    const { LuciqRNConfig } = require('../../src/utils/config');
+    const original = LuciqRNConfig.debugLogsLevel;
+
+    afterEach(() => {
+      LuciqRNConfig.debugLogsLevel = original;
+    });
+
+    it('mutates LuciqRNConfig.debugLogsLevel', () => {
+      LuciqRNConfig.debugLogsLevel = LogLevel.error;
+      Luciq.setDebugLogsLevel(LogLevel.verbose);
+      expect(LuciqRNConfig.debugLogsLevel).toBe(LogLevel.verbose);
+    });
+
+    it('emits the transition log BEFORE mutating so a debug->none switch is still visible', () => {
+      // The transition log is a debug-level log, so it must fire under the
+      // PREVIOUS level's gate. If we set debugLogsLevel to debug first and
+      // then call setDebugLogsLevel(none), the log must still be emitted.
+      LuciqRNConfig.debugLogsLevel = LogLevel.debug;
+      const consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {});
+      try {
+        Luciq.setDebugLogsLevel(LogLevel.none);
+        expect(consoleDebugSpy).toHaveBeenCalledTimes(1);
+        expect(consoleDebugSpy.mock.calls[0]).toEqual(
+          expect.arrayContaining([
+            expect.stringContaining('LCQ-RN-CORE'),
+            'setDebugLogsLevel changed',
+            expect.objectContaining({ previous: LogLevel.debug, level: LogLevel.none }),
+          ]),
+        );
+        expect(LuciqRNConfig.debugLogsLevel).toBe(LogLevel.none);
+      } finally {
+        consoleDebugSpy.mockRestore();
+      }
+    });
+
+    it('does not emit the transition log to console.error', () => {
+      // Regression: setDebugLogsLevel previously called Logger.error, which
+      // crash reporters capture as an error breadcrumb. It must route through
+      // Logger.debug (console.debug) instead so a successful API call does
+      // not surface as a host-app error.
+      LuciqRNConfig.debugLogsLevel = LogLevel.debug;
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        Luciq.setDebugLogsLevel(LogLevel.verbose);
+        expect(consoleErrorSpy).not.toHaveBeenCalled();
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
+    });
+  });
+
   it('should call the native method setLocale', () => {
     const locale = Locale.english;
     Luciq.setLocale(locale);
@@ -717,7 +770,11 @@ describe('Luciq Module', () => {
     // @ts-ignore
     Luciq.setUserAttribute(key, value);
     expect(NativeLuciq.setUserAttribute).not.toBeCalled();
-    expect(logSpy).toHaveBeenCalledWith(LuciqConstants.SET_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE);
+    expect(logSpy).toHaveBeenCalledWith(
+      'LCQ-RN-CORE:',
+      LuciqConstants.SET_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE,
+      expect.objectContaining({ keyType: expect.any(String), valueType: expect.any(String) }),
+    );
     logSpy.mockRestore();
   });
 
@@ -757,7 +814,11 @@ describe('Luciq Module', () => {
     // @ts-ignore
     Luciq.removeUserAttribute(key);
     expect(NativeLuciq.removeUserAttribute).not.toBeCalled();
-    expect(logSpy).toHaveBeenCalledWith(LuciqConstants.REMOVE_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE);
+    expect(logSpy).toHaveBeenCalledWith(
+      'LCQ-RN-CORE:',
+      LuciqConstants.REMOVE_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE,
+      expect.objectContaining({ keyType: expect.any(String) }),
+    );
     logSpy.mockRestore();
   });
 
@@ -1029,7 +1090,8 @@ describe('Luciq iOS initialization tests', () => {
 
     expect(logSpy).toBeCalledTimes(1);
     expect(logSpy).toBeCalledWith(
-      LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
+      LuciqDebugTags.APM_NETWORK,
+      LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
     );
   });
 });

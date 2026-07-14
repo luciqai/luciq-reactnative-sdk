@@ -16,6 +16,11 @@ export class Logger {
     return logLevelHierarchy[currentLevel] >= logLevelHierarchy[level];
   }
 
+  // Public guard for hot paths that build payload objects only for debug logs.
+  static isDebugEnabled(): boolean {
+    return this.shouldLog(LogLevel.debug);
+  }
+
   // General logging method that takes a logging function as an argument
   private static logMessage(
     level: LogLevel,

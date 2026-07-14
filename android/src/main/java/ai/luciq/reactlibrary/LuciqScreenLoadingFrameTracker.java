@@ -7,10 +7,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import android.util.Log;
+
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 
 public class LuciqScreenLoadingFrameTracker {
-    private static final String TAG = "ScreenLoading";
+    private static final String TAG = LuciqRNDebugTags.APM_SCREEN_LOADING;
     private static LuciqScreenLoadingFrameTracker instance;
 
     private final Map<String, Long> spanIdToTimestamp = new HashMap<>();
@@ -29,7 +31,7 @@ public class LuciqScreenLoadingFrameTracker {
 
     public void initializeFrameTracking() {
         // Choreographer is automatically available on Android
-        Log.d(TAG, "Frame tracking initialized");
+        LuciqRNLogger.d(TAG, "Frame tracking initialized");
     }
 
     public void startTrackingForSpanId(final String spanId) {
@@ -37,7 +39,7 @@ public class LuciqScreenLoadingFrameTracker {
             @Override
             public void run() {
                 activeSpanIds.add(spanId);
-                Log.d(TAG, "Started tracking for span " + spanId);
+                LuciqRNLogger.d(TAG, "Started tracking for span " + spanId);
 
                 Choreographer.getInstance().postFrameCallback(new Choreographer.FrameCallback() {
                     @Override
@@ -52,7 +54,7 @@ public class LuciqScreenLoadingFrameTracker {
 
                             spanIdToTimestamp.put(spanId, frameEpochMicroseconds);
                             activeSpanIds.remove(spanId);
-                            Log.d(TAG, "Frame rendered for span " + spanId + " at " + frameEpochMicroseconds + 
+                            LuciqRNLogger.d(TAG, "Frame rendered for span " + spanId + " at " + frameEpochMicroseconds +
                                   "μs (frame offset: " + String.format("%.3f", nanosSinceFrame / 1_000_000.0) + "ms)");
 
                             if (spanIdToTimestamp.size() > MAX_STORAGE_CAPACITY) {
@@ -69,7 +71,7 @@ public class LuciqScreenLoadingFrameTracker {
         Long timestamp = spanIdToTimestamp.get(spanId);
         if (timestamp != null) {
             spanIdToTimestamp.remove(spanId);
-            Log.d(TAG, "Retrieved timestamp " + timestamp + "μs for span " + spanId);
+            LuciqRNLogger.d(TAG, "Retrieved timestamp " + timestamp + "μs for span " + spanId);
         }
         return timestamp;
     }
@@ -79,6 +81,8 @@ public class LuciqScreenLoadingFrameTracker {
         if (spanIdToTimestamp.size() > 30) {
             // Simple cleanup: remove oldest entries
             int toRemove = spanIdToTimestamp.size() - 30;
+            int retained = spanIdToTimestamp.size() - toRemove;
+            LuciqRNLogger.w(TAG, "Evicting frame timestamps (capacity reached) removed=" + toRemove + ", retained=" + retained);
             for (String key : new HashSet<>(spanIdToTimestamp.keySet())) {
                 if (toRemove-- <= 0) break;
                 spanIdToTimestamp.remove(key);

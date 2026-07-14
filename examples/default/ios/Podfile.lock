@@ -31,7 +31,7 @@ PODS:
   - hermes-engine (0.75.4):
     - hermes-engine/Pre-built (= 0.75.4)
   - hermes-engine/Pre-built (0.75.4)
-  - Luciq (19.7.0)
+  - Luciq (19.8.1)
   - OCMock (3.9.4)
   - RCT-Folly (2024.01.01.00):
     - boost
@@ -1730,11 +1730,11 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNLuciq (19.7.0):
+  - RNLuciq (19.8.0):
     - DoubleConversion
     - glog
     - hermes-engine
-    - Luciq (= 19.7.0)
+    - Luciq (= 19.8.1)
     - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
     - RCTTypeSafety
@@ -2210,7 +2210,7 @@ SPEC CHECKSUMS:
   Google-Maps-iOS-Utils: f77eab4c4326d7e6a277f8e23a0232402731913a
   GoogleMaps: 032f676450ba0779bd8ce16840690915f84e57ac
   hermes-engine: ea92f60f37dba025e293cbe4b4a548fd26b610a0
-  Luciq: 5082fd7b37a733fdde58dd81caace189c9b14c89
+  Luciq: 118cb8fea1a7430468b790d949b62251b4f144a1
   OCMock: 589f2c84dacb1f5aaf6e4cec1f292551fe748e74
   RCT-Folly: 34124ae2e667a0e5f0ea378db071d27548124321
   RCTDeprecation: 726d24248aeab6d7180dac71a936bbca6a994ed1
@@ -2278,7 +2278,7 @@ SPEC CHECKSUMS:
   ReactCommon: 36d48f542b4010786d6b2bcee615fe5f906b7105
   RNCClipboard: 65367ee0429c61ea5cb9d819921877730d59b039
   RNGestureHandler: 16ef3dc2d7ecb09f240f25df5255953c4098819b
-  RNLuciq: db991e2f29d339020f38852af39e6a83e323ce94
+  RNLuciq: 1fe3b9368d9d386dac3070bbeb3ad0e22fd18ebc
   RNReanimated: f9abf36c3dae792c600f26a6107d0daa37eaeacf
   RNScreens: 74536418fef8086457d39df36a55b36efd5329c9
   RNSVG: 030717ff82ea8f2117347c2fcf52a2d1eafba9ba

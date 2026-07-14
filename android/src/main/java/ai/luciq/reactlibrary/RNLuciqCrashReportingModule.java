@@ -9,6 +9,8 @@ import com.facebook.react.bridge.ReadableMap;
 import ai.luciq.crash.CrashReporting;
 import ai.luciq.crash.models.LuciqNonFatalException;
 import ai.luciq.library.Feature;
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 import org.json.JSONObject;
@@ -35,6 +37,7 @@ public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CRASH_REPORTING, "[setEnabled] called isEnabled=" + isEnabled);
                 try {
                     if (isEnabled) {
                         CrashReporting.setState(Feature.State.ENABLED);
@@ -42,7 +45,7 @@ public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
                         CrashReporting.setState(Feature.State.DISABLED);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CRASH_REPORTING, "[setEnabled] failed", e);
                 }
             }
         });
@@ -57,6 +60,7 @@ public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
      */
     @ReactMethod
     public void sendJSCrash(final ReadableMap exceptionObject, final Promise promise) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CRASH_REPORTING, "[sendJSCrash] called exceptionObject present=" + (exceptionObject != null));
         try {
             JSONObject jsonObject = new JSONObject(exceptionObject.toHashMap());
             sendJSCrashByReflection(jsonObject, false, new Runnable() {
@@ -66,7 +70,7 @@ public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
                 }
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CRASH_REPORTING, "[sendJSCrash] failed", e);
             promise.resolve(null);
         }
     }
@@ -81,6 +85,7 @@ public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
      */
     @ReactMethod
     public void sendHandledJSCrash(final ReadableMap exceptionObject, @Nullable final ReadableMap userAttributes, @Nullable final String fingerprint, @Nullable final String level, final Promise promise) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CRASH_REPORTING, "[sendHandledJSCrash] called exceptionObject present=" + (exceptionObject != null) + ", userAttributes present=" + (userAttributes != null) + ", fingerprint length=" + (fingerprint == null ? 0 : fingerprint.length()) + ", present=" + (fingerprint != null) + ", level=" + level);
         try {
             final JSONObject jsonObject = new JSONObject(exceptionObject.toHashMap());
             MainThreadHandler.runOnMainThread(new Runnable() {
@@ -100,14 +105,14 @@ public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
                         }
                     } catch (ClassNotFoundException | IllegalAccessException |
                              InvocationTargetException e) {
-                        e.printStackTrace();
+                        LuciqRNLogger.e(LuciqRNDebugTags.CRASH_REPORTING, "[sendHandledJSCrash] failed", e);
                     } finally {
                         promise.resolve(null);
                     }
                 }
             });
         } catch (Throwable e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CRASH_REPORTING, "[sendHandledJSCrash] failed", e);
             promise.resolve(null);
         }
     }
@@ -122,12 +127,8 @@ public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
                         method.invoke(null, exceptionObject, isHandled);
                         RNLuciqReactnativeModule.clearCurrentReport();
                     }
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
+                } catch (ClassNotFoundException | IllegalAccessException | InvocationTargetException e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.CRASH_REPORTING, "[sendJSCrashByReflection] failed", e);
                 } finally {
                     if (onComplete != null) {
                         onComplete.run();
@@ -147,6 +148,7 @@ public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CRASH_REPORTING, "[setNDKCrashesEnabled] called isEnabled=" + isEnabled);
                 try {
                     if (isEnabled) {
                         CrashReporting.setNDKCrashesState(Feature.State.ENABLED);
@@ -154,7 +156,7 @@ public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
                         CrashReporting.setNDKCrashesState(Feature.State.DISABLED);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CRASH_REPORTING, "[setNDKCrashesEnabled] failed", e);
                 } finally {
                     promise.resolve(null);
                 }

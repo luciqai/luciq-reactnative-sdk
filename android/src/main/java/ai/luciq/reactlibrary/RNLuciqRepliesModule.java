@@ -11,6 +11,9 @@ import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import ai.luciq.chat.Replies;
 import ai.luciq.library.Feature;
+import ai.luciq.reactlibrary.utils.EventEmitterModule;
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
+import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 
 import java.util.HashMap;
@@ -19,6 +22,8 @@ import java.util.Map;
 public class RNLuciqRepliesModule extends NativeRepliesSpec {
 
     private int listenerCount = 0;
+
+    private static final String TAG = LuciqRNDebugTags.REPLIES;
 
     public RNLuciqRepliesModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
@@ -47,6 +52,7 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setEnabled] called isEnabled=" + isEnabled);
                 try {
                     if (isEnabled) {
                         Replies.setState(Feature.State.ENABLED);
@@ -54,7 +60,7 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
                         Replies.setState(Feature.State.DISABLED);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setEnabled] failed", e);
                 }
             }
         });
@@ -65,7 +71,9 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[hasChats] called");
                 boolean hasChats = Replies.hasChats();
+                LuciqRNLogger.d(TAG, "[hasChats] success result=" + hasChats);
                 promise.resolve(hasChats);
             }
         });
@@ -76,6 +84,7 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[show] called");
                 Replies.show();
             }
         });
@@ -93,10 +102,11 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setInAppNotificationSound] called shouldPlaySound=" + shouldPlaySound);
                 try {
                     Replies.setInAppNotificationSound(shouldPlaySound);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setInAppNotificationSound] failed", e);
                 }
             }
         });
@@ -112,11 +122,13 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[getUnreadRepliesCount] called");
                 int unreadMessages = 0;
                 try {
                     unreadMessages = Replies.getUnreadRepliesCount();
+                    LuciqRNLogger.d(TAG, "[getUnreadRepliesCount] success result=" + unreadMessages);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[getUnreadRepliesCount] failed", e);
                 }
 
                 promise.resolve(unreadMessages);
@@ -134,6 +146,7 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setPushNotificationsEnabled] called isEnabled=" + isEnabled);
                 try {
                     if (isEnabled) {
                         Replies.setPushNotificationState(Feature.State.ENABLED);
@@ -141,7 +154,7 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
                         Replies.setPushNotificationState(Feature.State.DISABLED);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setPushNotificationsEnabled] failed", e);
                 }
             }
         });
@@ -157,10 +170,11 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setInAppNotificationEnabled] called isChatNotificationEnable=" + isChatNotificationEnable);
                 try {
                     Replies.setInAppNotificationEnabled(isChatNotificationEnable);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setInAppNotificationEnabled] failed", e);
                 }
             }
         });
@@ -176,10 +190,11 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setPushNotificationRegistrationToken] called tokenLen=" + (token == null ? 0 : token.length()) + " present=" + (token != null));
                 try {
                     Replies.setPushNotificationRegistrationToken(token);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setPushNotificationRegistrationToken] failed", e);
                 }
             }
         });
@@ -195,6 +210,7 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[showNotification] called dataPresent=" + (data != null));
                 try {
                     Map<String, String> map = new HashMap<>();
                     ReadableMapKeySetIterator iterator = data.keySetIterator();
@@ -214,7 +230,7 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
                         Replies.showNotification(map);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[showNotification] failed", e);
                 }
             }
         });
@@ -230,10 +246,11 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setNotificationIcon] called notificationIcon=" + notificationIcon);
                 try {
                     Replies.setNotificationIcon((int) notificationIcon);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setNotificationIcon] failed", e);
                 }
             }
         });
@@ -251,10 +268,11 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setPushNotificationChannelId] called channelIdLen=" + (pushNotificationChannelId == null ? 0 : pushNotificationChannelId.length()) + " present=" + (pushNotificationChannelId != null));
                 try {
                     Replies.setPushNotificationChannelId(pushNotificationChannelId);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setPushNotificationChannelId] failed", e);
                 }
             }
         });
@@ -271,10 +289,11 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setSystemReplyNotificationSoundEnabled] called shouldPlaySound=" + shouldPlaySound);
                 try {
                     Replies.setSystemReplyNotificationSoundEnabled(shouldPlaySound);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setSystemReplyNotificationSoundEnabled] failed", e);
                 }
             }
         });
@@ -285,16 +304,18 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(TAG, "[setOnNewReplyReceivedHandler] called");
                 try {
                     Runnable onNewReplyReceivedRunnable = new Runnable() {
                         @Override
                         public void run() {
+                            LuciqRNLogger.d(TAG, "[" + Constants.LCQ_ON_NEW_REPLY_RECEIVED_CALLBACK + "] emitted");
                             sendEvent(Constants.LCQ_ON_NEW_REPLY_RECEIVED_CALLBACK, null);
                         }
                     };
                     Replies.setOnNewReplyReceivedCallback(onNewReplyReceivedRunnable);
                 } catch (java.lang.Exception exception) {
-                    exception.printStackTrace();
+                    LuciqRNLogger.e(TAG, "[setOnNewReplyReceivedHandler] failed", exception);
                 }
             }
         });

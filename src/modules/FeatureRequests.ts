@@ -1,5 +1,9 @@
 import { NativeFeatureRequests } from '../native/NativeFeatureRequests';
 import type { ActionType } from '../utils/Enums';
+import { Logger } from '../utils/logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
+
+const TAG = LuciqDebugTags.FEATURE_REQUESTS;
 
 /**
  * Enables and disables everything related to feature requests.
@@ -7,6 +11,7 @@ import type { ActionType } from '../utils/Enums';
  * @param isEnabled
  */
 export const setEnabled = (isEnabled: boolean) => {
+  Logger.debug(TAG, 'setEnabled', { isEnabled });
   NativeFeatureRequests.setEnabled(isEnabled);
 };
 
@@ -19,6 +24,7 @@ export const setEnabled = (isEnabled: boolean) => {
  * @param types An enum that indicates which action types will have the isEmailFieldRequired
  */
 export const setEmailFieldRequired = (isEmailFieldRequired: boolean, type: ActionType) => {
+  Logger.debug(TAG, 'setEmailFieldRequired', { isEmailFieldRequired, type });
   NativeFeatureRequests.setEmailFieldRequiredForFeatureRequests(isEmailFieldRequired, [
     type,
   ] as ActionType[]);
@@ -28,5 +34,6 @@ export const setEmailFieldRequired = (isEmailFieldRequired: boolean, type: Actio
  * Shows the UI for feature requests list
  */
 export const show = () => {
+  Logger.debug(TAG, 'show called');
   NativeFeatureRequests.show();
 };

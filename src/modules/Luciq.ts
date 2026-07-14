@@ -37,6 +37,7 @@ import { NativeNetworkLogger } from '../native/NativeNetworkLogger';
 import LuciqConstants from '../utils/LuciqConstants';
 import { LuciqRNConfig } from '../utils/config';
 import { Logger } from '../utils/logger';
+import { LuciqDebugTags } from '../constants/DebugTags';
 import type { OverAirUpdate } from '../models/OverAirUpdate';
 import type { ThemeConfig } from '../models/ThemeConfig';
 
@@ -61,6 +62,7 @@ const STATE_CHANGE_TIMEOUT_MS = 2000; // Safety timeout if state never changes
  * @param isEnabled A boolean to enable/disable Luciq.
  */
 export const setEnabled = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setEnabled', { isEnabled });
   NativeLuciq.setEnabled(isEnabled);
 };
 
@@ -89,6 +91,14 @@ function reportCurrentViewForAndroid(screenName: string | null) {
  * @param config SDK configurations. See {@link LuciqConfig} for more info.
  */
 export const init = (config: LuciqConfig) => {
+  Logger.debug(LuciqDebugTags.CORE, 'init invoked', {
+    tokenPresent: !!config.token,
+    invocationEvents: config.invocationEvents,
+    debugLogsLevel: config.debugLogsLevel,
+    networkInterceptionMode: config.networkInterceptionMode,
+    appVariant: config.appVariant,
+    overAirVersionPresent: !!config.overAirVersion,
+  });
   initFeatureFlagsCache();
 
   if (Platform.OS === 'android') {
@@ -140,6 +150,27 @@ export const init = (config: LuciqConfig) => {
       _currentScreen = null;
     }
   }, 1000);
+
+  Logger.debug(LuciqDebugTags.CORE, 'init completed (JS-side setup)', {
+    debugLogsLevel: LuciqRNConfig.debugLogsLevel,
+  });
+};
+
+/**
+ * Changes the JS-side debug log verbosity at runtime.
+ *
+ * Use this when you need to capture a debug trace mid-session (e.g. a support
+ * flow where the user reproduces an issue) without re-initializing the SDK.
+ * Affects only the JS Logger - the native SDK's own log level is set at
+ * `init()` time and is not changed by this call.
+ *
+ * @param level One of LogLevel.error / debug / verbose / none.
+ */
+export const setDebugLogsLevel = (level: LogLevel) => {
+  const previous = LuciqRNConfig.debugLogsLevel;
+  // Emit BEFORE mutating so the transition is visible even when lowering to none.
+  Logger.debug(LuciqDebugTags.CORE, 'setDebugLogsLevel changed', { previous, level });
+  LuciqRNConfig.debugLogsLevel = level;
 };
 
 /**
@@ -147,6 +178,9 @@ export const init = (config: LuciqConfig) => {
  * @param appVariant the current App variant name
  */
 export const setAppVariant = (appVariant: string) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setAppVariant', {
+    appVariantLength: appVariant?.length ?? 0,
+  });
   NativeLuciq.setAppVariant(appVariant);
 };
 
@@ -155,6 +189,7 @@ export const setAppVariant = (appVariant: string) => {
  * @param isEnabled A boolean to enable/disable WebView monitoring.
  */
 export const setWebViewMonitoringEnabled = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setWebViewMonitoringEnabled', { isEnabled });
   NativeLuciq.setWebViewMonitoringEnabled(isEnabled);
 };
 
@@ -163,6 +198,7 @@ export const setWebViewMonitoringEnabled = (isEnabled: boolean) => {
  * @param isEnabled A boolean to enable/disable WebView network tracking.
  */
 export const setWebViewNetworkTrackingEnabled = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setWebViewNetworkTrackingEnabled', { isEnabled });
   NativeLuciq.setWebViewNetworkTrackingEnabled(isEnabled);
 };
 
@@ -171,6 +207,7 @@ export const setWebViewNetworkTrackingEnabled = (isEnabled: boolean) => {
  * @param isEnabled A boolean to enable/disable WebView user interactions tracking.
  */
 export const setWebViewUserInteractionsTrackingEnabled = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setWebViewUserInteractionsTrackingEnabled', { isEnabled });
   NativeLuciq.setWebViewUserInteractionsTrackingEnabled(isEnabled);
 };
 
@@ -241,9 +278,7 @@ const handleNetworkInterceptionMode = (config: LuciqConfig) => {
 function handleAndroidJSInterception() {
   if (isNativeInterceptionFeatureEnabled && hasAPMNetworkPlugin) {
     shouldEnableNativeInterception = true;
-    Logger.warn(
-      LuciqConstants.LCQ_APM_TAG + LuciqConstants.SWITCHED_TO_NATIVE_INTERCEPTION_MESSAGE,
-    );
+    Logger.warn(LuciqDebugTags.APM_NETWORK, LuciqConstants.SWITCHED_TO_NATIVE_INTERCEPTION_MESSAGE);
   }
 }
 
@@ -255,11 +290,11 @@ function handleAndroidNativeInterception() {
   if (isNativeInterceptionFeatureEnabled) {
     shouldEnableNativeInterception = hasAPMNetworkPlugin;
     if (!hasAPMNetworkPlugin) {
-      Logger.error(LuciqConstants.LCQ_APM_TAG + LuciqConstants.PLUGIN_NOT_INSTALLED_MESSAGE);
+      Logger.error(LuciqDebugTags.APM_NETWORK, LuciqConstants.PLUGIN_NOT_INSTALLED_MESSAGE);
     }
   } else {
     shouldEnableNativeInterception = false; // rollback to use JS interceptor for APM & Core.
-    Logger.error(LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE);
+    Logger.error(LuciqDebugTags.APM_NETWORK, LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE);
   }
 }
 
@@ -303,9 +338,7 @@ const handleInterceptionModeForIOS = (config: LuciqConfig) => {
     } else {
       shouldEnableNativeInterception = false;
       NetworkLogger.setEnabled(true); // rollback to JS interceptor
-      Logger.error(
-        LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
-      );
+      Logger.error(LuciqDebugTags.APM_NETWORK, LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE);
     }
   }
 };
@@ -329,6 +362,11 @@ const initializeNativeLuciq = (config: LuciqConfig) => {
       : undefined,
     config.overAirVersion,
   );
+  Logger.debug(LuciqDebugTags.CORE, 'native init dispatched', {
+    nativeInterception:
+      shouldEnableNativeInterception &&
+      config.networkInterceptionMode === NetworkInterceptionMode.native,
+  });
 };
 
 /**
@@ -393,6 +431,7 @@ export const setOverAirVersion = (OTAserviceVersion: OverAirUpdate) => {
  * @param data A string to be attached to each report, with a maximum size of 1,000 characters.
  */
 export const setUserData = (data: string) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setUserData', { dataLength: data?.length ?? 0 });
   NativeLuciq.setUserData(data);
 };
 
@@ -404,6 +443,7 @@ export const setUserData = (data: string) => {
  * @param isEnabled A boolean to set user steps tracking to being enabled or disabled.
  */
 export const setTrackUserSteps = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setTrackUserSteps', { isEnabled, platform: Platform.OS });
   if (Platform.OS === 'ios') {
     NativeLuciq.setTrackUserSteps(isEnabled);
   }
@@ -415,6 +455,10 @@ export const setTrackUserSteps = (isEnabled: boolean) => {
  * Xcode's console is enabled or not.
  */
 export const setLCQLogPrintsToConsole = (printsToConsole: boolean) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setLCQLogPrintsToConsole', {
+    printsToConsole,
+    platform: Platform.OS,
+  });
   if (Platform.OS === 'ios') {
     NativeLuciq.setLCQLogPrintsToConsole(printsToConsole);
   }
@@ -426,6 +470,7 @@ export const setLCQLogPrintsToConsole = (printsToConsole: boolean) => {
  * @param isEnabled A boolean parameter to enable or disable the feature.
  */
 export const setSessionProfilerEnabled = (isEnabled: boolean) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setSessionProfilerEnabled', { isEnabled });
   NativeLuciq.setSessionProfilerEnabled(isEnabled);
 };
 
@@ -436,6 +481,7 @@ export const setSessionProfilerEnabled = (isEnabled: boolean) => {
  * @param sdkLocale A locale to set the SDK to.
  */
 export const setLocale = (sdkLocale: Locale) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setLocale', { sdkLocale });
   NativeLuciq.setLocale(sdkLocale);
 };
 
@@ -444,6 +490,7 @@ export const setLocale = (sdkLocale: Locale) => {
  * @param sdkTheme
  */
 export const setColorTheme = (sdkTheme: ColorTheme) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setColorTheme', { sdkTheme });
   NativeLuciq.setColorTheme(sdkTheme);
 };
 
@@ -456,6 +503,7 @@ export const setColorTheme = (sdkTheme: ColorTheme) => {
  * @deprecated Please migrate to the new UI customization API: {@link setTheme}
  */
 export const setPrimaryColor = (color: string) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setPrimaryColor', { colorPresent: !!color });
   NativeLuciq.setTheme({ primaryColor: color });
 };
 
@@ -465,6 +513,7 @@ export const setPrimaryColor = (color: string) => {
  * @param tags An array of tags to append to current tags.
  */
 export const appendTags = (tags: string[]) => {
+  Logger.debug(LuciqDebugTags.CORE, 'appendTags', { count: tags?.length ?? 0 });
   NativeLuciq.appendTags(tags);
 };
 
@@ -472,6 +521,7 @@ export const appendTags = (tags: string[]) => {
  * Manually removes all tags of reported feedback, bug or crash.
  */
 export const resetTags = () => {
+  Logger.debug(LuciqDebugTags.CORE, 'resetTags');
   NativeLuciq.resetTags();
 };
 
@@ -479,7 +529,9 @@ export const resetTags = () => {
  * Gets all tags of reported feedback, bug or crash.
  */
 export const getTags = async (): Promise<string[] | null> => {
+  Logger.debug(LuciqDebugTags.CORE, 'getTags invoked');
   const tags = await NativeLuciq.getTags();
+  Logger.debug(LuciqDebugTags.CORE, 'getTags resolved', { count: tags?.length ?? 0 });
 
   return tags;
 };
@@ -491,6 +543,7 @@ export const getTags = async (): Promise<string[] | null> => {
  * @param string String value to override the default one.
  */
 export const setString = (key: StringKey, string: string) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setString', { key, valueLength: string?.length ?? 0 });
   // Suffix the repro steps list item numbering title with a # to unify the string key's
   // behavior between Android and iOS
   if (Platform.OS === 'android' && key === StringKey.reproStepsListItemNumberingTitle) {
@@ -510,6 +563,11 @@ export const setString = (key: StringKey, string: string) => {
  * @param [id] ID of the user to be set.
  */
 export const identifyUser = (email: string, name: string, id?: string) => {
+  Logger.debug(LuciqDebugTags.CORE, 'identifyUser', {
+    hasEmail: !!email,
+    hasName: !!name,
+    hasId: !!id,
+  });
   NativeLuciq.identifyUser(email, name, id);
 };
 
@@ -519,6 +577,7 @@ export const identifyUser = (email: string, name: string, id?: string) => {
  * It also reset the chats on device and removes user attributes, user data and completed surveys.
  */
 export const logOut = () => {
+  Logger.debug(LuciqDebugTags.CORE, 'logOut');
   NativeLuciq.logOut();
 };
 
@@ -528,6 +587,7 @@ export const logOut = () => {
  * @param name Event name.
  */
 export const logUserEvent = (name: string) => {
+  Logger.debug(LuciqDebugTags.CORE, 'logUserEvent', { nameLength: name?.length ?? 0 });
   NativeLuciq.logUserEvent(name);
 };
 
@@ -545,6 +605,7 @@ export const logVerbose = (message: string) => {
   if (!message) {
     return;
   }
+  Logger.debug(LuciqDebugTags.CORE, 'logVerbose', { messageLength: message.length });
   message = stringifyIfNotString(message);
   NativeLuciq.logVerbose(message);
 };
@@ -563,6 +624,7 @@ export const logInfo = (message: string) => {
   if (!message) {
     return;
   }
+  Logger.debug(LuciqDebugTags.CORE, 'logInfo', { messageLength: message.length });
   message = stringifyIfNotString(message);
   NativeLuciq.logInfo(message);
 };
@@ -581,6 +643,7 @@ export const logDebug = (message: string) => {
   if (!message) {
     return;
   }
+  Logger.debug(LuciqDebugTags.CORE, 'logDebug', { messageLength: message.length });
   message = stringifyIfNotString(message);
   NativeLuciq.logDebug(message);
 };
@@ -599,6 +662,7 @@ export const logError = (message: string) => {
   if (!message) {
     return;
   }
+  Logger.debug(LuciqDebugTags.CORE, 'logError', { messageLength: message.length });
   message = stringifyIfNotString(message);
   NativeLuciq.logError(message);
 };
@@ -617,6 +681,7 @@ export const logWarn = (message: string) => {
   if (!message) {
     return;
   }
+  Logger.debug(LuciqDebugTags.CORE, 'logWarn', { messageLength: message.length });
   message = stringifyIfNotString(message);
   NativeLuciq.logWarn(message);
 };
@@ -625,6 +690,7 @@ export const logWarn = (message: string) => {
  * Clear all Luciq logs, console logs, network logs and user steps.
  */
 export const clearLogs = () => {
+  Logger.debug(LuciqDebugTags.CORE, 'clearLogs');
   NativeLuciq.clearLogs();
 };
 
@@ -653,6 +719,7 @@ export const setReproStepsConfig = (config: ReproConfig) => {
     sessionReplay = config.all;
   }
 
+  Logger.debug(LuciqDebugTags.CORE, 'setReproStepsConfig', { bug, crash, sessionReplay });
   NativeLuciq.setReproStepsConfig(bug, crash, sessionReplay);
 };
 
@@ -664,7 +731,11 @@ export const setReproStepsConfig = (config: ReproConfig) => {
  */
 export const setUserAttribute = (key: string, value: string) => {
   if (!key || typeof key !== 'string' || typeof value !== 'string') {
-    Logger.error(LuciqConstants.SET_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE);
+    Logger.error(LuciqDebugTags.CORE, LuciqConstants.SET_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE, {
+      keyType: typeof key,
+      valueType: typeof value,
+      keyPresent: !!key,
+    });
     return;
   }
 
@@ -676,7 +747,12 @@ export const setUserAttribute = (key: string, value: string) => {
  * @param key The attribute key as string
  */
 export const getUserAttribute = async (key: string): Promise<string | null> => {
+  Logger.debug(LuciqDebugTags.CORE, 'getUserAttribute invoked', { key });
   const attribute = await NativeLuciq.getUserAttribute(key);
+  Logger.debug(LuciqDebugTags.CORE, 'getUserAttribute resolved', {
+    key,
+    valuePresent: attribute != null,
+  });
 
   return attribute;
 };
@@ -689,7 +765,10 @@ export const getUserAttribute = async (key: string): Promise<string | null> => {
  */
 export const removeUserAttribute = (key: string) => {
   if (!key || typeof key !== 'string') {
-    Logger.error(LuciqConstants.REMOVE_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE);
+    Logger.error(LuciqDebugTags.CORE, LuciqConstants.REMOVE_USER_ATTRIBUTES_ERROR_TYPE_MESSAGE, {
+      keyType: typeof key,
+      keyPresent: !!key,
+    });
 
     return;
   }
@@ -701,7 +780,11 @@ export const removeUserAttribute = (key: string) => {
  * set user attributes, or an empty dictionary if no user attributes have been set.
  */
 export const getAllUserAttributes = async (): Promise<Record<string, string>> => {
+  Logger.debug(LuciqDebugTags.CORE, 'getAllUserAttributes invoked');
   const attributes = await NativeLuciq.getAllUserAttributes();
+  Logger.debug(LuciqDebugTags.CORE, 'getAllUserAttributes resolved', {
+    count: attributes ? Object.keys(attributes).length : 0,
+  });
 
   return attributes;
 };
@@ -710,6 +793,7 @@ export const getAllUserAttributes = async (): Promise<Record<string, string>> =>
  * Clears all user attributes if exists.
  */
 export const clearAllUserAttributes = () => {
+  Logger.debug(LuciqDebugTags.CORE, 'clearAllUserAttributes');
   NativeLuciq.clearAllUserAttributes();
 };
 
@@ -718,6 +802,7 @@ export const clearAllUserAttributes = () => {
  * @param mode An enum to set the welcome message mode to live, or beta.
  */
 export const showWelcomeMessage = (mode: WelcomeMessageMode) => {
+  Logger.debug(LuciqDebugTags.CORE, 'showWelcomeMessage', { mode });
   NativeLuciq.showWelcomeMessageWithMode(mode);
 };
 
@@ -726,6 +811,7 @@ export const showWelcomeMessage = (mode: WelcomeMessageMode) => {
  * @param mode An enum to set the welcome message mode to live, beta or disabled.
  */
 export const setWelcomeMessageMode = (mode: WelcomeMessageMode) => {
+  Logger.debug(LuciqDebugTags.CORE, 'setWelcomeMessageMode', { mode });
   NativeLuciq.setWelcomeMessageMode(mode);
 };
 
@@ -735,6 +821,11 @@ export const setWelcomeMessageMode = (mode: WelcomeMessageMode) => {
  * @param fileName
  */
 export const addFileAttachment = (filePath: string, fileName: string) => {
+  Logger.debug(LuciqDebugTags.CORE, 'addFileAttachment', {
+    hasFilePath: !!filePath,
+    fileName,
+    platform: Platform.OS,
+  });
   if (Platform.OS === 'android') {
     NativeLuciq.setFileAttachment(filePath, fileName);
   } else {
@@ -748,6 +839,16 @@ export const addFileAttachment = (filePath: string, fileName: string) => {
  */
 export const addPrivateView = (viewRef: number | React.Component | React.ComponentClass) => {
   const nativeTag = findNodeHandle(viewRef);
+  Logger.debug(LuciqDebugTags.PRIVATE_VIEW, 'addPrivateView called', {
+    nativeTag,
+    resolved: nativeTag != null,
+  });
+  if (nativeTag == null) {
+    Logger.error(LuciqDebugTags.PRIVATE_VIEW, 'addPrivateView could not resolve native tag', {
+      consequence: 'view will NOT be masked',
+      hint: 'ensure the ref is attached to a mounted native view',
+    });
+  }
   NativeLuciq.addPrivateView(nativeTag);
 };
 
@@ -758,6 +859,15 @@ export const addPrivateView = (viewRef: number | React.Component | React.Compone
  */
 export const removePrivateView = (viewRef: number | React.Component | React.ComponentClass) => {
   const nativeTag = findNodeHandle(viewRef);
+  Logger.debug(LuciqDebugTags.PRIVATE_VIEW, 'removePrivateView called', {
+    nativeTag,
+    resolved: nativeTag != null,
+  });
+  if (nativeTag == null) {
+    Logger.error(LuciqDebugTags.PRIVATE_VIEW, 'removePrivateView could not resolve native tag', {
+      consequence: 'no-op',
+    });
+  }
   NativeLuciq.removePrivateView(nativeTag);
 };
 
@@ -765,10 +875,14 @@ export const removePrivateView = (viewRef: number | React.Component | React.Comp
  * Shows default Luciq prompt.
  */
 export const show = () => {
+  Logger.debug(LuciqDebugTags.CORE, 'show');
   NativeLuciq.show();
 };
 
 export const onReportSubmitHandler = (handler?: (report: Report) => void) => {
+  Logger.debug(LuciqDebugTags.CORE, 'onReportSubmitHandler registered', {
+    hasHandler: !!handler,
+  });
   emitter.addListener(NativeEvents.PRESENDING_HANDLER, (report) => {
     const { tags, consoleLogs, luciqLogs, userAttributes, fileAttachments } = report;
     const reportObj = new Report(tags, consoleLogs, luciqLogs, userAttributes, fileAttachments);
@@ -795,7 +909,7 @@ const _clearStateChangeTimeout = (): void => {
 const _onNavigationAction = (event?: any): void => {
   // Check for noop actions that shouldn't create spans
   if (event?.data?.noop) {
-    Logger.log('[ScreenLoading] Navigation action is a noop, not starting span');
+    Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'navigation noop, no span');
     return;
   }
 
@@ -805,14 +919,18 @@ const _onNavigationAction = (event?: any): void => {
     actionType &&
     ['SET_PARAMS', 'OPEN_DRAWER', 'CLOSE_DRAWER', 'TOGGLE_DRAWER'].includes(actionType)
   ) {
-    Logger.log(`[ScreenLoading] Skipping non-navigation action: ${actionType}`);
+    Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'skipping non-navigation action', {
+      actionType,
+    });
     return;
   }
 
   // If there's an existing active span, it means navigation was interrupted
   // Discard the previous span as it never completed
   if (_activeNavigationSpanId) {
-    Logger.log('[ScreenLoading] Discarding incomplete previous navigation span');
+    Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'discarding incomplete previous span', {
+      spanId: _activeNavigationSpanId,
+    });
     // Mark the span as cancelled/error since state change never occurred
     const span = ScreenLoadingManager.getActiveSpan(_activeNavigationSpanId);
     if (span) {
@@ -828,15 +946,18 @@ const _onNavigationAction = (event?: any): void => {
     const span = ScreenLoadingManager.createSpan('NavigationPending', false);
     if (span) {
       _activeNavigationSpanId = span.spanId;
-      Logger.log(`[ScreenLoading] Started span ${span.spanId} on navigation dispatch`);
+      Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'span started on navigation dispatch', {
+        spanId: span.spanId,
+      });
 
       // Set a safety timeout to discard the span if state never changes
       // This prevents memory leaks from incomplete navigations
       _stateChangeTimeout = setTimeout(() => {
         if (_activeNavigationSpanId === span.spanId) {
-          Logger.warn(
-            `[ScreenLoading] Navigation span ${span.spanId} timed out - state never changed`,
-          );
+          Logger.warn(LuciqDebugTags.APM_SCREEN_LOADING, 'navigation span timed out', {
+            spanId: span.spanId,
+            timeoutMs: STATE_CHANGE_TIMEOUT_MS,
+          });
           ScreenLoadingManager.endSpan(span.spanId);
           _activeNavigationSpanId = null;
         }
@@ -862,7 +983,10 @@ const _onNavigationStateChange = (): void => {
   if (!currentRouteName || previousRouteName === currentRouteName) {
     // Still need to clean up the span if one was created
     if (_activeNavigationSpanId) {
-      Logger.log('[ScreenLoading] Navigation resulted in same route, discarding span');
+      Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'navigation resulted in same route', {
+        spanId: _activeNavigationSpanId,
+        currentRouteName,
+      });
       ScreenLoadingManager.endSpan(_activeNavigationSpanId);
       _activeNavigationSpanId = null;
       _clearStateChangeTimeout();
@@ -877,7 +1001,10 @@ const _onNavigationStateChange = (): void => {
   if (_activeNavigationSpanId) {
     // Now that we know the actual route name, check if it's excluded
     if (ScreenLoadingManager.isRouteExcluded(currentRouteName)) {
-      Logger.log(`[ScreenLoading] Route "${currentRouteName}" is excluded, discarding span`);
+      Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'route excluded, discarding span', {
+        spanId: _activeNavigationSpanId,
+        currentRouteName,
+      });
       ScreenLoadingManager.discardSpan(_activeNavigationSpanId);
       spanIdForReport = null;
       _activeNavigationSpanId = null;
@@ -891,10 +1018,15 @@ const _onNavigationStateChange = (): void => {
         // End the span - the native frame tracker will provide the actual render timestamp
         ScreenLoadingManager.endSpan(_activeNavigationSpanId)
           .then(() => {
-            Logger.log(`[ScreenLoading] Completed span for navigation to ${currentRouteName}`);
+            Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'span completed for navigation', {
+              currentRouteName,
+            });
           })
           .catch((error) => {
-            Logger.warn('[ScreenLoading] Failed to end navigation span:', error);
+            Logger.warn(LuciqDebugTags.APM_SCREEN_LOADING, 'endSpan failed on navigation', {
+              message: (error as Error)?.message,
+              name: (error as Error)?.name,
+            });
           });
       }
 
@@ -918,6 +1050,14 @@ export const onNavigationStateChange = (
 ) => {
   const currentScreen = LuciqUtils.getActiveRouteName(currentState);
   const prevScreen = LuciqUtils.getActiveRouteName(prevState);
+
+  if (Logger.isDebugEnabled()) {
+    Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'onNavigationStateChange (react-navigation v4)', {
+      prevScreen,
+      currentScreen,
+      changed: prevScreen !== currentScreen,
+    });
+  }
 
   if (prevScreen !== currentScreen) {
     // Start Screen Loading measurement for v4
@@ -944,7 +1084,11 @@ export const onNavigationStateChange = (
       // End Screen Loading measurement for v4
       if (screenLoadingSpanId) {
         ScreenLoadingManager.endSpan(screenLoadingSpanId).catch((error) => {
-          Logger.warn('[ScreenLoading] Failed to end span:', error);
+          Logger.warn(LuciqDebugTags.APM_SCREEN_LOADING, 'endSpan failed (v4)', {
+            spanId: screenLoadingSpanId,
+            message: (error as Error)?.message,
+            name: (error as Error)?.name,
+          });
         });
       }
     }, 1000);
@@ -952,6 +1096,12 @@ export const onNavigationStateChange = (
 };
 
 export const onStateChange = (state?: NavigationStateV5) => {
+  if (Logger.isDebugEnabled()) {
+    Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'onStateChange (react-navigation v5/v6)', {
+      hasState: !!state,
+      hasNavigationRef: !!_navigationRef?.current,
+    });
+  }
   if (!state) {
     return;
   }
@@ -994,8 +1144,18 @@ export const setNavigationListener = (
   // Store the navigationRef for Screen Loading tracking
   _navigationRef = navigationRef;
 
+  if (Logger.isDebugEnabled()) {
+    Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'setNavigationListener called', {
+      hasNavigationRef: !!navigationRef,
+      refIsReady: !!navigationRef?.current,
+    });
+  }
+
   if (!navigationRef?.current) {
-    Logger.warn('[Luciq] Navigation ref not available, cannot set listeners');
+    Logger.warn(
+      LuciqDebugTags.SCREEN_TRACKING,
+      'setNavigationListener: navigation ref not available, cannot set listeners',
+    );
     return;
   }
 
@@ -1007,12 +1167,20 @@ export const setNavigationListener = (
   // to pass Luciq.onStateChange to NavigationContainer's onStateChange prop.
   // Registering both would cause duplicate reportScreenChange calls.
 
-  Logger.log('[Luciq] Registered Screen Loading listener (__unsafe_action__)');
+  Logger.debug(
+    LuciqDebugTags.SCREEN_TRACKING,
+    'screen loading listener registered (__unsafe_action__)',
+  );
 
   // return stateListener;
 };
 
 export const reportScreenChange = (screenName: string) => {
+  if (Logger.isDebugEnabled()) {
+    Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'reportScreenChange', {
+      screenNameLength: screenName?.length ?? 0,
+    });
+  }
   NativeLuciq.reportScreenChange(screenName, null);
 };
 
@@ -1071,6 +1239,13 @@ export const setMetroDevServerPort = (port: number) => {
 };
 
 export const componentDidAppearListener = (event: ComponentDidAppearEvent) => {
+  if (Logger.isDebugEnabled()) {
+    Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'componentDidAppear (RNN)', {
+      componentNameLength: event.componentName?.length ?? 0,
+      isFirstScreen: _isFirstScreen,
+      hasLastScreen: !!_lastScreen,
+    });
+  }
   if (_isFirstScreen) {
     _lastScreen = event.componentName;
     _isFirstScreen = false;

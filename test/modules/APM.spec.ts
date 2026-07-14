@@ -128,7 +128,11 @@ describe('APM Module', () => {
     const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation();
 
     expect(() => APM.setScreenLoadingEnabled(true)).not.toThrow();
-    expect(loggerSpy).toHaveBeenCalledWith('[APM] Failed to set screen loading enabled:', failure);
+    expect(loggerSpy).toHaveBeenCalledWith(
+      'LCQ-RN-APM-SL:',
+      'setScreenLoadingEnabled failed',
+      expect.objectContaining({ message: failure.message, name: failure.name }),
+    );
 
     nativeSpy.mockRestore();
     loggerSpy.mockRestore();

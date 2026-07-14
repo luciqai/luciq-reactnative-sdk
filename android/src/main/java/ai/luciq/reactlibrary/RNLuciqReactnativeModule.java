@@ -2,7 +2,6 @@ package ai.luciq.reactlibrary;
 
 import static ai.luciq.apm.configuration.cp.APMFeature.APM_NETWORK_PLUGIN_INSTALLED;
 import static ai.luciq.apm.configuration.cp.APMFeature.CP_NATIVE_INTERCEPTION_ENABLED;
-import static ai.luciq.reactlibrary.Constants.NET_TAG;
 import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
 import android.app.Application;
@@ -11,7 +10,6 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -71,6 +69,8 @@ import ai.luciq.library.model.NetworkLog;
 import ai.luciq.library.model.Report;
 import ai.luciq.library.ui.onboarding.WelcomeMessage;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
+import ai.luciq.reactlibrary.utils.EventEmitterModule;
+import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
 import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
 import ai.luciq.reactlibrary.utils.RNTouchedViewExtractor;
@@ -112,11 +112,13 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void addListener(String event) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[addListener] called eventLen=" + (event == null ? 0 : event.length()) + ", present=" + (event != null));
         listenerCount++;
     }
 
     @ReactMethod
     public void removeListeners(double count) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[removeListeners] called count=" + count);
         listenerCount = Math.max(0, listenerCount - (int) count);
     }
 
@@ -130,13 +132,14 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setEnabled] called isEnabled=" + isEnabled);
                 try {
                     if (isEnabled)
                         Luciq.enable();
                     else
                         Luciq.disable();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setEnabled] failed", e);
                 }
             }
         });
@@ -165,7 +168,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
     ) {
         final int parsedLogLevel = ArgsRegistry.sdkLogLevels.getOrDefault(logLevel, LogLevel.ERROR);
         LuciqRNLogger.setLevel(parsedLogLevel);
-        LuciqRNLogger.d(NET_TAG, "[init] Called — logLevel=" + logLevel + ", useNativeNetworkInterception=" + useNativeNetworkInterception + ", codePushVersion=" + codePushVersion + ", appVariant=" + appVariant);
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[init] called tokenLen=" + (token == null ? 0 : token.length()) + ", present=" + (token != null) + ", logLevel=" + logLevel + ", useNativeNetworkInterception=" + useNativeNetworkInterception + ", codePushVersionLen=" + (codePushVersion == null ? 0 : codePushVersion.length()) + ", appVariantLen=" + (appVariant == null ? 0 : appVariant.length()) + ", mapPresent=" + (map != null) + ", overAirVersionPresent=" + (overAirVersion != null));
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -206,7 +209,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                 }
 
                 builder.build();
-                LuciqRNLogger.d(NET_TAG, "[init] SDK build complete");
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[init] SDK build complete");
             }
         });
     }
@@ -216,10 +219,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setCodePushVersion] called versionLen=" + (version == null ? 0 : version.length()) + ", present=" + (version != null));
                 try {
                     Luciq.setCodePushVersion(version);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setCodePushVersion] failed", e);
                 }
             }
         });
@@ -235,10 +239,13 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[isBuilt] called");
                 try {
-                    promise.resolve(Luciq.isBuilt());
+                    boolean result = Luciq.isBuilt();
+                    LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[isBuilt] success result=" + result);
+                    promise.resolve(result);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[isBuilt] failed", e);
                     promise.resolve(false);
                 }
             }
@@ -250,12 +257,13 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setOverAirVersion] called present=" + (overAirVersion != null));
                 try {
                     Luciq.setOverAirVersion(overAirVersion.getString("version"),
                             ArgsRegistry.overAirUpdateService.get(overAirVersion.getString("service")));
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setOverAirVersion] failed", e);
                 }
             }
         });
@@ -272,12 +280,13 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[appendTags] called present=" + (tags != null));
                 try {
                     Object[] objectArray = ArrayUtil.toArray(tags);
                     String[] stringArray = Arrays.copyOf(objectArray, objectArray.length, String[].class);
                     Luciq.addTags(stringArray);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[appendTags] failed", e);
                 }
             }
         });
@@ -294,13 +303,14 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setLocale] called luciqLocale=" + luciqLocale);
                 try {
                     final LuciqLocale parsedLocale = ArgsRegistry.locales
                             .getOrDefault(luciqLocale, LuciqLocale.ENGLISH);
                     final Locale locale = new Locale(parsedLocale.getCode(), parsedLocale.getCountry());
                     Luciq.setLocale(locale);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setLocale] failed", e);
                 }
             }
         });
@@ -318,13 +328,14 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setFileAttachment] called fileUriLen=" + (fileUri == null ? 0 : fileUri.length()) + ", fileNameLen=" + (fileNameWithExtension == null ? 0 : fileNameWithExtension.length()));
                 try {
                     File file = new File(fileUri);
                     if (file.exists()) {
                         Luciq.addFileAttachment(Uri.fromFile(file), fileNameWithExtension);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setFileAttachment] failed", e);
                 }
             }
         });
@@ -341,10 +352,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setUserData] called userDataLen=" + (userData == null ? 0 : userData.length()) + ", present=" + (userData != null));
                 try {
                     Luciq.setUserData(userData);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setUserData] failed", e);
                 }
             }
         });
@@ -362,14 +374,16 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[getTags] called");
                 WritableArray tagsArray = Arguments.createArray();
                 try {
                     ArrayList<String> tags = Luciq.getTags();
                     for (int i = 0; i < tags.size(); i++) {
                         tagsArray.pushString(tags.get(i));
                     }
+                    LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[getTags] success");
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[getTags] failed", e);
                 }
                 promise.resolve(tagsArray);
             }
@@ -393,11 +407,12 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[identifyUser] called userEmailLen=" + (userEmail == null ? 0 : userEmail.length()) + ", userNameLen=" + (userName == null ? 0 : userName.length()) + ", userIdLen=" + (userId == null ? 0 : userId.length()) + ", userIdPresent=" + (userId != null));
                 try {
                     // The arguments get re-ordered here to match the API signature.
                     Luciq.identifyUser(userName, userEmail, userId);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[identifyUser] failed", e);
                 }
             }
         });
@@ -411,10 +426,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[resetTags] called");
                 try {
                     Luciq.resetTags();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[resetTags] failed", e);
                 }
             }
         });
@@ -425,10 +441,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logVerbose] called messageLen=" + (message == null ? 0 : message.length()));
                 try {
                     LuciqLog.v(message);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[logVerbose] failed", e);
                 }
             }
         });
@@ -439,10 +456,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logDebug] called messageLen=" + (message == null ? 0 : message.length()));
                 try {
                     LuciqLog.d(message);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[logDebug] failed", e);
                 }
             }
         });
@@ -453,10 +471,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logInfo] called messageLen=" + (message == null ? 0 : message.length()));
                 try {
                     LuciqLog.i(message);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[logInfo] failed", e);
                 }
             }
         });
@@ -467,10 +486,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logError] called messageLen=" + (message == null ? 0 : message.length()));
                 try {
                     LuciqLog.e(message);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[logError] failed", e);
                 }
             }
         });
@@ -481,10 +501,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logWarn] called messageLen=" + (message == null ? 0 : message.length()));
                 try {
                     LuciqLog.w(message);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[logWarn] failed", e);
                 }
             }
         });
@@ -498,10 +519,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[clearLogs] called");
                 try {
                     LuciqLog.clearLogs();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[clearLogs] failed", e);
                 }
             }
         });
@@ -518,10 +540,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setUserAttribute] called keyLen=" + (key == null ? 0 : key.length()) + ", valueLen=" + (value == null ? 0 : value.length()));
                 try {
                     Luciq.setUserAttribute(key, value);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setUserAttribute] failed", e);
                 }
             }
         });
@@ -538,11 +561,12 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[getUserAttribute] called keyLen=" + (key == null ? 0 : key.length()) + ", present=" + (key != null));
                 String userAttribute = "";
                 try {
                     userAttribute = Luciq.getUserAttribute(key);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[getUserAttribute] failed", e);
                 }
                 promise.resolve(userAttribute);
             }
@@ -561,10 +585,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[removeUserAttribute] called keyLen=" + (key == null ? 0 : key.length()) + ", present=" + (key != null));
                 try {
                     Luciq.removeUserAttribute(key);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[removeUserAttribute] failed", e);
                 }
             }
         });
@@ -580,6 +605,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[getAllUserAttributes] called");
                 WritableMap writableMap = Arguments.createMap();
                 try {
                     HashMap<String, String> map = Luciq.getAllUserAttributes();
@@ -587,7 +613,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                         writableMap.putString(entry.getKey(), entry.getValue());
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[getAllUserAttributes] failed", e);
                 }
                 promise.resolve(writableMap);
             }
@@ -602,10 +628,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[clearAllUserAttributes] called");
                 try {
                     Luciq.clearAllUserAttributes();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[clearAllUserAttributes] failed", e);
                 }
             }
         });
@@ -621,12 +648,13 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setColorTheme] called themeLen=" + (theme == null ? 0 : theme.length()) + ", present=" + (theme != null));
                 try {
                     final LuciqColorTheme colorTheme = ArgsRegistry.colorThemes
                             .getOrDefault(theme, LuciqColorTheme.LuciqColorThemeLight);
                     Luciq.setColorTheme(colorTheme);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setColorTheme] failed", e);
                 }
             }
         });
@@ -644,12 +672,13 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setString] called stringLen=" + (string == null ? 0 : string.length()) + ", keyLen=" + (key == null ? 0 : key.length()));
                 try {
                     final LuciqCustomTextPlaceHolder.Key parsedKey = ArgsRegistry.placeholders.get(key);
                     placeHolders.set(parsedKey, string);
                     Luciq.setCustomTextPlaceHolders(placeHolders);
                 } catch (java.lang.Exception exception) {
-                    exception.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setString] failed", exception);
                 }
             }
         });
@@ -666,10 +695,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logOut] called");
                 try {
                     Luciq.logoutUser();
                 } catch (java.lang.Exception exception) {
-                    exception.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[logOut] failed", exception);
                 }
             }
         });
@@ -686,10 +716,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logUserEvent] called nameLen=" + (name == null ? 0 : name.length()) + ", present=" + (name != null));
                 try {
                     Luciq.logUserEvent(name);
                 } catch (java.lang.Exception exception) {
-                    exception.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[logUserEvent] failed", exception);
                 }
             }
         });
@@ -706,9 +737,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setPreSendingHandler] called");
                 Luciq.onReportSubmitHandler(new Report.OnReportCreatedListener() {
                     @Override
                     public void onReportCreated(Report report) {
+                        LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[LuciqpreSendingHandler] emitted");
                         WritableMap reportParam = Arguments.createMap();
                         reportParam.putArray("tagsArray", convertArrayListToWritableArray(report.getTags()));
                         reportParam.putArray("consoleLogs", convertArrayListToWritableArray(report.getConsoleLog()));
@@ -729,6 +762,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void appendTagToReport(String tag) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[appendTagToReport] called tagLen=" + (tag == null ? 0 : tag.length()) + ", present=" + (tag != null));
         if (currentReport != null) {
             currentReport.addTag(tag);
         }
@@ -736,6 +770,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void appendConsoleLogToReport(String consoleLog) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[appendConsoleLogToReport] called consoleLogLen=" + (consoleLog == null ? 0 : consoleLog.length()) + ", present=" + (consoleLog != null));
         if (currentReport != null) {
             currentReport.appendToConsoleLogs(consoleLog);
         }
@@ -743,6 +778,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void setUserAttributeToReport(String key, String value) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setUserAttributeToReport] called keyLen=" + (key == null ? 0 : key.length()) + ", valueLen=" + (value == null ? 0 : value.length()));
         if (currentReport != null) {
             currentReport.setUserAttribute(key, value);
         }
@@ -750,6 +786,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void logDebugToReport(String log) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logDebugToReport] called logLen=" + (log == null ? 0 : log.length()) + ", present=" + (log != null));
         if (currentReport != null) {
             currentReport.logDebug(log);
         }
@@ -757,6 +794,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void logVerboseToReport(String log) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logVerboseToReport] called logLen=" + (log == null ? 0 : log.length()) + ", present=" + (log != null));
         if (currentReport != null) {
             currentReport.logVerbose(log);
         }
@@ -764,6 +802,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void logWarnToReport(String log) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logWarnToReport] called logLen=" + (log == null ? 0 : log.length()) + ", present=" + (log != null));
         if (currentReport != null) {
             currentReport.logWarn(log);
         }
@@ -771,6 +810,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void logErrorToReport(String log) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logErrorToReport] called logLen=" + (log == null ? 0 : log.length()) + ", present=" + (log != null));
         if (currentReport != null) {
             currentReport.logError(log);
         }
@@ -778,6 +818,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void logInfoToReport(String log) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[logInfoToReport] called logLen=" + (log == null ? 0 : log.length()) + ", present=" + (log != null));
         if (currentReport != null) {
             currentReport.logInfo(log);
         }
@@ -785,6 +826,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void addFileAttachmentWithURLToReport(String urlString, String fileName) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[addFileAttachmentWithURLToReport] called url=" + LuciqRNLogger.redactUrl(urlString) + ", fileNameLen=" + (fileName == null ? 0 : fileName.length()));
         if (currentReport != null) {
             Uri uri = Uri.parse(urlString);
             currentReport.addFileAttachment(uri, fileName);
@@ -793,6 +835,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void addFileAttachmentWithDataToReport(String data, String fileName) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[addFileAttachmentWithDataToReport] called dataLen=" + (data == null ? 0 : data.length()) + ", fileNameLen=" + (fileName == null ? 0 : fileName.length()));
         if (currentReport != null) {
             currentReport.addFileAttachment(data.getBytes(), fileName);
         }
@@ -814,10 +857,12 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         try {
             json = new JSONTokener(object.toString()).nextValue();
         } catch (JSONException e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[objectToJSONObject] failed parsing JSON", e);
         }
         if (json instanceof JSONObject) {
             jsonObject = (JSONObject) json;
+        } else if (json != null) {
+            LuciqRNLogger.w(LuciqRNDebugTags.CORE, "[objectToJSONObject] parsed value not a JSONObject; actualType=" + json.getClass().getSimpleName());
         }
         return jsonObject;
     }
@@ -832,6 +877,10 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                 writableArray.pushString((String) object);
             } else {
                 JSONObject jsonObject = objectToJSONObject(object);
+                if (jsonObject == null) {
+                    LuciqRNLogger.w(LuciqRNDebugTags.CORE, "[convertArrayListToWritableArray] skipping non-string entry at index=" + i + " (failed JSON conversion)");
+                    continue;
+                }
                 writableArray.pushMap((WritableMap) jsonObject);
             }
         }
@@ -849,10 +898,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[clearFileAttachment] called");
                 try {
                     Luciq.clearFileAttachment();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[clearFileAttachment] failed", e);
                 }
             }
         });
@@ -863,6 +913,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setReproStepsConfig] called bugMode=" + bugMode + ", crashMode=" + crashMode + ", sessionReplayMode=" + sessionReplayMode);
                 try {
                     final Integer resolvedBugMode = ArgsRegistry.reproModes.get(bugMode);
                     final Integer resolvedCrashMode = ArgsRegistry.reproModes.get(crashMode);
@@ -876,7 +927,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
                     Luciq.setReproConfigurations(config);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setReproStepsConfig] failed", e);
                 }
             }
         });
@@ -893,12 +944,13 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[showWelcomeMessageWithMode] called welcomeMessageMode=" + welcomeMessageMode);
                 try {
                     final WelcomeMessage.State parsedState = ArgsRegistry.welcomeMessageStates
                             .getOrDefault(welcomeMessageMode, WelcomeMessage.State.LIVE);
                     Luciq.showWelcomeMessage(parsedState);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[showWelcomeMessageWithMode] failed", e);
                 }
             }
         });
@@ -915,12 +967,13 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setWelcomeMessageMode] called welcomeMessageMode=" + welcomeMessageMode);
                 try {
                     final WelcomeMessage.State parsedState = ArgsRegistry.welcomeMessageStates
                             .getOrDefault(welcomeMessageMode, WelcomeMessage.State.LIVE);
                     Luciq.setWelcomeMessageState(parsedState);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setWelcomeMessageMode] failed", e);
                 }
             }
         });
@@ -931,6 +984,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[show] called");
                 Luciq.show();
             }
         });
@@ -946,6 +1000,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setSessionProfilerEnabled] called sessionProfilerEnabled=" + sessionProfilerEnabled);
                 try {
                     if (sessionProfilerEnabled) {
                         Luciq.setSessionProfilerState(Feature.State.ENABLED);
@@ -953,7 +1008,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                         Luciq.setSessionProfilerState(Feature.State.DISABLED);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setSessionProfilerEnabled] failed", e);
                 }
             }
         });
@@ -968,7 +1023,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                                   final String requestHeaders,
                                   final String responseHeaders,
                                   final double duration) {
-        LuciqRNLogger.d(NET_TAG, "[networkLogAndroid-Core] Received from JS: " + method + " " + url + ", status=" + (int) responseCode + ", duration=" + (long) duration + "ms, reqBodyLen=" + (requestBody != null ? requestBody.length() : 0) + ", resBodyLen=" + (responseBody != null ? responseBody.length() : 0));
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[networkLogAndroid-Core] Received from JS: " + method + " " + LuciqRNLogger.redactUrl(url) + ", status=" + (int) responseCode + ", duration=" + (long) duration + "ms, reqBodyLen=" + (requestBody != null ? requestBody.length() : 0) + ", resBodyLen=" + (responseBody != null ? responseBody.length() : 0));
         try {
             final String date = String.valueOf(System.currentTimeMillis());
 
@@ -985,15 +1040,13 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                 networkLog.setRequestHeaders(requestHeaders);
                 networkLog.setResponseHeaders(responseHeaders);
             } catch (OutOfMemoryError | Exception exception) {
-                LuciqRNLogger.e(NET_TAG, "[networkLogAndroid-Core] OOM/Error setting log contents: " + exception.getMessage() + " for " + method + " " + url);
-                Log.d(TAG, "Error: " + exception.getMessage() + "while trying to set network log contents (request body, response body, request headers, and response headers).");
+                LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[networkLogAndroid-Core] OOM/Error setting log contents: " + exception.getMessage() + " for " + method + " " + LuciqRNLogger.redactUrl(url));
             }
 
             networkLog.insert();
-            LuciqRNLogger.d(NET_TAG, "[networkLogAndroid-Core] Successfully inserted NetworkLog: " + method + " " + url);
+            LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[networkLogAndroid-Core] Successfully inserted NetworkLog: " + method + " " + LuciqRNLogger.redactUrl(url));
         } catch (OutOfMemoryError | Exception exception) {
-            LuciqRNLogger.e(NET_TAG, "[networkLogAndroid-Core] OOM/Error inserting network log: " + exception.getMessage() + " for " + method + " " + url);
-            Log.d(TAG, "Error: " + exception.getMessage() + "while trying to insert a network log");
+            LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[networkLogAndroid-Core] OOM/Error inserting network log: " + exception.getMessage() + " for " + method + " " + LuciqRNLogger.redactUrl(url));
         }
     }
 
@@ -1028,6 +1081,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] called reactTag=" + reactTag);
                 try {
                     final View view = resolveReactView(tag);
 
@@ -1035,7 +1089,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                         Luciq.addPrivateViews(view);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] failed", e);
                 }
             }
         });
@@ -1050,6 +1104,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.PRIVATE_VIEW, "[removePrivateView] called reactTag=" + reactTag);
                 try {
                     final View view = resolveReactView(tag);
                     if (view != null) {
@@ -1057,7 +1112,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                         Luciq.removePrivateViews(view);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.PRIVATE_VIEW, "[removePrivateView] failed", e);
                 }
             }
         });
@@ -1073,13 +1128,14 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.SCREEN_TRACKING, "[reportCurrentViewChange] called screenNameLen=" + (screenName == null ? 0 : screenName.length()) + ", present=" + (screenName != null));
                 try {
                     Method method = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportCurrentViewChange", String.class);
                     if (method != null) {
                         method.invoke(null, screenName);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.SCREEN_TRACKING, "[reportCurrentViewChange] failed", e);
                 }
             }
         });
@@ -1096,6 +1152,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.SCREEN_TRACKING, "[reportScreenChange] called screenNameLen=" + (screenName == null ? 0 : screenName.length()) + ", present=" + (screenName != null) + ", spanIdPresent=" + (spanId != null));
                 try {
                     Long uiTraceId = spanId != null ? Long.parseLong(spanId) : null;
                     Method method = getMethod(Class.forName("ai.luciq.library.Luciq"), "reportScreenChange", Bitmap.class, String.class, Long.class);
@@ -1103,7 +1160,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                         method.invoke(null, null, screenName, uiTraceId);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.SCREEN_TRACKING, "[reportScreenChange] failed", e);
                 }
             }
         });
@@ -1115,6 +1172,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.FEATURE_FLAGS, "[addFeatureFlags] called present=" + (featureFlagsMap != null));
                 try {
                     Iterator<Map.Entry<String, Object>> iterator = featureFlagsMap.getEntryIterator();
                     ArrayList<LuciqFeatureFlag> featureFlags = new ArrayList<>();
@@ -1128,7 +1186,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                         Luciq.addFeatureFlags(featureFlags);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.FEATURE_FLAGS, "[addFeatureFlags] failed", e);
                 }
             }
         });
@@ -1139,11 +1197,12 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.FEATURE_FLAGS, "[removeFeatureFlags] called present=" + (featureFlags != null));
                 try {
                     ArrayList<String> stringArray = ArrayUtil.parseReadableArrayOfStrings(featureFlags);
                     Luciq.removeFeatureFlag(stringArray);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.FEATURE_FLAGS, "[removeFeatureFlags] failed", e);
                 }
             }
         });
@@ -1154,10 +1213,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.FEATURE_FLAGS, "[removeAllFeatureFlags] called");
                 try {
                     Luciq.removeAllFeatureFlags();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.FEATURE_FLAGS, "[removeAllFeatureFlags] failed", e);
                 }
             }
         });
@@ -1168,10 +1228,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[willRedirectToStore] called");
                 try {
                     Luciq.willRedirectToStore();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[willRedirectToStore] failed", e);
                 }
             }
         });
@@ -1182,7 +1243,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
      */
     @ReactMethod
     public void registerFeatureFlagsChangeListener() {
-        LuciqRNLogger.d(NET_TAG, "[registerFeatureFlagsChangeListener] Registering native feature flags listener");
+        LuciqRNLogger.d(LuciqRNDebugTags.FEATURE_FLAGS, "[registerFeatureFlagsChangeListener] Registering native feature flags listener");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -1190,7 +1251,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                     InternalCore.INSTANCE._setFeaturesStateListener(new FeaturesStateListener() {
                         @Override
                         public void invoke(@NonNull CoreFeaturesState featuresState) {
-                            LuciqRNLogger.d(NET_TAG, "[FeatureFlagsListener] Received update — W3CTraceID=" + featuresState.isW3CExternalTraceIdEnabled() + ", generatedHeader=" + featuresState.isAttachingGeneratedHeaderEnabled() + ", caughtHeader=" + featuresState.isAttachingCapturedHeaderEnabled() + ", networkBodyLimit=" + featuresState.getNetworkLogCharLimit());
+                            LuciqRNLogger.d(LuciqRNDebugTags.FEATURE_FLAGS, "[FeatureFlagsListener] Received update - W3CTraceID=" + featuresState.isW3CExternalTraceIdEnabled() + ", generatedHeader=" + featuresState.isAttachingGeneratedHeaderEnabled() + ", caughtHeader=" + featuresState.isAttachingCapturedHeaderEnabled() + ", networkBodyLimit=" + featuresState.getNetworkLogCharLimit());
                             WritableMap params = Arguments.createMap();
                             params.putBoolean("isW3ExternalTraceIDEnabled", featuresState.isW3CExternalTraceIdEnabled());
                             params.putBoolean("isW3ExternalGeneratedHeaderEnabled", featuresState.isAttachingGeneratedHeaderEnabled());
@@ -1198,12 +1259,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                             params.putInt("networkBodyLimit", featuresState.getNetworkLogCharLimit());
 
                             sendEvent(Constants.LCQ_ON_FEATURE_FLAGS_UPDATE_RECEIVED_CALLBACK, params);
-                            LuciqRNLogger.d(NET_TAG, "[FeatureFlagsListener] Sent event to JS: " + Constants.LCQ_ON_FEATURE_FLAGS_UPDATE_RECEIVED_CALLBACK);
+                            LuciqRNLogger.d(LuciqRNDebugTags.FEATURE_FLAGS, "[FeatureFlagsListener] Sent event to JS: " + Constants.LCQ_ON_FEATURE_FLAGS_UPDATE_RECEIVED_CALLBACK);
                         }
                     });
                 } catch (Exception e) {
-                    LuciqRNLogger.e(NET_TAG, "[registerFeatureFlagsChangeListener] Failed to register listener", e);
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.FEATURE_FLAGS, "[registerFeatureFlagsChangeListener] Failed to register listener", e);
                 }
 
             }
@@ -1217,17 +1277,16 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
      */
     @ReactMethod
     public void isW3ExternalTraceIDEnabled(Promise promise) {
-        LuciqRNLogger.d(NET_TAG, "[isW3ExternalTraceIDEnabled] Querying native flag");
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[isW3ExternalTraceIDEnabled] Querying native flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
                     boolean enabled = InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_EXTERNAL_TRACE_ID);
-                    LuciqRNLogger.d(NET_TAG, "[isW3ExternalTraceIDEnabled] Result=" + enabled);
+                    LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[isW3ExternalTraceIDEnabled] Result=" + enabled);
                     promise.resolve(enabled);
                 } catch (Exception e) {
-                    LuciqRNLogger.e(NET_TAG, "[isW3ExternalTraceIDEnabled] Error querying flag", e);
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[isW3ExternalTraceIDEnabled] Error querying flag", e);
                     promise.resolve(false);
                 }
 
@@ -1242,17 +1301,16 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
      */
     @ReactMethod
     public void isW3ExternalGeneratedHeaderEnabled(Promise promise) {
-        LuciqRNLogger.d(NET_TAG, "[isW3ExternalGeneratedHeaderEnabled] Querying native flag");
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[isW3ExternalGeneratedHeaderEnabled] Querying native flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
                     boolean enabled = InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_ATTACHING_GENERATED_HEADER);
-                    LuciqRNLogger.d(NET_TAG, "[isW3ExternalGeneratedHeaderEnabled] Result=" + enabled);
+                    LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[isW3ExternalGeneratedHeaderEnabled] Result=" + enabled);
                     promise.resolve(enabled);
                 } catch (Exception e) {
-                    LuciqRNLogger.e(NET_TAG, "[isW3ExternalGeneratedHeaderEnabled] Error querying flag", e);
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[isW3ExternalGeneratedHeaderEnabled] Error querying flag", e);
                     promise.resolve(false);
                 }
 
@@ -1266,17 +1324,16 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
      */
     @ReactMethod
     public void isW3CaughtHeaderEnabled(Promise promise) {
-        LuciqRNLogger.d(NET_TAG, "[isW3CaughtHeaderEnabled] Querying native flag");
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[isW3CaughtHeaderEnabled] Querying native flag");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
                     boolean enabled = InternalCore.INSTANCE._isFeatureEnabled(CoreFeature.W3C_ATTACHING_CAPTURED_HEADER);
-                    LuciqRNLogger.d(NET_TAG, "[isW3CaughtHeaderEnabled] Result=" + enabled);
+                    LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[isW3CaughtHeaderEnabled] Result=" + enabled);
                     promise.resolve(enabled);
                 } catch (Exception e) {
-                    LuciqRNLogger.e(NET_TAG, "[isW3CaughtHeaderEnabled] Error querying flag", e);
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[isW3CaughtHeaderEnabled] Error querying flag", e);
                     promise.resolve(false);
                 }
 
@@ -1308,12 +1365,14 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @ReactMethod
     public void setOnFeaturesUpdatedListener() {
+        LuciqRNLogger.d(LuciqRNDebugTags.FEATURE_FLAGS, "[setOnFeaturesUpdatedListener] called");
         InternalCore.INSTANCE._setOnFeaturesUpdatedListener(new OnFeaturesUpdatedListener() {
             @Override
             public void invoke() {
                 final boolean cpNativeInterceptionEnabled = InternalAPM._isFeatureEnabledCP(CP_NATIVE_INTERCEPTION_ENABLED, "");
                 final boolean hasAPMPlugin = InternalAPM._isFeatureEnabledCP(APM_NETWORK_PLUGIN_INSTALLED, "");
 
+                LuciqRNLogger.d(LuciqRNDebugTags.FEATURE_FLAGS, "[OnFeaturesUpdated] emitted cpNativeInterceptionEnabled=" + cpNativeInterceptionEnabled + " hasAPMPlugin=" + hasAPMPlugin);
                 WritableMap params = Arguments.createMap();
                 params.putBoolean("cpNativeInterceptionEnabled", cpNativeInterceptionEnabled);
                 params.putBoolean("hasAPMPlugin", hasAPMPlugin);
@@ -1332,10 +1391,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[setNetworkLogBodyEnabled] called isEnabled=" + isEnabled);
                 try {
                     Luciq.setNetworkLogBodyEnabled(isEnabled);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[setNetworkLogBodyEnabled] failed", e);
                 }
             }
         });
@@ -1352,6 +1412,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.PRIVATE_VIEW, "[enableAutoMasking] called typesCount=" + autoMaskingTypes.size());
                 int[] autoMassingTypesArray = new int[autoMaskingTypes.size()];
                 for (int i = 0; i < autoMaskingTypes.size(); i++) {
                     String key = autoMaskingTypes.getString(i);
@@ -1371,17 +1432,16 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
      */
     @ReactMethod
     public void getNetworkBodyMaxSize(Promise promise) {
-        LuciqRNLogger.d(NET_TAG, "[getNetworkBodyMaxSize] Querying network body size limit");
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[getNetworkBodyMaxSize] Querying network body size limit");
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
                 try {
                     Object limit = InternalCore.INSTANCE.get_networkLogCharLimit();
-                    LuciqRNLogger.d(NET_TAG, "[getNetworkBodyMaxSize] Result=" + limit);
+                    LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[getNetworkBodyMaxSize] Result=" + limit);
                     promise.resolve(limit);
                 } catch (Exception e) {
-                    LuciqRNLogger.e(NET_TAG, "[getNetworkBodyMaxSize] Error querying limit", e);
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[getNetworkBodyMaxSize] Error querying limit", e);
                     promise.resolve(false);
                 }
             }
@@ -1451,11 +1511,12 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
          */
        @ReactMethod
         public void setAppVariant(@NonNull String appVariant) {
+            LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setAppVariant] called appVariantLen=" + appVariant.length());
             try {
                 Luciq.setAppVariant(appVariant);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setAppVariant] failed", e);
         }
     }
 
@@ -1466,10 +1527,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
      */
     @ReactMethod
     public void setWebViewMonitoringEnabled(final boolean isEnabled) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setWebViewMonitoringEnabled] called isEnabled=" + isEnabled);
         try {
             Luciq.setWebViewMonitoringEnabled(isEnabled);
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setWebViewMonitoringEnabled] failed", e);
         }
     }
 
@@ -1480,10 +1542,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
      */
     @ReactMethod
     public void setWebViewNetworkTrackingEnabled(final boolean isEnabled) {
+        LuciqRNLogger.d(LuciqRNDebugTags.NETWORK, "[setWebViewNetworkTrackingEnabled] called isEnabled=" + isEnabled);
         try {
             Luciq.setWebViewNetworkTrackingEnabled(isEnabled);
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.NETWORK, "[setWebViewNetworkTrackingEnabled] failed", e);
         }
     }
 
@@ -1494,10 +1557,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
      */
     @ReactMethod
     public void setWebViewUserInteractionsTrackingEnabled(final boolean isEnabled) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setWebViewUserInteractionsTrackingEnabled] called isEnabled=" + isEnabled);
         try {
             Luciq.setWebViewUserInteractionsTrackingEnabled(isEnabled);
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setWebViewUserInteractionsTrackingEnabled] failed", e);
         }
     }
 
@@ -1511,6 +1575,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setTheme] called present=" + (themeConfig != null));
                 try {
                     ai.luciq.library.model.LuciqTheme.Builder builder = new ai.luciq.library.model.LuciqTheme.Builder();
 
@@ -1533,7 +1598,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                     Luciq.setTheme(theme);
 
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setTheme] failed", e);
                 }
             }
         });
@@ -1553,7 +1618,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                 return Color.parseColor(colorString);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[getColor] failed parsing color key=" + key, e);
         }
         return Color.BLACK;
     }
@@ -1582,7 +1647,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[getTextStyle] failed parsing style key=" + key, e);
         }
         return Typeface.NORMAL;
     }
@@ -1650,7 +1715,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                         break;
                 }
             } else {
-                Log.e("LuciqModule", "Failed to load " + fontType + " font");
+                LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setTheme] failed to load " + fontType + " font");
             }
         }
     }
@@ -1668,7 +1733,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                 return typeface;
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[loadTypefaceFromFile] failed loading typeface", e);
         }
         return null;
     }
@@ -1683,7 +1748,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         try {
             return Typeface.createFromAsset(getReactApplicationContext().getAssets(), "fonts/" + fileName);
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[loadTypefaceFromAssets] failed loading typeface from assets", e);
             return null;
         }
     }
@@ -1713,7 +1778,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                 return loadTypefaceFromAssets(fileName);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[getTypeface] failed resolving typeface fileKey=" + fileKey + " assetKey=" + assetKey, e);
         }
 
         return Typeface.DEFAULT;
@@ -1748,10 +1813,11 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[setFullscreen] called isEnabled=" + isEnabled);
                 try {
                     Luciq.setFullscreen(isEnabled);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[setFullscreen] failed", e);
                 }
             }
         });
