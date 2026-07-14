@@ -53,10 +53,12 @@ xcrun simctl install booted "$APP_BUNDLE"
 
 bench_val() { grep -oE "\[BENCH\] $1=[^ ]+" "$2" | tail -n1 | cut -d= -f2 | tr -d '\r'; }
 
-# Physical footprint (MB) of the running app process on the sim host.
+# Physical footprint (MB) of the running app process on the sim host. The
+# installed app runs from the simulator container (…/LuciqExample.app/LuciqExample),
+# not the derived-data bundle, so match on the generic installed path.
 app_mem_mb() {
   local pid
-  pid="$(pgrep -f "$APP_BUNDLE/LuciqExample" | head -n1 || true)"
+  pid="$(pgrep -f 'LuciqExample.app/LuciqExample' | head -n1 || true)"
   [[ -n "$pid" ]] || { echo ""; return; }
   if command -v footprint >/dev/null 2>&1; then
     footprint -- "$pid" 2>/dev/null | grep -iE 'phys_footprint|Physical footprint' | grep -oE '[0-9.]+ *MB' | head -n1 | grep -oE '[0-9.]+'
