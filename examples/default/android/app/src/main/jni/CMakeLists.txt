@@ -9,7 +9,12 @@ project(appmodules)
 # Creates target "appmodules" and links it against all prefab RN libs,
 # autolinked third-party libraries, and app-level codegen. Globs *.cpp from
 # this directory (so OnLoad.cpp alongside this file gets picked up).
-include("${REACT_ANDROID_DIR}/cmake-utils/ReactNative-application.cmake")
+# REACT_ANDROID_DIR is only injected by the React Native Gradle Plugin when the
+# new architecture is enabled; on the old bridge it is empty, so the appmodules
+# target (TurboModules/Fabric) is neither needed nor buildable and is skipped.
+if(REACT_ANDROID_DIR)
+    include("${REACT_ANDROID_DIR}/cmake-utils/ReactNative-application.cmake")
+endif()
 
 # Also build the existing custom libnative-lib.so (crash-testing JNI) from
 # ../cpp. Its CMakeLists only defines the target — keeping it in its own
