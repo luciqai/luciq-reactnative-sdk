@@ -136,9 +136,9 @@ export const runBridgeBenchmark = async (iterations = 2000): Promise<BenchmarkRe
 
   emit('arch', arch);
   emit('iterations', iterations);
-  if (ttiMs != null) {
-    emit('tti_ms', round(ttiMs));
-  }
+  // Note: tti_ms is emitted once at mount by emitTtiOnce(). Do NOT emit it here
+  // - readTti() at this point includes the autorun delay + benchmark runtime
+  // and the scraper takes the last tti_ms line, which would corrupt startup.
   emitStats('void', voidDispatch);
   emitStats('rt', roundTrip);
   emit('done', 1);
