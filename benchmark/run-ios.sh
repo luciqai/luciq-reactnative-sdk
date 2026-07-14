@@ -73,8 +73,14 @@ for ((i=1; i<=RUNS; i++)); do
   sleep 1
 
   LOG="$(mktemp)"
-  # Stream console (console.log) to LOG in the background.
-  xcrun simctl launch --console-pty booted "$BUNDLE_ID" > "$LOG" 2>&1 &
+  # Hermes console.log in a Release build routes to os_log (NSLog), which
+  # --console-pty can miss, so ALSO stream the system log filtered to the app.
+  # Both sources feed the same LOG; the [BENCH] scraper dedups via tail -n1.
+  xcrun simctl spawn booted log stream --level debug \
+    --predicate 'senderImagePath CONTAINS "LuciqExample" OR processImagePath CONTAINS "LuciqExample"' \
+    >> "$LOG" 2>/dev/null &
+  STREAM_PID=$!
+  xcrun simctl launch --console-pty booted "$BUNDLE_ID" >> "$LOG" 2>&1 &
   LAUNCH_PID=$!
 
   for ((t=0; t<90; t++)); do
@@ -86,7 +92,7 @@ for ((i=1; i<=RUNS; i++)); do
   fi
 
   MEM_MB="$(app_mem_mb)"
-  kill "$LAUNCH_PID" >/dev/null 2>&1 || true
+  kill "$LAUNCH_PID" "$STREAM_PID" >/dev/null 2>&1 || true
 
   ARCH="$(bench_val arch "$LOG")"
   TTI="$(bench_val tti_ms "$LOG")"
