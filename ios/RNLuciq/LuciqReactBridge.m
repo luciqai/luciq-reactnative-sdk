@@ -402,9 +402,35 @@ RCT_EXPORT_METHOD(clearAllUserAttributes) {
     }
 }
 
-RCT_EXPORT_METHOD(logUserEvent:(NSString *)name) {
-    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[logUserEvent] called nameLength=%lu present=%@", (unsigned long)name.length, (name != nil ? @"YES" : @"NO")];
-    [Luciq logUserEventWithName:name];
+RCT_EXPORT_METHOD(logUserEvent:(NSString *)name parameters:(NSArray *)parameters) {
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[logUserEvent] called nameLength=%lu present=%@ parametersCount=%lu", (unsigned long)name.length, (name != nil ? @"YES" : @"NO"), (unsigned long)parameters.count];
+    NSArray<LCQUserEventParam *> *userEventParams = [self userEventParamsFromArray:parameters];
+    if (userEventParams.count == 0) {
+        [Luciq logUserEventWithName:name];
+    } else {
+        [Luciq logUserEventWithName:name parameters:userEventParams];
+    }
+}
+
+- (NSArray<LCQUserEventParam *> *)userEventParamsFromArray:(NSArray *)parameters {
+    if (parameters.count == 0) {
+        return @[];
+    }
+
+    NSMutableArray<LCQUserEventParam *> *userEventParams = [NSMutableArray arrayWithCapacity:parameters.count];
+    for (NSDictionary *parameter in parameters) {
+        if (![parameter isKindOfClass:[NSDictionary class]]) {
+            continue;
+        }
+        NSString *key = parameter[@"key"];
+        NSString *value = parameter[@"value"];
+        if (![key isKindOfClass:[NSString class]] || ![value isKindOfClass:[NSString class]]) {
+            continue;
+        }
+        [userEventParams addObject:[[LCQUserEventParam alloc] initWithKey:key value:value]];
+    }
+
+    return userEventParams;
 }
 
 RCT_EXPORT_METHOD(setLCQLogPrintsToConsole:(BOOL) printsToConsole) {

@@ -3,6 +3,7 @@ import type { LuciqConfig } from './models/LuciqConfig';
 import Report from './models/Report';
 import type { ThemeConfig } from './models/ThemeConfig';
 import { CustomSpan } from './models/CustomSpan';
+import { UserEventParam } from './models/UserEventParam';
 // Modules
 import * as APM from './modules/APM';
 import * as BugReporting from './modules/BugReporting';
@@ -25,6 +26,7 @@ export * from './utils/Enums';
 export {
   Report,
   CustomSpan,
+  UserEventParam,
   APM,
   BugReporting,
   CrashReporting,
