@@ -10,6 +10,30 @@ linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
   Pod::UI.puts "Configuring Pod with #{linkage}ally linked Frameworks".green
   use_frameworks! :linkage => linkage.to_sym
+
+  # Force statically-linked pods to stay static under dynamic frameworks.
+  # - GoogleMaps ships static .xcframeworks that conflict with dynamic linkage.
+  # - RNReanimated fails to resolve React (RCTEventDispatcher) and Hermes
+  #   inspector symbols (enableDebugging/disableDebugging) across the dynamic-
+  #   framework boundary; static-linking it pulls those symbols in directly.
+  #   Reanimated + use_frameworks! + Hermes has no official fix (see
+  #   software-mansion/react-native-reanimated#3768).
+  if linkage.to_sym == :dynamic
+    force_static = [
+      'GoogleMaps', 'GoogleMapsBase', 'GoogleMapsCore',
+      'Google-Maps-iOS-Utils', 'react-native-google-maps',
+      'RNReanimated',
+    ]
+    pre_install do |installer|
+      installer.pod_targets.each do |pod|
+        if force_static.include?(pod.name)
+          def pod.build_type
+            Pod::BuildType.static_library
+          end
+        end
+      end
+    end
+  end
 end
 
 target 'LuciqExample' do
