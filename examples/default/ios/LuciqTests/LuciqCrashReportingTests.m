@@ -47,15 +47,19 @@
 - (void)testSendNonFatalErrorJsonCrash {
   NSDictionary<NSString *,NSString * > *jsonCrash = @{};
   NSString *fingerPrint = @"fingerprint";
-  RCTPromiseResolveBlock resolve = ^(id result) {};
-  RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
   NSDictionary *userAttributes = @{ @"key" : @"value",  };
   LCQNonFatalLevel LCQNonFatalLevel = LCQNonFatalLevelInfo;
 
+  XCTestExpectation *expectation = [self expectationWithDescription:@"Expected resolve to be called."];
+  RCTPromiseResolveBlock resolve = ^(id result) {
+    [expectation fulfill];
+  };
+  RCTPromiseRejectBlock reject = ^(NSString *code, NSString *message, NSError *error) {};
 
   [self.bridge sendHandledJSCrash:jsonCrash userAttributes:userAttributes  fingerprint:fingerPrint nonFatalExceptionLevel:LCQNonFatalLevel resolver:resolve rejecter:reject];
 
-    OCMVerify([self.mCrashReporting cp_reportNonFatalCrashWithStackTrace:jsonCrash
+  [self waitForExpectations:@[expectation] timeout:1];
+  OCMVerify([self.mCrashReporting cp_reportNonFatalCrashWithStackTrace:jsonCrash
            level:LCQNonFatalLevelInfo
          groupingString:fingerPrint
         userAttributes:userAttributes
