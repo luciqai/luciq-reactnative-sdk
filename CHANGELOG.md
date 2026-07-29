@@ -1,10 +1,18 @@
 # Changelog
 
-## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.8.0...dev)
+## [19.9.3](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.19.3...v19.8.0)
 
 ### Added
 
 - Add support for logging user events with key-value parameters using `UserEventParam`. ([#64](https://github.com/luciqai/luciq-reactnative-sdk/pull/64))
+
+- Add support for Swift-Package-Manager (SPM) ([#59](https://github.com/luciqai/luciq-reactnative-sdk/pull/59))
+
+### Changed
+
+- Bump Luciq iOS SDK to v19.9.3 ([#67](https://github.com/luciqai/luciq-reactnative-sdk/pull/67)). [See release notes](https://github.com/luciqai/luciq-ios-sdk/releases/tag/19.9.3).
+
+- Bump Luciq Android SDK to v19.10.0 ([#67](https://github.com/luciqai/luciq-reactnative-sdk/pull/67)). [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.10.0).
 
 ## [19.8.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.8.0...19.7.0)
 
