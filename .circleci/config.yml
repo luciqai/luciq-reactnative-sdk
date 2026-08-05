@@ -18,6 +18,7 @@ references:
     - validate_shell_files
     - sync_generated_files
     - test_ios
+    - test_ios_spm
 
 commands:
   install_node_modules:
@@ -42,6 +43,9 @@ commands:
       deployment:
         type: boolean
         default: false
+      cache_prefix:
+        type: string
+        default: v1-pods
     steps:
       - run:
           name: Uninstall Existing CocoaPods
@@ -52,7 +56,7 @@ commands:
       - restore_cache:
           name: Restore Pods Cache
           keys:
-            - v1-pods-{{ checksum "<< parameters.working_directory >>/Podfile.lock" }}
+            - << parameters.cache_prefix >>-{{ checksum "<< parameters.working_directory >>/Podfile.lock" }}
       - when:
           condition: << parameters.deployment >>
           steps:
@@ -69,7 +73,7 @@ commands:
                 command: pod install
       - save_cache:
           name: Save Pods Cache
-          key: v1-pods-{{ checksum "<< parameters.working_directory >>/Podfile.lock" }}
+          key: << parameters.cache_prefix >>-{{ checksum "<< parameters.working_directory >>/Podfile.lock" }}
           paths:
             - << parameters.working_directory >>/Pods
   find_and_replace:
@@ -145,6 +149,16 @@ commands:
             echo "export GH_TOKEN='$TOKEN'" >> "$BASH_ENV"
             echo "export DANGER_GITHUB_API_TOKEN='$TOKEN'" >> "$BASH_ENV"
             echo "export RELEASE_GITHUB_TOKEN='$TOKEN'" >> "$BASH_ENV"
+
+  update_public_docs_changelog:
+    steps:
+      - run:
+          name: Sync React Native changelog to public docs (luciq-docs)
+          command: |
+            RELEASE_OWNER=$(./scripts/releases/get_job_approver_username.sh 2>/dev/null || true)
+            echo "Release owner (docs PR reviewer): ${RELEASE_OWNER:-<none>}"
+            # Non-fatal: docs sync must never break a release.
+            DOCS_PR_REVIEWER="$RELEASE_OWNER" ./scripts/releases/update-public-docs-changelog.sh || echo "Docs changelog sync failed (non-fatal)"
 
   notify_slack_with_release:
     parameters:
@@ -340,6 +354,33 @@ jobs:
                 paths:
                   - xcode.json
 
+  # Builds the example app via the opt-in SwiftPM path (LUCIQ_USE_SPM=1, dynamic frameworks).
+  test_ios_spm:
+    macos:
+      xcode: 16.4.0
+    resource_class: m4pro.medium
+    working_directory: ~/project/examples/default
+    environment:
+      LUCIQ_SOURCEMAPS_UPLOAD_DISABLE: true
+      LUCIQ_USE_SPM: '1' # resolve native SDK via SwiftPM
+      USE_FRAMEWORKS: dynamic # required by RN's spm_dependency
+    steps:
+      - advanced-checkout/shallow-checkout
+      - install_node_modules
+      - install_pods:
+          working_directory: ios
+          cache_prefix: v1-pods-spm
+      - run:
+          name: Build and run tests (SPM mode)
+          working_directory: ios
+          command: |
+            xcodebuild \
+                -workspace LuciqExample.xcworkspace \
+                -scheme LuciqExample \
+                -sdk iphonesimulator \
+                -destination 'platform=iOS Simulator,name=iPhone 16 Pro Max,OS=18.5' \
+                test | xcpretty
+
   e2e_ios:
     parameters:
       prepare_steps:
@@ -534,6 +575,14 @@ jobs:
       - notify_slack_with_release:
           channel: <<parameters.channel>>
 
+  sync_public_docs_changelog:
+    docker:
+      - image: cimg/base:current
+    steps:
+      - advanced-checkout/shallow-checkout
+      - generate_luciq_github_app_token
+      - update_public_docs_changelog
+
 workflows:
   publish:
     jobs:
@@ -549,6 +598,7 @@ workflows:
           collect_coverage: true
       - test_ios:
           collect_coverage: true
+      - test_ios_spm
       - validate_shell_files
       - sync_generated_files
       - e2e_ios
@@ -612,6 +662,13 @@ workflows:
                 api_endpoint: st001013mec1.instabug.com
           api_endpoint: st001013mec1.instabug.com
           dashboard_token_env: INJAZAT_TOKEN
+
+      - sync_public_docs_changelog:
+          requires:
+            - publish
+          filters:
+            branches:
+              only: master
 
       - release_slack_notification:
           channel: C8PDY2Q8H

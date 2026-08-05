@@ -16,6 +16,7 @@ import type { W3cExternalTraceAttributes } from '../models/W3cExternalTraceAttri
 import { NativeModules } from './NativePackage';
 import type { OverAirUpdate } from '../models/OverAirUpdate';
 import type { ThemeConfig } from '../models/ThemeConfig';
+import type { UserEventParam } from '../models/UserEventParam';
 
 export interface LuciqNativeModule extends NativeModule {
   getConstants(): NativeConstants;
@@ -108,7 +109,7 @@ export interface LuciqNativeModule extends NativeModule {
   // User APIs //
   identifyUser(email: string, name: string, id?: string): void;
   logOut(): void;
-  logUserEvent(name: string): void;
+  logUserEvent(name: string, parameters: UserEventParam[]): void;
   setUserData(data: string): void;
 
   // User Attributes APIs //

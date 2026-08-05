@@ -156,9 +156,10 @@
 }
 
 - (void) testgivenArgs$setAutoScreenRecordingDuration_whenQuery_thenShouldCallNativeApi {
+  id mock = OCMClassMock([LCQBugReporting class]);
   CGFloat duration = 12.3;
   [self.luciqBridge setAutoScreenRecordingDuration:duration];
-  XCTAssertEqual(LCQBugReporting.autoScreenRecordingDuration, duration);
+  OCMVerify([mock setAutoScreenRecordingDuration:duration]);
 }
 
 - (void) testgivenBoolean$setViewHierarchyEnabled_whenQuery_thenShouldCallNativeApi {

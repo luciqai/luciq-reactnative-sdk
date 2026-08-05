@@ -1,3 +1,12 @@
+#!/usr/bin/env bash
+
+# Resolves the GitHub username of the release approver (the person who approved
+# the hold_publish / hold_slack_notification gate).
+#
+# This is the GitHub-login counterpart of get_job_approver.sh (which maps the
+# approver through to a Slack user id). Used to set the docs changelog PR
+# reviewer/assignee to the release owner.
+
 if [ -z "$CIRCLE_TOKEN" ]; then
   echo "Error: CIRCLE_TOKEN is not set" >&2
   exit 1
@@ -45,16 +54,10 @@ if [ -z "$job" ] || [ "$job" == "null" ]; then
   exit 1
 fi
 
-approver_id=$(jq '.approved_by' <<< "$job")
-
-approver_id=$(tr -d '"' <<< "$approver_id")
+approver_id=$(jq -r '.approved_by' <<< "$job")
 
 user=$(curl -s -X GET "https://circleci.com/api/v2/user/$approver_id" --header "Circle-Token: $CIRCLE_TOKEN")
 
-username=$(jq '.login' <<< "$user")
+username=$(jq -r '.login' <<< "$user")
 
-username=$(tr -d '"' <<< "$username")
-
-slack_id=$(./scripts/releases/get_slack_id_from_username.sh "$username")
-
-echo "$slack_id"
+echo "$username"
