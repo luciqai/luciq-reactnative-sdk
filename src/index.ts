@@ -16,6 +16,8 @@ import {
   createProactiveReportingConfig,
   type ProactiveReportingConfigOptions,
 } from './models/ProactiveReportingConfigs';
+import { createLuciqReduxMiddleware } from './modules/ReduxLogger';
+import type { LuciqReduxMiddlewareOptions } from './modules/ReduxLogger';
 import * as Replies from './modules/Replies';
 import type { Survey } from './modules/Surveys';
 import * as Surveys from './modules/Surveys';
@@ -37,6 +39,7 @@ export {
   Surveys,
   ProactiveReportingConfigOptions,
   createProactiveReportingConfig,
+  createLuciqReduxMiddleware,
 };
 export type {
   LuciqConfig,
@@ -45,6 +48,7 @@ export type {
   NetworkDataObfuscationHandler,
   SessionMetadata,
   ThemeConfig,
+  LuciqReduxMiddlewareOptions,
 };
 
 // Screen Loading Component
