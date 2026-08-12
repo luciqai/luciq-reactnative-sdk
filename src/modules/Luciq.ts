@@ -40,6 +40,7 @@ import { Logger } from '../utils/logger';
 import { LuciqDebugTags } from '../constants/DebugTags';
 import type { OverAirUpdate } from '../models/OverAirUpdate';
 import type { ThemeConfig } from '../models/ThemeConfig';
+import type { UserEventParam } from '../models/UserEventParam';
 
 let _currentScreen: string | null = null;
 let _lastScreen: string | null = null;
@@ -585,10 +586,14 @@ export const logOut = () => {
  * Logs a user event that happens through the lifecycle of the application.
  * Logged user events are going to be sent with each report, as well as at the end of a session.
  * @param name Event name.
+ * @param parameters Optional key-value parameters to attach to the event.
  */
-export const logUserEvent = (name: string) => {
-  Logger.debug(LuciqDebugTags.CORE, 'logUserEvent', { nameLength: name?.length ?? 0 });
-  NativeLuciq.logUserEvent(name);
+export const logUserEvent = (name: string, parameters: UserEventParam[] = []) => {
+  Logger.debug(LuciqDebugTags.CORE, 'logUserEvent', {
+    nameLength: name?.length ?? 0,
+    parametersCount: parameters?.length ?? 0,
+  });
+  NativeLuciq.logUserEvent(name, parameters ?? []);
 };
 
 /**

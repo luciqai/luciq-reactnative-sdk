@@ -58,9 +58,10 @@
 }
 
 - (void) testgivenBoolean$setEnabled_whenQuery_thenShouldCallNativeApi {
+  id mock = OCMClassMock([LCQFeatureRequests class]);
   BOOL enabled = false;
   [self.luciqBridge setEnabled:enabled];
-  XCTAssertFalse(LCQFeatureRequests.enabled);
+  OCMVerify([mock setEnabled:enabled]);
 }
 
 

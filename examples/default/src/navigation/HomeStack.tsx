@@ -60,6 +60,7 @@ import { NetworkScreen } from '../screens/apm/network/NetworkScreen';
 import { ColdStartRaceScreen } from '../screens/apm/network/ColdStartRaceScreen';
 import { FlowsScreen } from '../screens/apm/FlowsScreen';
 import { CustomSpansScreen } from '../screens/apm/CustomSpansScreen';
+import { ReduxScreen } from '../screens/apm/ReduxScreen';
 import { SessionReplayScreen } from '../screens/SessionReplayScreen';
 import { LegacyModeScreen } from '../screens/LegacyModeScreen';
 import { HttpScreen } from '../screens/apm/HttpScreen';
@@ -145,6 +146,7 @@ export type HomeStackParamList = {
   CustomUITraces: undefined;
   AppFlows: undefined;
   CustomSpans: undefined;
+  ReduxState: undefined;
   WebViews: undefined;
   FullWebViews: undefined;
   PartialWebViews: undefined;
@@ -323,6 +325,11 @@ export const HomeStackNavigator: React.FC = () => {
         name="CustomSpans"
         component={CustomSpansScreen}
         options={{ title: 'Custom Spans' }}
+      />
+      <HomeStack.Screen
+        name="ReduxState"
+        component={ReduxScreen}
+        options={{ title: 'Redux State Tracking' }}
       />
       <HomeStack.Screen
         name="LegacyMode"

@@ -3,6 +3,7 @@ import type { LuciqConfig } from './models/LuciqConfig';
 import Report from './models/Report';
 import type { ThemeConfig } from './models/ThemeConfig';
 import { CustomSpan } from './models/CustomSpan';
+import { UserEventParam } from './models/UserEventParam';
 // Modules
 import * as APM from './modules/APM';
 import * as BugReporting from './modules/BugReporting';
@@ -15,6 +16,8 @@ import {
   createProactiveReportingConfig,
   type ProactiveReportingConfigOptions,
 } from './models/ProactiveReportingConfigs';
+import { createLuciqReduxMiddleware } from './modules/ReduxLogger';
+import type { LuciqReduxMiddlewareOptions } from './modules/ReduxLogger';
 import * as Replies from './modules/Replies';
 import type { Survey } from './modules/Surveys';
 import * as Surveys from './modules/Surveys';
@@ -25,6 +28,7 @@ export * from './utils/Enums';
 export {
   Report,
   CustomSpan,
+  UserEventParam,
   APM,
   BugReporting,
   CrashReporting,
@@ -35,6 +39,7 @@ export {
   Surveys,
   ProactiveReportingConfigOptions,
   createProactiveReportingConfig,
+  createLuciqReduxMiddleware,
 };
 export type {
   LuciqConfig,
@@ -43,10 +48,18 @@ export type {
   NetworkDataObfuscationHandler,
   SessionMetadata,
   ThemeConfig,
+  LuciqReduxMiddlewareOptions,
 };
 
 // Screen Loading Component
 export { LuciqCaptureScreenLoading } from './components/LuciqCaptureScreenLoading';
 export type { LuciqScreenLoadingProps } from './components/LuciqCaptureScreenLoading';
+
+// Error Boundary Component
+export { LuciqErrorBoundary } from './components/LuciqErrorBoundary';
+export type {
+  LuciqErrorBoundaryProps,
+  LuciqErrorBoundaryFallbackProps,
+} from './components/LuciqErrorBoundary';
 
 export default Luciq;
