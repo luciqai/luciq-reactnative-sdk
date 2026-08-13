@@ -1,6 +1,7 @@
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
 import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
+import type { UserEventParam } from '../models/UserEventParam';
 
 export interface Spec extends TurboModule {
   getAllConstants(): UnsafeObject;
@@ -87,7 +88,7 @@ export interface Spec extends TurboModule {
   // User APIs //
   identifyUser(email: string, name: string, id: string | null): void;
   logOut(): void;
-  logUserEvent(name: string): void;
+  logUserEvent(name: string, parameters: UserEventParam[]): void;
   setUserData(data: string): void;
 
   // User Attributes APIs //
