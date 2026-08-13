@@ -13,7 +13,7 @@ import type {
   ReportType,
   userConsentActionType,
 } from '../utils/Enums';
-import BugReportingTurboSpec from '../specs/NativeBugReporting';
+import BugReportingTurboSpec from '../specs/NativeLuciqBugReporting';
 
 export interface BugReportingNativeModule extends NativeModule {
   // Essential APIs //

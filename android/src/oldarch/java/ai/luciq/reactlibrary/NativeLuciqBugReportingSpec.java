@@ -3,10 +3,10 @@ package ai.luciq.reactlibrary;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 
-public abstract class NativeBugReportingSpec extends ReactContextBaseJavaModule {
+public abstract class NativeLuciqBugReportingSpec extends ReactContextBaseJavaModule {
     public static final String NAME = "LCQBugReporting";
 
-    public NativeBugReportingSpec(ReactApplicationContext reactContext) {
+    public NativeLuciqBugReportingSpec(ReactApplicationContext reactContext) {
         super(reactContext);
     }
 

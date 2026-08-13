@@ -29,7 +29,7 @@ import ai.luciq.bug.userConsent.ActionType;
 import java.util.ArrayList;
 import ai.luciq.bug.ProactiveReportingConfigs;
 
-public class RNLuciqBugReportingModule extends NativeBugReportingSpec {
+public class RNLuciqBugReportingModule extends NativeLuciqBugReportingSpec {
 
     private int listenerCount = 0;
 
