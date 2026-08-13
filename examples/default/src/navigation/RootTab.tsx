@@ -7,13 +7,11 @@ import {
 import Icon from 'react-native-vector-icons/Ionicons';
 
 import { SettingsScreen } from '../screens/settings/SettingsScreen';
-import { BenchmarkScreen } from '../screens/BenchmarkScreen';
 import { HomeStackNavigator } from './HomeStack';
 import { Platform } from 'react-native';
 
 export type RootTabParamList = {
   HomeStack: undefined;
-  Benchmark: undefined;
   Settings: undefined;
 };
 
@@ -33,14 +31,6 @@ export const RootTabNavigator: React.FC = () => {
           tabBarLabel: 'Home',
           headerShown: false,
           tabBarIcon: createTabBarIcon('home'),
-        }}
-      />
-      <RootTab.Screen
-        name="Benchmark"
-        component={BenchmarkScreen}
-        options={{
-          tabBarLabel: 'Benchmark',
-          tabBarIcon: createTabBarIcon('speedometer'),
         }}
       />
       <RootTab.Screen
