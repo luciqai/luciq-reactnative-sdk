@@ -56,7 +56,7 @@ export const App: React.FC = () => {
       SessionReplay.setSyncCallback((data) => shouldSyncSession(data));
 
       Luciq.init({
-        token: 'edf39870075f79dc20e11ff34dc27925',
+        token: 'deb1910a7342814af4e4c9210c786f35',
         invocationEvents: [InvocationEvent.floatingButton],
         debugLogsLevel: LogLevel.verbose,
         networkInterceptionMode: NetworkInterceptionMode.javascript,
