@@ -25,7 +25,9 @@ export interface SurveysNativeModule extends NativeModule {
 
   // Callbacks //
   setOnShowHandler(): void;
+  unsetOnShowHandler(): void;
   setOnDismissHandler(): void;
+  unsetOnDismissHandler(): void;
 }
 
 export const NativeSurveys = (SurveysTurboSpec ??

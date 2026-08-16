@@ -60,6 +60,9 @@ public class RNLuciqBugReportingModule extends NativeLuciqBugReportingSpec {
     public void setDidSelectPromptOptionHandler() {}
 
     @ReactMethod
+    public void unsetDidSelectPromptOptionHandler() {}
+
+    @ReactMethod
     public void setShakingThresholdForiPhone(double threshold) {}
 
     @ReactMethod
@@ -294,6 +297,30 @@ public class RNLuciqBugReportingModule extends NativeLuciqBugReportingSpec {
     }
 
     /**
+     * Detaches the handler previously set by {@link #setOnInvokeHandler()}.
+     */
+    @ReactMethod
+    public void unsetOnInvokeHandler() {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[unsetOnInvokeHandler] called");
+                    // The Android SDK setters carry no null contract, so detach by installing a
+                    // callback that emits nothing instead of passing null.
+                    BugReporting.setOnInvokeCallback(new OnInvokeCallback() {
+                        @Override
+                        public void onInvoke() {
+                        }
+                    });
+                } catch (java.lang.Exception exception) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[unsetOnInvokeHandler] failed", exception);
+                }
+            }
+        });
+    }
+
+    /**
      * Sets the position of the Luciq floating button on the screen.
      * @param floatingButtonEdge left or right edge of the screen.
      * @param floatingButtonOffset integer offset from the left or right edge of the screen.
@@ -339,6 +366,28 @@ public class RNLuciqBugReportingModule extends NativeLuciqBugReportingSpec {
                     });
                 } catch (java.lang.Exception exception) {
                     LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setOnSDKDismissedHandler] failed", exception);
+                }
+            }
+        });
+    }
+
+    /**
+     * Detaches the handler previously set by {@link #setOnSDKDismissedHandler()}.
+     */
+    @ReactMethod
+    public void unsetOnSDKDismissedHandler() {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[unsetOnSDKDismissedHandler] called");
+                    BugReporting.setOnDismissCallback(new OnSdkDismissCallback() {
+                        @Override
+                        public void call(DismissType dismissType, ReportType reportType) {
+                        }
+                    });
+                } catch (java.lang.Exception exception) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[unsetOnSDKDismissedHandler] failed", exception);
                 }
             }
         });

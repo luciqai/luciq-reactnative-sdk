@@ -60,6 +60,11 @@ RCT_EXPORT_METHOD(setOnNewReplyReceivedHandler) {
     };
 }
 
+RCT_EXPORT_METHOD(unsetOnNewReplyReceivedHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags replies] format:@"[unsetOnNewReplyReceivedHandler] called"];
+    LCQReplies.didReceiveReplyHandler = nil;
+}
+
 RCT_EXPORT_METHOD(getUnreadRepliesCount:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {
     [LuciqRNLogger d:[LuciqRNDebugTags replies] format:@"[getUnreadRepliesCount] called"];
     NSInteger count = LCQReplies.unreadRepliesCount;

@@ -174,6 +174,26 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
     }
 
     /**
+     * Detaches the handler previously set by {@link #setOnShowHandler()}.
+     */
+    @ReactMethod
+    public void unsetOnShowHandler() {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                LuciqRNLogger.d(TAG, "[unsetOnShowHandler] called");
+                // The Android SDK setters carry no null contract, so detach by installing a
+                // callback that emits nothing instead of passing null.
+                Surveys.setOnShowCallback(new OnShowCallback() {
+                    @Override
+                    public void onShow() {
+                    }
+                });
+            }
+        });
+    }
+
+    /**
      * Sets the runnable that gets executed just after showing any valid survey<br/>
      * WARNING: This runs on your application's main UI thread. Please do not include
      * any blocking operations to avoid ANRs.
@@ -191,6 +211,24 @@ public class RNLuciqSurveysModule extends NativeSurveysSpec {
                     public void onDismiss() {
                         LuciqRNLogger.d(TAG, "[" + Constants.LCQ_ON_DISMISS_SURVEY_HANDLER + "] emitted");
                         sendEvent(Constants.LCQ_ON_DISMISS_SURVEY_HANDLER, null);
+                    }
+                });
+            }
+        });
+    }
+
+    /**
+     * Detaches the handler previously set by {@link #setOnDismissHandler()}.
+     */
+    @ReactMethod
+    public void unsetOnDismissHandler() {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                LuciqRNLogger.d(TAG, "[unsetOnDismissHandler] called");
+                Surveys.setOnDismissCallback(new OnDismissCallback() {
+                    @Override
+                    public void onDismiss() {
                     }
                 });
             }

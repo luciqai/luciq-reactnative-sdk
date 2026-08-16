@@ -59,6 +59,11 @@ RCT_EXPORT_METHOD(setOnInvokeHandler) {
     };
 }
 
+RCT_EXPORT_METHOD(unsetOnInvokeHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[unsetOnInvokeHandler] called"];
+    LCQBugReporting.willInvokeHandler = nil;
+}
+
 RCT_EXPORT_METHOD(setOnSDKDismissedHandler) {
     [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[setOnSDKDismissedHandler] called"];
     LCQBugReporting.didDismissHandler = ^(LCQDismissType dismissType, LCQReportCategory reportType) {
@@ -89,6 +94,11 @@ RCT_EXPORT_METHOD(setOnSDKDismissedHandler) {
     };
 }
 
+RCT_EXPORT_METHOD(unsetOnSDKDismissedHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[unsetOnSDKDismissedHandler] called"];
+    LCQBugReporting.didDismissHandler = nil;
+}
+
 RCT_EXPORT_METHOD(setDidSelectPromptOptionHandler) {
     [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[setDidSelectPromptOptionHandler] called"];
     LCQBugReporting.didSelectPromptOptionHandler = ^(LCQPromptOption promptOption) {
@@ -109,6 +119,11 @@ RCT_EXPORT_METHOD(setDidSelectPromptOptionHandler) {
                                                                           @"promptOption": promptOptionString
                                                                           }];
     };
+}
+
+RCT_EXPORT_METHOD(unsetDidSelectPromptOptionHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[unsetDidSelectPromptOptionHandler] called"];
+    LCQBugReporting.didSelectPromptOptionHandler = nil;
 }
 
 RCT_EXPORT_METHOD(setInvocationEvents:(NSArray*)invocationEventsArray) {

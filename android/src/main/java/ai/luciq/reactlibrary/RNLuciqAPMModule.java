@@ -56,7 +56,7 @@ public class RNLuciqAPMModule extends NativeAPMSpec {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
-                LuciqRNLogger.d(LuciqRNDebugTags.APM_CUSTOM_SPAN, "[LCQSleep] called");
+                LuciqRNLogger.d(LuciqRNDebugTags.APM_CUSTOM_SPAN, "[lcqSleep] called");
                 SystemClock.sleep(3000);
             }
         });

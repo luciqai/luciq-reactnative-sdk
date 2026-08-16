@@ -15,6 +15,7 @@ export interface RepliesNativeModule extends NativeModule {
 
   // Callbacks //
   setOnNewReplyReceivedHandler(): void;
+  unsetOnNewReplyReceivedHandler(): void;
 
   // Notifications APIs //
   setPushNotificationsEnabled(isEnabled: boolean): void;

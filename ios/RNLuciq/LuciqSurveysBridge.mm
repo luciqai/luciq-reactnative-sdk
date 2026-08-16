@@ -80,12 +80,22 @@ RCT_EXPORT_METHOD(setOnShowHandler) {
     };
 }
 
+RCT_EXPORT_METHOD(unsetOnShowHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[unsetOnShowHandler] called"];
+    LCQSurveys.willShowSurveyHandler = nil;
+}
+
 RCT_EXPORT_METHOD(setOnDismissHandler) {
     [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[setOnDismissHandler] called"];
     LCQSurveys.didDismissSurveyHandler = ^{
         [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[LCQDidDismissSurvey] emitted"];
         [self sendEventWithName:@"LCQDidDismissSurvey" body:nil];
     };
+}
+
+RCT_EXPORT_METHOD(unsetOnDismissHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[unsetOnDismissHandler] called"];
+    LCQSurveys.didDismissSurveyHandler = nil;
 }
 
 RCT_EXPORT_METHOD(setAutoShowingEnabled:(BOOL)autoShowingSurveysEnabled) {

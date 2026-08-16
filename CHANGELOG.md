@@ -6,9 +6,11 @@
 
 - Add support for React Native's new architecture (TurboModules) while maintaining backward compatibility with the old bridge architecture. ([#44](https://github.com/luciqai/luciq-reactnative-sdk/pull/44))
 
-### Breaking
+### Fixed
 
-- Handler-based setters no longer support passing `null`/`undefined` to unregister the native handler. Handlers are now always installed via the emitter-based design, so there is no longer a way to remove them once set. Affects `BugReporting.onInvokeHandler`, `BugReporting.onSDKDismissedHandler`, `BugReporting.setDidSelectPromptOptionHandler`, `Luciq.setPreSendingHandler`, `Replies.setOnNewReplyReceivedHandler`, `Surveys.setOnShowHandler`, and `Surveys.setOnDismissHandler`. ([#44](https://github.com/luciqai/luciq-reactnative-sdk/pull/44))
+- Handler-based setters now replace the previously registered handler instead of stacking an additional one that also fires. Affects `BugReporting.onInvokeHandler`, `BugReporting.onSDKDismissedHandler`, `BugReporting.setDidSelectPromptOptionHandler`, `Luciq.onReportSubmitHandler`, `Replies.setOnNewReplyReceivedHandler`, `Surveys.setOnShowHandler`, and `Surveys.setOnDismissHandler`. ([#44](https://github.com/luciqai/luciq-reactnative-sdk/pull/44))
+
+- Passing `null` to the handler-based setters listed above once again unregisters the handler, tearing down both the JS listener and the underlying native handler. ([#44](https://github.com/luciqai/luciq-reactnative-sdk/pull/44))
 
 ## [19.9.3](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.19.3...v19.8.0)
 

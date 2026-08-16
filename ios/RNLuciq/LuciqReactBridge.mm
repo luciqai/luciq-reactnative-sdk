@@ -144,6 +144,12 @@ RCT_EXPORT_METHOD(setPreSendingHandler) {
     };
 }
 
+RCT_EXPORT_METHOD(unsetPreSendingHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[unsetPreSendingHandler] called"];
+    Luciq.willSendReportHandler = nil;
+    currentReport = nil;
+}
+
 RCT_EXPORT_METHOD(appendTagToReport:(NSString*) tag) {
     [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[appendTagToReport] called length=%lu, present=%@", (unsigned long)tag.length, (tag != nil ? @"YES" : @"NO")];
     if (currentReport != nil) {

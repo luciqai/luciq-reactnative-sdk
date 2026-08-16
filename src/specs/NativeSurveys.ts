@@ -13,7 +13,9 @@ export interface Spec extends TurboModule {
   setAppStoreURL(appStoreURL: string): void;
 
   setOnShowHandler(): void;
+  unsetOnShowHandler(): void;
   setOnDismissHandler(): void;
+  unsetOnDismissHandler(): void;
 
   addListener(eventName: string): void;
   removeListeners(count: number): void;

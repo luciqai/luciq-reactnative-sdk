@@ -794,6 +794,27 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         });
     }
 
+    /**
+     * Detaches the handler previously set by {@link #setPreSendingHandler()}.
+     */
+    @ReactMethod
+    public void unsetPreSendingHandler() {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[unsetPreSendingHandler] called");
+                // The Android SDK setters carry no null contract, so detach by installing a
+                // listener that emits nothing instead of passing null.
+                Luciq.onReportSubmitHandler(new Report.OnReportCreatedListener() {
+                    @Override
+                    public void onReportCreated(Report report) {
+                    }
+                });
+                currentReport = null;
+            }
+        });
+    }
+
     protected static void clearCurrentReport() {
         currentReport = null;
     }

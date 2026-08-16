@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 
 import { NativeEvents, NativeReplies, emitter } from '../native/NativeReplies';
 import { Logger } from '../utils/logger';
+import { setNativeHandler } from '../utils/NativeHandler';
 import { LuciqDebugTags } from '../constants/DebugTags';
 
 const TAG = LuciqDebugTags.REPLIES;
@@ -38,14 +39,18 @@ export const show = () => {
  * Sets a block of code that gets executed when a new message is received.
  * @param handler A callback that gets executed when a new message is received.
  */
-export const setOnNewReplyReceivedHandler = (handler: () => void) => {
-  Logger.debug(TAG, 'setOnNewReplyReceivedHandler registered');
-  const wrappedHandler = () => {
-    Logger.debug(TAG, 'native event: ON_REPLY_RECEIVED_HANDLER fired');
-    handler();
-  };
-  emitter.addListener(NativeEvents.ON_REPLY_RECEIVED_HANDLER, wrappedHandler);
-  NativeReplies.setOnNewReplyReceivedHandler();
+export const setOnNewReplyReceivedHandler = (handler: (() => void) | null) => {
+  Logger.debug(TAG, 'setOnNewReplyReceivedHandler', { hasHandler: !!handler });
+  const wrappedHandler =
+    handler &&
+    (() => {
+      Logger.debug(TAG, 'native event: ON_REPLY_RECEIVED_HANDLER fired');
+      handler();
+    });
+  setNativeHandler(emitter, NativeEvents.ON_REPLY_RECEIVED_HANDLER, wrappedHandler, {
+    set: () => NativeReplies.setOnNewReplyReceivedHandler(),
+    unset: () => NativeReplies.unsetOnNewReplyReceivedHandler(),
+  });
 };
 
 /**

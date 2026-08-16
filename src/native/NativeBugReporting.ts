@@ -48,8 +48,11 @@ export interface BugReportingNativeModule extends NativeModule {
 
   // Callbacks //
   setOnInvokeHandler(): void;
+  unsetOnInvokeHandler(): void;
   setDidSelectPromptOptionHandler(): void;
+  unsetDidSelectPromptOptionHandler(): void;
   setOnSDKDismissedHandler(): void;
+  unsetOnSDKDismissedHandler(): void;
 
   addUserConsent(
     key: string,

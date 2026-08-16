@@ -9,6 +9,7 @@ export interface Spec extends TurboModule {
   getUnreadRepliesCount(): Promise<number>;
 
   setOnNewReplyReceivedHandler(): void;
+  unsetOnNewReplyReceivedHandler(): void;
 
   setPushNotificationsEnabled(isEnabled: boolean): void;
   setInAppNotificationEnabled(isEnabled: boolean): void;

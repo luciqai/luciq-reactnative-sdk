@@ -37,7 +37,12 @@ Our intelligent AI agents help you capture rich, contextual data for every issue
   - [Behavior](#behavior)
   - [API reference](#api-reference)
 - [TypeScript](#typescript)
-- [Support](#support)
+- [Adding a new feature](#adding-a-new-feature)
+  - [Adding a method to an existing module](#adding-a-method-to-an-existing-module)
+  - [Adding a brand-new module](#adding-a-brand-new-module)
+  - [Running Codegen locally](#running-codegen-locally)
+- [Need Help?](#need-help)
+- [Contact Us](#contact-us)
 
 ---
 

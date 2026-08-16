@@ -13,6 +13,7 @@ import type {
   userConsentActionType,
 } from '../utils/Enums';
 import { Logger } from '../utils/logger';
+import { setNativeHandler } from '../utils/NativeHandler';
 import { LuciqDebugTags } from '../constants/DebugTags';
 
 const TAG = LuciqDebugTags.BUG_REPORTING;
@@ -52,14 +53,18 @@ export const setOptions = (options: InvocationOption[]) => {
  * UI changes before the SDK's UI is shown.
  * @param handler A callback that gets executed before invoking the SDK
  */
-export const onInvokeHandler = (handler: () => void) => {
-  Logger.debug(TAG, 'onInvokeHandler registered');
-  const wrappedHandler = () => {
-    Logger.debug(TAG, 'native event: ON_INVOKE_HANDLER fired');
-    handler();
-  };
-  emitter.addListener(NativeEvents.ON_INVOKE_HANDLER, wrappedHandler);
-  NativeBugReporting.setOnInvokeHandler();
+export const onInvokeHandler = (handler: (() => void) | null) => {
+  Logger.debug(TAG, 'onInvokeHandler', { hasHandler: !!handler });
+  const wrappedHandler =
+    handler &&
+    (() => {
+      Logger.debug(TAG, 'native event: ON_INVOKE_HANDLER fired');
+      handler();
+    });
+  setNativeHandler(emitter, NativeEvents.ON_INVOKE_HANDLER, wrappedHandler, {
+    set: () => NativeBugReporting.setOnInvokeHandler(),
+    unset: () => NativeBugReporting.unsetOnInvokeHandler(),
+  });
 };
 
 /**
@@ -69,18 +74,22 @@ export const onInvokeHandler = (handler: () => void) => {
  * @param handler A callback to get executed after dismissing the SDK.
  */
 export const onSDKDismissedHandler = (
-  handler: (dismissType: DismissType, reportType: ReportType) => void,
+  handler: ((dismissType: DismissType, reportType: ReportType) => void) | null,
 ) => {
-  Logger.debug(TAG, 'onSDKDismissedHandler registered');
-  const wrappedHandler = (payload: { dismissType: DismissType; reportType: ReportType }) => {
-    Logger.debug(TAG, 'native event: ON_DISMISS_HANDLER fired', {
-      dismissType: payload?.dismissType,
-      reportType: payload?.reportType,
+  Logger.debug(TAG, 'onSDKDismissedHandler', { hasHandler: !!handler });
+  const wrappedHandler =
+    handler &&
+    ((payload: { dismissType: DismissType; reportType: ReportType }) => {
+      Logger.debug(TAG, 'native event: ON_DISMISS_HANDLER fired', {
+        dismissType: payload?.dismissType,
+        reportType: payload?.reportType,
+      });
+      handler(payload.dismissType, payload.reportType);
     });
-    handler(payload.dismissType, payload.reportType);
-  };
-  emitter.addListener(NativeEvents.ON_DISMISS_HANDLER, wrappedHandler);
-  NativeBugReporting.setOnSDKDismissedHandler();
+  setNativeHandler(emitter, NativeEvents.ON_DISMISS_HANDLER, wrappedHandler, {
+    set: () => NativeBugReporting.setOnSDKDismissedHandler(),
+    unset: () => NativeBugReporting.unsetOnSDKDismissedHandler(),
+  });
 };
 
 /**
@@ -227,19 +236,28 @@ export const addUserConsent = (
  * Sets a block of code to be executed when a prompt option is selected.
  * @param handler - A callback that gets executed when a prompt option is selected.
  */
-export const setDidSelectPromptOptionHandler = (handler: (promptOption: string) => void) => {
-  Logger.debug(TAG, 'setDidSelectPromptOptionHandler registered', { platform: Platform.OS });
+export const setDidSelectPromptOptionHandler = (
+  handler: ((promptOption: string) => void) | null,
+) => {
+  Logger.debug(TAG, 'setDidSelectPromptOptionHandler', {
+    hasHandler: !!handler,
+    platform: Platform.OS,
+  });
   if (Platform.OS === 'android') {
     return;
   }
-  const wrappedHandler = (payload: { promptOption: string }) => {
-    Logger.debug(TAG, 'native event: DID_SELECT_PROMPT_OPTION_HANDLER fired', {
-      promptOption: payload?.promptOption,
+  const wrappedHandler =
+    handler &&
+    ((payload: { promptOption: string }) => {
+      Logger.debug(TAG, 'native event: DID_SELECT_PROMPT_OPTION_HANDLER fired', {
+        promptOption: payload?.promptOption,
+      });
+      handler(payload.promptOption);
     });
-    handler(payload.promptOption);
-  };
-  emitter.addListener(NativeEvents.DID_SELECT_PROMPT_OPTION_HANDLER, wrappedHandler);
-  NativeBugReporting.setDidSelectPromptOptionHandler();
+  setNativeHandler(emitter, NativeEvents.DID_SELECT_PROMPT_OPTION_HANDLER, wrappedHandler, {
+    set: () => NativeBugReporting.setDidSelectPromptOptionHandler(),
+    unset: () => NativeBugReporting.unsetDidSelectPromptOptionHandler(),
+  });
 };
 
 /**

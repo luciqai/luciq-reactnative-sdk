@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { NativeEvents, NativeSurveys, emitter } from '../native/NativeSurveys';
 import type { Survey } from '../native/NativeSurveys';
 import { Logger } from '../utils/logger';
+import { setNativeHandler } from '../utils/NativeHandler';
 import { LuciqDebugTags } from '../constants/DebugTags';
 
 export type { Survey };
@@ -65,14 +66,18 @@ export const setAutoShowingEnabled = (autoShowingSurveysEnabled: boolean) => {
  * @param onShowHandler - A block of code that gets executed before
  * presenting the survey's UI.
  */
-export const setOnShowHandler = (onShowHandler: () => void) => {
-  Logger.debug(TAG, 'setOnShowHandler registered');
-  const wrappedHandler = () => {
-    Logger.debug(TAG, 'native event: WILL_SHOW_SURVEY_HANDLER fired');
-    onShowHandler();
-  };
-  emitter.addListener(NativeEvents.WILL_SHOW_SURVEY_HANDLER, wrappedHandler);
-  NativeSurveys.setOnShowHandler();
+export const setOnShowHandler = (onShowHandler: (() => void) | null) => {
+  Logger.debug(TAG, 'setOnShowHandler', { hasHandler: !!onShowHandler });
+  const wrappedHandler =
+    onShowHandler &&
+    (() => {
+      Logger.debug(TAG, 'native event: WILL_SHOW_SURVEY_HANDLER fired');
+      onShowHandler();
+    });
+  setNativeHandler(emitter, NativeEvents.WILL_SHOW_SURVEY_HANDLER, wrappedHandler, {
+    set: () => NativeSurveys.setOnShowHandler(),
+    unset: () => NativeSurveys.unsetOnShowHandler(),
+  });
 };
 
 /**
@@ -82,14 +87,18 @@ export const setOnShowHandler = (onShowHandler: () => void) => {
  * @param onDismissHandler - A block of code that gets executed after
  * the survey's UI is dismissed.
  */
-export const setOnDismissHandler = (onDismissHandler: () => void) => {
-  Logger.debug(TAG, 'setOnDismissHandler registered');
-  const wrappedHandler = () => {
-    Logger.debug(TAG, 'native event: DID_DISMISS_SURVEY_HANDLER fired');
-    onDismissHandler();
-  };
-  emitter.addListener(NativeEvents.DID_DISMISS_SURVEY_HANDLER, wrappedHandler);
-  NativeSurveys.setOnDismissHandler();
+export const setOnDismissHandler = (onDismissHandler: (() => void) | null) => {
+  Logger.debug(TAG, 'setOnDismissHandler', { hasHandler: !!onDismissHandler });
+  const wrappedHandler =
+    onDismissHandler &&
+    (() => {
+      Logger.debug(TAG, 'native event: DID_DISMISS_SURVEY_HANDLER fired');
+      onDismissHandler();
+    });
+  setNativeHandler(emitter, NativeEvents.DID_DISMISS_SURVEY_HANDLER, wrappedHandler, {
+    set: () => NativeSurveys.setOnDismissHandler(),
+    unset: () => NativeSurveys.unsetOnDismissHandler(),
+  });
 };
 
 /**

@@ -320,4 +320,28 @@ public class RNLuciqRepliesModule extends NativeRepliesSpec {
             }
         });
     }
+
+    /**
+     * Detaches the handler previously set by {@link #setOnNewReplyReceivedHandler()}.
+     */
+    @ReactMethod
+    public void unsetOnNewReplyReceivedHandler() {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                LuciqRNLogger.d(TAG, "[unsetOnNewReplyReceivedHandler] called");
+                try {
+                    // The Android SDK setters carry no null contract, so detach by installing a
+                    // callback that emits nothing instead of passing null.
+                    Replies.setOnNewReplyReceivedCallback(new Runnable() {
+                        @Override
+                        public void run() {
+                        }
+                    });
+                } catch (java.lang.Exception exception) {
+                    LuciqRNLogger.e(TAG, "[unsetOnNewReplyReceivedHandler] failed", exception);
+                }
+            }
+        });
+    }
 }

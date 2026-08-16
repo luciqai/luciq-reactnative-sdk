@@ -13,7 +13,6 @@ import Luciq, {
   LogLevel,
   NetworkInterceptionMode,
   NetworkLogger,
-  OverAirUpdateServices,
   ReproStepsMode,
   ScreenshotQuality,
   SessionMetadata,
@@ -57,12 +56,10 @@ export const App: React.FC = () => {
       SessionReplay.setSyncCallback((data) => shouldSyncSession(data));
 
       Luciq.init({
-        token: 'deb1910a7342814af4e4c9210c786f35',
+        token: 'edf39870075f79dc20e11ff34dc27925',
         invocationEvents: [InvocationEvent.floatingButton],
         debugLogsLevel: LogLevel.verbose,
         networkInterceptionMode: NetworkInterceptionMode.javascript,
-        appVariant: 'App variant',
-        overAirVersion: { service: OverAirUpdateServices.codePush, version: '1.0.0' },
       });
 
       CrashReporting.setNDKCrashesEnabled(true);
