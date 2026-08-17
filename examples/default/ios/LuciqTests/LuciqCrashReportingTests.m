@@ -1,6 +1,7 @@
 #import <XCTest/XCTest.h>
 #import "LuciqSDK/LuciqSDK.h"
 #import "LuciqCrashReportingBridge.h"
+#import "LuciqJSHangProfiler.h"
 #import "OCMock/OCMock.h"
 #import "Util/LCQCrashReporting+CP.h"
 
@@ -64,6 +65,65 @@
          groupingString:fingerPrint
         userAttributes:userAttributes
               ]);
+}
+
+- (void)testJSHangCapabilitiesAreHonest {
+  NSDictionary *capabilities = [self.bridge constantsToExport][@"jsHangCapabilities"];
+
+  XCTAssertEqualObjects(capabilities[@"detection"], @"classic_bridge_only");
+  XCTAssertEqualObjects(capabilities[@"bridgeless"], @"unavailable_no_verified_js_dispatch_contract");
+  XCTAssertTrue([capabilities[@"stackCapture"] hasPrefix:@"available_"] ||
+                [capabilities[@"stackCapture"] hasPrefix:@"unavailable_"]);
+}
+
+- (void)testJSHangProfileParsingIsBoundedAndDeletesIntermediate {
+  NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:NSUUID.UUID.UUIDString];
+  NSDictionary *trace = @{
+    @"samples" : @[ @{ @"sf" : @1 } ],
+    @"stackFrames" : @{
+      @"1" : @{ @"name" : @"blocked(main.jsbundle:12:34)", @"category" : @"JavaScript" },
+    },
+  };
+  NSData *data = [NSJSONSerialization dataWithJSONObject:trace options:0 error:nil];
+  XCTAssertTrue([data writeToFile:path atomically:YES]);
+
+  NSArray<NSDictionary *> *frames =
+      [LuciqJSHangProfiler culpritFramesFromTraceAtPath:path
+                                             bundleName:@"main.jsbundle"
+                                    sampleWindowSeconds:0];
+
+  XCTAssertEqual(frames.count, 1);
+  XCTAssertEqualObjects(frames.firstObject[@"methodName"], @"blocked");
+  XCTAssertFalse([[NSFileManager defaultManager] fileExistsAtPath:path]);
+}
+
+- (void)testJSHangProfileParsingFiltersPostRecoverySamples {
+  NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:NSUUID.UUID.UUIDString];
+  // Timestamps are microsecond deltas: the recovery frame is sampled more
+  // often but falls outside the 1 s window, so the blocked frame must win.
+  NSDictionary *trace = @{
+    @"samples" : @[
+      @{ @"sf" : @1, @"ts" : @0 },
+      @{ @"sf" : @1, @"ts" : @500000 },
+      @{ @"sf" : @2, @"ts" : @1500000 },
+      @{ @"sf" : @2, @"ts" : @1600000 },
+      @{ @"sf" : @2, @"ts" : @1700000 },
+    ],
+    @"stackFrames" : @{
+      @"1" : @{ @"name" : @"blocked(main.jsbundle:12:34)", @"category" : @"JavaScript" },
+      @"2" : @{ @"name" : @"recovery(main.jsbundle:56:78)", @"category" : @"JavaScript" },
+    },
+  };
+  NSData *data = [NSJSONSerialization dataWithJSONObject:trace options:0 error:nil];
+  XCTAssertTrue([data writeToFile:path atomically:YES]);
+
+  NSArray<NSDictionary *> *frames =
+      [LuciqJSHangProfiler culpritFramesFromTraceAtPath:path
+                                             bundleName:@"main.jsbundle"
+                                    sampleWindowSeconds:1];
+
+  XCTAssertEqual(frames.count, 1);
+  XCTAssertEqualObjects(frames.firstObject[@"methodName"], @"blocked");
 }
 
 @end

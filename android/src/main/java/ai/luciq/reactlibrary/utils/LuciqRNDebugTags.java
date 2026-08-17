@@ -25,6 +25,7 @@ public final class LuciqRNDebugTags {
     public static final String APM_NETWORK = "LCQ-RN-Android-APM-NET:";
     public static final String BUG_REPORTING = "LCQ-RN-Android-BR:";
     public static final String CRASH_REPORTING = "LCQ-RN-Android-CRASH:";
+    public static final String JS_HANG = "LCQ-RN-Android-JSHANG:";
     public static final String SESSION_REPLAY = "LCQ-RN-Android-SR:";
     public static final String PRIVATE_VIEW = "LCQ-RN-Android-PRIV:";
     public static final String FEATURE_FLAGS = "LCQ-RN-Android-FF:";

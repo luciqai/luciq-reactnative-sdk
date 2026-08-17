@@ -12,6 +12,7 @@ import com.facebook.react.bridge.ReadableMap;
 import ai.luciq.crash.CrashReporting;
 import ai.luciq.crash.models.LuciqNonFatalException;
 import ai.luciq.library.Feature;
+import ai.luciq.reactlibrary.hang.RNJSHangWatchdog;
 import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
 import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
@@ -27,6 +28,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
+
+    // Mirrors the iOS report-time LCQCrashReporting.enabled gate: hang
+    // detection must not run while crash reporting is disabled.
+    private static volatile boolean crashReportingEnabled = true;
 
     public RNLuciqCrashReportingModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
@@ -50,9 +55,11 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
             public void run() {
                 LuciqRNLogger.d(LuciqRNDebugTags.CRASH_REPORTING, "[setEnabled] called isEnabled=" + isEnabled);
                 try {
+                    crashReportingEnabled = isEnabled;
                     if (isEnabled) {
                         CrashReporting.setState(Feature.State.ENABLED);
                     } else {
+                        RNJSHangWatchdog.stop(getReactApplicationContext());
                         CrashReporting.setState(Feature.State.DISABLED);
                     }
                 } catch (Exception e) {
@@ -143,6 +150,38 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
                 }
             }
         });
+    }
+
+    /**
+     * Enables or disables JS thread hang detection. A native watchdog thread
+     * monitors the JS message queue and reports hangs of >= 3 seconds. No-op in
+     * debuggable builds.
+     *
+     * @param isEnabled boolean indicating enabled or disabled.
+     */
+    @ReactMethod
+    public void setJSHangEnabled(final boolean isEnabled) {
+        LuciqRNLogger.d(LuciqRNDebugTags.JS_HANG, "[setJSHangEnabled] called isEnabled=" + isEnabled);
+        try {
+            if (isEnabled) {
+                if (!crashReportingEnabled) {
+                    LuciqRNLogger.d(LuciqRNDebugTags.JS_HANG,
+                            "[setJSHangEnabled] skipped: crash reporting is disabled");
+                    return;
+                }
+                RNJSHangWatchdog.start(getReactApplicationContext());
+            } else {
+                RNJSHangWatchdog.stop(getReactApplicationContext());
+            }
+        } catch (Exception e) {
+            LuciqRNLogger.e(LuciqRNDebugTags.JS_HANG, "[setJSHangEnabled] failed", e);
+        }
+    }
+
+    @Override
+    public void invalidate() {
+        RNJSHangWatchdog.stop(getReactApplicationContext());
+        super.invalidate();
     }
 
     /**

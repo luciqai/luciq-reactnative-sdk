@@ -31,6 +31,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (class, nonatomic, readonly) NSString *apmNetwork;
 @property (class, nonatomic, readonly) NSString *bugReporting;
 @property (class, nonatomic, readonly) NSString *crashReporting;
+@property (class, nonatomic, readonly) NSString *jsHang;
 @property (class, nonatomic, readonly) NSString *sessionReplay;
 @property (class, nonatomic, readonly) NSString *privateView;
 @property (class, nonatomic, readonly) NSString *featureFlags;

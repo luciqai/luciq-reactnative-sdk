@@ -4,6 +4,7 @@ const mockCrashReporting: CrashReportingNativeModule = {
   addListener: jest.fn(),
   removeListeners: jest.fn(),
   setEnabled: jest.fn(),
+  setJSHangEnabled: jest.fn(),
   sendHandledJSCrash: jest.fn(),
   sendJSCrash: jest.fn(),
   setNDKCrashesEnabled: jest.fn(),

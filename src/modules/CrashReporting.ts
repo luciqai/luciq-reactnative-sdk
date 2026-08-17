@@ -67,6 +67,32 @@ export const reportError = (error: ExtendedError, nonFatalOptions: NonFatalOptio
 };
 
 /**
+ * Enables or disables JS thread hang detection.
+ *
+ * A native watchdog thread monitors the JS thread's message queue and detects
+ * hangs of >= 3 seconds (matching the native App Hangs threshold), including
+ * hangs the app never recovers from (reported
+ * on the next launch). Hangs are reported as non-fatal issues named
+ * `JSThreadHang` with the hang duration attached. Automatically disabled in
+ * development builds (Metro reloads and debuggers block the JS thread
+ * legitimately).
+ * @param isEnabled
+ */
+export const setJSHangEnabled = (isEnabled: boolean): boolean => {
+  try {
+    NativeCrashReporting.setJSHangEnabled(isEnabled);
+    Logger.debug(LuciqDebugTags.JS_HANG, 'setJSHangEnabled', { isEnabled });
+    return true;
+  } catch (error) {
+    // Version-skewed or missing native module must never crash the host app.
+    Logger.error(LuciqDebugTags.JS_HANG, 'Failed to configure JS hang detection', {
+      errorName: error instanceof Error ? error.name : typeof error,
+    });
+    return false;
+  }
+};
+
+/**
  * Enables and disables capturing native C++ NDK crashes.
  * @param isEnabled
  */

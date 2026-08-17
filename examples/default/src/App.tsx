@@ -23,6 +23,15 @@ import Luciq, {
 import { NativeBaseProvider } from 'native-base';
 
 import { RootTabNavigator } from './navigation/RootTab';
+// TEMP(js-hang-dashboard-validation): remove after dashboard validation.
+import { handleIncomingMessage } from './screens/CrashReportingScreen';
+
+// TEMP(js-hang-dashboard-validation): named at module scope so the Hermes
+// sampling profiler reports a readable, distinct culprit for hang #2.
+function appLevelSpinLoop(durationMs: number) {
+  const end = Date.now() + durationMs;
+  while (Date.now() < end) {}
+}
 import { nativeBaseTheme } from './theme/nativeBaseTheme';
 import { navigationTheme } from './theme/navigationTheme';
 
@@ -72,8 +81,25 @@ export const App: React.FC = () => {
         debugLogsLevel: LogLevel.verbose,
         networkInterceptionMode: NetworkInterceptionMode.javascript,
         appVariant: 'App variant',
-        overAirVersion: { service: OverAirUpdateServices.codePush, version: '1.0.0' },
+        // TEMP(js-hang-dashboard-validation): fresh CodePush label so exactly
+        // one source map exists for this version tuple on the backend (old
+        // labels have months of stale maps that win symbolication).
+        overAirVersion: { service: OverAirUpdateServices.codePush, version: '1.0.2' },
+        jsHangDetection: { enabled: true },
       });
+
+      // TEMP(js-hang-dashboard-validation): fires one 6 s hang 15 s after
+      // launch (release builds only - the watchdog is off in dev builds) so
+      // the non-fatal hang report can be validated on the dashboard with a
+      // deep culprit stack (handleIncomingMessage -> ... -> spinCore).
+      // Runs once (the init effect has an empty dependency array). Remove
+      // after validation.
+      setTimeout(() => handleIncomingMessage(6000), 15000);
+      // TEMP(js-hang-dashboard-validation): second hang with a distinct
+      // culprit (appLevelSpinLoop) to validate consecutive-hang capture -
+      // the profiler must fully stop after hang #1 so hang #2 reports its
+      // own stack, not an accumulated or empty one. Remove after validation.
+      setTimeout(() => appLevelSpinLoop(6000), 35000);
 
       CrashReporting.setNDKCrashesEnabled(true);
       Luciq.setWelcomeMessageMode(WelcomeMessageMode.disabled);
@@ -88,8 +114,8 @@ export const App: React.FC = () => {
         // Fire the burst on the same JS tick that init() returns. On Android
         // before the Luciq.ts fix, the JS XHR interceptor was still off here
         // (it waits for LCQ_ON_FEATURES_UPDATED_CALLBACK from native), so
-        // these requests bypass APM entirely. Guard so the no-deps useEffect
-        // in this component doesn't fire it on every render.
+        // these requests bypass APM entirely. Guarded for idempotency even
+        // though the init effect runs once.
         fireColdStartBurstOnce();
       }
     } catch (error) {
@@ -108,7 +134,10 @@ export const App: React.FC = () => {
       networkData.url = `${networkData.url}/JS/Obfuscated`;
       return networkData;
     });
-  });
+    // Init exactly once: re-running on every render re-initializes the SDK
+    // and re-registers side effects.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     // @ts-ignore

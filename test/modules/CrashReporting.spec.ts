@@ -29,6 +29,13 @@ describe('CrashReporting Module', () => {
     );
   });
 
+  it('should call the native method setJSHangEnabled', () => {
+    CrashReporting.setJSHangEnabled(true);
+
+    expect(NativeCrashReporting.setJSHangEnabled).toBeCalledTimes(1);
+    expect(NativeCrashReporting.setJSHangEnabled).toBeCalledWith(true);
+  });
+
   it('should call the native method setNDKCrashesEnabled for Android platform', () => {
     Platform.OS = 'android';
     CrashReporting.setNDKCrashesEnabled(true);

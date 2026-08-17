@@ -21,8 +21,10 @@ export interface CauseCrashData {
   exception: StackFrame[];
   cause_crash?: CauseCrashData;
 }
+
 export interface CrashReportingNativeModule extends NativeModule {
   setEnabled(isEnabled: boolean): void;
+  setJSHangEnabled(isEnabled: boolean): void;
   sendJSCrash(data: CrashData | string): Promise<void>;
 
   sendHandledJSCrash(

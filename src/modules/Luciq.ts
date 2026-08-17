@@ -41,6 +41,7 @@ import { LuciqDebugTags } from '../constants/DebugTags';
 import type { OverAirUpdate } from '../models/OverAirUpdate';
 import type { ThemeConfig } from '../models/ThemeConfig';
 import type { UserEventParam } from '../models/UserEventParam';
+import { setJSHangEnabled } from './CrashReporting';
 
 let _currentScreen: string | null = null;
 let _lastScreen: string | null = null;
@@ -99,6 +100,7 @@ export const init = (config: LuciqConfig) => {
     networkInterceptionMode: config.networkInterceptionMode,
     appVariant: config.appVariant,
     overAirVersionPresent: !!config.overAirVersion,
+    jsHangDetectionEnabled: config.jsHangDetection?.enabled ?? false,
   });
   initFeatureFlagsCache();
 
@@ -134,6 +136,7 @@ export const init = (config: LuciqConfig) => {
 
   // call Luciq native init method
   initializeNativeLuciq(config);
+  setJSHangEnabled(config.jsHangDetection?.enabled ?? false);
 
   // Set up error capturing and rejection handling
   LuciqUtils.captureJsErrors();

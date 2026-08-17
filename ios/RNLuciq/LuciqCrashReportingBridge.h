@@ -10,6 +10,7 @@
 @interface LuciqCrashReportingBridge : RCTEventEmitter <RCTBridgeModule>
 
 - (void)setEnabled:(BOOL) isEnabled;
+- (void)setJSHangEnabled:(BOOL) isEnabled;
 - (void)sendJSCrash:(NSDictionary *_Nonnull )stackTrace resolver:(RCTPromiseResolveBlock _Nullable )resolve
            rejecter:(RCTPromiseRejectBlock _Nullable )reject;
 - (void)sendHandledJSCrash:(NSDictionary *_Nonnull)stackTrace userAttributes:(nullable NSDictionary *)userAttributes fingerprint:(nullable NSString *)fingerprint nonFatalExceptionLevel:(LCQNonFatalLevel) nonFatalExceptionLevel resolver:(RCTPromiseResolveBlock _Nullable )resolve

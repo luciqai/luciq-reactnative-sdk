@@ -1,4 +1,5 @@
 #import "LuciqCrashReportingBridge.h"
+#import "LuciqJSHangWatchdog.h"
 #import "Util/LCQCrashReporting+CP.h"
 #import "Util/LuciqRNDebugTags.h"
 #import "Util/LuciqRNLogger.h"
@@ -27,6 +28,23 @@ RCT_EXPORT_MODULE(LCQCrashReporting)
 RCT_EXPORT_METHOD(setEnabled: (BOOL) isEnabled) {
     [LuciqRNLogger d:[LuciqRNDebugTags crashReporting] format:@"[setEnabled] called isEnabled=%@", (isEnabled ? @"YES" : @"NO")];
     LCQCrashReporting.enabled = isEnabled;
+    if (!isEnabled) {
+        [[LuciqJSHangWatchdog sharedInstance] stop];
+    }
+}
+
+RCT_EXPORT_METHOD(setJSHangEnabled: (BOOL) isEnabled) {
+    [LuciqRNLogger d:[LuciqRNDebugTags jsHang] format:@"[setJSHangEnabled] called isEnabled=%@", (isEnabled ? @"YES" : @"NO")];
+    if (isEnabled) {
+        [[LuciqJSHangWatchdog sharedInstance] startWithBridge:self.bridge];
+    } else {
+        [[LuciqJSHangWatchdog sharedInstance] stop];
+    }
+}
+
+- (void)invalidate {
+    [[LuciqJSHangWatchdog sharedInstance] stop];
+    [super invalidate];
 }
 
 RCT_EXPORT_METHOD(sendJSCrash:(NSDictionary *)stackTrace

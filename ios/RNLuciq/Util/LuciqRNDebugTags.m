@@ -19,6 +19,7 @@
 + (NSString *)apmNetwork         { return @"LCQ-RN-iOS-APM-NET:"; }
 + (NSString *)bugReporting       { return @"LCQ-RN-iOS-BR:"; }
 + (NSString *)crashReporting     { return @"LCQ-RN-iOS-CRASH:"; }
++ (NSString *)jsHang             { return @"LCQ-RN-iOS-JSHANG:"; }
 + (NSString *)sessionReplay      { return @"LCQ-RN-iOS-SR:"; }
 + (NSString *)privateView        { return @"LCQ-RN-iOS-PRIV:"; }
 + (NSString *)featureFlags       { return @"LCQ-RN-iOS-FF:"; }

@@ -33,8 +33,17 @@ import { LuciqDebugTags } from '../../src/constants/DebugTags';
 
 jest.mock('../../src/modules/NetworkLogger');
 
-function fakeTimer(callback: () => void) {
-  setTimeout(callback, 100);
+function fakeTimer(callback: () => void): Promise<void> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      try {
+        callback();
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    }, 100);
+  });
 }
 
 describe('Luciq Module', () => {
@@ -1131,37 +1140,32 @@ describe('Luciq Android initialization tests', () => {
   it('should initialize correctly with native interception enabled', () => {
     config.networkInterceptionMode = NetworkInterceptionMode.native;
     Luciq.init(config);
-    fakeTimer(() => {
-      expect(NativeLuciq.setOnFeaturesUpdatedListener).toHaveBeenCalled();
-      expect(NetworkLogger.setEnabled).toHaveBeenCalledWith(true);
-      expect(NativeLuciq.init).toHaveBeenCalledWith(
-        config.token,
-        config.invocationEvents,
-        config.debugLogsLevel,
-        false, // always disable native interception to insure sending network logs to core (Bugs & Crashes).
-        config.codePushVersion,
-        { ignoreAndroidSecureFlag: config.ignoreAndroidSecureFlag },
-        undefined,
-        config.overAirVersion,
-      );
-    });
+    expect(NativeLuciq.setOnFeaturesUpdatedListener).toHaveBeenCalled();
+    expect(NetworkLogger.setEnabled).toHaveBeenCalledWith(true);
+    expect(NativeLuciq.init).toHaveBeenCalledWith(
+      config.token,
+      config.invocationEvents,
+      config.debugLogsLevel,
+      false, // always disable native interception to insure sending network logs to core (Bugs & Crashes).
+      config.codePushVersion,
+      config.appVariant,
+      undefined,
+      config.overAirVersion,
+    );
   });
 
-  it('should show warning message when networkInterceptionMode == javascript and user added APM plugin', () => {
+  it('should not warn before asynchronous Android feature flags are applied', async () => {
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(true);
     jest.spyOn(NativeNetworkLogger, 'hasAPMNetworkPlugin').mockReturnValue(Promise.resolve(true));
     const logSpy = jest.spyOn(Logger, 'warn');
 
     Luciq.init(config);
-    fakeTimer(() => {
-      expect(logSpy).toBeCalledTimes(1);
-      expect(logSpy).toBeCalledWith(
-        LuciqConstants.LCQ_APM_TAG + LuciqConstants.SWITCHED_TO_NATIVE_INTERCEPTION_MESSAGE,
-      );
+    await fakeTimer(() => {
+      expect(logSpy).not.toHaveBeenCalled();
     });
   });
 
-  it('should show error message when networkInterceptionMode == native and user did not add APM plugin', () => {
+  it('should show error message when networkInterceptionMode == native and user did not add APM plugin', async () => {
     config.networkInterceptionMode = NetworkInterceptionMode.native;
 
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(true);
@@ -1170,15 +1174,16 @@ describe('Luciq Android initialization tests', () => {
 
     Luciq.init(config);
 
-    fakeTimer(() => {
+    await fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
-        LuciqConstants.LCQ_APM_TAG + LuciqConstants.PLUGIN_NOT_INSTALLED_MESSAGE,
+        LuciqDebugTags.APM_NETWORK,
+        LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
       );
     });
   });
 
-  it('should show error message when networkInterceptionMode == native and user did not add APM plugin and the isNativeInterceptionEnabled is disabled', () => {
+  it('should show error message when networkInterceptionMode == native and user did not add APM plugin and the isNativeInterceptionEnabled is disabled', async () => {
     config.networkInterceptionMode = NetworkInterceptionMode.native;
 
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(false);
@@ -1187,15 +1192,16 @@ describe('Luciq Android initialization tests', () => {
 
     Luciq.init(config);
 
-    fakeTimer(() => {
+    await fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
-        LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
+        LuciqDebugTags.APM_NETWORK,
+        LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
       );
     });
   });
 
-  it('should show error message when networkInterceptionMode == native and the isNativeInterceptionEnabled is disabled', () => {
+  it('should show error message when networkInterceptionMode == native and the isNativeInterceptionEnabled is disabled', async () => {
     config.networkInterceptionMode = NetworkInterceptionMode.native;
     jest.spyOn(NativeNetworkLogger, 'isNativeInterceptionEnabled').mockReturnValue(false);
     jest.spyOn(NativeNetworkLogger, 'hasAPMNetworkPlugin').mockReturnValue(Promise.resolve(true));
@@ -1203,10 +1209,11 @@ describe('Luciq Android initialization tests', () => {
 
     Luciq.init(config);
 
-    fakeTimer(() => {
+    await fakeTimer(() => {
       expect(logSpy).toBeCalledTimes(1);
       expect(logSpy).toBeCalledWith(
-        LuciqConstants.LCQ_APM_TAG + LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
+        LuciqDebugTags.APM_NETWORK,
+        LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
       );
     });
   });
@@ -1214,18 +1221,16 @@ describe('Luciq Android initialization tests', () => {
   it('should initialize correctly with App variant', async () => {
     config.appVariant = 'App Variant';
     await Luciq.init(config);
-    fakeTimer(() => {
-      expect(NativeLuciq.setOnFeaturesUpdatedListener).toHaveBeenCalled();
-      expect(NativeLuciq.init).toHaveBeenCalledWith(
-        config.token,
-        config.invocationEvents,
-        config.debugLogsLevel,
-        true,
-        config.codePushVersion,
-        config.appVariant,
-        undefined,
-        config.overAirVersion,
-      );
-    });
+    expect(NativeLuciq.setOnFeaturesUpdatedListener).toHaveBeenCalled();
+    expect(NativeLuciq.init).toHaveBeenCalledWith(
+      config.token,
+      config.invocationEvents,
+      config.debugLogsLevel,
+      false,
+      config.codePushVersion,
+      config.appVariant,
+      undefined,
+      config.overAirVersion,
+    );
   });
 });

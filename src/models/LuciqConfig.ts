@@ -45,4 +45,9 @@ export interface LuciqConfig {
    * An optional over air service update version to be used for all reports.
    */
   overAirVersion?: OverAirUpdate;
+
+  /**
+   * Optional JS event-loop hang monitoring. Disabled by default.
+   */
+  jsHangDetection?: { enabled: boolean };
 }
