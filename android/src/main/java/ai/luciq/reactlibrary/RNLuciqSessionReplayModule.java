@@ -195,7 +195,10 @@ public class RNLuciqSessionReplayModule extends NativeSessionReplaySpec {
 
                             try {
                                 latch.await();
+                                promise.resolve(null);
+
                             } catch (InterruptedException e) {
+                                promise.resolve(null);
                                 LuciqRNLogger.e(TAG, "[setSyncCallback] latch await interrupted", e);
                                 return true;
                             }
@@ -203,7 +206,6 @@ public class RNLuciqSessionReplayModule extends NativeSessionReplaySpec {
                             return shouldSync;
                         }
                     });
-                    promise.resolve(null);
                 }
                 catch(Exception e){
                     LuciqRNLogger.e(TAG, "[setSyncCallback] failed", e);
