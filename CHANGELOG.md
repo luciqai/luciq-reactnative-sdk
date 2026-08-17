@@ -10,7 +10,6 @@
 
 - **Error boundary**: Add the `LuciqErrorBoundary` component, which catches React render errors, reports them as non-fatals through `CrashReporting.reportError`, and attaches the React component stack to the report. Supports a custom `FallbackComponent`, an `onError` callback, `resetError` recovery, and optionally invoking the bug reporting UI via `showBugReporting`. ([#57](https://github.com/luciqai/luciq-reactnative-sdk/pull/57))
 
-
 ### Changed
 
 - Bump Luciq Android SDK to v19.10.1 ([#44](https://github.com/luciqai/luciq-reactnative-sdk/pull/44)). [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.10.1).

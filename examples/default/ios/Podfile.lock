@@ -1730,7 +1730,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - RNLuciq (19.9.3):
+  - RNLuciq (19.10.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2278,7 +2278,7 @@ SPEC CHECKSUMS:
   ReactCommon: 36d48f542b4010786d6b2bcee615fe5f906b7105
   RNCClipboard: 65367ee0429c61ea5cb9d819921877730d59b039
   RNGestureHandler: 16ef3dc2d7ecb09f240f25df5255953c4098819b
-  RNLuciq: b4d0ba290c4be02f4086d83417d19bb3b793b730
+  RNLuciq: fd107e7b11b4626cffd76e4d559c895017b9b140
   RNReanimated: f9abf36c3dae792c600f26a6107d0daa37eaeacf
   RNScreens: 74536418fef8086457d39df36a55b36efd5329c9
   RNSVG: 030717ff82ea8f2117347c2fcf52a2d1eafba9ba
