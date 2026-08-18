@@ -1,7 +1,7 @@
 {
   "name": "@luciq/react-native",
   "description": "Luciq is the Agentic Observability Platform built for Mobile.",
-  "version": "19.9.3",
+  "version": "19.10.1",
   "author": "Luciq (https://luciq.ai)",
   "repository": "github:luciqai/luciq-reactnative-sdk",
   "homepage": "https://www.luciq.ai/platforms/react-native",
@@ -91,6 +91,14 @@
   "peerDependenciesMeta": {
     "expo": {
       "optional": true
+    }
+  },
+  "codegenConfig": {
+    "name": "RNLuciqSpec",
+    "type": "modules",
+    "jsSrcsDir": "src/specs",
+    "android": {
+      "javaPackageName": "ai.luciq.reactlibrary"
     }
   }
 }

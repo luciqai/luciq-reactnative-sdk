@@ -1,7 +1,8 @@
 import type { NativeModule } from 'react-native';
+import { NativeModules as ReactNativeModules } from 'react-native';
 
 import type { ActionType } from '../utils/Enums';
-import { NativeModules } from './NativePackage';
+import FeatureRequestsTurboSpec from '../specs/NativeFeatureRequests';
 
 export interface FeatureRequestsNativeModule extends NativeModule {
   setEnabled(isEnabled: boolean): void;
@@ -9,4 +10,5 @@ export interface FeatureRequestsNativeModule extends NativeModule {
   setEmailFieldRequiredForFeatureRequests(isEmailFieldRequired: boolean, types: ActionType[]): void;
 }
 
-export const NativeFeatureRequests = NativeModules.LCQFeatureRequests;
+export const NativeFeatureRequests = (FeatureRequestsTurboSpec ??
+  ReactNativeModules.LCQFeatureRequests) as unknown as FeatureRequestsNativeModule;

@@ -115,8 +115,7 @@
 
 - (void) testSetWillShowSurveyHandler {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnShowHandler:callback];
+  [partialMock setOnShowHandler];
   XCTAssertNotNil(LCQSurveys.willShowSurveyHandler);
   OCMStub([partialMock sendEventWithName:OCMOCK_ANY body:nil]);
   LCQSurveys.willShowSurveyHandler();
@@ -125,8 +124,7 @@
 
 - (void) testSetDidDismissSurveyHandler {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnDismissHandler:callback];
+  [partialMock setOnDismissHandler];
   XCTAssertNotNil(LCQSurveys.didDismissSurveyHandler);
   OCMStub([partialMock sendEventWithName:OCMOCK_ANY body:nil]);
   LCQSurveys.didDismissSurveyHandler();

@@ -35,8 +35,11 @@ describe('ReduxLogger Module', () => {
     dispatch({ type: 'TEST_ACTION', payload: 'data' });
 
     expect(NativeLuciq.logUserEvent).toBeCalledTimes(1);
-    expect(NativeLuciq.logUserEvent).toBeCalledWith(expect.stringContaining('Redux: TEST_ACTION'));
-    expect(NativeLuciq.logUserEvent).toBeCalledWith(expect.stringMatching(/\(\d+B\)$/));
+    expect(NativeLuciq.logUserEvent).toBeCalledWith(
+      expect.stringContaining('Redux: TEST_ACTION'),
+      [],
+    );
+    expect(NativeLuciq.logUserEvent).toBeCalledWith(expect.stringMatching(/\(\d+B\)$/), []);
   });
 
   it('records an APM span named after the action type', async () => {
@@ -105,6 +108,7 @@ describe('ReduxLogger Module', () => {
 
     expect(NativeLuciq.logUserEvent).toBeCalledWith(
       expect.stringContaining('MyStore: TEST_ACTION'),
+      [],
     );
     expect(NativeAPM.syncCustomSpan).toBeCalledWith(
       'MyStore: TEST_ACTION',

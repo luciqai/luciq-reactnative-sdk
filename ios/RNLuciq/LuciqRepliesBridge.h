@@ -25,7 +25,7 @@
 
 - (void)show;
 
-- (void)setOnNewReplyReceivedHandler:(RCTResponseSenderBlock) callback;
+- (void)setOnNewReplyReceivedHandler;
 
 - (void)getUnreadRepliesCount:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject;
 

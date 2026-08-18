@@ -1,5 +1,10 @@
-import { NativeModules } from './NativePackage';
-import { NativeEventEmitter, type NativeModule } from 'react-native';
+import {
+  NativeEventEmitter,
+  NativeModules as ReactNativeModules,
+  type NativeModule,
+} from 'react-native';
+
+import NetworkLoggerTurboSpec from '../specs/NativeNetworkLogger';
 
 export enum NetworkListenerType {
   filtering = 'filtering',
@@ -33,7 +38,8 @@ export interface NetworkLoggerNativeModule extends NativeModule {
   forceStopNetworkLoggingIOS(): void; // iOS only;
 }
 
-export const NativeNetworkLogger = NativeModules.LCQNetworkLogger;
+export const NativeNetworkLogger = (NetworkLoggerTurboSpec ??
+  ReactNativeModules.LCQNetworkLogger) as unknown as NetworkLoggerNativeModule;
 
 export enum NativeNetworkLoggerEvent {
   NETWORK_LOGGER_HANDLER = 'LCQNetworkLoggerHandler',

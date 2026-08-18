@@ -1,5 +1,13 @@
 apply plugin: 'com.android.library'
 
+boolean isNewArchitectureEnabled() {
+    return project.hasProperty("newArchEnabled") && project.newArchEnabled == "true"
+}
+
+if (isNewArchitectureEnabled()) {
+    apply plugin: "com.facebook.react"
+}
+
 apply from: './jacoco.gradle'
 apply from: './native.gradle'
 apply from: './sourcemaps.gradle'
@@ -53,6 +61,10 @@ android {
     compileSdkVersion getExtOrDefault('compileSdkVersion').toInteger()
     buildToolsVersion getExtOrDefault('buildToolsVersion')
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         minSdkVersion getExtOrDefault('minSdkVersion').toInteger()
         targetSdkVersion getExtOrDefault('targetSdkVersion').toInteger()
@@ -63,11 +75,34 @@ android {
             abiFilters "armeabi-v7a", "x86"
         }
         consumerProguardFiles 'proguard-rules.txt'
+        buildConfigField "boolean", "IS_NEW_ARCHITECTURE_ENABLED", isNewArchitectureEnabled().toString()
     }
+
+    sourceSets {
+        main {
+            if (isNewArchitectureEnabled()) {
+                java.srcDirs += [
+                    'src/newarch/java',
+                    "${project.buildDir}/generated/source/codegen/java"
+                ]
+            } else {
+                java.srcDirs += ['src/oldarch/java']
+            }
+        }
+    }
+
     lintOptions {
        warning 'InvalidPackage'
         abortOnError true
         // SuppressLint WrongConstant was used to suppress errors when using arrays of ints to represent annotations.
+    }
+}
+
+if (isNewArchitectureEnabled()) {
+    react {
+        jsRootDir = file("../src/specs/")
+        libraryName = "RNLuciqSpec"
+        codegenJavaPackageName = "ai.luciq.reactlibrary"
     }
 }
 

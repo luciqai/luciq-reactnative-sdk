@@ -1,5 +1,25 @@
 # Changelog
 
+## [19.10.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.9.3)
+
+### Added
+
+- Add support for React Native's new architecture (TurboModules) while maintaining backward compatibility with the old bridge architecture. ([#44](https://github.com/luciqai/luciq-reactnative-sdk/pull/44))
+
+- **Redux state tracking**: Add `createLuciqReduxMiddleware(options?)`, a Redux middleware that records each dispatch as an APM custom span and a breadcrumb carrying the action type and the serialized payload size. Only the payload byte size is captured, never its contents. Async thunks are measured until their Promise settles, non-trackable actions pass through untouched, and the middleware never throws into the dispatch chain. Configurable via `LuciqReduxMiddlewareOptions` (`namePrefix`, `spans`, `breadcrumbs`, `trackAsyncThunks`, `actionFilter`). ([#66](https://github.com/luciqai/luciq-reactnative-sdk/pull/66))
+
+- **Error boundary**: Add the `LuciqErrorBoundary` component, which catches React render errors, reports them as non-fatals through `CrashReporting.reportError`, and attaches the React component stack to the report. Supports a custom `FallbackComponent`, an `onError` callback, `resetError` recovery, and optionally invoking the bug reporting UI via `showBugReporting`. ([#57](https://github.com/luciqai/luciq-reactnative-sdk/pull/57))
+
+### Changed
+
+- Bump Luciq Android SDK to v19.10.1 ([#44](https://github.com/luciqai/luciq-reactnative-sdk/pull/44)). [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.10.1).
+
+### Fixed
+
+- Handler-based setters now replace the previously registered handler instead of stacking an additional one that also fires. Affects `BugReporting.onInvokeHandler`, `BugReporting.onSDKDismissedHandler`, `BugReporting.setDidSelectPromptOptionHandler`, `Luciq.onReportSubmitHandler`, `Replies.setOnNewReplyReceivedHandler`, `Surveys.setOnShowHandler`, and `Surveys.setOnDismissHandler`. ([#44](https://github.com/luciqai/luciq-reactnative-sdk/pull/44))
+
+- Passing `null` to the handler-based setters listed above once again unregisters the handler, tearing down both the JS listener and the underlying native handler. ([#44](https://github.com/luciqai/luciq-reactnative-sdk/pull/44))
+
 ## [19.9.3](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.19.3...v19.8.0)
 
 ### Added

@@ -13,7 +13,6 @@ import Luciq, {
   LogLevel,
   NetworkInterceptionMode,
   NetworkLogger,
-  OverAirUpdateServices,
   ReproStepsMode,
   ScreenshotQuality,
   SessionMetadata,
@@ -28,18 +27,8 @@ import { navigationTheme } from './theme/navigationTheme';
 
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { CallbackHandlersProvider } from './contexts/callbackContext';
-import { ColdStartTelemetry, fireColdStartBurstOnce } from './utils/coldStartTelemetry';
 
 const queryClient = new QueryClient();
-
-/**
- * Enables the INSD-14886 cold-start race reproduction. When true, a burst
- * of REST requests is fired immediately after Luciq.init() returns —
- * mirroring the Discogs RN app's startup pattern. Use the
- * "Cold-Start Network Race" screen under APM to inspect fired vs captured
- * counts. Set to false to disable the burst on launch.
- */
-const COLD_START_REPRO_ENABLED = true;
 
 export const App: React.FC = () => {
   const shouldSyncSession = (data: SessionMetadata) => {
@@ -71,8 +60,6 @@ export const App: React.FC = () => {
         invocationEvents: [InvocationEvent.floatingButton],
         debugLogsLevel: LogLevel.verbose,
         networkInterceptionMode: NetworkInterceptionMode.javascript,
-        appVariant: 'App variant',
-        overAirVersion: { service: OverAirUpdateServices.codePush, version: '1.0.0' },
       });
 
       CrashReporting.setNDKCrashesEnabled(true);
@@ -83,15 +70,6 @@ export const App: React.FC = () => {
       Luciq.setWebViewMonitoringEnabled(true);
       Luciq.setWebViewNetworkTrackingEnabled(true);
       Luciq.setWebViewUserInteractionsTrackingEnabled(true);
-
-      if (COLD_START_REPRO_ENABLED) {
-        // Fire the burst on the same JS tick that init() returns. On Android
-        // before the Luciq.ts fix, the JS XHR interceptor was still off here
-        // (it waits for LCQ_ON_FEATURES_UPDATED_CALLBACK from native), so
-        // these requests bypass APM entirely. Guard so the no-deps useEffect
-        // in this component doesn't fire it on every render.
-        fireColdStartBurstOnce();
-      }
     } catch (error) {
       console.error('Luciq initialization failed:', error);
     }
@@ -102,9 +80,6 @@ export const App: React.FC = () => {
     APM.setScreenRenderingEnabled(true);
     APM.excludeScreenLoadingRoutes(['APM']);
     NetworkLogger.setNetworkDataObfuscationHandler(async (networkData) => {
-      // Record the captured URL before any transformation so it matches the
-      // exact string recorded by fireColdStartBurst.
-      ColdStartTelemetry.recordCaptured(networkData.url);
       networkData.url = `${networkData.url}/JS/Obfuscated`;
       return networkData;
     });

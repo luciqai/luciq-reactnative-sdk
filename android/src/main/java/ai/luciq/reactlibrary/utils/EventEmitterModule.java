@@ -34,7 +34,7 @@ public abstract class EventEmitterModule extends ReactContextBaseJavaModule {
     }
 
     protected void removeListeners(Integer count) {
-        listenerCount -= count;
+        listenerCount = Math.max(0, listenerCount - count);
         LuciqRNLogger.d(NET_TAG, "[EventEmitter] removeListeners — module=" + getName() + ", removed=" + count + ", listenerCount=" + listenerCount);
     }
 }
