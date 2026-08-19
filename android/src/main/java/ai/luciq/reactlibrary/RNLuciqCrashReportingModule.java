@@ -2,11 +2,8 @@ package ai.luciq.reactlibrary;
 
 import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
-import androidx.annotation.NonNull;
-
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
-import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 import ai.luciq.crash.CrashReporting;
@@ -20,22 +17,14 @@ import org.json.JSONObject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
+public class RNLuciqCrashReportingModule extends NativeCrashReportingSpec {
 
     public RNLuciqCrashReportingModule(ReactApplicationContext reactApplicationContext) {
         super(reactApplicationContext);
-    }
-
-    @Nonnull
-    @Override
-    public String getName() {
-        return "LCQCrashReporting";
     }
 
     /**
@@ -70,10 +59,10 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
      *                        finishes processing/handling the crash.
      */
     @ReactMethod
-    public void sendJSCrash(final String exceptionObject, final Promise promise) {
-        LuciqRNLogger.d(LuciqRNDebugTags.CRASH_REPORTING, "[sendJSCrash] called exceptionObject length=" + (exceptionObject == null ? 0 : exceptionObject.length()) + ", present=" + (exceptionObject != null));
+    public void sendJSCrash(final ReadableMap exceptionObject, final Promise promise) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CRASH_REPORTING, "[sendJSCrash] called exceptionObject present=" + (exceptionObject != null));
         try {
-            JSONObject jsonObject = new JSONObject(exceptionObject);
+            JSONObject jsonObject = new JSONObject(exceptionObject.toHashMap());
             sendJSCrashByReflection(jsonObject, false, new Runnable() {
                 @Override
                 public void run() {
@@ -82,6 +71,7 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
             });
         } catch (Exception e) {
             LuciqRNLogger.e(LuciqRNDebugTags.CRASH_REPORTING, "[sendJSCrash] failed", e);
+            promise.resolve(null);
         }
     }
 
@@ -94,10 +84,10 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
      * @param level       different severity levels for errors
      */
     @ReactMethod
-    public void sendHandledJSCrash(final String exceptionObject, @Nullable final ReadableMap userAttributes, @Nullable final String fingerprint, @Nullable final String level) {
-        LuciqRNLogger.d(LuciqRNDebugTags.CRASH_REPORTING, "[sendHandledJSCrash] called exceptionObject length=" + (exceptionObject == null ? 0 : exceptionObject.length()) + ", present=" + (exceptionObject != null) + ", userAttributes present=" + (userAttributes != null) + ", fingerprint length=" + (fingerprint == null ? 0 : fingerprint.length()) + ", present=" + (fingerprint != null) + ", level=" + level);
+    public void sendHandledJSCrash(final ReadableMap exceptionObject, @Nullable final ReadableMap userAttributes, @Nullable final String fingerprint, @Nullable final String level, final Promise promise) {
+        LuciqRNLogger.d(LuciqRNDebugTags.CRASH_REPORTING, "[sendHandledJSCrash] called exceptionObject present=" + (exceptionObject != null) + ", userAttributes present=" + (userAttributes != null) + ", fingerprint length=" + (fingerprint == null ? 0 : fingerprint.length()) + ", present=" + (fingerprint != null) + ", level=" + level);
         try {
-            final JSONObject jsonObject = new JSONObject(exceptionObject);
+            final JSONObject jsonObject = new JSONObject(exceptionObject.toHashMap());
             MainThreadHandler.runOnMainThread(new Runnable() {
                 @Override
                 public void run() {
@@ -116,11 +106,14 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
                     } catch (ClassNotFoundException | IllegalAccessException |
                              InvocationTargetException e) {
                         LuciqRNLogger.e(LuciqRNDebugTags.CRASH_REPORTING, "[sendHandledJSCrash] failed", e);
+                    } finally {
+                        promise.resolve(null);
                     }
                 }
             });
         } catch (Throwable e) {
             LuciqRNLogger.e(LuciqRNDebugTags.CRASH_REPORTING, "[sendHandledJSCrash] failed", e);
+            promise.resolve(null);
         }
     }
 
@@ -151,7 +144,7 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
      * @param isEnabled boolean indicating enabled or disabled.
      */
     @ReactMethod
-    public void setNDKCrashesEnabled(final boolean isEnabled) {
+    public void setNDKCrashesEnabled(final boolean isEnabled, final Promise promise) {
         MainThreadHandler.runOnMainThread(new Runnable() {
             @Override
             public void run() {
@@ -164,8 +157,16 @@ public class RNLuciqCrashReportingModule extends ReactContextBaseJavaModule {
                     }
                 } catch (Exception e) {
                     LuciqRNLogger.e(LuciqRNDebugTags.CRASH_REPORTING, "[setNDKCrashesEnabled] failed", e);
+                } finally {
+                    promise.resolve(null);
                 }
             }
         });
     }
+
+    @ReactMethod
+    public void addListener(String eventName) {}
+
+    @ReactMethod
+    public void removeListeners(double count) {}
 }

@@ -64,7 +64,7 @@ describe('Surveys Module', () => {
     Surveys.setOnShowHandler(callback);
 
     expect(NativeSurveys.setOnShowHandler).toBeCalledTimes(1);
-    expect(NativeSurveys.setOnShowHandler).toBeCalledWith(callback);
+    expect(NativeSurveys.setOnShowHandler).toBeCalledWith();
   });
 
   it('should invoke callback on emitting the event LCQWillShowSurvey', () => {
@@ -81,7 +81,7 @@ describe('Surveys Module', () => {
     Surveys.setOnDismissHandler(callback);
 
     expect(NativeSurveys.setOnDismissHandler).toBeCalledTimes(1);
-    expect(NativeSurveys.setOnDismissHandler).toBeCalledWith(callback);
+    expect(NativeSurveys.setOnDismissHandler).toBeCalledWith();
   });
 
   it('should invoke callback on emitting the event LCQDidDismissSurvey', () => {

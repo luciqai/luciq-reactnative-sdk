@@ -121,9 +121,8 @@ public class RNLuciqRepliesModuleTest {
     @Test
     public void given$setOnNewReplyReceivedHandler_whenQuery_thenShouldSetNativeCallback() {
 
-        Callback callback = mock(Callback.class);
         // when
-        rnModule.setOnNewReplyReceivedHandler(callback);
+        rnModule.setOnNewReplyReceivedHandler();
         // then
         verify(Replies.class,times(1));
         Replies.setOnNewReplyReceivedCallback(any(Runnable.class));

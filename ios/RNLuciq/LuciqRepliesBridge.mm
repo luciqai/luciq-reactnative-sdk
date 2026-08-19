@@ -52,17 +52,17 @@ RCT_EXPORT_METHOD(show) {
     [[NSRunLoop mainRunLoop] performSelector:@selector(show) target:[LCQReplies class] argument:nil order:0 modes:@[NSDefaultRunLoopMode]];
 }
 
-RCT_EXPORT_METHOD(setOnNewReplyReceivedHandler:(RCTResponseSenderBlock) callback) {
-    [LuciqRNLogger d:[LuciqRNDebugTags replies] format:@"[setOnNewReplyReceivedHandler] called present=%@", (callback != nil ? @"YES" : @"NO")];
-    if (callback != nil) {
-        LCQReplies.didReceiveReplyHandler = ^{
-            [LuciqRNLogger d:[LuciqRNDebugTags replies] format:@"[LCQOnNewReplyReceivedCallback] emitted"];
-            [self sendEventWithName:@"LCQOnNewReplyReceivedCallback" body:nil];
-        };
-    } else {
-        LCQReplies.didReceiveReplyHandler = nil;
-    }
+RCT_EXPORT_METHOD(setOnNewReplyReceivedHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags replies] format:@"[setOnNewReplyReceivedHandler] called"];
+    LCQReplies.didReceiveReplyHandler = ^{
+        [LuciqRNLogger d:[LuciqRNDebugTags replies] format:@"[LCQOnNewReplyReceivedCallback] emitted"];
+        [self sendEventWithName:@"LCQOnNewReplyReceivedCallback" body:nil];
+    };
+}
 
+RCT_EXPORT_METHOD(unsetOnNewReplyReceivedHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags replies] format:@"[unsetOnNewReplyReceivedHandler] called"];
+    LCQReplies.didReceiveReplyHandler = nil;
 }
 
 RCT_EXPORT_METHOD(getUnreadRepliesCount:(RCTPromiseResolveBlock)resolve :(RCTPromiseRejectBlock)reject) {

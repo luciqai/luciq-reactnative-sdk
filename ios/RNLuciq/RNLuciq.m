@@ -71,7 +71,7 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
 
 + (void)setOverAirVersion:(NSDictionary *)overAirVersion {
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[setOverAirVersion] called overAirVersionCount=%lu", (unsigned long)overAirVersion.count];
-    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:[overAirVersion[@"service"] intValue]];
+    [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 }
 
 

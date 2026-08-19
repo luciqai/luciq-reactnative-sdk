@@ -1,5 +1,10 @@
-sdk_version=$(grep -i 'version' package.json) #"version": "xx.x.x+x",
-sdk_version=$(cut -f2 -d' ' <<< $sdk_version | tr -d '" ,') #xx.x.x+x,
-sdk_version=$(cut -f1 -d'+' <<< $sdk_version) #xx.x.x
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root=$(cd "$(dirname "$0")/../.." && pwd)
+
+# "version": "xx.x.x+x", -> xx.x.x
+sdk_version=$(grep -m1 -E '"version"[[:space:]]*:' "$repo_root/package.json" |
+  cut -f2 -d':' | tr -d '" ,' | cut -f1 -d'+')
 
 echo "$sdk_version"

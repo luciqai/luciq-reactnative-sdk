@@ -36,8 +36,8 @@ RCT_EXPORT_MODULE(LCQAPM)
 }
 
 // Pauses the current thread for 3 seconds.
-RCT_EXPORT_METHOD(LCQSleep) {
-    [LuciqRNLogger d:[LuciqRNDebugTags apmCustomSpan] format:@"[LCQSleep] called"];
+RCT_EXPORT_METHOD(lcqSleep) {
+    [LuciqRNLogger d:[LuciqRNDebugTags apmCustomSpan] format:@"[lcqSleep] called"];
     [NSThread sleepForTimeInterval:3.0f];
 }
 

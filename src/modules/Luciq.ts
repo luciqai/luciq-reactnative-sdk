@@ -37,6 +37,7 @@ import { NativeNetworkLogger } from '../native/NativeNetworkLogger';
 import LuciqConstants from '../utils/LuciqConstants';
 import { LuciqRNConfig } from '../utils/config';
 import { Logger } from '../utils/logger';
+import { setNativeHandler } from '../utils/NativeHandler';
 import { LuciqDebugTags } from '../constants/DebugTags';
 import type { OverAirUpdate } from '../models/OverAirUpdate';
 import type { ThemeConfig } from '../models/ThemeConfig';
@@ -884,17 +885,20 @@ export const show = () => {
   NativeLuciq.show();
 };
 
-export const onReportSubmitHandler = (handler?: (report: Report) => void) => {
-  Logger.debug(LuciqDebugTags.CORE, 'onReportSubmitHandler registered', {
+export const onReportSubmitHandler = (handler?: ((report: Report) => void) | null) => {
+  Logger.debug(LuciqDebugTags.CORE, 'onReportSubmitHandler', {
     hasHandler: !!handler,
   });
-  emitter.addListener(NativeEvents.PRESENDING_HANDLER, (report) => {
-    const { tags, consoleLogs, luciqLogs, userAttributes, fileAttachments } = report;
-    const reportObj = new Report(tags, consoleLogs, luciqLogs, userAttributes, fileAttachments);
-    handler && handler(reportObj);
+  const wrappedHandler =
+    handler &&
+    ((report: Report) => {
+      const { tags, consoleLogs, luciqLogs, userAttributes, fileAttachments } = report;
+      handler(new Report(tags, consoleLogs, luciqLogs, userAttributes, fileAttachments));
+    });
+  setNativeHandler(emitter, NativeEvents.PRESENDING_HANDLER, wrappedHandler, {
+    set: () => NativeLuciq.setPreSendingHandler(),
+    unset: () => NativeLuciq.unsetPreSendingHandler(),
   });
-
-  NativeLuciq.setPreSendingHandler(handler);
 };
 
 /**

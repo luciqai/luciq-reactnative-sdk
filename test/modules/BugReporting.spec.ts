@@ -131,7 +131,7 @@ describe('Testing BugReporting Module', () => {
     BugReporting.onInvokeHandler(callback);
 
     expect(NativeBugReporting.setOnInvokeHandler).toBeCalledTimes(1);
-    expect(NativeBugReporting.setOnInvokeHandler).toBeCalledWith(callback);
+    expect(NativeBugReporting.setOnInvokeHandler).toBeCalledWith();
   });
 
   it('should invoke callback on emitting the event LCQpreInvocationHandler', () => {
@@ -143,12 +143,47 @@ describe('Testing BugReporting Module', () => {
     expect(callback).toHaveBeenCalled();
   });
 
+  it('should replace the previous handler instead of stacking listeners', () => {
+    const first = jest.fn();
+    const second = jest.fn();
+
+    BugReporting.onInvokeHandler(first);
+    BugReporting.onInvokeHandler(second);
+    emitter.emit(NativeEvents.ON_INVOKE_HANDLER);
+
+    expect(emitter.listenerCount(NativeEvents.ON_INVOKE_HANDLER)).toBe(1);
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledTimes(1);
+  });
+
+  it('should unregister the handler and call unsetOnInvokeHandler when passed null', () => {
+    const callback = jest.fn();
+    BugReporting.onInvokeHandler(callback);
+    BugReporting.onInvokeHandler(null);
+    emitter.emit(NativeEvents.ON_INVOKE_HANDLER);
+
+    expect(emitter.listenerCount(NativeEvents.ON_INVOKE_HANDLER)).toBe(0);
+    expect(callback).not.toHaveBeenCalled();
+    expect(NativeBugReporting.unsetOnInvokeHandler).toBeCalledTimes(1);
+  });
+
+  it('should unregister the handler and call unsetOnSDKDismissedHandler when passed null', () => {
+    const callback = jest.fn();
+    BugReporting.onSDKDismissedHandler(callback);
+    BugReporting.onSDKDismissedHandler(null);
+    emitter.emit(NativeEvents.ON_DISMISS_HANDLER, { dismissType: 'cancel', reportType: 'bug' });
+
+    expect(emitter.listenerCount(NativeEvents.ON_DISMISS_HANDLER)).toBe(0);
+    expect(callback).not.toHaveBeenCalled();
+    expect(NativeBugReporting.unsetOnSDKDismissedHandler).toBeCalledTimes(1);
+  });
+
   it('should call the native method setOnSDKDismissedHandler with a function', () => {
     const callback = jest.fn();
     BugReporting.onSDKDismissedHandler(callback);
 
     expect(NativeBugReporting.setOnSDKDismissedHandler).toBeCalledTimes(1);
-    expect(NativeBugReporting.setOnSDKDismissedHandler).toBeCalledWith(callback);
+    expect(NativeBugReporting.setOnSDKDismissedHandler).toBeCalledWith();
   });
 
   it('should invoke callback on emitting the event LCQpostInvocationHandler', () => {
@@ -223,7 +258,7 @@ describe('Testing BugReporting Module', () => {
     BugReporting.setDidSelectPromptOptionHandler(callback);
 
     expect(NativeBugReporting.setDidSelectPromptOptionHandler).toBeCalledTimes(1);
-    expect(NativeBugReporting.setDidSelectPromptOptionHandler).toBeCalledWith(callback);
+    expect(NativeBugReporting.setDidSelectPromptOptionHandler).toBeCalledWith();
   });
 
   it('should call the native method setFloatingButtonEdge', () => {

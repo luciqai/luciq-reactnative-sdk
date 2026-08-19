@@ -51,8 +51,7 @@
 
 - (void) testgivenHandler$setOnInvokeHandler_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnInvokeHandler:callback];
+  [partialMock setOnInvokeHandler];
   XCTAssertNotNil(LCQBugReporting.willInvokeHandler);
   OCMStub([partialMock sendEventWithName:@"LCQpreInvocationHandler" body:nil]);
   LCQBugReporting.willInvokeHandler();
@@ -62,8 +61,7 @@
 
 - (void) testgivenHandlerCANCEL$setOnSDKDismissedHandler_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnSDKDismissedHandler:callback];
+  [partialMock setOnSDKDismissedHandler];
   XCTAssertNotNil(LCQBugReporting.didDismissHandler);
   NSDictionary *result = @{ @"dismissType": @"CANCEL",
                             @"reportType": @"bug"};
@@ -74,8 +72,7 @@
 
 - (void) testgivenHandlerSUBMIT$setOnSDKDismissedHandler_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnSDKDismissedHandler:callback];
+  [partialMock setOnSDKDismissedHandler];
   XCTAssertNotNil(LCQBugReporting.didDismissHandler);
 
   NSDictionary *result = @{ @"dismissType": @"SUBMIT",
@@ -87,8 +84,7 @@
 
 - (void) testgivenHandlerADD_ATTACHMENT$setOnSDKDismissedHandler_whenQuery_thenShouldCallNativeApi {
   id partialMock = OCMPartialMock(self.luciqBridge);
-  RCTResponseSenderBlock callback = ^(NSArray *response) {};
-  [partialMock setOnSDKDismissedHandler:callback];
+  [partialMock setOnSDKDismissedHandler];
   XCTAssertNotNil(LCQBugReporting.didDismissHandler);
   NSDictionary *result = @{ @"dismissType": @"ADD_ATTACHMENT",
                             @"reportType": @"feedback"};

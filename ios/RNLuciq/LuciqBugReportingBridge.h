@@ -27,9 +27,9 @@
 
 - (void)setFloatingButtonEdge:(CGRectEdge)floatingButtonEdge withTopOffset:(double)floatingButtonOffsetFromTop;
 
-- (void)setOnInvokeHandler:(RCTResponseSenderBlock)callBack;
+- (void)setOnInvokeHandler;
 
-- (void)setOnSDKDismissedHandler:(RCTResponseSenderBlock)callBack;
+- (void)setOnSDKDismissedHandler;
 
 - (void)setShakingThresholdForiPhone:(double)iPhoneShakingThreshold;
 

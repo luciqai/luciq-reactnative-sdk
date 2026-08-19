@@ -72,28 +72,30 @@ RCT_EXPORT_METHOD(showSurveysIfAvailable) {
     [LCQSurveys showSurveyIfAvailable];
 }
 
-RCT_EXPORT_METHOD(setOnShowHandler:(RCTResponseSenderBlock)callBack) {
-    [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[setOnShowHandler] called present=%@", (callBack != nil ? @"YES" : @"NO")];
-    if (callBack != nil) {
-        LCQSurveys.willShowSurveyHandler = ^{
-            [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[LCQWillShowSurvey] emitted"];
-            [self sendEventWithName:@"LCQWillShowSurvey" body:nil];
-        };
-    } else {
-        LCQSurveys.willShowSurveyHandler = ^{};
-    }
+RCT_EXPORT_METHOD(setOnShowHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[setOnShowHandler] called"];
+    LCQSurveys.willShowSurveyHandler = ^{
+        [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[LCQWillShowSurvey] emitted"];
+        [self sendEventWithName:@"LCQWillShowSurvey" body:nil];
+    };
 }
 
-RCT_EXPORT_METHOD(setOnDismissHandler:(RCTResponseSenderBlock)callBack) {
-    [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[setOnDismissHandler] called present=%@", (callBack != nil ? @"YES" : @"NO")];
-    if (callBack != nil) {
-        LCQSurveys.didDismissSurveyHandler = ^{
-            [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[LCQDidDismissSurvey] emitted"];
-            [self sendEventWithName:@"LCQDidDismissSurvey" body:nil];
-        };
-    } else {
-        LCQSurveys.didDismissSurveyHandler = ^{};
-    }
+RCT_EXPORT_METHOD(unsetOnShowHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[unsetOnShowHandler] called"];
+    LCQSurveys.willShowSurveyHandler = nil;
+}
+
+RCT_EXPORT_METHOD(setOnDismissHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[setOnDismissHandler] called"];
+    LCQSurveys.didDismissSurveyHandler = ^{
+        [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[LCQDidDismissSurvey] emitted"];
+        [self sendEventWithName:@"LCQDidDismissSurvey" body:nil];
+    };
+}
+
+RCT_EXPORT_METHOD(unsetOnDismissHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags surveys] format:@"[unsetOnDismissHandler] called"];
+    LCQSurveys.didDismissSurveyHandler = nil;
 }
 
 RCT_EXPORT_METHOD(setAutoShowingEnabled:(BOOL)autoShowingSurveysEnabled) {
