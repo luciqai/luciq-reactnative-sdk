@@ -690,8 +690,12 @@ workflows:
           api_endpoint: st001013mec1.instabug.com
           dashboard_token_env: INJAZAT_TOKEN
 
+      - hold_sync_public_docs_changelog:
+          type: approval
+
       - sync_public_docs_changelog:
           requires:
+            - hold_sync_public_docs_changelog
             - publish
           filters:
             branches:
