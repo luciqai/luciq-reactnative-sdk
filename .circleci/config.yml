@@ -697,9 +697,6 @@ workflows:
           requires:
             - hold_sync_public_docs_changelog
             - publish
-          filters:
-            branches:
-              only: master
 
       - release_slack_notification:
           channel: C8PDY2Q8H
