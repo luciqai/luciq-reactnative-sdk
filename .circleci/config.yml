@@ -142,11 +142,20 @@ commands:
       script-path:
         type: string
         default: scripts/get-github-app-token.sh
+      app-id-env:
+        type: env_var_name
+        default: LUCIQ_APP_ID
+      private-key-env:
+        type: env_var_name
+        default: LUCIQ_PRIVATE_KEY
+      installation-id-env:
+        type: env_var_name
+        default: LUCIQ_INSTALLATION_ID
     steps:
       - run:
           name: Generate Luciq GitHub App Token
           command: |
-            TOKEN=$(bash << parameters.script-path >> LUCIQ_APP_ID LUCIQ_PRIVATE_KEY LUCIQ_INSTALLATION_ID)
+            TOKEN=$(bash << parameters.script-path >> << parameters.app-id-env >> << parameters.private-key-env >> << parameters.installation-id-env >>)
             echo "export GH_TOKEN='$TOKEN'" >> "$BASH_ENV"
             echo "export DANGER_GITHUB_API_TOKEN='$TOKEN'" >> "$BASH_ENV"
             echo "export RELEASE_GITHUB_TOKEN='$TOKEN'" >> "$BASH_ENV"
@@ -606,7 +615,11 @@ jobs:
       - image: cimg/base:current
     steps:
       - advanced-checkout/shallow-checkout
-      - generate_luciq_github_app_token
+      # luciq-docs lives in the Instabug org, so it needs that org's app installation.
+      - generate_luciq_github_app_token:
+          app-id-env: INSTABUG_APP_ID
+          private-key-env: INSTABUG_PRIVATE_KEY
+          installation-id-env: INSTABUG_INSTALLATION_ID
       - update_public_docs_changelog
 
 workflows:
@@ -690,12 +703,13 @@ workflows:
           api_endpoint: st001013mec1.instabug.com
           dashboard_token_env: INJAZAT_TOKEN
 
+      - hold_sync_public_docs_changelog:
+          type: approval
+
       - sync_public_docs_changelog:
           requires:
+            - hold_sync_public_docs_changelog
             - publish
-          filters:
-            branches:
-              only: master
 
       - release_slack_notification:
           channel: C8PDY2Q8H
