@@ -31,7 +31,7 @@ set -e
 GH_TOKEN="${GH_TOKEN:?Error: GH_TOKEN environment variable is required}"
 
 # ----- Configuration --------------------------------------------------------
-PUBLIC_REPO="luciqai/luciq-docs"
+PUBLIC_REPO="instabug/luciq-docs"
 DOCS_FILE="changelog/react-native-sdk.md"   # path inside the docs repo
 BASE_BRANCH="main"                            # docs repo default branch (NOT master)
 PR_BRANCH_PREFIX="update-react-native-docs-changelog-v"
