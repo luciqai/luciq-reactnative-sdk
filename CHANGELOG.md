@@ -1,5 +1,13 @@
 # Changelog
 
+## [19.13.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.13.0)
+
+### Changed
+
+- Bump Luciq iOS SDK to v19.13.0. [See release notes](https://github.com/luciqai/luciq-ios-sdk/releases/tag/19.13.0).
+
+- Bump Luciq Android SDK to v19.14.0. [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.14.0).
+
 ## [19.10.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.9.3)
 
 ### Added

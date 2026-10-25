@@ -24,7 +24,7 @@ import ai.luciq.apm.InternalAPM;
 import ai.luciq.apm.configuration.cp.APMFeature;
 import ai.luciq.apm.configuration.cp.FeatureAvailabilityCallback;
 import ai.luciq.apm.networking.APMNetworkLogger;
-import ai.luciq.apm.networkinterception.cp.APMCPNetworkLog;
+import ai.luciq.apm.networklogs.cp.APMCPNetworkLog;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
 import ai.luciq.reactlibrary.utils.LuciqRNLogger;
