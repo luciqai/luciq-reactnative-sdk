@@ -8,6 +8,16 @@
 
 - Bump Luciq Android SDK to v19.14.0. [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.14.0).
 
+### Deprecated
+
+- Deprecate `BugReporting.setAutoScreenRecordingEnabled` and `BugReporting.setAutoScreenRecordingDurationIOS`. Auto screen recording is scheduled for removal; use manual screen recording via the `screenRecording` attachment type in `BugReporting.setEnabledAttachmentTypes` instead.
+
+- Deprecate `BugReporting.setViewHierarchyEnabled`. View hierarchy capture is discontinued and the API has no effect on iOS.
+
+- Deprecate `Luciq.getTags`. Use `Luciq.appendTags` to add tags.
+
+- Deprecate `Luciq.clearLogs` with no replacement.
+
 ## [19.10.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.9.3)
 
 ### Added

@@ -163,6 +163,9 @@ export const show = (type: ReportType, options: InvocationOption[]) => {
 /**
  * Enable/Disable screen recording
  * @param isEnabled enable/disable screen recording on crash feature
+ * @deprecated Auto screen recording is deprecated and scheduled for removal.
+ * Use manual screen recording instead by enabling the `screenRecording` attachment type
+ * via {@link setEnabledAttachmentTypes}.
  */
 export const setAutoScreenRecordingEnabled = (isEnabled: boolean) => {
   Logger.debug(TAG, 'setAutoScreenRecordingEnabled', { isEnabled });
@@ -174,6 +177,9 @@ export const setAutoScreenRecordingEnabled = (isEnabled: boolean) => {
  *
  * @param maxDuration maximum duration of the screen recording video in seconds.
  * The maximum duration is 30 seconds
+ * @deprecated Auto screen recording is deprecated and scheduled for removal.
+ * Use manual screen recording instead by enabling the `screenRecording` attachment type
+ * via {@link setEnabledAttachmentTypes}.
  */
 export const setAutoScreenRecordingDurationIOS = (maxDuration: number) => {
   Logger.debug(TAG, 'setAutoScreenRecordingDurationIOS', { maxDuration, platform: Platform.OS });
@@ -201,6 +207,8 @@ export const setVideoRecordingFloatingButtonPosition = (
 /**
  * Enables/disables inspect view hierarchy when reporting a bug/feedback.
  * @param isEnabled A boolean to set whether view hierarchy are enabled or disabled.
+ * @deprecated View hierarchy capture is discontinued and this API has no effect on iOS.
+ * It is scheduled for removal.
  */
 export const setViewHierarchyEnabled = (isEnabled: boolean) => {
   Logger.debug(TAG, 'setViewHierarchyEnabled', { isEnabled });

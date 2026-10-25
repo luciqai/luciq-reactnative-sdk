@@ -529,6 +529,7 @@ export const resetTags = () => {
 
 /**
  * Gets all tags of reported feedback, bug or crash.
+ * @deprecated Scheduled for removal. To add tags, use {@link appendTags}.
  */
 export const getTags = async (): Promise<string[] | null> => {
   Logger.debug(LuciqDebugTags.CORE, 'getTags invoked');
@@ -694,6 +695,7 @@ export const logWarn = (message: string) => {
 
 /**
  * Clear all Luciq logs, console logs, network logs and user steps.
+ * @deprecated Scheduled for removal with no replacement.
  */
 export const clearLogs = () => {
   Logger.debug(LuciqDebugTags.CORE, 'clearLogs');
