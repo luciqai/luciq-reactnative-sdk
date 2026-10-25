@@ -89,7 +89,7 @@
   OCMVerify([mock setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]]);
 
 
-  XCTAssertEqual(Luciq.appVariant, appVariant);
+  OCMVerify([mock setAppVariant:appVariant]);
 
   OCMVerify([self.mRNLuciq initWithToken:appToken invocationEvents:floatingButtonInvocationEvent debugLogsLevel:sdkDebugLogsLevel useNativeNetworkInterception:useNativeNetworkInterception]);
 }
@@ -131,7 +131,7 @@
   NSString *appVariant = @"appVariant";
 
   [self.luciqBridge setAppVariant: appVariant];
-  XCTAssertEqual(Luciq.appVariant, appVariant);
+  OCMVerify([mock setAppVariant:appVariant]);
 }
 
 - (void)testSetTrackUserSteps {
