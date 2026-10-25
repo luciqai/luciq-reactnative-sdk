@@ -4,7 +4,7 @@
 
 ### Changed
 
-- Bump Luciq iOS SDK to v19.13.0. [See release notes](https://github.com/luciqai/luciq-ios-sdk/releases/tag/19.13.0).
+- Bump Luciq iOS SDK to v19.12.0. [See release notes](https://github.com/luciqai/luciq-ios-sdk/releases/tag/19.12.0).
 
 - Bump Luciq Android SDK to v19.14.0. [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.14.0).
 
