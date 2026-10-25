@@ -118,6 +118,7 @@ export interface Spec extends TurboModule {
   // Report APIs //
   setPreSendingHandler(): void;
   unsetPreSendingHandler(): void;
+  completePreSendingHandler(): void;
   appendTagToReport(tag: string): void;
   appendConsoleLogToReport(consoleLog: string): void;
   setUserAttributeToReport(key: string, value: string): void;

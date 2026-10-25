@@ -895,7 +895,14 @@ export const onReportSubmitHandler = (handler?: ((report: Report) => void) | nul
     handler &&
     ((report: Report) => {
       const { tags, consoleLogs, luciqLogs, userAttributes, fileAttachments } = report;
-      handler(new Report(tags, consoleLogs, luciqLogs, userAttributes, fileAttachments));
+      try {
+        handler(new Report(tags, consoleLogs, luciqLogs, userAttributes, fileAttachments));
+      } finally {
+        // iOS holds the report open until the handler is done adding to it.
+        if (Platform.OS === 'ios') {
+          NativeLuciq.completePreSendingHandler();
+        }
+      }
     });
   setNativeHandler(emitter, NativeEvents.PRESENDING_HANDLER, wrappedHandler, {
     set: () => NativeLuciq.setPreSendingHandler(),

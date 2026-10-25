@@ -728,4 +728,73 @@
 }
 
 
+- (void)testSetPreSendingHandler_holdsEventUntilJSCompletes {
+  id mock = OCMClassMock([Luciq class]);
+  id partialMock = OCMPartialMock(self.luciqBridge);
+  OCMStub([partialMock sendEventWithName:@"LCQpreSendingHandler" body:[OCMArg any]]);
+
+  __block LCQBeforeSendingEventHandler handler = nil;
+  OCMStub([mock setOnBeforeSendingEventHandler:[OCMArg checkWithBlock:^BOOL(id obj) {
+    handler = obj;
+    return YES;
+  }]]);
+
+  [partialMock setPreSendingHandler];
+  XCTAssertNotNil(handler);
+
+  id event = OCMClassMock([LCQEvent class]);
+  __block id completedEvent = nil;
+  __block NSInteger completionCount = 0;
+  handler(event, ^(LCQEvent *e) {
+    completedEvent = e;
+    completionCount++;
+  });
+
+  OCMVerify([partialMock sendEventWithName:@"LCQpreSendingHandler" body:[OCMArg any]]);
+  XCTAssertEqual(completionCount, 0);
+
+  [partialMock appendTagToReport:@"tag"];
+  [partialMock setUserAttributeToReport:@"key" :@"value"];
+  OCMVerify([event appendTags:@[@"tag"]]);
+  OCMVerify([event appendUserAttributes:@{@"key" : @"value"}]);
+
+  [partialMock completePreSendingHandler];
+  XCTAssertEqual(completionCount, 1);
+  XCTAssertEqual(completedEvent, event);
+
+  [partialMock completePreSendingHandler];
+  XCTAssertEqual(completionCount, 1);
+
+  [partialMock stopMocking];
+  [mock stopMocking];
+}
+
+- (void)testUnsetPreSendingHandler_releasesPendingEvent {
+  id mock = OCMClassMock([Luciq class]);
+  id partialMock = OCMPartialMock(self.luciqBridge);
+  OCMStub([partialMock sendEventWithName:@"LCQpreSendingHandler" body:[OCMArg any]]);
+
+  __block LCQBeforeSendingEventHandler handler = nil;
+  OCMStub([mock setOnBeforeSendingEventHandler:[OCMArg checkWithBlock:^BOOL(id obj) {
+    if (obj != nil) {
+      handler = obj;
+    }
+    return YES;
+  }]]);
+
+  [partialMock setPreSendingHandler];
+  id event = OCMClassMock([LCQEvent class]);
+  __block id completedEvent = nil;
+  handler(event, ^(LCQEvent *e) {
+    completedEvent = e;
+  });
+
+  [partialMock unsetPreSendingHandler];
+  XCTAssertEqual(completedEvent, event);
+  OCMVerify([mock setOnBeforeSendingEventHandler:nil]);
+
+  [partialMock stopMocking];
+  [mock stopMocking];
+}
+
 @end

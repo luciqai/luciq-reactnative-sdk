@@ -126,99 +126,111 @@ RCT_EXPORT_METHOD(setWebViewUserInteractionsTrackingEnabled:(BOOL)isEnabled) {
     [Luciq setWebViewUserInteractionsTrackingEnabled:isEnabled];
 }
 
-LCQReport *currentReport = nil;
+// The report currently held open by onBeforeSendingEventHandler, waiting for the JS handler to finish.
+static LCQEvent *currentEvent = nil;
+static void (^currentEventCompletion)(LCQEvent *_Nullable) = nil;
+
+static void completeCurrentEvent(void) {
+    LCQEvent *event = nil;
+    void (^completion)(LCQEvent *_Nullable) = nil;
+    @synchronized ([LuciqReactBridge class]) {
+        event = currentEvent;
+        completion = currentEventCompletion;
+        currentEvent = nil;
+        currentEventCompletion = nil;
+    }
+    if (completion != nil) {
+        completion(event);
+    }
+}
+
 RCT_EXPORT_METHOD(setPreSendingHandler) {
     [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[setPreSendingHandler] called"];
-    Luciq.willSendReportHandler = ^LCQReport * _Nonnull(LCQReport * _Nonnull report) {
-        NSArray *tagsArray = report.tags;
-        NSArray *luciqLogs= report.luciqLogs;
-        NSArray *consoleLogs= report.consoleLogs;
-        NSDictionary *userAttributes= report.userAttributes;
-        NSArray *fileAttachments= report.fileLocations;
-        NSDictionary *dict = @{ @"tagsArray" : tagsArray, @"luciqLogs" : luciqLogs, @"consoleLogs" : consoleLogs,       @"userAttributes" : userAttributes, @"fileAttachments" : fileAttachments};
+    Luciq.onBeforeSendingEventHandler = ^(LCQEvent *event, void (^completion)(LCQEvent *_Nullable)) {
+        // A report still open here was never answered by JS; send it as is.
+        completeCurrentEvent();
+        @synchronized ([LuciqReactBridge class]) {
+            currentEvent = event;
+            currentEventCompletion = completion;
+        }
+        // LCQEvent does not expose the report's existing data, so JS receives empty collections.
+        NSDictionary *dict = @{ @"tagsArray" : @[], @"luciqLogs" : @[], @"consoleLogs" : @[], @"userAttributes" : @{}, @"fileAttachments" : @[] };
         [self sendEventWithName:@"LCQpreSendingHandler" body:dict];
         [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[LCQpreSendingHandler] emitted"];
-
-        currentReport = report;
-        return report;
     };
 }
 
 RCT_EXPORT_METHOD(unsetPreSendingHandler) {
     [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[unsetPreSendingHandler] called"];
-    Luciq.willSendReportHandler = nil;
-    currentReport = nil;
+    Luciq.onBeforeSendingEventHandler = nil;
+    completeCurrentEvent();
+}
+
+RCT_EXPORT_METHOD(completePreSendingHandler) {
+    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[completePreSendingHandler] called"];
+    completeCurrentEvent();
 }
 
 RCT_EXPORT_METHOD(appendTagToReport:(NSString*) tag) {
     [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[appendTagToReport] called length=%lu, present=%@", (unsigned long)tag.length, (tag != nil ? @"YES" : @"NO")];
-    if (currentReport != nil) {
-        [currentReport appendTag:tag];
+    @synchronized ([LuciqReactBridge class]) {
+        if (currentEvent != nil && tag != nil) {
+            [currentEvent appendTags:@[tag]];
+        }
     }
 }
 
 RCT_EXPORT_METHOD(appendConsoleLogToReport:(NSString*) consoleLog) {
-    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[appendConsoleLogToReport] called length=%lu, present=%@", (unsigned long)consoleLog.length, (consoleLog != nil ? @"YES" : @"NO")];
-    if (currentReport != nil) {
-        [currentReport appendToConsoleLogs:consoleLog];
-    }
+    [LuciqRNLogger w:[LuciqRNDebugTags bugReporting] format:@"[appendConsoleLogToReport] not supported on iOS, ignored"];
 }
 
 RCT_EXPORT_METHOD(setUserAttributeToReport:(NSString*) key:(NSString*) value) {
     [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[setUserAttributeToReport] called keyLength=%lu valueLength=%lu present=%@", (unsigned long)key.length, (unsigned long)value.length, (key != nil ? @"YES" : @"NO")];
-    if (currentReport != nil) {
-        [currentReport setUserAttribute:value withKey:key];
+    @synchronized ([LuciqReactBridge class]) {
+        if (currentEvent != nil && key != nil && value != nil) {
+            [currentEvent appendUserAttributes:@{ key : value }];
+        }
     }
 }
 
 RCT_EXPORT_METHOD(logDebugToReport:(NSString*) log) {
-    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[logDebugToReport] called length=%lu, present=%@", (unsigned long)log.length, (log != nil ? @"YES" : @"NO")];
-    if (currentReport != nil) {
-        [currentReport logDebug:log];
-    }
+    [LuciqRNLogger w:[LuciqRNDebugTags bugReporting] format:@"[logDebugToReport] not supported on iOS, ignored"];
 }
 
 RCT_EXPORT_METHOD(logVerboseToReport:(NSString*) log) {
-    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[logVerboseToReport] called length=%lu, present=%@", (unsigned long)log.length, (log != nil ? @"YES" : @"NO")];
-    if (currentReport != nil) {
-        [currentReport logVerbose:log];
-    }
+    [LuciqRNLogger w:[LuciqRNDebugTags bugReporting] format:@"[logVerboseToReport] not supported on iOS, ignored"];
 }
 
 RCT_EXPORT_METHOD(logWarnToReport:(NSString*) log) {
-    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[logWarnToReport] called length=%lu, present=%@", (unsigned long)log.length, (log != nil ? @"YES" : @"NO")];
-    if (currentReport != nil) {
-        [currentReport logWarn:log];
-    }
+    [LuciqRNLogger w:[LuciqRNDebugTags bugReporting] format:@"[logWarnToReport] not supported on iOS, ignored"];
 }
 
 RCT_EXPORT_METHOD(logErrorToReport:(NSString*) log) {
-    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[logErrorToReport] called length=%lu, present=%@", (unsigned long)log.length, (log != nil ? @"YES" : @"NO")];
-    if (currentReport != nil) {
-        [currentReport logError:log];
-    }
+    [LuciqRNLogger w:[LuciqRNDebugTags bugReporting] format:@"[logErrorToReport] not supported on iOS, ignored"];
 }
 
 RCT_EXPORT_METHOD(logInfoToReport:(NSString*) log) {
-    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[logInfoToReport] called length=%lu, present=%@", (unsigned long)log.length, (log != nil ? @"YES" : @"NO")];
-    if (currentReport != nil) {
-        [currentReport logInfo:log];
-    }
+    [LuciqRNLogger w:[LuciqRNDebugTags bugReporting] format:@"[logInfoToReport] not supported on iOS, ignored"];
 }
 
-RCT_EXPORT_METHOD(addFileAttachmentWithURLToReport:(NSString*) urlString) {
+RCT_EXPORT_METHOD(addFileAttachmentWithURLToReport:(NSString*) urlString fileName:(NSString*) fileName) {
     [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[addFileAttachmentWithURLToReport] called urlString=%@", [LuciqRNLogger redactURL:urlString]];
-    if (currentReport != nil) {
-        NSURL *url = [NSURL URLWithString:urlString];
-        [currentReport addFileAttachmentWithURL:url];
+    NSURL *url = [NSURL URLWithString:urlString];
+    NSString *name = fileName ?: url.lastPathComponent;
+    @synchronized ([LuciqReactBridge class]) {
+        if (currentEvent != nil && url != nil && name != nil) {
+            [currentEvent addFileAttachmentWithURL:url fileName:name];
+        }
     }
 }
 
-RCT_EXPORT_METHOD(addFileAttachmentWithDataToReport:(NSString*) dataString) {
+RCT_EXPORT_METHOD(addFileAttachmentWithDataToReport:(NSString*) dataString fileName:(NSString*) fileName) {
     [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[addFileAttachmentWithDataToReport] called length=%lu, present=%@", (unsigned long)dataString.length, (dataString != nil ? @"YES" : @"NO")];
-    if (currentReport != nil) {
-        NSData* data = [dataString dataUsingEncoding:NSUTF8StringEncoding];
-        [currentReport addFileAttachmentWithData:data];
+    NSData *data = [dataString dataUsingEncoding:NSUTF8StringEncoding];
+    @synchronized ([LuciqReactBridge class]) {
+        if (currentEvent != nil && data != nil && fileName != nil) {
+            [currentEvent addFileAttachmentWithData:data fileName:fileName];
+        }
     }
 }
 

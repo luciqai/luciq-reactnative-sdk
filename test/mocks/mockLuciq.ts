@@ -50,6 +50,7 @@ const mockLuciq: LuciqNativeModule = {
   show: jest.fn(),
   setPreSendingHandler: jest.fn(),
   unsetPreSendingHandler: jest.fn(),
+  completePreSendingHandler: jest.fn(),
   reportScreenChange: jest.fn(),
   reportCurrentViewChange: jest.fn(),
   networkLogIOS: jest.fn(),

@@ -1,12 +1,14 @@
 # Changelog
 
-## [19.13.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.13.0)
+## [19.12.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.12.0)
 
 ### Changed
 
 - Bump Luciq iOS SDK to v19.12.0. [See release notes](https://github.com/luciqai/luciq-ios-sdk/releases/tag/19.12.0).
 
 - Bump Luciq Android SDK to v19.14.0. [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.14.0).
+
+- On iOS, `Luciq.onReportSubmitHandler` now uses the native `onBeforeSendingEventHandler` instead of the deprecated `willSendReportHandler`. The SDK holds the report until the handler returns. On iOS, the `Report` passed to the handler no longer contains the report's existing tags, logs, user attributes, or file attachments, and `Report.appendConsoleLog` and `Report.logDebug`/`logVerbose`/`logInfo`/`logWarn`/`logError` have no effect. `appendTag`, `setUserAttribute`, `addFileAttachmentWithUrl`, and `addFileAttachmentWithData` are still supported and now use the provided `fileName` on iOS.
 
 ### Deprecated
 
