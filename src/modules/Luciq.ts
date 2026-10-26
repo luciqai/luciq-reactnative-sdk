@@ -529,6 +529,7 @@ export const resetTags = () => {
 
 /**
  * Gets all tags of reported feedback, bug or crash.
+ * @deprecated Scheduled for removal. To add tags, use {@link appendTags}.
  */
 export const getTags = async (): Promise<string[] | null> => {
   Logger.debug(LuciqDebugTags.CORE, 'getTags invoked');
@@ -694,6 +695,7 @@ export const logWarn = (message: string) => {
 
 /**
  * Clear all Luciq logs, console logs, network logs and user steps.
+ * @deprecated Scheduled for removal with no replacement.
  */
 export const clearLogs = () => {
   Logger.debug(LuciqDebugTags.CORE, 'clearLogs');
@@ -893,7 +895,14 @@ export const onReportSubmitHandler = (handler?: ((report: Report) => void) | nul
     handler &&
     ((report: Report) => {
       const { tags, consoleLogs, luciqLogs, userAttributes, fileAttachments } = report;
-      handler(new Report(tags, consoleLogs, luciqLogs, userAttributes, fileAttachments));
+      try {
+        handler(new Report(tags, consoleLogs, luciqLogs, userAttributes, fileAttachments));
+      } finally {
+        // iOS holds the report open until the handler is done adding to it.
+        if (Platform.OS === 'ios') {
+          NativeLuciq.completePreSendingHandler();
+        }
+      }
     });
   setNativeHandler(emitter, NativeEvents.PRESENDING_HANDLER, wrappedHandler, {
     set: () => NativeLuciq.setPreSendingHandler(),
