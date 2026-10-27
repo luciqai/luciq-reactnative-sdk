@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Support the survey targeting setting "Skip users who have seen X or more surveys in the last Y days". The cap is configured from the dashboard and enforced by the native iOS and Android SDKs.
+
 ## [19.13.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.13.0)
 
 ### Changed
