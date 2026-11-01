@@ -828,6 +828,8 @@ describe('Network Interceptor Feature Flag Caching', () => {
     expect(result.w3cGeneratedHeader).not.toBeNull();
     expect(result.w3cGeneratedHeader).toHaveLength(55);
     expect(result.isW3cHeaderFound).toBe(false);
+    // The reported log must carry the header that was put on the wire.
+    expect(result.requestHeaders.traceparent).toBe(result.w3cGeneratedHeader);
   });
 
   it('should not inject traceparent header when W3C flags are cached as disabled', async () => {

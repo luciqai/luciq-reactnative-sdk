@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...dev)
+
+### Fixed
+
+- The SDK-generated W3C `traceparent` header is now included in the request headers of network logs sent to Session Replay and bug reports. Previously the header was injected into the request but omitted from the logged copy, so only APM carried the trace ID.
+
 ## [19.10.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.9.3)
 
 ### Added

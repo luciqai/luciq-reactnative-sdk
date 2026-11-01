@@ -420,6 +420,8 @@ export default {
       const traceparent = getTraceparentHeader(cloneNetwork);
       if (traceparent) {
         this.setRequestHeader('Traceparent', traceparent);
+        // setRequestHeader records into the original networkData; cloneNetwork is what gets reported.
+        cloneNetwork.requestHeaders.traceparent = traceparent;
         Logger.debug(TAG, 'injected traceparent header', {
           url: redactUrlForLog(cloneNetwork.url),
         });
