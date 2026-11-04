@@ -14,6 +14,7 @@
 
 ### Fixed
 
+- Android: user steps for taps on React Native screens now name the tapped element by the text it shows (or its accessibility label when it shows none) and the screen by its JavaScript route, instead of `com.facebook.react.views.text.ReactTextView` in the hosting Activity, matching the repro steps. Requires a native SDK with React Native user step labels; older native SDKs keep the previous labels.
 - Android: with `setNavigationListener`, the current view on crash and bug reports now follows each React Navigation route. It previously kept the first route.
 
 ## [19.10.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.9.3)
