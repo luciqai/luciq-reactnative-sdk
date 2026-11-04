@@ -1,4 +1,5 @@
 // Models
+import type { AttachToNativeAppConfig } from './models/AttachToNativeAppConfig';
 import type { LuciqConfig } from './models/LuciqConfig';
 import Report from './models/Report';
 import type { ThemeConfig } from './models/ThemeConfig';
@@ -42,6 +43,7 @@ export {
   createLuciqReduxMiddleware,
 };
 export type {
+  AttachToNativeAppConfig,
   LuciqConfig,
   Survey,
   NetworkData,

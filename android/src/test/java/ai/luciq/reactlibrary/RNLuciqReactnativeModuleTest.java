@@ -14,6 +14,8 @@ import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import ai.luciq.library.Feature;
 import ai.luciq.library.Luciq;
+import ai.luciq.library.core.InstabugCore;
+import ai.luciq.reactlibrary.utils.RNTouchedViewExtractor;
 import ai.luciq.library.LuciqColorTheme;
 import ai.luciq.library.LuciqCustomTextPlaceHolder;
 import ai.luciq.library.IssueType;
@@ -59,6 +61,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -788,6 +792,32 @@ public class RNLuciqReactnativeModuleTest {
             // then
             verify(Luciq.class, times(1));
             Luciq.setTheme(mockTheme);
+        }
+    }
+
+    @Test
+    public void givenNativeAppStartedLuciq_whenAttachToNativeApp_thenInstallsTapExtractorWithoutBuilding() {
+        mockLuciq.when(Luciq::isBuilt).thenReturn(true);
+        try (MockedStatic<InstabugCore> mockCore = mockStatic(InstabugCore.class);
+             MockedConstruction<Luciq.Builder> builders = mockConstruction(Luciq.Builder.class)) {
+
+            rnModule.attachToNativeApp("debug");
+
+            mockCore.verify(() -> InstabugCore.setTouchedViewExtractorExtension(any(RNTouchedViewExtractor.class)));
+            assertEquals(0, builders.constructed().size());
+        }
+    }
+
+    @Test
+    public void givenNativeAppDidNotStartLuciq_whenAttachToNativeApp_thenDoesNothingNative() {
+        mockLuciq.when(Luciq::isBuilt).thenReturn(false);
+        try (MockedStatic<InstabugCore> mockCore = mockStatic(InstabugCore.class);
+             MockedConstruction<Luciq.Builder> builders = mockConstruction(Luciq.Builder.class)) {
+
+            rnModule.attachToNativeApp("error");
+
+            mockCore.verify(() -> InstabugCore.setTouchedViewExtractorExtension(any()), never());
+            assertEquals(0, builders.constructed().size());
         }
     }
 

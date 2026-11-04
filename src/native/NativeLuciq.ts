@@ -40,6 +40,7 @@ export interface LuciqNativeModule extends NativeModule {
     },
     overAirVersion?: OverAirUpdate,
   ): void;
+  attachToNativeApp(debugLogsLevel: LogLevel): void;
   show(): void;
 
   // Misc APIs //
