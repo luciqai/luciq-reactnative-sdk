@@ -815,6 +815,13 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
         });
     }
 
+    /**
+     * iOS-only: releases the report held open for the JS pre-sending handler. No-op on Android.
+     */
+    @ReactMethod
+    public void completePreSendingHandler() {
+    }
+
     protected static void clearCurrentReport() {
         currentReport = null;
     }

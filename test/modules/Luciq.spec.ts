@@ -940,6 +940,36 @@ describe('Luciq Module', () => {
     expect(emitter.listenerCount(NativeEvents.PRESENDING_HANDLER)).toBe(1);
   });
 
+  it('should call native completePreSendingHandler after the handler runs on iOS', () => {
+    Platform.OS = 'ios';
+    const callback = jest.fn();
+    Luciq.onReportSubmitHandler(callback);
+    emitter.emit(NativeEvents.PRESENDING_HANDLER, {});
+
+    expect(callback).toBeCalledTimes(1);
+    expect(NativeLuciq.completePreSendingHandler).toBeCalledTimes(1);
+  });
+
+  it('should call native completePreSendingHandler on iOS even if the handler throws', () => {
+    Platform.OS = 'ios';
+    Luciq.onReportSubmitHandler(() => {
+      throw new Error('handler error');
+    });
+
+    expect(() => emitter.emit(NativeEvents.PRESENDING_HANDLER, {})).toThrow('handler error');
+    expect(NativeLuciq.completePreSendingHandler).toBeCalledTimes(1);
+  });
+
+  it('should not call native completePreSendingHandler on Android', () => {
+    Platform.OS = 'android';
+    const callback = jest.fn();
+    Luciq.onReportSubmitHandler(callback);
+    emitter.emit(NativeEvents.PRESENDING_HANDLER, {});
+
+    expect(callback).toBeCalledTimes(1);
+    expect(NativeLuciq.completePreSendingHandler).not.toBeCalled();
+  });
+
   it('should call native addFeatureFlags method', () => {
     const featureFlags: Array<FeatureFlag> = [
       {

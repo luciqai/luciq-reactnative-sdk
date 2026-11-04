@@ -1,5 +1,3 @@
-import { Platform } from 'react-native';
-
 import { NativeLuciq } from '../native/NativeLuciq';
 
 interface LogInfo {
@@ -100,11 +98,7 @@ export default class Report {
    * @param fileName
    */
   addFileAttachmentWithUrl(url: string, fileName: string) {
-    if (Platform.OS === 'ios') {
-      NativeLuciq.addFileAttachmentWithURLToReport(url);
-    } else {
-      NativeLuciq.addFileAttachmentWithURLToReport(url, fileName);
-    }
+    NativeLuciq.addFileAttachmentWithURLToReport(url, fileName);
     this.fileAttachments = [...this.fileAttachments, { file: url, type: 'url' }];
   }
 
@@ -114,11 +108,7 @@ export default class Report {
    * @param fileName
    */
   addFileAttachmentWithData(data: string, fileName: string) {
-    if (Platform.OS === 'ios') {
-      NativeLuciq.addFileAttachmentWithDataToReport(data);
-    } else {
-      NativeLuciq.addFileAttachmentWithDataToReport(data, fileName);
-    }
+    NativeLuciq.addFileAttachmentWithDataToReport(data, fileName);
     this.fileAttachments = [...this.fileAttachments, { file: data, type: 'data' }];
   }
 }
