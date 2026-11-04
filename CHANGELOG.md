@@ -10,6 +10,10 @@
 
 - On iOS, `Luciq.onReportSubmitHandler` now uses the native `onBeforeSendingEventHandler` instead of the deprecated `willSendReportHandler`. The SDK holds the report until the handler returns. On iOS, the `Report` passed to the handler no longer contains the report's existing tags, logs, user attributes, or file attachments, and `Report.appendConsoleLog` and `Report.logDebug`/`logVerbose`/`logInfo`/`logWarn`/`logError` have no effect. `appendTag`, `setUserAttribute`, `addFileAttachmentWithUrl`, and `addFileAttachmentWithData` are still supported and now use the provided `fileName` on iOS.
 
+### Fixed
+
+- The SDK-generated W3C `traceparent` header is now included in the request headers of network logs sent to Session Replay and bug reports. Previously the header was injected into the request but omitted from the logged copy, so only APM carried the trace ID.
+
 ### Deprecated
 
 - Deprecate `BugReporting.setAutoScreenRecordingEnabled` and `BugReporting.setAutoScreenRecordingDurationIOS`. Auto screen recording is scheduled for removal; use manual screen recording via the `screenRecording` attachment type in `BugReporting.setEnabledAttachmentTypes` instead.
