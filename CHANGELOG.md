@@ -6,6 +6,10 @@
 
 - **Hybrid apps**: Add `Luciq.attachToNativeApp(config?)` for native Android and iOS apps that start Luciq themselves and embed a React Native module. It sets up JavaScript error capturing, network interception and screen tracking without starting the SDK a second time, so the native app's token, invocation events, app variant, log level and APM settings stay untouched, and no token is needed in JavaScript. Use it instead of `Luciq.init`; calling both is ignored with an error log.
 
+### Changed
+
+- Android: when the native app already started Luciq before React Native loads, loading the React Native module no longer sets the SDK platform to React Native for the whole app, so the native screens of hybrid apps stay labelled as Android. Apps that start Luciq from React Native are unchanged, and `Luciq.init` still sets the platform.
+
 ## [19.10.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.9.3)
 
 ### Added

@@ -224,9 +224,9 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
      * APM hot launches. It only installs what React Native screens need from the native side: the
      * touched-view extractor that labels RN taps.
      *
-     * The React Native platform is still set when the module is created (see
-     * {@code RNLuciqReactnativePackage}). In a hybrid app the native SDK keeps native screens native
-     * once the native app declares its React Native hosts with
+     * It never sets the React Native platform, and {@code RNLuciqReactnativePackage} skips it too when
+     * the native app already started Luciq, so the native app's screens keep their native platform.
+     * Native apps on a recent SDK declare their React Native screens with
      * {@code Luciq.Builder.registerCrossPlatformHosts}.
      *
      * @param logLevel the React Native SDK's own log level. It does not change the native SDK's.
