@@ -19,10 +19,8 @@ public class RNLuciqReactnativePackage extends TurboReactPackage {
     @Nullable
     @Override
     public NativeModule getModule(@NonNull String name, @NonNull ReactApplicationContext reactContext) {
-        // The platform is no longer set here. Creating a module happens in every app that loads
-        // React Native, including native apps that only embed it, where a process-wide
-        // setCurrentPlatform(RN) relabels their native screens. init sets it instead
-        // (RNLuciq.Builder.build / RNLuciq.init); attachToNativeApp never does.
+        RNLuciq.getInstance().setCurrentPlatform();
+
         switch (name) {
             case "Luciq":
                 return new RNLuciqReactnativeModule(reactContext);
