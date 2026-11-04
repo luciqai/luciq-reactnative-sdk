@@ -1127,6 +1127,11 @@ const _onNavigationStateChange = (): void => {
   // Update the current route for the rest of Luciq's tracking
   _currentRoute = currentRouteName;
 
+  // Android keeps the current view (the screen name on crash and bug reports) separate from the
+  // repro-steps screen change. Without this call, apps using setNavigationListener kept the first
+  // route as their current view on Android.
+  reportCurrentViewForAndroid(currentRouteName);
+
   // Report to native
   NativeLuciq.reportScreenChange(currentRouteName, spanIdForReport);
 };
