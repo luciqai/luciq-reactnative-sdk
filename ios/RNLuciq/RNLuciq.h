@@ -31,6 +31,16 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception;
 + (void)attachToNativeApp;
 
 /**
+ @brief Reports screens that aren't React Native under their own names.
+
+ @discussion Declares React Native's root views (`RCTRootView`, `RCTSurfaceHostingView`) as the screens
+ React Native renders, so the native SDK resolves the platform per screen: React Native screens keep the
+ JavaScript route names and every other view controller is reported as a native screen. Call it before
+ the SDK starts. On a native SDK without hybrid app support it logs a warning and does nothing.
+ */
++ (void)trackNativeScreens;
+
+/**
  @brief Set codePush version before starting the SDK.
 
  @discussion Sets Code Push version to be used for all reports.

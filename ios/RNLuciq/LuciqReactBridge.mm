@@ -66,6 +66,10 @@ RCT_EXPORT_METHOD(init:(NSString *)token
 
     [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 
+    if ([options[@"trackNativeScreens"] boolValue]) {
+        [RNLuciq trackNativeScreens];
+    }
+
     [RNLuciq initWithToken:token
              invocationEvents:invocationEvents
                debugLogsLevel:sdkDebugLogsLevel

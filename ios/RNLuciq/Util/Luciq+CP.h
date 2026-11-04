@@ -7,6 +7,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void)setCurrentPlatform:(LCQPlatform)platform;
 
+/// Available in native iOS SDKs that support hybrid apps; check `respondsToSelector:` before calling.
++ (void)registerCrossPlatformHosts:(NSArray<Class> *)hosts platform:(LCQPlatform)platform;
+
 @end
 
 NS_ASSUME_NONNULL_END

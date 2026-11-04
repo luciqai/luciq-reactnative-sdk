@@ -432,6 +432,20 @@ const handleInterceptionModeForIOS = (config: NetworkSetupConfig) => {
 };
 
 /**
+ * The platform-specific options passed to the native `init`, or `undefined` when none is set.
+ */
+const buildInitOptions = (config: LuciqConfig) => {
+  const options: { ignoreAndroidSecureFlag?: boolean; trackNativeScreens?: boolean } = {};
+  if (config.ignoreAndroidSecureFlag != null) {
+    options.ignoreAndroidSecureFlag = config.ignoreAndroidSecureFlag;
+  }
+  if (config.trackNativeScreens) {
+    options.trackNativeScreens = true;
+  }
+  return Object.keys(options).length > 0 ? options : undefined;
+};
+
+/**
  * Initializes Luciq with the given configuration.
  */
 const initializeNativeLuciq = (config: LuciqConfig) => {
@@ -443,11 +457,7 @@ const initializeNativeLuciq = (config: LuciqConfig) => {
       config.networkInterceptionMode === NetworkInterceptionMode.native,
     config.codePushVersion,
     config.appVariant,
-    config.ignoreAndroidSecureFlag != null
-      ? {
-          ignoreAndroidSecureFlag: config.ignoreAndroidSecureFlag,
-        }
-      : undefined,
+    buildInitOptions(config),
     config.overAirVersion,
   );
   Logger.debug(LuciqDebugTags.CORE, 'native init dispatched', {

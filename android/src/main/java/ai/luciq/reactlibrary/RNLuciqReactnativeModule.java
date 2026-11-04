@@ -190,6 +190,10 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                     builder.ignoreFlagSecure(map.getBoolean("ignoreAndroidSecureFlag"));
                 }
 
+                if (map != null && map.hasKey("trackNativeScreens")) {
+                    builder.trackNativeScreens(map.getBoolean("trackNativeScreens"));
+                }
+
                 if (codePushVersion != null) {
                     if (Luciq.isBuilt()) {
                         Luciq.setCodePushVersion(codePushVersion);

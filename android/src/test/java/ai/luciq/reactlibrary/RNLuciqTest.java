@@ -9,18 +9,22 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.app.Application;
 
+import ai.luciq.apm.APM;
 import ai.luciq.library.Luciq;
 import ai.luciq.library.LogLevel;
 import ai.luciq.library.Platform;
 import ai.luciq.library.invocation.LuciqInvocationEvent;
 import ai.luciq.reactlibrary.util.GlobalMocks;
 import ai.luciq.reactlibrary.util.MockReflected;
+
+import com.facebook.react.ReactActivity;
 
 import org.junit.After;
 import org.junit.Before;
@@ -110,6 +114,42 @@ public class RNLuciqTest {
         sut.setCurrentPlatform();
 
         reflected.verify(() -> MockReflected.setCurrentPlatform(Platform.RN));
+    }
+
+    @Test
+    public void testRegisterReactActivityAsHost() {
+        sut.registerReactActivityAsHost(mock(Luciq.Builder.class));
+
+        reflected.verify(() -> MockReflected.registerCrossPlatformHosts(Platform.RN, new Class[]{ReactActivity.class}));
+    }
+
+    @Test
+    public void testBuilderTracksNativeScreensWhenEnabled() {
+        buildWithTrackNativeScreens(true);
+
+        reflected.verify(() -> MockReflected.registerCrossPlatformHosts(Platform.RN, new Class[]{ReactActivity.class}));
+    }
+
+    @Test
+    public void testBuilderDoesNotTrackNativeScreensByDefault() {
+        buildWithTrackNativeScreens(false);
+
+        reflected.verify(() -> MockReflected.registerCrossPlatformHosts(anyInt(), any()), never());
+    }
+
+    private void buildWithTrackNativeScreens(boolean trackNativeScreens) {
+        try (MockedStatic<APM> ignored = mockStatic(APM.class);
+             MockedConstruction<Luciq.Builder> mLuciqBuilder = mockConstruction(
+                     Luciq.Builder.class, (mock, context) -> {
+                         when(mock.setSdkDebugLogsLevel(anyInt())).thenReturn(mock);
+                         when(mock.setInvocationEvents(any())).thenReturn(mock);
+                     })) {
+            new RNLuciq.Builder(mContext, "fde....")
+                    .trackNativeScreens(trackNativeScreens)
+                    .build();
+
+            verify(mLuciqBuilder.constructed().get(0)).build();
+        }
     }
 
     @Test

@@ -19,6 +19,11 @@ public class MockReflected {
     public static void setCurrentPlatform(int platform) {}
 
     /**
+     * Luciq.Builder.registerCrossPlatformHosts
+     */
+    public static void registerCrossPlatformHosts(int platform, Class[] hosts) {}
+
+    /**
      * Luciq.util.LuciqDeprecationLogger.setBaseUrl
      */
     public static void setBaseUrl(String baseUrl) {}

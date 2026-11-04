@@ -54,6 +54,30 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
     RCTSetLogThreshold(RCTLogLevelInfo);
 }
 
++ (void)trackNativeScreens {
+    if (![Luciq respondsToSelector:@selector(registerCrossPlatformHosts:platform:)]) {
+        [LuciqRNLogger w:[LuciqRNDebugTags core] format:@"[trackNativeScreens] needs a newer native Luciq SDK; ignored"];
+        return;
+    }
+
+    // React Native's root view controller is a plain UIViewController, so its root view identifies it:
+    // RCTRootView on the old architecture, RCTSurfaceHostingView (and its proxy subclass) on the new one.
+    NSMutableArray<Class> *hosts = [NSMutableArray array];
+    for (NSString *className in @[@"RCTRootView", @"RCTSurfaceHostingView"]) {
+        Class hostClass = NSClassFromString(className);
+        if (hostClass != nil) {
+            [hosts addObject:hostClass];
+        }
+    }
+    if (hosts.count == 0) {
+        [LuciqRNLogger w:[LuciqRNDebugTags core] format:@"[trackNativeScreens] no React Native root view class found; ignored"];
+        return;
+    }
+
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[trackNativeScreens] tracking native screens, hosts=%@", hosts];
+    [Luciq registerCrossPlatformHosts:hosts platform:LCQPlatformReactNative];
+}
+
 + (void)initWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents {
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[initWithToken:invocationEvents] called tokenPresent=%@, tokenLength=%lu, invocationEvents=%lu", (token.length > 0 ? @"YES" : @"NO"), (unsigned long)token.length, (unsigned long)invocationEvents];
     [self initWithToken:token invocationEvents:invocationEvents useNativeNetworkInterception:NO];

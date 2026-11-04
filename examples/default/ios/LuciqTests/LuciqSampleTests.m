@@ -94,6 +94,18 @@
   OCMVerify([self.mRNLuciq initWithToken:appToken invocationEvents:floatingButtonInvocationEvent debugLogsLevel:sdkDebugLogsLevel useNativeNetworkInterception:useNativeNetworkInterception]);
 }
 
+- (void)testInitWithTrackNativeScreensRegistersTheReactNativeHosts {
+  [self.luciqBridge init:@"app_token" invocationEvents:@[] debugLogsLevel:LCQSDKDebugLogsLevelError useNativeNetworkInterception:NO codePushVersion:nil appVariant:nil options:@{@"trackNativeScreens": @YES} overAirVersion:@{}];
+
+  OCMVerify([self.mRNLuciq trackNativeScreens]);
+}
+
+- (void)testInitWithoutTrackNativeScreensKeepsWholeAppReactNativeHandling {
+  [self.luciqBridge init:@"app_token" invocationEvents:@[] debugLogsLevel:LCQSDKDebugLogsLevelError useNativeNetworkInterception:NO codePushVersion:nil appVariant:nil options:nil overAirVersion:@{}];
+
+  OCMVerify(never(), [self.mRNLuciq trackNativeScreens]);
+}
+
 - (void)testAttachToNativeApp {
   id mock = OCMClassMock([Luciq class]);
 
