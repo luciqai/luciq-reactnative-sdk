@@ -66,6 +66,16 @@
   OCMVerify([self.mLCQNetworkLogger setEnabled:YES]);
 }
 
+- (void)testAttachToNativeAppSetsThePlatformWithoutStartingOrReconfiguringTheSDK {
+  [RNLuciq attachToNativeApp];
+
+  OCMVerify([self.mLuciq setCurrentPlatform:LCQPlatformReactNative]);
+  OCMVerify(never(), [[self.mLuciq ignoringNonObjectArgs] startWithToken:OCMOCK_ANY invocationEvents:0]);
+  OCMVerify(never(), [self.mLuciq setAppVariant:OCMOCK_ANY]);
+  OCMVerify(never(), [self.mLCQNetworkLogger disableAutomaticCapturingOfNetworkLogs]);
+  OCMVerify(never(), [self.mLCQNetworkLogger setEnabled:YES]);
+}
+
 - (void) testSetCodePushVersion {
   NSString *codePushVersion = @"1.0.0(1)";
   [RNLuciq setCodePushVersion:codePushVersion];

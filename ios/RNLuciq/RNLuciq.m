@@ -45,6 +45,15 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
     LCQAPM.hotAppLaunchEnabled = NO;
 }
 
++ (void)attachToNativeApp {
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[attachToNativeApp] called"];
+
+    [Luciq setCurrentPlatform:LCQPlatformReactNative];
+
+    RCTAddLogFunction(LuciqReactLogFunction);
+    RCTSetLogThreshold(RCTLogLevelInfo);
+}
+
 + (void)initWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents {
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[initWithToken:invocationEvents] called tokenPresent=%@, tokenLength=%lu, invocationEvents=%lu", (token.length > 0 ? @"YES" : @"NO"), (unsigned long)token.length, (unsigned long)invocationEvents];
     [self initWithToken:token invocationEvents:invocationEvents useNativeNetworkInterception:NO];

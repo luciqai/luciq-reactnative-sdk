@@ -147,8 +147,15 @@ export const init = (config: LuciqConfig) => {
  * invocation events, app variant, log level or APM settings.
  *
  * Call it once, as early as possible in the React Native entry file, before the root component
- * renders. The native app must have started Luciq before React Native starts; otherwise this call
- * logs an error and does nothing on the native side.
+ * renders. The native app must have started Luciq before React Native starts. On Android, a call
+ * made before that logs an error and does nothing on the native side.
+ *
+ * Declare the native screens that host React Native with `registerCrossPlatformHosts` in the native
+ * app (`Luciq.Builder` on Android, `Luciq` on iOS), so those screens are named by their React
+ * Native routes and every other screen stays native.
+ *
+ * On iOS, prefer `NetworkInterceptionMode.native`: the native app's automatic network capture
+ * stays on, so the JavaScript mode logs React Native requests a second time.
  *
  * Do not call both {@link init} and `attachToNativeApp` in the same app: the second call is ignored.
  *

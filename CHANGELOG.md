@@ -8,6 +8,7 @@
 
 ### Changed
 
+- iOS: in hybrid apps, React Native screens are tracked by their JS route and native screens keep their native names, once the native app registers the view controllers that host React Native with `Luciq.registerCrossPlatformHosts(_:platform:)`. Use native network interception mode, because the native app already captures React Native requests and JS mode logs them twice. The error log for calling `attachToNativeApp` before the native app started Luciq is Android-only.
 - Android: when the native app already started Luciq before React Native loads, loading the React Native module no longer sets the SDK platform to React Native for the whole app, so the native screens of hybrid apps stay labelled as Android. Apps that start Luciq from React Native are unchanged, and `Luciq.init` still sets the platform.
 
 ### Fixed

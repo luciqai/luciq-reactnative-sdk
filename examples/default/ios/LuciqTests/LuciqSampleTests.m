@@ -94,6 +94,17 @@
   OCMVerify([self.mRNLuciq initWithToken:appToken invocationEvents:floatingButtonInvocationEvent debugLogsLevel:sdkDebugLogsLevel useNativeNetworkInterception:useNativeNetworkInterception]);
 }
 
+- (void)testAttachToNativeApp {
+  id mock = OCMClassMock([Luciq class]);
+
+  [self.luciqBridge attachToNativeApp:LCQSDKDebugLogsLevelDebug];
+
+  OCMVerify([self.mRNLuciq attachToNativeApp]);
+  OCMVerify(never(), [mock setAppVariant:OCMOCK_ANY]);
+  OCMVerify(never(), [mock setCodePushVersion:OCMOCK_ANY]);
+  OCMVerify(never(), [[self.mRNLuciq ignoringNonObjectArgs] initWithToken:OCMOCK_ANY invocationEvents:0 debugLogsLevel:0 useNativeNetworkInterception:NO]);
+}
+
 - (void)test {
   id mock = OCMClassMock([Luciq class]);
   NSString *codePushVersion = @"123";

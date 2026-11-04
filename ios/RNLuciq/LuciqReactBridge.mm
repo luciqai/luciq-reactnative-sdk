@@ -73,10 +73,11 @@ RCT_EXPORT_METHOD(init:(NSString *)token
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[init] SDK build complete"];
 }
 
-// Hybrid apps: the native app already started Luciq, so nothing is started or reconfigured here.
-// Skipping Luciq.start and the app-variant override keeps the native app's own setup in place.
+// Hybrid apps: the native app already started Luciq. Unlike init, no app variant, code push or
+// over-the-air version is applied here, so the native app's own values stay in place.
 RCT_EXPORT_METHOD(attachToNativeApp:(LCQSDKDebugLogsLevel)sdkDebugLogsLevel) {
     [LuciqRNLogger setLevel:sdkDebugLogsLevel];
+    [RNLuciq attachToNativeApp];
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[attachToNativeApp] attached to the SDK started by the native app"];
 }
 
