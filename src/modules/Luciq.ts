@@ -7,6 +7,7 @@ import type {
 import type { ComponentDidAppearEvent } from 'react-native-navigation';
 import type { NavigationAction, NavigationState as NavigationStateV4 } from 'react-navigation';
 
+import type { AttachToNativeAppConfig } from '../models/AttachToNativeAppConfig';
 import type { LuciqConfig } from '../models/LuciqConfig';
 import Report from '../models/Report';
 import { emitter, NativeEvents, NativeLuciq } from '../native/NativeLuciq';
@@ -42,6 +43,12 @@ import { LuciqDebugTags } from '../constants/DebugTags';
 import type { OverAirUpdate } from '../models/OverAirUpdate';
 import type { ThemeConfig } from '../models/ThemeConfig';
 import type { UserEventParam } from '../models/UserEventParam';
+
+/** The part of the start configuration the shared network and feature-flag setup reads. */
+type NetworkSetupConfig = Pick<LuciqConfig, 'networkInterceptionMode'>;
+
+/** Which JavaScript entry point started the SDK, so init and attachToNativeApp never both apply. */
+let _startMode: 'init' | 'attachToNativeApp' | null = null;
 
 let _currentScreen: string | null = null;
 let _lastScreen: string | null = null;
@@ -101,6 +108,109 @@ export const init = (config: LuciqConfig) => {
     appVariant: config.appVariant,
     overAirVersionPresent: !!config.overAirVersion,
   });
+  if (!claimStartMode('init')) {
+    return;
+  }
+
+  setUpNetworkInterception(config);
+
+  // call Luciq native init method
+  initializeNativeLuciq(config);
+
+  setUpErrorCapturing();
+
+  _isFirstScreen = true;
+  _currentScreen = firstScreen;
+
+  LuciqRNConfig.debugLogsLevel = config.debugLogsLevel ?? LogLevel.error;
+
+  reportCurrentViewForAndroid(firstScreen);
+  setTimeout(() => {
+    if (_currentScreen === firstScreen) {
+      NativeLuciq.reportScreenChange(firstScreen, null);
+      _currentScreen = null;
+    }
+  }, 1000);
+
+  Logger.debug(LuciqDebugTags.CORE, 'init completed (JS-side setup)', {
+    debugLogsLevel: LuciqRNConfig.debugLogsLevel,
+  });
+};
+
+/**
+ * Connects React Native to the Luciq SDK that the native app already started.
+ *
+ * Use this instead of {@link init} in a hybrid app: a native Android or iOS app that starts Luciq
+ * itself (for example in `Application.onCreate` or `AppDelegate`) and embeds a React Native module.
+ * It sets up JavaScript error capturing, network interception and screen tracking, and leaves the
+ * native app's Luciq configuration untouched: no token, no second SDK start, and no change to its
+ * invocation events, app variant, log level or APM settings.
+ *
+ * Call it once, as early as possible in the React Native entry file, before the root component
+ * renders. The native app must have started Luciq before React Native starts. On Android, a call
+ * made before that logs an error and does nothing on the native side.
+ *
+ * Declare the native screens that host React Native with `registerCrossPlatformHosts` in the native
+ * app (`Luciq.Builder` on Android, `Luciq` on iOS), so those screens are named by their React
+ * Native routes and every other screen stays native.
+ *
+ * On iOS, prefer `NetworkInterceptionMode.native`: the native app's automatic network capture
+ * stays on, so the JavaScript mode logs React Native requests a second time.
+ *
+ * Do not call both {@link init} and `attachToNativeApp` in the same app: the second call is ignored.
+ *
+ * @param config Optional React Native-side configuration. See {@link AttachToNativeAppConfig}.
+ */
+export const attachToNativeApp = (config: AttachToNativeAppConfig = {}) => {
+  LuciqRNConfig.debugLogsLevel = config.debugLogsLevel ?? LogLevel.error;
+  Logger.debug(LuciqDebugTags.CORE, 'attachToNativeApp invoked', {
+    debugLogsLevel: config.debugLogsLevel,
+    networkInterceptionMode: config.networkInterceptionMode,
+  });
+  if (!claimStartMode('attachToNativeApp')) {
+    return;
+  }
+
+  setUpNetworkInterception(config);
+  NativeLuciq.attachToNativeApp(LuciqRNConfig.debugLogsLevel);
+  setUpErrorCapturing();
+
+  // Unlike init, no placeholder first screen is reported: the first real route comes from the
+  // navigation listener, so the first React Native screen is never named "Initial Screen".
+  _isFirstScreen = true;
+  _currentScreen = null;
+
+  Logger.debug(LuciqDebugTags.CORE, 'attachToNativeApp completed (JS-side setup)');
+};
+
+/**
+ * Records how the SDK was started from JavaScript. Returns false, after logging an error, when the
+ * other entry point already ran, so init and attachToNativeApp can never both apply. Repeating the
+ * same entry point is allowed, as init always was.
+ */
+function claimStartMode(mode: 'init' | 'attachToNativeApp'): boolean {
+  if (_startMode != null && _startMode !== mode) {
+    Logger.error(
+      `[Luciq] ${mode}() ignored: Luciq was already started from JavaScript with ${_startMode}(). ` +
+        'Use init() in React Native apps and attachToNativeApp() in native apps that embed React Native.',
+    );
+    return false;
+  }
+  _startMode = mode;
+  return true;
+}
+
+/** JavaScript error and unhandled-rejection capturing, shared by init and attachToNativeApp. */
+function setUpErrorCapturing() {
+  LuciqUtils.captureJsErrors();
+  captureUnhandledRejections();
+}
+
+/**
+ * Feature flags and network interception setup, shared by init and attachToNativeApp. Runs before
+ * the native call so cold-start requests are captured.
+ */
+function setUpNetworkInterception(config: NetworkSetupConfig) {
   initFeatureFlagsCache();
 
   if (Platform.OS === 'android') {
@@ -132,31 +242,7 @@ export const init = (config: LuciqConfig) => {
       shouldEnableNativeInterception: shouldEnableNativeInterception,
     });
   }
-
-  // call Luciq native init method
-  initializeNativeLuciq(config);
-
-  // Set up error capturing and rejection handling
-  LuciqUtils.captureJsErrors();
-  captureUnhandledRejections();
-
-  _isFirstScreen = true;
-  _currentScreen = firstScreen;
-
-  LuciqRNConfig.debugLogsLevel = config.debugLogsLevel ?? LogLevel.error;
-
-  reportCurrentViewForAndroid(firstScreen);
-  setTimeout(() => {
-    if (_currentScreen === firstScreen) {
-      NativeLuciq.reportScreenChange(firstScreen, null);
-      _currentScreen = null;
-    }
-  }, 1000);
-
-  Logger.debug(LuciqDebugTags.CORE, 'init completed (JS-side setup)', {
-    debugLogsLevel: LuciqRNConfig.debugLogsLevel,
-  });
-};
+}
 
 /**
  * Changes the JS-side debug log verbosity at runtime.
@@ -216,7 +302,7 @@ export const setWebViewUserInteractionsTrackingEnabled = (isEnabled: boolean) =>
 /**
  * Handles app state changes and updates APM network flags if necessary.
  */
-const handleAppStateChange = async (nextAppState: AppStateStatus, config: LuciqConfig) => {
+const handleAppStateChange = async (nextAppState: AppStateStatus, config: NetworkSetupConfig) => {
   // Checks if the app has come to the foreground
   if (['inactive', 'background'].includes(_currentAppState) && nextAppState === 'active') {
     const isUpdated = await fetchApmNetworkFlags();
@@ -253,7 +339,7 @@ const fetchApmNetworkFlags = async () => {
 /**
  * Handles platform-specific checks and updates the network interception mode.
  */
-const handleNetworkInterceptionMode = (config: LuciqConfig) => {
+const handleNetworkInterceptionMode = (config: NetworkSetupConfig) => {
   // Default networkInterceptionMode to JavaScript if not set
   if (config.networkInterceptionMode == null) {
     config.networkInterceptionMode = NetworkInterceptionMode.javascript;
@@ -303,7 +389,7 @@ function handleAndroidNativeInterception() {
 /**
  * Control either to enable or disable the native interception for iOS after the init method is called.
  */
-function handleIOSNativeInterception(config: LuciqConfig) {
+function handleIOSNativeInterception(config: NetworkSetupConfig) {
   if (
     shouldEnableNativeInterception &&
     config.networkInterceptionMode === NetworkInterceptionMode.native
@@ -318,7 +404,7 @@ function handleIOSNativeInterception(config: LuciqConfig) {
  * Handles the network interception mode logic for Android.
  * By deciding which interception mode should be enabled (Native or JavaScript).
  */
-const handleInterceptionModeForAndroid = (config: LuciqConfig) => {
+const handleInterceptionModeForAndroid = (config: NetworkSetupConfig) => {
   const { networkInterceptionMode } = config;
 
   if (networkInterceptionMode === NetworkInterceptionMode.javascript) {
@@ -332,7 +418,7 @@ const handleInterceptionModeForAndroid = (config: LuciqConfig) => {
  * Handles the interception mode logic for iOS.
  * By deciding which interception mode should be enabled (Native or JavaScript).
  */
-const handleInterceptionModeForIOS = (config: LuciqConfig) => {
+const handleInterceptionModeForIOS = (config: NetworkSetupConfig) => {
   if (config.networkInterceptionMode === NetworkInterceptionMode.native) {
     if (isNativeInterceptionFeatureEnabled) {
       shouldEnableNativeInterception = true;
@@ -343,6 +429,20 @@ const handleInterceptionModeForIOS = (config: LuciqConfig) => {
       Logger.error(LuciqDebugTags.APM_NETWORK, LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE);
     }
   }
+};
+
+/**
+ * The platform-specific options passed to the native `init`, or `undefined` when none is set.
+ */
+const buildInitOptions = (config: LuciqConfig) => {
+  const options: { ignoreAndroidSecureFlag?: boolean; trackNativeScreens?: boolean } = {};
+  if (config.ignoreAndroidSecureFlag != null) {
+    options.ignoreAndroidSecureFlag = config.ignoreAndroidSecureFlag;
+  }
+  if (config.trackNativeScreens) {
+    options.trackNativeScreens = true;
+  }
+  return Object.keys(options).length > 0 ? options : undefined;
 };
 
 /**
@@ -357,11 +457,7 @@ const initializeNativeLuciq = (config: LuciqConfig) => {
       config.networkInterceptionMode === NetworkInterceptionMode.native,
     config.codePushVersion,
     config.appVariant,
-    config.ignoreAndroidSecureFlag != null
-      ? {
-          ignoreAndroidSecureFlag: config.ignoreAndroidSecureFlag,
-        }
-      : undefined,
+    buildInitOptions(config),
     config.overAirVersion,
   );
   Logger.debug(LuciqDebugTags.CORE, 'native init dispatched', {
@@ -374,7 +470,7 @@ const initializeNativeLuciq = (config: LuciqConfig) => {
 /**
  * Refresh the APM network configurations.
  */
-function refreshAPMNetworkConfigs(config: LuciqConfig, forceRefreshIOS: boolean = true) {
+function refreshAPMNetworkConfigs(config: NetworkSetupConfig, forceRefreshIOS: boolean = true) {
   handleNetworkInterceptionMode(config);
   if (Platform.OS === 'ios' && forceRefreshIOS) {
     handleIOSNativeInterception(config);
@@ -395,7 +491,7 @@ function refreshAPMNetworkConfigs(config: LuciqConfig, forceRefreshIOS: boolean 
 /**
  * Add Android Listener for native feature flags changes.
  */
-function addOnFeatureUpdatedListener(config: LuciqConfig) {
+function addOnFeatureUpdatedListener(config: NetworkSetupConfig) {
   emitter.addListener(NativeEvents.LCQ_ON_FEATURES_UPDATED_CALLBACK, (flags) => {
     const { cpNativeInterceptionEnabled, hasAPMPlugin } = flags;
     isNativeInterceptionFeatureEnabled = cpNativeInterceptionEnabled;
@@ -1047,6 +1143,11 @@ const _onNavigationStateChange = (): void => {
 
   // Update the current route for the rest of Luciq's tracking
   _currentRoute = currentRouteName;
+
+  // Android keeps the current view (the screen name on crash and bug reports) separate from the
+  // repro-steps screen change. Without this call, apps using setNavigationListener kept the first
+  // route as their current view on Android.
+  reportCurrentViewForAndroid(currentRouteName);
 
   // Report to native
   NativeLuciq.reportScreenChange(currentRouteName, spanIdForReport);

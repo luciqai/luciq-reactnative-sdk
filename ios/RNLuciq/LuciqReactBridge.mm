@@ -66,11 +66,23 @@ RCT_EXPORT_METHOD(init:(NSString *)token
 
     [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 
+    if ([options[@"trackNativeScreens"] boolValue]) {
+        [RNLuciq trackNativeScreens];
+    }
+
     [RNLuciq initWithToken:token
              invocationEvents:invocationEvents
                debugLogsLevel:sdkDebugLogsLevel
  useNativeNetworkInterception:useNativeNetworkInterception];
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[init] SDK build complete"];
+}
+
+// Hybrid apps: the native app already started Luciq. Unlike init, no app variant, code push or
+// over-the-air version is applied here, so the native app's own values stay in place.
+RCT_EXPORT_METHOD(attachToNativeApp:(LCQSDKDebugLogsLevel)sdkDebugLogsLevel) {
+    [LuciqRNLogger setLevel:sdkDebugLogsLevel];
+    [RNLuciq attachToNativeApp];
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[attachToNativeApp] attached to the SDK started by the native app"];
 }
 
 RCT_EXPORT_METHOD(setCodePushVersion:(NSString *)version) {

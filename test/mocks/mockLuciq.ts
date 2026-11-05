@@ -13,6 +13,7 @@ const mockLuciq: LuciqNativeModule = {
   removeListeners: jest.fn(),
   setEnabled: jest.fn(),
   init: jest.fn(),
+  attachToNativeApp: jest.fn(),
   setCodePushVersion: jest.fn(),
   setOverAirVersion: jest.fn(),
   setUserData: jest.fn(),

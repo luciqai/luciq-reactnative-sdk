@@ -5,6 +5,7 @@ import android.app.Application;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.facebook.react.ReactActivity;
 import com.facebook.react.bridge.ReadableMap;
 import ai.luciq.apm.APM;
 import ai.luciq.library.Luciq;
@@ -143,6 +144,28 @@ public class RNLuciq {
         }
     }
 
+    /**
+     * Declares {@link ReactActivity} as the Activity that shows React Native screens, so the native
+     * SDK resolves the platform per screen: React screens stay RN and every other Activity (a native
+     * screen, a third-party SDK screen) is reported as a native Android screen under its own name.
+     * Called by reflection because the API only exists in native SDKs that support hybrid apps; on
+     * an older native SDK this logs a warning and leaves the platform process-wide, as before.
+     */
+    @VisibleForTesting
+    public void registerReactActivityAsHost(@NonNull Luciq.Builder luciqBuilder) {
+        try {
+            Method method = LuciqUtil.getMethod(Luciq.Builder.class, "registerCrossPlatformHosts", int.class, Class[].class);
+            if (method != null) {
+                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[registerReactActivityAsHost] tracking native screens");
+                method.invoke(luciqBuilder, Platform.RN, new Class[]{ReactActivity.class});
+            } else {
+                LuciqRNLogger.w(LuciqRNDebugTags.CORE, "[registerReactActivityAsHost] trackNativeScreens needs a newer native Luciq SDK; ignored");
+            }
+        } catch (Exception e) {
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[registerReactActivityAsHost] failed", e);
+        }
+    }
+
     @VisibleForTesting
     public void setBaseUrlForDeprecationLogs() {
         try {
@@ -192,6 +215,8 @@ public class RNLuciq {
         private String appVariant;
 
         private Boolean ignoreFlagSecure;
+
+        private boolean trackNativeScreens;
 
 
         /**
@@ -284,6 +309,17 @@ public class RNLuciq {
         }
 
         /**
+         * Reports screens that aren't React Native (native Activities, third-party SDK screens)
+         * under their own names, with their own repro and user steps. Off by default.
+         *
+         * @param trackNativeScreens whether to resolve the platform per screen.
+         */
+        public Builder trackNativeScreens(boolean trackNativeScreens) {
+            this.trackNativeScreens = trackNativeScreens;
+            return this;
+        }
+
+        /**
          * Builds the Luciq instance with the provided configurations.
          */
         public void build() {
@@ -316,6 +352,10 @@ public class RNLuciq {
                        }
                    }
                }
+
+                if (trackNativeScreens) {
+                    RNLuciq.getInstance().registerReactActivityAsHost(luciqBuilder);
+                }
 
                 luciqBuilder.build();
 

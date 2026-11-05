@@ -1,5 +1,25 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- **Hybrid apps**: Add `Luciq.attachToNativeApp(config?)` for native Android and iOS apps that start Luciq themselves and embed a React Native module. It sets up JavaScript error capturing, network interception and screen tracking without starting the SDK a second time, so the native app's token, invocation events, app variant, log level and APM settings stay untouched, and no token is needed in JavaScript. Use it instead of `Luciq.init`; calling both is ignored with an error log.
+- **Native screens in React Native apps**: Add the `trackNativeScreens` option to `Luciq.init` (off by default). When on, screens that aren't React Native, such as native Android Activities, native iOS view controllers and third-party SDK screens, are reported under their own names with their own repro steps and user steps. React Native screens keep their JavaScript route names. Requires native SDKs with hybrid app support; older native SDKs ignore it with a warning.
+
+### Changed
+
+- iOS: in hybrid apps, React Native screens are tracked by their JS route and native screens keep their native names, once the native app registers the view controllers that host React Native with `Luciq.registerCrossPlatformHosts(_:platform:)`. Use native network interception mode, because the native app already captures React Native requests and JS mode logs them twice. The error log for calling `attachToNativeApp` before the native app started Luciq is Android-only.
+- Android: when the native app already started Luciq before React Native loads, loading the React Native module no longer sets the SDK platform to React Native for the whole app, so the native screens of hybrid apps stay labelled as Android. Apps that start Luciq from React Native are unchanged, and `Luciq.init` still sets the platform.
+
+### Fixed
+
+- Android: user steps for taps on React Native screens now name the tapped element by the text it shows (or its accessibility label when it shows none) and the screen by its JavaScript route, instead of `com.facebook.react.views.text.ReactTextView` in the hosting Activity, matching the repro steps. Requires a native SDK with React Native user step labels; older native SDKs keep the previous labels.
+- Android: with `setNavigationListener`, the current view on crash and bug reports now follows each React Navigation route. It previously kept the first route.
+- Android: the source map upload no longer fails the build when the app module isn't named `:app`. It now runs for the React Native bundle of any application module, and runs only once when the Expo plugin also applies it.
+- Android: `LUCIQ_APP_VERSION_NAME` and `LUCIQ_APP_VERSION_CODE` now override the uploaded source map version, as documented. `LUCIQ_VERSION_NAME` and `LUCIQ_VERSION_CODE` still work.
+- Source map uploads now find the app token in native code (`Luciq.Builder` on Android, `Luciq.start(withToken:)` and `startWithToken:` on iOS) when JavaScript has none, as in hybrid apps that call `attachToNativeApp`. iOS no longer passes the "token not found" message as the token.
+
 ## [19.10.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.9.3)
 
 ### Added

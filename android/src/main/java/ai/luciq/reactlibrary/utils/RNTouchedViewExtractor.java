@@ -2,9 +2,11 @@ package ai.luciq.reactlibrary.utils;
 
 import android.text.TextUtils;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewParent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 import com.facebook.react.views.text.ReactTextView;
 import com.facebook.react.views.view.ReactViewGroup;
 import ai.luciq.library.core.InstabugCore;
@@ -12,9 +14,23 @@ import ai.luciq.library.visualusersteps.TouchedView;
 import ai.luciq.library.visualusersteps.TouchedViewExtractor;
 import ai.luciq.library.visualusersteps.VisualUserStepsHelper;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
 public class RNTouchedViewExtractor implements TouchedViewExtractor {
 
     private final int depthTraversalLimit = 3;
+
+    private static final int USER_STEP_LABEL_DEPTH_LIMIT = 3;
+    private static final int USER_STEP_LABEL_MAX_TEXTS = 5;
+
+    /**
+     * {@code TouchedView.setUserStepLabel}, which only native SDKs with React Native user step labels
+     * have. Looked up once; {@code null} on older native SDKs, where user steps keep their native label.
+     */
+    @Nullable
+    private static final Method SET_USER_STEP_LABEL = findUserStepLabelSetter();
 
     /**
      * Determines whether the native Android SDK should depend on native extraction
@@ -49,7 +65,72 @@ public class RNTouchedViewExtractor implements TouchedViewExtractor {
         ReactViewGroup reactViewGroup = findReactButtonViewGroup(view);
         // If no button is found return `null` to leave the extraction of the touched view to the native Android SDK.
         if (reactViewGroup == null) return null;
-        return getExtractionStrategy(reactViewGroup).extract(reactViewGroup, touchedView);
+        TouchedView extracted = getExtractionStrategy(reactViewGroup).extract(reactViewGroup, touchedView);
+        if (extracted != null && !VisualUserStepsHelper.isPrivateView(reactViewGroup)) {
+            setUserStepLabel(extracted, userStepLabelOf(reactViewGroup));
+        }
+        return extracted;
+    }
+
+    /**
+     * The plain label of a touched React Native button for the user steps log: the text it shows (up
+     * to {@value #USER_STEP_LABEL_MAX_TEXTS} texts, joined), or else its accessibility label. Text comes
+     * first, as in repro steps, because apps often set accessibility labels to test ids for UI tests.
+     * Unlike the repro step label it is not a sentence, so "Checkout" rather than "the button "Checkout"".
+     *
+     * @return the label, or {@code null} when the button has neither.
+     */
+    @Nullable
+    @VisibleForTesting
+    static String userStepLabelOf(@NonNull ReactViewGroup button) {
+        List<String> texts = new ArrayList<>();
+        collectTexts(button, texts, 1);
+        if (texts.isEmpty()) return nonBlank(button.getContentDescription());
+
+        StringBuilder label = new StringBuilder(texts.get(0));
+        for (int index = 1; index < texts.size(); index++) {
+            label.append(' ').append(texts.get(index));
+        }
+        return label.toString();
+    }
+
+    private static void collectTexts(@NonNull ViewGroup group, @NonNull List<String> texts, int depth) {
+        for (int index = 0; index < group.getChildCount() && texts.size() < USER_STEP_LABEL_MAX_TEXTS; index++) {
+            View child = group.getChildAt(index);
+            if (child instanceof ReactTextView) {
+                ReactTextView textView = (ReactTextView) child;
+                String text = nonBlank(textView.getText());
+                if (text != null) texts.add(text);
+            } else if (child instanceof ViewGroup && depth < USER_STEP_LABEL_DEPTH_LIMIT) {
+                collectTexts((ViewGroup) child, texts, depth + 1);
+            }
+        }
+    }
+
+    @Nullable
+    private static String nonBlank(@Nullable CharSequence text) {
+        if (text == null) return null;
+        String trimmed = text.toString().trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    @VisibleForTesting
+    static void setUserStepLabel(@NonNull TouchedView touchedView, @Nullable String label) {
+        if (SET_USER_STEP_LABEL == null || label == null) return;
+        try {
+            SET_USER_STEP_LABEL.invoke(touchedView, label);
+        } catch (Exception e) {
+            LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[RNTouchedViewExtractor] failed to set the user step label", e);
+        }
+    }
+
+    @Nullable
+    private static Method findUserStepLabelSetter() {
+        try {
+            return TouchedView.class.getMethod("setUserStepLabel", String.class);
+        } catch (NoSuchMethodException e) {
+            return null;
+        }
     }
 
     @Nullable
