@@ -16,6 +16,9 @@
 
 - Android: user steps for taps on React Native screens now name the tapped element by the text it shows (or its accessibility label when it shows none) and the screen by its JavaScript route, instead of `com.facebook.react.views.text.ReactTextView` in the hosting Activity, matching the repro steps. Requires a native SDK with React Native user step labels; older native SDKs keep the previous labels.
 - Android: with `setNavigationListener`, the current view on crash and bug reports now follows each React Navigation route. It previously kept the first route.
+- Android: the source map upload no longer fails the build when the app module isn't named `:app`. It now runs for the React Native bundle of any application module, and runs only once when the Expo plugin also applies it.
+- Android: `LUCIQ_APP_VERSION_NAME` and `LUCIQ_APP_VERSION_CODE` now override the uploaded source map version, as documented. `LUCIQ_VERSION_NAME` and `LUCIQ_VERSION_CODE` still work.
+- Source map uploads now find the app token in native code (`Luciq.Builder` on Android, `Luciq.start(withToken:)` and `startWithToken:` on iOS) when JavaScript has none, as in hybrid apps that call `attachToNativeApp`. iOS no longer passes the "token not found" message as the token.
 
 ## [19.10.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.9.3)
 
