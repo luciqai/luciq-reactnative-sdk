@@ -33,13 +33,6 @@ public class GlobalMocks {
                 .when(() -> LuciqUtil.getMethod(Class.forName("ai.luciq.library.Luciq"), "setCurrentPlatform", int.class))
                 .thenReturn(mSetCurrentPlatform);
 
-        // Luciq.Builder.registerCrossPlatformHosts mock
-        Method mRegisterHosts = MockReflected.class.getDeclaredMethod("registerCrossPlatformHosts", int.class, Class[].class);
-        mRegisterHosts.setAccessible(true);
-        reflection
-                .when(() -> LuciqUtil.getMethod(Class.forName("ai.luciq.library.Luciq$Builder"), "registerCrossPlatformHosts", int.class, Class[].class))
-                .thenReturn(mRegisterHosts);
-
         // setBaseUrl mock
         Method mSetBaseUrl = MockReflected.class.getDeclaredMethod("setBaseUrl", String.class);
         mSetBaseUrl.setAccessible(true);

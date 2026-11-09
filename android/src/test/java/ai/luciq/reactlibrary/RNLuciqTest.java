@@ -9,7 +9,6 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -20,6 +19,7 @@ import ai.luciq.apm.APM;
 import ai.luciq.library.Luciq;
 import ai.luciq.library.LogLevel;
 import ai.luciq.library.Platform;
+import ai.luciq.library.internal.crossplatform.InternalCore;
 import ai.luciq.library.invocation.LuciqInvocationEvent;
 import ai.luciq.reactlibrary.util.GlobalMocks;
 import ai.luciq.reactlibrary.util.MockReflected;
@@ -118,23 +118,29 @@ public class RNLuciqTest {
 
     @Test
     public void testRegisterReactActivityAsHost() {
-        sut.registerReactActivityAsHost(mock(Luciq.Builder.class));
+        try (MockedStatic<InternalCore> mInternalCore = mockStatic(InternalCore.class)) {
+            sut.registerReactActivityAsHost();
 
-        reflected.verify(() -> MockReflected.registerCrossPlatformHosts(Platform.RN, new Class[]{ReactActivity.class}));
+            mInternalCore.verify(() -> InternalCore._registerCrossPlatformHosts(Platform.RN, ReactActivity.class));
+        }
     }
 
     @Test
     public void testBuilderTracksNativeScreensWhenEnabled() {
-        buildWithTrackNativeScreens(true);
+        try (MockedStatic<InternalCore> mInternalCore = mockStatic(InternalCore.class)) {
+            buildWithTrackNativeScreens(true);
 
-        reflected.verify(() -> MockReflected.registerCrossPlatformHosts(Platform.RN, new Class[]{ReactActivity.class}));
+            mInternalCore.verify(() -> InternalCore._registerCrossPlatformHosts(Platform.RN, ReactActivity.class));
+        }
     }
 
     @Test
     public void testBuilderDoesNotTrackNativeScreensByDefault() {
-        buildWithTrackNativeScreens(false);
+        try (MockedStatic<InternalCore> mInternalCore = mockStatic(InternalCore.class)) {
+            buildWithTrackNativeScreens(false);
 
-        reflected.verify(() -> MockReflected.registerCrossPlatformHosts(anyInt(), any()), never());
+            mInternalCore.verifyNoInteractions();
+        }
     }
 
     private void buildWithTrackNativeScreens(boolean trackNativeScreens) {

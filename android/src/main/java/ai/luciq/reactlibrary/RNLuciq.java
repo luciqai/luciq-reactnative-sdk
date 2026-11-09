@@ -11,6 +11,7 @@ import ai.luciq.apm.APM;
 import ai.luciq.library.Luciq;
 import ai.luciq.library.LogLevel;
 import ai.luciq.library.Platform;
+import ai.luciq.library.internal.crossplatform.InternalCore;
 import ai.luciq.library.invocation.LuciqInvocationEvent;
 import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
 import ai.luciq.reactlibrary.utils.LuciqRNLogger;
@@ -148,19 +149,16 @@ public class RNLuciq {
      * Declares {@link ReactActivity} as the Activity that shows React Native screens, so the native
      * SDK resolves the platform per screen: React screens stay RN and every other Activity (a native
      * screen, a third-party SDK screen) is reported as a native Android screen under its own name.
-     * Called by reflection because the API only exists in native SDKs that support hybrid apps; on
-     * an older native SDK this logs a warning and leaves the platform process-wide, as before.
+     * If the app overrides the native SDK with a version older than hybrid support, this logs a
+     * warning and leaves the platform process-wide, as before.
      */
     @VisibleForTesting
-    public void registerReactActivityAsHost(@NonNull Luciq.Builder luciqBuilder) {
+    public void registerReactActivityAsHost() {
         try {
-            Method method = LuciqUtil.getMethod(Luciq.Builder.class, "registerCrossPlatformHosts", int.class, Class[].class);
-            if (method != null) {
-                LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[registerReactActivityAsHost] tracking native screens");
-                method.invoke(luciqBuilder, Platform.RN, new Class[]{ReactActivity.class});
-            } else {
-                LuciqRNLogger.w(LuciqRNDebugTags.CORE, "[registerReactActivityAsHost] trackNativeScreens needs a newer native Luciq SDK; ignored");
-            }
+            InternalCore._registerCrossPlatformHosts(Platform.RN, ReactActivity.class);
+            LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[registerReactActivityAsHost] tracking native screens");
+        } catch (NoSuchMethodError | NoClassDefFoundError e) {
+            LuciqRNLogger.w(LuciqRNDebugTags.CORE, "[registerReactActivityAsHost] trackNativeScreens needs a newer native Luciq SDK; ignored");
         } catch (Exception e) {
             LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[registerReactActivityAsHost] failed", e);
         }
@@ -354,7 +352,7 @@ public class RNLuciq {
                }
 
                 if (trackNativeScreens) {
-                    RNLuciq.getInstance().registerReactActivityAsHost(luciqBuilder);
+                    RNLuciq.getInstance().registerReactActivityAsHost();
                 }
 
                 luciqBuilder.build();
