@@ -22,6 +22,7 @@ public class RNLuciqExampleReactnativePackage implements ReactPackage {
     public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
         modules.add(new RNLuciqExampleCrashReportingModule(reactContext));
+        modules.add(new RNLuciqExampleNativeScreensModule(reactContext));
         return modules;
     }
 

@@ -60,6 +60,7 @@ export const App: React.FC = () => {
         invocationEvents: [InvocationEvent.floatingButton],
         debugLogsLevel: LogLevel.verbose,
         networkInterceptionMode: NetworkInterceptionMode.javascript,
+        trackNativeScreens: true,
       });
 
       CrashReporting.setNDKCrashesEnabled(true);
