@@ -136,6 +136,107 @@ describe('Luciq.attachToNativeApp', () => {
     expect(NativeLuciq.enableAutoMasking).toBeCalledWith([AutoMaskingType.labels]);
   });
 
+  describe('Android network interception', () => {
+    /** Loads a fresh module graph with the native flags stubbed, and spies on what attach decides. */
+    function loadWithNativeFlags(cpNativeInterceptionEnabled: boolean, hasAPMPlugin: boolean) {
+      let deps!: {
+        Luciq: typeof LuciqModule;
+        LuciqUtils: typeof LuciqUtilsModule;
+        NetworkLogger: typeof import('../../src/modules/NetworkLogger');
+        NativeNetworkLogger: typeof import('../../src/native/NativeNetworkLogger').NativeNetworkLogger;
+        Logger: typeof import('../../src/utils/logger').Logger;
+        LuciqConstants: typeof import('../../src/utils/LuciqConstants').default;
+      };
+      jest.isolateModules(() => {
+        deps = {
+          Luciq: require('../../src/modules/Luciq'),
+          LuciqUtils: require('../../src/utils/LuciqUtils'),
+          NetworkLogger: require('../../src/modules/NetworkLogger'),
+          NativeNetworkLogger: require('../../src/native/NativeNetworkLogger').NativeNetworkLogger,
+          Logger: require('../../src/utils/logger').Logger,
+          LuciqConstants: require('../../src/utils/LuciqConstants').default,
+        };
+      });
+      jest
+        .mocked(deps.NativeNetworkLogger.isNativeInterceptionEnabled)
+        .mockReturnValue(cpNativeInterceptionEnabled);
+      jest.mocked(deps.NativeNetworkLogger.hasAPMNetworkPlugin).mockResolvedValue(hasAPMPlugin);
+      const flagsSpy = jest.spyOn(deps.LuciqUtils, 'setApmNetworkFlagsIfChanged');
+      const errorSpy = jest.spyOn(deps.Logger, 'error');
+      return { ...deps, flagsSpy, errorSpy };
+    }
+
+    /** Lets the awaited native hasAPMNetworkPlugin read resolve. */
+    const flushPromises = () => new Promise(jest.requireActual('timers').setImmediate);
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('given the native flag and plugin are on when attaching in native mode then native interception is used without a disabled error', async () => {
+      const { Luciq, flagsSpy, errorSpy, LuciqConstants } = loadWithNativeFlags(true, true);
+
+      Luciq.attachToNativeApp({ networkInterceptionMode: NetworkInterceptionMode.native });
+      await flushPromises();
+
+      expect(flagsSpy).toHaveBeenLastCalledWith({
+        isNativeInterceptionFeatureEnabled: true,
+        hasAPMNetworkPlugin: true,
+        shouldEnableNativeInterception: true,
+      });
+      expect(errorSpy).not.toBeCalledWith(
+        expect.anything(),
+        LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
+      );
+    });
+
+    it('given the native flag and plugin are on when attaching in javascript mode then it switches to native interception', async () => {
+      const { Luciq, flagsSpy } = loadWithNativeFlags(true, true);
+
+      Luciq.attachToNativeApp({ networkInterceptionMode: NetworkInterceptionMode.javascript });
+      await flushPromises();
+
+      expect(flagsSpy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ shouldEnableNativeInterception: true }),
+      );
+    });
+
+    it('given the native flag is off when attaching in native mode then it keeps JavaScript interception and reports it disabled', async () => {
+      const { Luciq, flagsSpy, errorSpy, NetworkLogger, LuciqConstants } = loadWithNativeFlags(
+        false,
+        true,
+      );
+
+      Luciq.attachToNativeApp({ networkInterceptionMode: NetworkInterceptionMode.native });
+      await flushPromises();
+
+      expect(NetworkLogger.setEnabled).toBeCalledWith(true);
+      expect(flagsSpy).toHaveBeenLastCalledWith(
+        expect.objectContaining({ shouldEnableNativeInterception: false }),
+      );
+      expect(errorSpy).toBeCalledWith(
+        expect.anything(),
+        LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE,
+      );
+    });
+
+    it('given the native read fails when attaching then the JavaScript interceptor stays on', async () => {
+      const { Luciq, NativeNetworkLogger, NetworkLogger, flagsSpy } = loadWithNativeFlags(
+        true,
+        true,
+      );
+      jest.mocked(NativeNetworkLogger.hasAPMNetworkPlugin).mockRejectedValue(new Error('boom'));
+
+      Luciq.attachToNativeApp({ networkInterceptionMode: NetworkInterceptionMode.native });
+      await flushPromises();
+
+      expect(NetworkLogger.setEnabled).toBeCalledWith(true);
+      expect(flagsSpy).not.toBeCalledWith(
+        expect.objectContaining({ shouldEnableNativeInterception: true }),
+      );
+    });
+  });
+
   it('attaches on iOS too', () => {
     Platform.OS = 'ios';
     const { Luciq, NativeLuciq } = loadFresh();

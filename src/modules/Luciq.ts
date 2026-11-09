@@ -218,6 +218,22 @@ function setUpNetworkInterception(config: NetworkSetupConfig) {
     registerFeatureFlagsListener();
     addOnFeatureUpdatedListener(config);
 
+    if (_startMode === 'attachToNativeApp') {
+      // The native app started the SDK, so LCQ_ON_FEATURES_UPDATED_CALLBACK has usually fired
+      // already and will not fire again until the next features update. Keep the JS interceptor
+      // on for cold-start requests, and read the flags from native instead of waiting for it.
+      // Deciding the mode now, with the default (false) flags, would wrongly report native
+      // interception as disabled by Luciq.
+      NetworkLogger.setEnabled(true);
+      setApmNetworkFlagsIfChanged({
+        isNativeInterceptionFeatureEnabled: isNativeInterceptionFeatureEnabled,
+        hasAPMNetworkPlugin: hasAPMNetworkPlugin,
+        shouldEnableNativeInterception: shouldEnableNativeInterception,
+      });
+      readAndroidFeaturesFromNative(config);
+      return;
+    }
+
     // Enable the JS XHR interceptor synchronously so cold-start requests
     // (fired before LCQ_ON_FEATURES_UPDATED_CALLBACK arrives) are captured.
     handleNetworkInterceptionMode(config);
@@ -494,13 +510,47 @@ function refreshAPMNetworkConfigs(config: NetworkSetupConfig, forceRefreshIOS: b
 function addOnFeatureUpdatedListener(config: NetworkSetupConfig) {
   emitter.addListener(NativeEvents.LCQ_ON_FEATURES_UPDATED_CALLBACK, (flags) => {
     const { cpNativeInterceptionEnabled, hasAPMPlugin } = flags;
-    isNativeInterceptionFeatureEnabled = cpNativeInterceptionEnabled;
-    hasAPMNetworkPlugin = hasAPMPlugin;
-    shouldEnableNativeInterception =
-      config.networkInterceptionMode === NetworkInterceptionMode.native;
-    refreshAPMNetworkConfigs(config);
+    applyAndroidFeatures(config, cpNativeInterceptionEnabled, hasAPMPlugin);
   });
   NativeLuciq.setOnFeaturesUpdatedListener();
+}
+
+/**
+ * Applies the Android APM network flags, from the features-updated event or from a native read.
+ */
+function applyAndroidFeatures(
+  config: NetworkSetupConfig,
+  cpNativeInterceptionEnabled: boolean,
+  hasAPMPlugin: boolean,
+) {
+  isNativeInterceptionFeatureEnabled = cpNativeInterceptionEnabled;
+  hasAPMNetworkPlugin = hasAPMPlugin;
+  shouldEnableNativeInterception =
+    config.networkInterceptionMode === NetworkInterceptionMode.native;
+  refreshAPMNetworkConfigs(config);
+}
+
+/**
+ * Android, attachToNativeApp only: reads the APM network flags the native SDK already has, because
+ * the features-updated event they arrive with fired before React Native attached.
+ * On failure, the JS interceptor stays on and the next features-updated event still applies.
+ */
+async function readAndroidFeaturesFromNative(config: NetworkSetupConfig) {
+  try {
+    const cpNativeInterceptionEnabled = NativeNetworkLogger.isNativeInterceptionEnabled();
+    const hasAPMPlugin = await NativeNetworkLogger.hasAPMNetworkPlugin();
+    Logger.debug(LuciqDebugTags.APM_NETWORK, 'attachToNativeApp read native network flags', {
+      cpNativeInterceptionEnabled,
+      hasAPMPlugin,
+    });
+    applyAndroidFeatures(config, !!cpNativeInterceptionEnabled, !!hasAPMPlugin);
+  } catch (e) {
+    Logger.error(
+      LuciqDebugTags.APM_NETWORK,
+      'attachToNativeApp could not read native network flags; keeping JavaScript interception',
+      e,
+    );
+  }
 }
 
 /**
