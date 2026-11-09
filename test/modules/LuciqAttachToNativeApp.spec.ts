@@ -7,7 +7,12 @@ import type * as LuciqModule from '../../src/modules/Luciq';
 import type * as NativeLuciqModule from '../../src/native/NativeLuciq';
 import type * as LuciqUtilsModule from '../../src/utils/LuciqUtils';
 import type * as UnhandledRejectionModule from '../../src/utils/UnhandledRejectionTracking';
-import { InvocationEvent, LogLevel, NetworkInterceptionMode } from '../../src/utils/Enums';
+import {
+  AutoMaskingType,
+  InvocationEvent,
+  LogLevel,
+  NetworkInterceptionMode,
+} from '../../src/utils/Enums';
 
 jest.mock('../../src/modules/NetworkLogger');
 jest.mock('../../src/utils/UnhandledRejectionTracking');
@@ -111,6 +116,24 @@ describe('Luciq.attachToNativeApp', () => {
     Luciq.init(initConfig);
 
     expect(NativeLuciq.init).toBeCalledTimes(2);
+  });
+
+  it('ignores enableAutoMasking, which the native app owns in a hybrid app', () => {
+    const { Luciq, NativeLuciq } = loadFresh();
+
+    Luciq.attachToNativeApp();
+    Luciq.enableAutoMasking([AutoMaskingType.labels]);
+
+    expect(NativeLuciq.enableAutoMasking).not.toBeCalled();
+  });
+
+  it('still forwards enableAutoMasking after init', () => {
+    const { Luciq, NativeLuciq } = loadFresh();
+
+    Luciq.init(initConfig);
+    Luciq.enableAutoMasking([AutoMaskingType.labels]);
+
+    expect(NativeLuciq.enableAutoMasking).toBeCalledWith([AutoMaskingType.labels]);
   });
 
   it('attaches on iOS too', () => {

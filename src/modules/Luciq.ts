@@ -1387,9 +1387,23 @@ export const _registerFeatureFlagsChangeListener = (
 
 /**
  * Sets the auto mask screenshots types.
+ *
+ * Auto-masking is one setting for the whole app, native screens included. In a hybrid app (started
+ * with {@link attachToNativeApp}) the native app owns it, so this call is ignored with an error
+ * log: set it with the native SDK instead.
+ *
  * @param autoMaskingTypes The masking type to be applied.
  */
 export const enableAutoMasking = (autoMaskingTypes: AutoMaskingType[]) => {
+  if (_startMode === 'attachToNativeApp') {
+    Logger.error(
+      LuciqDebugTags.PRIVATE_VIEW,
+      '[Luciq] enableAutoMasking() ignored: in an app started with attachToNativeApp(), ' +
+        'auto-masking applies to native screens too and is set by the native app ' +
+        '(setAutoMaskScreenshotsTypes on Android, setAutoMaskScreenshots on iOS).',
+    );
+    return;
+  }
   NativeLuciq.enableAutoMasking(autoMaskingTypes);
 };
 
