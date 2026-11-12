@@ -107,6 +107,18 @@
 
 /*
  +------------------------------------------------------------------------+
+ |                              Report Module                             |
+ +------------------------------------------------------------------------+
+ */
+
+- (void)setPreSendingHandler;
+- (void)unsetPreSendingHandler;
+- (void)completePreSendingHandler;
+- (void)appendTagToReport:(NSString *)tag;
+- (void)setUserAttributeToReport:(NSString *)key :(NSString *)value;
+
+/*
+ +------------------------------------------------------------------------+
  |                           Network Logging                              |
  +------------------------------------------------------------------------+
  */

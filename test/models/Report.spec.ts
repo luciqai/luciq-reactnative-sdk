@@ -108,7 +108,7 @@ describe('Report Model', () => {
 
     expect(report.fileAttachments).toEqual([...filesBefore, { file: file, type: 'url' }]);
     expect(NativeLuciq.addFileAttachmentWithURLToReport).toBeCalledTimes(1);
-    expect(NativeLuciq.addFileAttachmentWithURLToReport).toBeCalledWith(file);
+    expect(NativeLuciq.addFileAttachmentWithURLToReport).toBeCalledWith(file, fileName);
   });
 
   it('should call the native method addFileAttachmentWithURLToReport when platform is android', () => {
@@ -132,7 +132,7 @@ describe('Report Model', () => {
 
     expect(report.fileAttachments).toEqual([...filesBefore, { file: file, type: 'data' }]);
     expect(NativeLuciq.addFileAttachmentWithDataToReport).toBeCalledTimes(1);
-    expect(NativeLuciq.addFileAttachmentWithDataToReport).toBeCalledWith(file);
+    expect(NativeLuciq.addFileAttachmentWithDataToReport).toBeCalledWith(file, fileName);
   });
 
   it('should call the native method addFileAttachmentWithDataToReport when platform is android', () => {

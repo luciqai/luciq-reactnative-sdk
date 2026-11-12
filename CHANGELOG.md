@@ -21,6 +21,30 @@
 - Android: `LUCIQ_APP_VERSION_NAME` and `LUCIQ_APP_VERSION_CODE` now override the uploaded source map version, as documented. `LUCIQ_VERSION_NAME` and `LUCIQ_VERSION_CODE` still work.
 - Source map uploads now find the app token in native code (`Luciq.Builder` on Android, `Luciq.start(withToken:)` and `startWithToken:` on iOS) when JavaScript has none, as in hybrid apps that call `attachToNativeApp`. iOS no longer passes the "token not found" message as the token.
 
+## [19.13.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.13.0)
+
+### Changed
+
+- Bump Luciq iOS SDK to v19.13.0. [See release notes](https://github.com/luciqai/luciq-ios-sdk/releases/tag/19.13.0).
+
+- Bump Luciq Android SDK to v19.15.0. [See release notes](https://github.com/luciqai/luciq-android-sdk/releases/tag/v19.15.0).
+
+- On iOS, `Luciq.onReportSubmitHandler` now uses the native `onBeforeSendingEventHandler` instead of the deprecated `willSendReportHandler`. The SDK holds the report until the handler returns. On iOS, the `Report` passed to the handler no longer contains the report's existing tags, logs, user attributes, or file attachments, and `Report.appendConsoleLog` and `Report.logDebug`/`logVerbose`/`logInfo`/`logWarn`/`logError` have no effect. `appendTag`, `setUserAttribute`, `addFileAttachmentWithUrl`, and `addFileAttachmentWithData` are still supported and now use the provided `fileName` on iOS.
+
+### Fixed
+
+- The SDK-generated W3C `traceparent` header is now included in the request headers of network logs sent to Session Replay and bug reports. Previously the header was injected into the request but omitted from the logged copy, so only APM carried the trace ID.
+
+### Deprecated
+
+- Deprecate `BugReporting.setAutoScreenRecordingEnabled` and `BugReporting.setAutoScreenRecordingDurationIOS`. Auto screen recording is scheduled for removal; use manual screen recording via the `screenRecording` attachment type in `BugReporting.setEnabledAttachmentTypes` instead.
+
+- Deprecate `BugReporting.setViewHierarchyEnabled`. View hierarchy capture is discontinued and the API has no effect on iOS.
+
+- Deprecate `Luciq.getTags`. Use `Luciq.appendTags` to add tags.
+
+- Deprecate `Luciq.clearLogs` with no replacement.
+
 ## [19.10.1](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.9.3)
 
 ### Added

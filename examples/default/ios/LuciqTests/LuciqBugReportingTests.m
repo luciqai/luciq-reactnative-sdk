@@ -159,9 +159,10 @@
 }
 
 - (void) testgivenBoolean$setViewHierarchyEnabled_whenQuery_thenShouldCallNativeApi {
+  id mock = OCMClassMock([LCQBugReporting class]);
   BOOL enabled = true;
   [self.luciqBridge setViewHierarchyEnabled:enabled];
-  XCTAssertTrue(LCQBugReporting.shouldCaptureViewHierarchy);
+  OCMVerify([mock setShouldCaptureViewHierarchy:enabled]);
 }
 
 - (void) testSetDisclaimerText {
