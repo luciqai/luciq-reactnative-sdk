@@ -43,6 +43,10 @@ target 'LuciqExample' do
   rn_maps_path = '../node_modules/react-native-maps'
   pod 'react-native-google-maps', :path => rn_maps_path
   # XCFramework from local extracted folder
+  # LOCAL ONLY (do not commit): the native SDK 19.16.0-hybrid built from ios-cp3 with the CP-3 hybrid fixes.
+
+   pod 'Luciq', :podspec => 'https://ios-releases.luciq.ai/custom/pr-8245/19.14.0/Luciq.podspec'
+
 
   use_react_native!(
     :path => config[:reactNativePath],

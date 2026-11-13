@@ -23,7 +23,7 @@ def add_luciq_spm_dependency!(spec)
   spm_dependency(
     spec,
     :url => $luciq_spm[:url],
-    :requirement => { :kind => 'branch', :version => 'release/pr-8245/19.14.0-906801' },
+    :requirement => { :kind => 'branch', :branch => 'release/pr-8245/19.14.0-906801' },
     :products => [$luciq_spm[:product]]
   )
   true
