@@ -190,6 +190,10 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                     builder.ignoreFlagSecure(map.getBoolean("ignoreAndroidSecureFlag"));
                 }
 
+                if (map != null && map.hasKey("trackNativeScreens")) {
+                    builder.trackNativeScreens(map.getBoolean("trackNativeScreens"));
+                }
+
                 if (codePushVersion != null) {
                     if (Luciq.isBuilt()) {
                         Luciq.setCodePushVersion(codePushVersion);
@@ -212,6 +216,44 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
                 builder.build();
                 LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[init] SDK build complete");
+            }
+        });
+    }
+
+    /**
+     * Connects React Native to the SDK the native app already started (hybrid apps).
+     *
+     * Unlike {@link #init}, it never builds the SDK, so it leaves the native app's configuration
+     * alone: no second {@code Luciq.Builder}, and no change to the native log level, secure flag or
+     * APM hot launches. It only installs what React Native screens need from the native side: the
+     * touched-view extractor that labels RN taps.
+     *
+     * It never sets the React Native platform, and {@code RNLuciqReactnativePackage} skips it too when
+     * the native app already started Luciq, so the native app's screens keep their native platform.
+     * Native apps on a recent SDK declare their React Native screens with
+     * {@code Luciq.Builder.registerCrossPlatformHosts}.
+     *
+     * @param logLevel the React Native SDK's own log level. It does not change the native SDK's.
+     */
+    @ReactMethod
+    public void attachToNativeApp(final String logLevel) {
+        final int parsedLogLevel = ArgsRegistry.sdkLogLevels.getOrDefault(logLevel, LogLevel.ERROR);
+        LuciqRNLogger.setLevel(parsedLogLevel);
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (!Luciq.isBuilt()) {
+                        LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[attachToNativeApp] Luciq isn't running in the "
+                                + "native app. Start it with Luciq.Builder in Application.onCreate, before React "
+                                + "Native starts.");
+                        return;
+                    }
+                    InstabugCore.setTouchedViewExtractorExtension(new RNTouchedViewExtractor());
+                    LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[attachToNativeApp] attached to the SDK started by the native app");
+                } catch (Exception e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[attachToNativeApp] failed", e);
+                }
             }
         });
     }

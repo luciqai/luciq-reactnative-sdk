@@ -43,6 +43,10 @@ target 'LuciqExample' do
   rn_maps_path = '../node_modules/react-native-maps'
   pod 'react-native-google-maps', :path => rn_maps_path
   # XCFramework from local extracted folder
+  # LOCAL ONLY (do not commit): the native SDK 19.16.0-hybrid built from ios-cp3 with the CP-3 hybrid fixes.
+
+   pod 'Luciq', :podspec => 'https://ios-releases.luciq.ai/custom/pr-8245/19.14.0/Luciq.podspec'
+
 
   use_react_native!(
     :path => config[:reactNativePath],
@@ -63,5 +67,9 @@ target 'LuciqExample' do
       # necessary for Mac Catalyst builds
       :mac_catalyst_enabled => false
     )
+    # LOCAL ONLY (do not commit): this Xcode supports iOS 15.0+ deployment targets only.
+    installer.pods_project.targets.each do |t|
+      t.build_configurations.each { |c| c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0' }
+    end
   end
 end

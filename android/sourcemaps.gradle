@@ -1,28 +1,57 @@
-import org.apache.tools.ant.taskdefs.condition.Os
+// Uploads the release JavaScript source map to Luciq after the React Native bundle is built.
+//
+// This script is applied by the Luciq library module, and the Expo config plugin can also apply it
+// to the app module. Either way it finds every Android application module that builds a React
+// Native bundle, so hybrid apps whose app module is not named `:app` are covered too. A bundle task
+// is hooked only once, whichever copy of the script reaches it first.
+//
+// The upload never fails the build: anything missing is logged as a warning and the upload is skipped.
 
-project.afterEvaluate {
+// The Luciq package folder, which holds this script's `android` folder.
+def luciqScriptDir = buildscript.sourceFile?.parentFile
+
+gradle.projectsEvaluated {
+    rootProject.allprojects
+            .findAll { it.plugins.hasPlugin('com.android.application') }
+            .each { appProject ->
+                try {
+                    registerUploadSourcemapsTasks(appProject, luciqScriptDir)
+                } catch (exception) {
+                    project.logger.warn "⚠️  Luciq couldn't set up the sourcemap upload for ${appProject.path}. " +
+                            "Reason: ${exception.message}. Build will continue."
+                }
+            }
+}
+
+void registerUploadSourcemapsTasks(Project appProject, File luciqScriptDir) {
     // Works for both `bundleReleaseJsAndAssets` and `createBundleReleaseJsAndAssets` and product flavors
     def suffix = 'ReleaseJsAndAssets'
-    def bundleTasks = project(':app').tasks.findAll {
-        task -> task.name.endsWith(suffix)
+    def prefixes = ['bundle', 'createBundle']
+    def bundleTasks = appProject.tasks.findAll { task ->
+        task.name.endsWith(suffix) && prefixes.any { task.name.startsWith(it) }
     }
 
-    bundleTasks.forEach { task ->
+    bundleTasks.each { task ->
+        if (task.ext.has('luciqUploadSourcemapsTask')) {
+            return
+        }
+
         def name = task.name
-        def prefixes = ['bundle', 'createBundle']
         def start = name.startsWith(prefixes[0]) ? prefixes[0].length() : prefixes[1].length()
         def end = name.length() - suffix.length()
         def flavor = name.substring(start, end).uncapitalize()
-        def defaultVersion = getDefaultVersion(flavor)
+        def defaultVersion = getDefaultVersion(appProject, flavor)
 
-
-
-        task.finalizedBy createUploadSourcemapsTask(flavor, defaultVersion.name, defaultVersion.code,task)
+        def uploadTask = createUploadSourcemapsTask(appProject, flavor, defaultVersion.name, defaultVersion.code, task, luciqScriptDir)
+        task.ext.luciqUploadSourcemapsTask = uploadTask.path
+        task.finalizedBy uploadTask
     }
 }
 
-Task createUploadSourcemapsTask(String flavor, String defaultVersionName, String defaultVersionCode, Task task) {
-    def name = 'uploadSourcemaps' + flavor.capitalize()
+Task createUploadSourcemapsTask(Project appProject, String flavor, String defaultVersionName, String defaultVersionCode, Task task, File luciqScriptDir) {
+    // Keep the historical task name for `:app`, and add the module name for any other app module.
+    def modulePart = appProject.path == ':app' ? '' : appProject.name.capitalize()
+    def name = 'uploadSourcemaps' + modulePart + flavor.capitalize()
 
     // Don't recreate the task if it already exists.
     // This prevents the build from failing in an edge case where the user has
@@ -32,6 +61,10 @@ Task createUploadSourcemapsTask(String flavor, String defaultVersionName, String
         return tasks.named(name).get()
     }
 
+    def appDir = appProject.projectDir
+    def androidRootDir = appProject.rootDir
+    def jsProjectDir = getJsProjectDir(appProject)
+
     def provider = tasks.register(name) {
         group 'luciq'
         description 'Uploads sourcemaps file to Luciq server'
@@ -39,53 +72,37 @@ Task createUploadSourcemapsTask(String flavor, String defaultVersionName, String
 
         doLast {
             try {
-                def appProject = project(':app')
-                def appDir = appProject.projectDir
-                def sourceMapFile = getSourceMapFile(appDir, flavor,task)
+                def sourceMapFile = getSourceMapFile(appDir, flavor, task)
 
                 if (!sourceMapFile) {
                     project.logger.warn "⚠️  Source map file not found. Skipping sourcemap upload."
                     return
                 }
 
-                def jsProjectDir = rootDir.parentFile
-                def luciqPackagePath = ['node', '-p', 'require.resolve("@luciq/react-native/package.json")'].execute(null, rootDir).text.trim()
-                if (!luciqPackagePath) {
-                    project.logger.warn "⚠️  Unable to resolve @luciq/react-native package path. Skipping sourcemap upload."
-                    return
-                }
-                def luciqPackageFile = new File(luciqPackagePath)
-                if (!luciqPackageFile.exists()) {
-                    project.logger.warn "⚠️  Luciq package file not found at: ${luciqPackagePath}. Skipping sourcemap upload."
-                    return
-                }
-                def luciqDir = luciqPackageFile.getParentFile()
-                if (!luciqDir || !luciqDir.exists()) {
-                    project.logger.warn "⚠️  Luciq directory not found. Package path: ${luciqPackagePath}. Skipping sourcemap upload."
+                def luciqDir = getLuciqPackageDir(luciqScriptDir, jsProjectDir)
+                if (!luciqDir) {
+                    project.logger.warn "⚠️  Unable to find the @luciq/react-native package. Skipping sourcemap upload."
                     return
                 }
 
+                // Hybrid apps start Luciq from native code, so the token lookup also searches the Android project.
                 def tokenJsFile = new File(luciqDir, 'scripts/find-token.js')
-                def inferredToken = executeNodeScript(tokenJsFile, jsProjectDir)
+                def inferredToken = executeNodeScript(tokenJsFile, jsProjectDir, [androidRootDir.absolutePath])
 
                 def appToken
                 try {
-                    appToken = resolveVar('App Token', 'LUCIQ_APP_TOKEN', inferredToken)
+                    appToken = resolveVar('App Token', ['LUCIQ_APP_TOKEN'], inferredToken)
                 } catch (Exception e) {
                     project.logger.warn "⚠️  ${e.message}. Skipping sourcemap upload."
-                    return
-                }
-
-                if (!appToken) {
-                    project.logger.warn "⚠️  Unable to infer Luciq token from script: ${tokenJsFile.absolutePath}. Skipping sourcemap upload."
                     return
                 }
 
                 def versionName
                 def versionCode
                 try {
-                    versionName = resolveVar('Version Name', 'LUCIQ_VERSION_NAME', defaultVersionName)
-                    versionCode = resolveVar('Version Code', 'LUCIQ_VERSION_CODE', defaultVersionCode)
+                    // The README documents LUCIQ_APP_VERSION_*, which iOS reads too. LUCIQ_VERSION_* is kept for existing setups.
+                    versionName = resolveVar('Version Name', ['LUCIQ_APP_VERSION_NAME', 'LUCIQ_VERSION_NAME'], defaultVersionName)
+                    versionCode = resolveVar('Version Code', ['LUCIQ_APP_VERSION_CODE', 'LUCIQ_VERSION_CODE'], defaultVersionCode)
                 } catch (Exception e) {
                     project.logger.warn "⚠️  ${e.message}. Skipping sourcemap upload."
                     return
@@ -93,18 +110,18 @@ Task createUploadSourcemapsTask(String flavor, String defaultVersionName, String
 
                 println "📦 Uploading with versionName=${versionName}, versionCode=${versionCode}, appToken=${appToken.take(5)}..."
 
+                // Run the package's own CLI rather than `npx luciq`, which depends on the working directory
+                // and could fetch an unrelated `luciq` package from the registry when it isn't found locally.
                 exec {
-                    def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c'] : []
-                    def args = [
-                            'npx', 'luciq', 'upload-sourcemaps',
+                    commandLine(
+                            'node', new File(luciqDir, 'bin/index.js').absolutePath,
+                            'upload-sourcemaps',
                             '--platform', 'android',
                             '--file', sourceMapFile.absolutePath,
                             '--token', appToken,
                             '--name', versionName,
                             '--code', versionCode
-                    ]
-
-                    commandLine(*osCompatibility, *args)
+                    )
                 }
             } catch (exception) {
                 project.logger.warn "⚠️  Failed to upload source map file. Reason: ${exception.message}. Build will continue."
@@ -113,6 +130,45 @@ Task createUploadSourcemapsTask(String flavor, String defaultVersionName, String
     }
 
     return provider.get()
+}
+
+/**
+ * The JavaScript project root: the `react { root }` setting of the React Native Gradle plugin when
+ * the app module sets it, else the folder above the Android project, which is the default layout.
+ */
+File getJsProjectDir(Project appProject) {
+    try {
+        def root = appProject.extensions.findByName('react')?.root?.getOrNull()?.asFile
+        if (root?.isDirectory()) {
+            return root
+        }
+    } catch (ignored) {
+        // Older React Native Gradle plugins have no `root` property.
+    }
+    return appProject.rootDir.parentFile
+}
+
+/**
+ * The installed @luciq/react-native folder. It is normally the parent of this script's folder;
+ * Node's module resolution from the JavaScript project is the fallback.
+ */
+File getLuciqPackageDir(File luciqScriptDir, File jsProjectDir) {
+    def fromScript = luciqScriptDir?.parentFile
+    if (fromScript && new File(fromScript, 'bin/index.js').exists()) {
+        return fromScript
+    }
+
+    try {
+        def packagePath = ['node', '-p', 'require.resolve("@luciq/react-native/package.json")']
+                .execute(null, jsProjectDir).text.trim()
+        def packageFile = packagePath ? new File(packagePath) : null
+        if (packageFile?.exists() && new File(packageFile.parentFile, 'bin/index.js').exists()) {
+            return packageFile.parentFile
+        }
+    } catch (ignored) {
+        // Node isn't available or the package can't be resolved from the JavaScript project.
+    }
+    return null
 }
 
 File getSourceMapFile(File appDir, String flavor, Task task) {
@@ -144,18 +200,18 @@ File getSourceMapFile(File appDir, String flavor, Task task) {
     }
 
     if (flavor.empty) {
-         println"Source map file not found at: ${defaultSourceMapFile.absolutePath}. Skipping."
+        println "Source map file not found at: ${defaultSourceMapFile.absolutePath}. Skipping."
         return null
     }
 
     def fallbackSourceMapDest = "build/generated/sourcemaps/react/${flavor}/release/index.android.bundle.map"
     def fallbackSourceMapFile = new File(appDir, fallbackSourceMapDest)
 
-  println "Unable to find source map file at: ${defaultSourceMapFile.absolutePath}.\n" +
+    println "Unable to find source map file at: ${defaultSourceMapFile.absolutePath}.\n" +
             "Falling back to ${fallbackSourceMapFile.absolutePath}."
 
     if (!fallbackSourceMapFile.exists()) {
-    println "Fallback source map file not found at: ${fallbackSourceMapFile.absolutePath}. Skipping."
+        println "Fallback source map file not found at: ${fallbackSourceMapFile.absolutePath}. Skipping."
         return null
     }
 
@@ -169,12 +225,11 @@ File getSourceMapFile(File appDir, String flavor, Task task) {
  * It checks the version for the flavor's variant.
  * If no variant is found it falls back to the app's default config.
  *
- *
+ * @param appProject The application module that builds the bundle.
  * @param flavor The flavor to get the app version for.
  * @return A map containing the version code and version name.
  */
-Map<String, String> getDefaultVersion(String flavor) {
-    def appProject = project(':app')
+Map<String, String> getDefaultVersion(Project appProject, String flavor) {
     def defaultConfig = appProject.android.defaultConfig
 
     def variants = appProject.android.applicationVariants
@@ -198,21 +253,17 @@ boolean isUploadSourcemapsEnabled() {
     return (envValue != null) ? !envValue : defaultValue
 }
 
-String resolveVar(String name, String envKey, String defaultValue) {
+/**
+ * Resolves a value from the first set environment variable among {@code envKeys}, each also tried
+ * with the legacy INSTABUG_ prefix, falling back to {@code defaultValue}.
+ */
+String resolveVar(String name, List<String> envKeys, String defaultValue) {
     def env = System.getenv()
-    
-    // First try LUCIQ environment variable
-    def luciqEnvKey = envKey.replace('LUCIQ_', 'LUCIQ_')
-    def luciqEnvValue = env.get(luciqEnvKey)
-    
-    // Then try INSTABUG environment variable as fallback
-    def instabugEnvKey = envKey.replace('LUCIQ_', 'INSTABUG_')
-    def instabugEnvValue = env.get(instabugEnvKey)
-    
-    // Use LUCIQ value if available, otherwise use INSTABUG value, otherwise use default
-    def envValue = luciqEnvValue ?: instabugEnvValue
+    def candidateKeys = envKeys.collectMany { [it, it.replace('LUCIQ_', 'INSTABUG_')] }
+    def envKey = candidateKeys.find { env.get(it) != null }
+    def envValue = envKey ? env.get(envKey) : null
 
-    if (envValue != null && defaultValue !=null && envValue != defaultValue) {
+    if (envValue != null && defaultValue != null && envValue != defaultValue) {
         project.logger.warn "Environment variable `${envKey}` might have incorrect value, " +
                 "make sure this was intentional:\n" +
                 "   Environment Value: ${envValue}\n" +
@@ -223,13 +274,13 @@ String resolveVar(String name, String envKey, String defaultValue) {
 
     if (value == null) {
         throw new InvalidUserDataException("Unable to find ${name}! " +
-                "Set the environment variable `${envKey}` or `${instabugEnvKey}` and try again.")
+                "Set the environment variable `${envKeys.first()}` and try again.")
     }
 
     return value
 }
 
-static String executeNodeScript(File script, File workingDir) {
+static String executeNodeScript(File script, File workingDir, List<String> args = []) {
     if (!script.exists()) {
         println "Script not found: ${script.absolutePath}"
         return null
@@ -239,7 +290,7 @@ static String executeNodeScript(File script, File workingDir) {
     def error = new StringBuffer()
 
     try {
-        def process = ['node', script.getAbsolutePath()].execute(null, workingDir)
+        def process = (['node', script.getAbsolutePath()] + args).execute(null, workingDir)
         process.waitForProcessOutput(output, error)
 
         if (process.exitValue() != 0) {
@@ -256,29 +307,4 @@ static String executeNodeScript(File script, File workingDir) {
         e.printStackTrace()
         return null
     }
-}
-
-static String executeShellScript(File script, File workingDir) {
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        return null
-    }
-
-    if (!script.canExecute()) {
-        // Try to set executable permission
-        script.setExecutable(true)
-    }
-
-    def output = new StringBuffer()
-    def error = new StringBuffer()
-
-    // Using 'sh' instead of './' to avoid needing exec permission, but keeping chmod above just in case
-    def process = ['sh', script.getAbsolutePath()].execute(null, workingDir)
-    process?.waitForProcessOutput(output, error)
-
-    if (process.exitValue() != 0) {
-        println "Error running script: ${error.toString().trim()}"
-        return null
-    }
-
-    return output.toString().trim()
 }

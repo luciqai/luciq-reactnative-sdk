@@ -66,11 +66,23 @@ RCT_EXPORT_METHOD(init:(NSString *)token
 
     [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 
+    if ([options[@"trackNativeScreens"] boolValue]) {
+        [RNLuciq trackNativeScreens];
+    }
+
     [RNLuciq initWithToken:token
              invocationEvents:invocationEvents
                debugLogsLevel:sdkDebugLogsLevel
  useNativeNetworkInterception:useNativeNetworkInterception];
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[init] SDK build complete"];
+}
+
+// Hybrid apps: the native app already started Luciq. Unlike init, no app variant, code push or
+// over-the-air version is applied here, so the native app's own values stay in place.
+RCT_EXPORT_METHOD(attachToNativeApp:(LCQSDKDebugLogsLevel)sdkDebugLogsLevel) {
+    [LuciqRNLogger setLevel:sdkDebugLogsLevel];
+    [RNLuciq attachToNativeApp];
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[attachToNativeApp] attached to the SDK started by the native app"];
 }
 
 RCT_EXPORT_METHOD(setCodePushVersion:(NSString *)version) {
@@ -556,6 +568,23 @@ RCT_EXPORT_METHOD(networkLogIOS:(NSString * _Nonnull)url
     [LuciqRNLogger d:[LuciqRNDebugTags network] format:@"[networkLogIOS] Forwarded to LCQNetworkLogger: %@ %@", method, [LuciqRNLogger redactURL:url]];
 }
 
+/// The views made private through addPrivateView, by React tag (weak values).
+///
+/// removePrivateView usually runs from a component's unmount cleanup, after its native view has
+/// left the hierarchy, so viewForReactTag: no longer finds it. React Native then recycles that
+/// native view for another component, and a private flag left on it masks the wrong view. Keeping
+/// the view from addPrivateView lets removePrivateView clear the flag on the exact view it set.
+/// Process-wide, so a module instance recreated between mount and unmount still finds it.
+/// Only touched on the main queue (this module's methodQueue).
+static NSMapTable<NSNumber *, UIView *> *LuciqPrivateViewsByTag(void) {
+    static NSMapTable<NSNumber *, UIView *> *privateViews;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        privateViews = [NSMapTable strongToWeakObjectsMapTable];
+    });
+    return privateViews;
+}
+
 RCT_EXPORT_METHOD(addPrivateView: (nonnull NSNumber *)reactTag) {
     [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[addPrivateView] called reactTag=%@", reactTag];
     UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
@@ -564,11 +593,14 @@ RCT_EXPORT_METHOD(addPrivateView: (nonnull NSNumber *)reactTag) {
         return;
     }
     view.Luciq_privateView = true;
+    [LuciqPrivateViewsByTag() setObject:view forKey:reactTag];
 }
 
 RCT_EXPORT_METHOD(removePrivateView: (nonnull NSNumber *)reactTag) {
     [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[removePrivateView] called reactTag=%@", reactTag];
-    UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
+    NSMapTable<NSNumber *, UIView *> *privateViews = LuciqPrivateViewsByTag();
+    UIView* view = [privateViews objectForKey:reactTag] ?: [self.bridge.uiManager viewForReactTag:reactTag];
+    [privateViews removeObjectForKey:reactTag];
     if (view == nil) {
         [LuciqRNLogger w:[LuciqRNDebugTags privateView] format:@"[removePrivateView] view not found for reactTag=%@ (no-op)", reactTag];
         return;

@@ -44,3 +44,22 @@
 }
 
 @end
+
+// LOCAL ONLY (do not commit): iOS 27 traps at launch unless the app adopts the UIScene lifecycle.
+// RCTAppDelegate builds its window in didFinishLaunching; attach that window to the scene.
+@interface SceneDelegate : UIResponder <UIWindowSceneDelegate>
+@property (nonatomic, strong) UIWindow *window;
+@end
+
+@implementation SceneDelegate
+
+- (void)scene:(UIScene *)scene willConnectToSession:(UISceneSession *)session options:(UISceneConnectionOptions *)connectionOptions
+{
+  AppDelegate *app = (AppDelegate *)UIApplication.sharedApplication.delegate;
+  UIWindow *window = app.window;
+  window.windowScene = (UIWindowScene *)scene;
+  self.window = window;
+  [window makeKeyAndVisible];
+}
+
+@end
