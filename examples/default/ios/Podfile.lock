@@ -1734,7 +1734,7 @@ PODS:
     - DoubleConversion
     - glog
     - hermes-engine
-    - Luciq (= 19.16.0-hybrid)
+    - Luciq (= 19.14.0)
     - RCT-Folly (= 2024.01.01.00)
     - RCTRequired
     - RCTTypeSafety
