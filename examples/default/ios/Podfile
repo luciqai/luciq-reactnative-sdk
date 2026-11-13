@@ -63,5 +63,9 @@ target 'LuciqExample' do
       # necessary for Mac Catalyst builds
       :mac_catalyst_enabled => false
     )
+    # LOCAL ONLY (do not commit): this Xcode supports iOS 15.0+ deployment targets only.
+    installer.pods_project.targets.each do |t|
+      t.build_configurations.each { |c| c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0' }
+    end
   end
 end
