@@ -60,9 +60,28 @@ let hasAPMNetworkPlugin = false; // Android only: checks if the APM plugin is in
 let shouldEnableNativeInterception = false; // For Android: used to disable APM logging inside reportNetworkLog() -> NativeAPM.networkLogAndroid(), For iOS: used to control native interception (true == enabled , false == disabled)
 
 // Screen Loading tracking variables
-let _navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList> | null = null;
-let _currentRoute: string | null = null;
+
+/**
+ * A NavigationContainer registered through `setNavigationListener`, with the route it showed last.
+ * Most apps have one. Hybrid apps that embed several React Native surfaces, each with its own
+ * container, register one per surface; each keeps its own route so that a navigation in one
+ * surface is never named after another surface's route.
+ */
+type TrackedNavigationContainer = {
+  ref: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>;
+  /** The container instance the listener was added to, to detect a remounted container. */
+  container: NonNullable<
+    NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>['current']
+  >;
+  currentRoute: string | null;
+  unsubscribe?: () => void;
+};
+
+/** Registered containers, oldest first. */
+let _navigationContainers: TrackedNavigationContainer[] = [];
 let _activeNavigationSpanId: string | null = null;
+/** The container whose navigation action started [_activeNavigationSpanId]. */
+let _activeNavigationSpanContainer: TrackedNavigationContainer | null = null;
 let _stateChangeTimeout: ReturnType<typeof setTimeout> | undefined;
 const STATE_CHANGE_TIMEOUT_MS = 2000; // Safety timeout if state never changes
 
@@ -1070,7 +1089,7 @@ const _clearStateChangeTimeout = (): void => {
  * Handles React Navigation's __unsafe_action__ event
  * This fires WHEN a navigation action is dispatched (the start of navigation)
  */
-const _onNavigationAction = (event?: any): void => {
+const _onNavigationAction = (event?: any, tracked?: TrackedNavigationContainer): void => {
   // Check for noop actions that shouldn't create spans
   if (event?.data?.noop) {
     Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'navigation noop, no span');
@@ -1110,6 +1129,7 @@ const _onNavigationAction = (event?: any): void => {
     const span = ScreenLoadingManager.createSpan('NavigationPending', false);
     if (span) {
       _activeNavigationSpanId = span.spanId;
+      _activeNavigationSpanContainer = tracked ?? null;
       Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'span started on navigation dispatch', {
         spanId: span.spanId,
       });
@@ -1124,6 +1144,7 @@ const _onNavigationAction = (event?: any): void => {
           });
           ScreenLoadingManager.endSpan(span.spanId);
           _activeNavigationSpanId = null;
+          _activeNavigationSpanContainer = null;
         }
       }, STATE_CHANGE_TIMEOUT_MS);
     }
@@ -1134,53 +1155,70 @@ const _onNavigationAction = (event?: any): void => {
  * Handles React Navigation's state event
  * This fires AFTER the navigation state has changed (the screen is mounted)
  */
-const _onNavigationStateChange = (): void => {
-  if (!_navigationRef?.current) {
+const _onNavigationStateChange = (state?: NavigationStateV5): void => {
+  const tracked = _containerOf(state);
+  if (!tracked) {
     return;
   }
 
-  const previousRouteName = _currentRoute;
-  const currentRoute = _navigationRef.current.getCurrentRoute();
+  // A span started by another container's navigation is left to that container (or its timeout),
+  // so this container's route never names it.
+  const spanOfOtherContainer =
+    _activeNavigationSpanContainer !== null && _activeNavigationSpanContainer !== tracked;
+  _reportRouteChange(tracked, spanOfOtherContainer ? null : _activeNavigationSpanId);
+};
+
+/**
+ * Reports [tracked]'s current route when it differs from the route that container showed last,
+ * completing [spanId] (the navigation span this change ends) when there is one.
+ */
+const _reportRouteChange = (tracked: TrackedNavigationContainer, spanId: string | null): void => {
+  const previousRouteName = tracked.currentRoute;
+  const currentRoute = tracked.ref.current?.getCurrentRoute();
   const currentRouteName = currentRoute?.name || null;
+  // The navigation span this change completes, if it is still the active one.
+  const activeSpanId = spanId !== null && spanId === _activeNavigationSpanId ? spanId : null;
 
   // If no route or same route, ignore
   if (!currentRouteName || previousRouteName === currentRouteName) {
     // Still need to clean up the span if one was created
-    if (_activeNavigationSpanId) {
+    if (activeSpanId) {
       Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'navigation resulted in same route', {
-        spanId: _activeNavigationSpanId,
+        spanId: activeSpanId,
         currentRouteName,
       });
-      ScreenLoadingManager.endSpan(_activeNavigationSpanId);
+      ScreenLoadingManager.endSpan(activeSpanId);
       _activeNavigationSpanId = null;
+      _activeNavigationSpanContainer = null;
       _clearStateChangeTimeout();
     }
     return;
   }
 
   // Capture the span ID BEFORE clearing it so we can pass it to reportScreenChange
-  let spanIdForReport: string | null = _activeNavigationSpanId;
+  let spanIdForReport: string | null = activeSpanId;
 
   // Complete the active navigation span if one exists
-  if (_activeNavigationSpanId) {
+  if (activeSpanId) {
     // Now that we know the actual route name, check if it's excluded
     if (ScreenLoadingManager.isRouteExcluded(currentRouteName)) {
       Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'route excluded, discarding span', {
-        spanId: _activeNavigationSpanId,
+        spanId: activeSpanId,
         currentRouteName,
       });
-      ScreenLoadingManager.discardSpan(_activeNavigationSpanId);
+      ScreenLoadingManager.discardSpan(activeSpanId);
       spanIdForReport = null;
       _activeNavigationSpanId = null;
+      _activeNavigationSpanContainer = null;
       _clearStateChangeTimeout();
     } else {
-      const span = ScreenLoadingManager.getActiveSpan(_activeNavigationSpanId);
+      const span = ScreenLoadingManager.getActiveSpan(activeSpanId);
       if (span) {
         // Update the span name from placeholder to actual screen name
         span.screenName = currentRouteName;
 
         // End the span - the native frame tracker will provide the actual render timestamp
-        ScreenLoadingManager.endSpan(_activeNavigationSpanId)
+        ScreenLoadingManager.endSpan(activeSpanId)
           .then(() => {
             Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'span completed for navigation', {
               currentRouteName,
@@ -1196,12 +1234,13 @@ const _onNavigationStateChange = (): void => {
 
       // Clear the active span and timeout
       _activeNavigationSpanId = null;
+      _activeNavigationSpanContainer = null;
       _clearStateChangeTimeout();
     }
   }
 
   // Update the current route for the rest of Luciq's tracking
-  _currentRoute = currentRouteName;
+  tracked.currentRoute = currentRouteName;
 
   // Android keeps the current view (the screen name on crash and bug reports) separate from the
   // repro-steps screen change. Without this call, apps using setNavigationListener kept the first
@@ -1264,11 +1303,66 @@ export const onNavigationStateChange = (
   }
 };
 
+/**
+ * Drops containers that unmounted (their ref no longer points at the container the listener was
+ * added to) and removes their listener.
+ */
+const _pruneNavigationContainers = (): void => {
+  _navigationContainers = _navigationContainers.filter((tracked) => {
+    if (tracked.ref.current === tracked.container) {
+      return true;
+    }
+    try {
+      tracked.unsubscribe?.();
+    } catch {
+      // The container is gone; nothing left to unsubscribe from.
+    }
+    return false;
+  });
+};
+
+/**
+ * The registered container [state] belongs to. `onStateChange` is passed the container's root
+ * state but not the container, so it is matched by identity, then by the root state's key. When
+ * neither matches, the most recently registered container is used, which is what a single-container
+ * app always gets.
+ */
+const _containerOf = (state?: NavigationStateV5): TrackedNavigationContainer | null => {
+  _pruneNavigationContainers();
+  if (_navigationContainers.length === 0) {
+    return null;
+  }
+  if (_navigationContainers.length > 1 && state) {
+    const rootStateOf = (tracked: TrackedNavigationContainer) => {
+      try {
+        return tracked.ref.current?.getRootState?.();
+      } catch {
+        return undefined;
+      }
+    };
+    const byIdentity = _navigationContainers.find((tracked) => rootStateOf(tracked) === state);
+    if (byIdentity) {
+      return byIdentity;
+    }
+    const stateKey = (state as { key?: string }).key;
+    if (stateKey) {
+      const byKey = _navigationContainers.find((tracked) => {
+        const rootState = rootStateOf(tracked) as { key?: string } | undefined;
+        return rootState?.key === stateKey;
+      });
+      if (byKey) {
+        return byKey;
+      }
+    }
+  }
+  return _navigationContainers[_navigationContainers.length - 1];
+};
+
 export const onStateChange = (state?: NavigationStateV5) => {
   if (Logger.isDebugEnabled()) {
     Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'onStateChange (react-navigation v5/v6)', {
       hasState: !!state,
-      hasNavigationRef: !!_navigationRef?.current,
+      hasNavigationRef: _navigationContainers.length > 0,
     });
   }
   if (!state) {
@@ -1277,11 +1371,11 @@ export const onStateChange = (state?: NavigationStateV5) => {
 
   // Delegate to the new state change handler for Screen Loading
   // This handles reportScreenChange when setNavigationListener was called
-  _onNavigationStateChange();
+  _onNavigationStateChange(state);
 
   // When setNavigationListener is used, _onNavigationStateChange already handles
   // reportScreenChange properly - skip legacy logic to avoid duplicate calls
-  if (_navigationRef?.current) {
+  if (_navigationContainers.length > 0) {
     return;
   }
 
@@ -1304,15 +1398,17 @@ export const onStateChange = (state?: NavigationStateV5) => {
 
 /**
  * Sets a listener for screen change
+ *
+ * Call it once per NavigationContainer. Apps that embed several React Native surfaces, each with
+ * its own container, can call it for each one: every container keeps its own route. Calling it
+ * again for a container that is already registered does nothing.
+ *
  *  @param navigationRef a refrence of a navigation container
  *
  */
 export const setNavigationListener = (
   navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
 ) => {
-  // Store the navigationRef for Screen Loading tracking
-  _navigationRef = navigationRef;
-
   if (Logger.isDebugEnabled()) {
     Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'setNavigationListener called', {
       hasNavigationRef: !!navigationRef,
@@ -1328,9 +1424,32 @@ export const setNavigationListener = (
     return;
   }
 
+  _pruneNavigationContainers();
+  const container = navigationRef.current;
+  if (
+    _navigationContainers.some(
+      (tracked) => tracked.ref === navigationRef || tracked.container === container,
+    )
+  ) {
+    Logger.debug(
+      LuciqDebugTags.SCREEN_TRACKING,
+      'setNavigationListener: container already registered',
+    );
+    return;
+  }
+
+  // Store the container for Screen Loading and screen tracking
+  const tracked: TrackedNavigationContainer = { ref: navigationRef, container, currentRoute: null };
+  _navigationContainers.push(tracked);
+
   // Register the __unsafe_action__ listener for span creation
   // This listener fires on navigation dispatch (start of navigation)
-  navigationRef.current.addListener('__unsafe_action__', _onNavigationAction);
+  const unsubscribe = container.addListener('__unsafe_action__', (event?: any) =>
+    _onNavigationAction(event, tracked),
+  );
+  if (typeof unsubscribe === 'function') {
+    tracked.unsubscribe = unsubscribe;
+  }
 
   // NOTE: We do NOT register a 'state' listener here because the user is expected
   // to pass Luciq.onStateChange to NavigationContainer's onStateChange prop.
