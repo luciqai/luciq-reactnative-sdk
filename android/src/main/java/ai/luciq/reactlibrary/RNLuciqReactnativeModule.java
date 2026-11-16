@@ -10,10 +10,13 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
+import androidx.annotation.VisibleForTesting;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -40,10 +43,12 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -1160,7 +1165,8 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @UiThread
     @Nullable
-    private View resolveReactView(final int reactTag) {
+    @VisibleForTesting
+    View resolveReactView(final int reactTag) {
         try {
             final ReactApplicationContext reactContext = getReactApplicationContext();
             final UIManagerModule uiManagerModule = reactContext.getNativeModule(UIManagerModule.class);
@@ -1180,6 +1186,24 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
     }
 
 
+    /**
+     * How long addPrivateView waits for a view to be mounted: PRIVATE_VIEW_MAX_ATTEMPTS lookups,
+     * PRIVATE_VIEW_RETRY_INTERVAL_MS apart (about one second).
+     */
+    @VisibleForTesting
+    static final int PRIVATE_VIEW_MAX_ATTEMPTS = 60;
+    @VisibleForTesting
+    static final long PRIVATE_VIEW_RETRY_INTERVAL_MS = 16;
+
+    /**
+     * React tags whose addPrivateView is waiting for the native view to be mounted. A ref callback
+     * runs when JavaScript commits a render, and with the new architecture the native view is mounted
+     * afterwards on the main thread, so the first lookup often finds nothing. removePrivateView drops
+     * a pending tag, so a view unmounted before it was found is never made private.
+     * Only touched on the main thread.
+     */
+    private final Set<Integer> pendingPrivateViewTags = new HashSet<>();
+
     @ReactMethod
     public void addPrivateView(@Nullable final Double reactTag) {
         if (reactTag == null) {
@@ -1190,17 +1214,48 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
             @Override
             public void run() {
                 LuciqRNLogger.d(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] called reactTag=" + reactTag);
-                try {
-                    final View view = resolveReactView(tag);
-
-                    if (view != null) {
-                        Luciq.addPrivateViews(view);
-                    }
-                } catch (Exception e) {
-                    LuciqRNLogger.e(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] failed", e);
-                }
+                markPrivateView(tag, 0);
             }
         });
+    }
+
+    /** Main thread only. Retries until the view for {@code tag} is mounted, removed, or the wait ends. */
+    @VisibleForTesting
+    void markPrivateView(final int tag, final int attempt) {
+        if (attempt > 0 && !pendingPrivateViewTags.contains(tag)) {
+            // removePrivateView ran while the view was not mounted yet.
+            return;
+        }
+        try {
+            final View view = resolveReactView(tag);
+            if (view != null) {
+                pendingPrivateViewTags.remove(tag);
+                Luciq.addPrivateViews(view);
+                if (attempt > 0) {
+                    LuciqRNLogger.d(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] view for reactTag=" + tag + " found after " + attempt + " retries");
+                }
+                return;
+            }
+        } catch (Exception e) {
+            LuciqRNLogger.e(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] failed", e);
+        }
+        if (attempt + 1 >= PRIVATE_VIEW_MAX_ATTEMPTS) {
+            pendingPrivateViewTags.remove(tag);
+            LuciqRNLogger.e(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] view not found for reactTag=" + tag + " (will NOT be masked)");
+            return;
+        }
+        pendingPrivateViewTags.add(tag);
+        privateViewRetryHandler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                markPrivateView(tag, attempt + 1);
+            }
+        }, PRIVATE_VIEW_RETRY_INTERVAL_MS);
+    }
+
+    @VisibleForTesting
+    Handler privateViewRetryHandler() {
+        return new Handler(Looper.getMainLooper());
     }
 
     @ReactMethod
@@ -1213,6 +1268,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
             @Override
             public void run() {
                 LuciqRNLogger.d(LuciqRNDebugTags.PRIVATE_VIEW, "[removePrivateView] called reactTag=" + reactTag);
+                pendingPrivateViewTags.remove(tag);
                 try {
                     final View view = resolveReactView(tag);
                     if (view != null) {

@@ -585,19 +585,61 @@ static NSMapTable<NSNumber *, UIView *> *LuciqPrivateViewsByTag(void) {
     return privateViews;
 }
 
-RCT_EXPORT_METHOD(addPrivateView: (nonnull NSNumber *)reactTag) {
-    [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[addPrivateView] called reactTag=%@", reactTag];
-    UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
-    if (view == nil) {
+/// React tags whose addPrivateView is waiting for the native view to be mounted. A ref callback
+/// runs when JavaScript commits a render, and with the new architecture the native view is mounted
+/// afterwards on the main thread, so the first lookup often finds nothing. removePrivateView drops
+/// a pending tag, so a view unmounted before it was found is never flagged.
+/// Only touched on the main queue (this module's methodQueue).
+static NSMutableSet<NSNumber *> *LuciqPendingPrivateViewTags(void) {
+    static NSMutableSet<NSNumber *> *pendingTags;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        pendingTags = [NSMutableSet set];
+    });
+    return pendingTags;
+}
+
+/// How long addPrivateView waits for a view to be mounted: kLuciqPrivateViewMaxAttempts lookups,
+/// kLuciqPrivateViewRetryInterval apart (about one second).
+static const NSUInteger kLuciqPrivateViewMaxAttempts = 60;
+static const NSTimeInterval kLuciqPrivateViewRetryInterval = 1.0 / 60.0;
+
+- (void)markPrivateViewWithReactTag:(NSNumber *)reactTag attempt:(NSUInteger)attempt {
+    NSMutableSet<NSNumber *> *pendingTags = LuciqPendingPrivateViewTags();
+    if (attempt > 0 && ![pendingTags containsObject:reactTag]) {
+        // removePrivateView ran while the view was not mounted yet.
+        return;
+    }
+    UIView *view = [self.bridge.uiManager viewForReactTag:reactTag];
+    if (view != nil) {
+        [pendingTags removeObject:reactTag];
+        view.Luciq_privateView = true;
+        [LuciqPrivateViewsByTag() setObject:view forKey:reactTag];
+        if (attempt > 0) {
+            [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[addPrivateView] view for reactTag=%@ found after %lu retries", reactTag, (unsigned long)attempt];
+        }
+        return;
+    }
+    if (attempt + 1 >= kLuciqPrivateViewMaxAttempts) {
+        [pendingTags removeObject:reactTag];
         [LuciqRNLogger w:[LuciqRNDebugTags privateView] format:@"[addPrivateView] view not found for reactTag=%@ (will NOT be masked)", reactTag];
         return;
     }
-    view.Luciq_privateView = true;
-    [LuciqPrivateViewsByTag() setObject:view forKey:reactTag];
+    [pendingTags addObject:reactTag];
+    __weak __typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kLuciqPrivateViewRetryInterval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [weakSelf markPrivateViewWithReactTag:reactTag attempt:attempt + 1];
+    });
+}
+
+RCT_EXPORT_METHOD(addPrivateView: (nonnull NSNumber *)reactTag) {
+    [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[addPrivateView] called reactTag=%@", reactTag];
+    [self markPrivateViewWithReactTag:reactTag attempt:0];
 }
 
 RCT_EXPORT_METHOD(removePrivateView: (nonnull NSNumber *)reactTag) {
     [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[removePrivateView] called reactTag=%@", reactTag];
+    [LuciqPendingPrivateViewTags() removeObject:reactTag];
     NSMapTable<NSNumber *, UIView *> *privateViews = LuciqPrivateViewsByTag();
     UIView* view = [privateViews objectForKey:reactTag] ?: [self.bridge.uiManager viewForReactTag:reactTag];
     [privateViews removeObjectForKey:reactTag];
