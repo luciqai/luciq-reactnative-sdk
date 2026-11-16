@@ -48,21 +48,53 @@ fi
   local luciq_dir=$(dirname $(node -p "require.resolve('@luciq/react-native/package.json')"))
   local inferred_token=$(cd $js_project_dir && node $luciq_dir/scripts/find-token.js)
   local app_token=$(resolve_var "App Token" "LUCIQ_APP_TOKEN" "$inferred_token" | tail -n 1)
+  skip_upload_if_unresolved "$app_token"
 
-  local inferred_name=$(/usr/libexec/PlistBuddy -c 'print CFBundleShortVersionString' "$PROJECT_DIR/$INFOPLIST_FILE")
+  # Info.plist usually holds build setting references, such as $(MARKETING_VERSION), that Xcode only
+  # substitutes when it builds the app. This build phase runs with the app target's build settings
+  # in its environment, so the references are expanded from there.
+  local inferred_name=$(expand_build_settings "$(/usr/libexec/PlistBuddy -c 'print CFBundleShortVersionString' "$PROJECT_DIR/$INFOPLIST_FILE")")
   local version_name=$(resolve_var "Version Name" "LUCIQ_APP_VERSION_NAME" "$inferred_name" | tail -n 1)
+  skip_upload_if_unresolved "$version_name"
 
-  local inferred_code=$(/usr/libexec/PlistBuddy -c 'print CFBundleVersion' "$PROJECT_DIR/$INFOPLIST_FILE")
+  local inferred_code=$(expand_build_settings "$(/usr/libexec/PlistBuddy -c 'print CFBundleVersion' "$PROJECT_DIR/$INFOPLIST_FILE")")
   local version_code=$(resolve_var "Version Code" "LUCIQ_APP_VERSION_CODE" "$inferred_code" | tail -n 1)
+  skip_upload_if_unresolved "$version_code"
 
 if [ -n "$sourcemap_file" ]; then
-  node $luciq_dir/bin/index.js upload-sourcemaps \
+  node "$luciq_dir/bin/index.js" upload-sourcemaps \
       --platform ios \
-      --file $sourcemap_file \
-      --token $app_token \
-      --name $version_name \
-      --code $version_code
+      --file "$sourcemap_file" \
+      --token "$app_token" \
+      --name "$version_name" \
+      --code "$version_code"
       fi
+}
+
+# resolve_var runs in a command substitution, so its `exit` only ends that subshell and its error
+# message comes back as the value. Report it and skip the upload instead of uploading with it.
+skip_upload_if_unresolved() {
+  if [[ "$1" == "[Error]"* ]]; then
+    echo "$1"
+    exit 0
+  fi
+}
+
+# Expands the build setting references in an Info.plist value, $(NAME) and ${NAME}, with any
+# :modifier ignored, from the environment. A setting missing from the environment expands to
+# nothing, so a version that can't be resolved is reported as missing rather than uploaded as
+# the literal reference.
+expand_build_settings() {
+  local value="$1"
+  local pattern='\$[({]([A-Za-z_][A-Za-z0-9_]*)(:[^)}]*)?[)}]'
+  local remaining=10
+  while [[ $remaining -gt 0 ]] && [[ "$value" =~ $pattern ]]; do
+    local reference="${BASH_REMATCH[0]}"
+    local setting="${BASH_REMATCH[1]}"
+    value="${value//"$reference"/${!setting}}"
+    remaining=$((remaining - 1))
+  done
+  echo "$value"
 }
 
 generate_sourcemaps() {

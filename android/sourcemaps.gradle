@@ -112,17 +112,15 @@ Task createUploadSourcemapsTask(Project appProject, String flavor, String defaul
 
                 // Run the package's own CLI rather than `npx luciq`, which depends on the working directory
                 // and could fetch an unrelated `luciq` package from the registry when it isn't found locally.
-                exec {
-                    commandLine(
-                            'node', new File(luciqDir, 'bin/index.js').absolutePath,
-                            'upload-sourcemaps',
-                            '--platform', 'android',
-                            '--file', sourceMapFile.absolutePath,
-                            '--token', appToken,
-                            '--name', versionName,
-                            '--code', versionCode
-                    )
-                }
+                runCommand([
+                        'node', new File(luciqDir, 'bin/index.js').absolutePath,
+                        'upload-sourcemaps',
+                        '--platform', 'android',
+                        '--file', sourceMapFile.absolutePath,
+                        '--token', appToken,
+                        '--name', versionName,
+                        '--code', versionCode
+                ], jsProjectDir)
             } catch (exception) {
                 project.logger.warn "⚠️  Failed to upload source map file. Reason: ${exception.message}. Build will continue."
             }
@@ -278,6 +276,21 @@ String resolveVar(String name, List<String> envKeys, String defaultValue) {
     }
 
     return value
+}
+
+/**
+ * Runs {@code command} in {@code workingDir}, streaming its output to the build log, and throws when
+ * it exits with a non-zero code.
+ *
+ * Gradle's `exec {}` script method was removed in Gradle 9, and the injectable replacement needs
+ * Gradle-version-specific wiring, so the command runs as a plain process, as the token lookup does.
+ */
+static void runCommand(List<String> command, File workingDir) {
+    def process = command.execute(null, workingDir)
+    process.waitForProcessOutput(System.out, System.err)
+    if (process.exitValue() != 0) {
+        throw new GradleException("`${command.take(3).join(' ')}` exited with code ${process.exitValue()}")
+    }
 }
 
 static String executeNodeScript(File script, File workingDir, List<String> args = []) {
