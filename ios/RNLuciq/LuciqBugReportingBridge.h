@@ -59,4 +59,21 @@
 
 - (void)setProactiveReportingConfigurations:(BOOL)enabled gap:(NSNumber* )gap model:(NSNumber* )modal;
 
+/*
+ +------------------------------------------------------------------------+
+ |                            Custom reports                              |
+ +------------------------------------------------------------------------+
+ */
+
+- (void)setReportCategoriesScope:(NSArray *)identifiers;
+
+- (void)getReportConfiguration:(LCQBugReportingReportType)type
+                       resolve:(RCTPromiseResolveBlock)resolve
+                        reject:(RCTPromiseRejectBlock)reject;
+
+- (void)submitReport:(LCQBugReportingReportType)type
+              report:(NSDictionary *)report
+             resolve:(RCTPromiseResolveBlock)resolve
+              reject:(RCTPromiseRejectBlock)reject;
+
 @end
