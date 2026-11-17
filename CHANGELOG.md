@@ -4,11 +4,11 @@
 
 ### Added
 
-- **Custom reports**: Add `BugReporting.submitReport(report)` to submit a bug, feedback or question collected by your own UI without showing the SDK's form. It resolves with a `CustomReportResult` (`queued`, `notSent` with a `NotSentReason`, or `invalid` with every `FieldError` at once) and rejects, with code `LCQ_INVALID_ARGUMENT`, only for malformed input. `Luciq.onReportSubmitHandler` still runs for these reports; the invoke and dismiss handlers do not. ([#TBD](https://github.com/luciqai/luciq-reactnative-sdk/pull/TBD))
+- **Custom reports**: Add `BugReporting.submitReport(report)` to submit a bug, feedback or question collected by your own UI without showing the SDK's form. It resolves with a `CustomReportResult` (`queued`, `notSent` with a `NotSentReason`, or `invalid` with every `FieldError` at once) and rejects, with code `LCQ_INVALID_ARGUMENT`, only for malformed input. `Luciq.onReportSubmitHandler` still runs for these reports; the invoke and dismiss handlers do not. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
 
-- **Report configuration**: Add `BugReporting.getReportConfiguration(type)`, which resolves the categories of a report type (identifiers, titles, fields with their keys and options, and whether a category is a leaf) and the requirements `submitReport` enforces (email, comment length, consents, extended fields, screenshot and attachment limits), or `null` when Bug Reporting or the report type isn't available. ([#TBD](https://github.com/luciqai/luciq-reactnative-sdk/pull/TBD))
+- **Report configuration**: Add `BugReporting.getReportConfiguration(type)`, which resolves the categories of a report type (identifiers, titles, fields with their keys and options, and whether a category is a leaf) and the requirements `submitReport` enforces (email, comment length, consents, extended fields, screenshot and attachment limits), or `null` when Bug Reporting or the report type isn't available. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
 
-- **Report categories scope**: Add `BugReporting.setReportCategoriesScope(identifiers)` to limit the report categories users see to the given dashboard identifiers; pass `null` or `[]` to show all categories again. ([#TBD](https://github.com/luciqai/luciq-reactnative-sdk/pull/TBD))
+- **Report categories scope**: Add `BugReporting.setReportCategoriesScope(identifiers)` to limit the report categories users see to the given dashboard identifiers; pass `null` or `[]` to show all categories again. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
 
 ### Changed
 
