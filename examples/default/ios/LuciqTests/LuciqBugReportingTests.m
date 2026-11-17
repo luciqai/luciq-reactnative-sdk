@@ -280,6 +280,14 @@
   XCTAssertNil(report.categoryIdentifier);
 }
 
+// A class mock answers every selector itself, category methods included, so
+// `[mock lcq_dictionaryRepresentation]` is nil. This runs the real one with the mock as `self`.
+static NSDictionary *LCQRealDictionaryRepresentation(Class cls, id mock) {
+  SEL selector = @selector(lcq_dictionaryRepresentation);
+  NSDictionary *(*implementation)(id, SEL) = (NSDictionary *(*)(id, SEL))[cls instanceMethodForSelector:selector];
+  return implementation(mock, selector);
+}
+
 - (LCQCustomReportFieldError *)fieldErrorWithField:(LCQCustomReportField)field key:(NSString *)key problem:(LCQCustomReportProblem)problem {
   LCQCustomReportFieldError *error = OCMClassMock([LCQCustomReportFieldError class]);
   OCMStub([error field]).andReturn(field);
@@ -293,6 +301,7 @@
   OCMStub([result status]).andReturn(status);
   OCMStub([result notSentReason]).andReturn(reason);
   OCMStub([result errors]).andReturn(errors);
+  OCMStub([result lcq_dictionaryRepresentation]).andReturn(LCQRealDictionaryRepresentation([LCQCustomReportResult class], result));
   return result;
 }
 
@@ -415,6 +424,7 @@
   OCMStub([configuration categories]).andReturn((@[reportAProblem, other]));
   OCMStub([configuration preselectedCategory]).andReturn(nil);
   OCMStub([configuration requirements]).andReturn(requirements);
+  OCMStub([configuration lcq_dictionaryRepresentation]).andReturn(LCQRealDictionaryRepresentation([LCQReportConfiguration class], configuration));
 
   NSDictionary *expectedRefund = @{
     @"identifier": @"checkout-refund", @"title": @"Refund", @"description": @"Refund issues", @"leaf": @YES, @"children": @[],
@@ -478,7 +488,7 @@
   OCMStub([configuration preselectedCategory]).andReturn(parent);
   OCMStub([configuration requirements]).andReturn(requirements);
 
-  NSDictionary *dictionary = [configuration lcq_dictionaryRepresentation];
+  NSDictionary *dictionary = LCQRealDictionaryRepresentation([LCQReportConfiguration class], configuration);
 
   XCTAssertEqual([dictionary[@"categories"] count], 1);
   XCTAssertEqualObjects(dictionary[@"preselectedCategory"][@"identifier"], @"report-a-problem");
@@ -500,6 +510,7 @@
   LCQReportConfiguration *configuration = OCMClassMock([LCQReportConfiguration class]);
   OCMStub([configuration categories]).andReturn(@[]);
   OCMStub([configuration requirements]).andReturn(requirements);
+  OCMStub([configuration lcq_dictionaryRepresentation]).andReturn(LCQRealDictionaryRepresentation([LCQReportConfiguration class], configuration));
   OCMStub(ClassMethod([mock getReportConfigurationForType:LCQBugReportingReportTypeBug completion:([OCMArg invokeBlockWithArgs:configuration, nil])]));
   XCTestExpectation *expectation = [self expectationWithDescription:@"resolved"];
 
