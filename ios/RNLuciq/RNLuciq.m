@@ -62,8 +62,20 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
 
     // React Native's root view controller is a plain UIViewController, so its root view identifies it:
     // RCTRootView on the old architecture, RCTSurfaceHostingView (and its proxy subclass) on the new one.
+    // Modals are presented rather than contained, so they never resolve to that root's host and are
+    // declared by their own view controller: <Modal> on each architecture, and react-native-screens'
+    // RNSScreen, which also backs its pushed screens (already covered through their parent host).
+    // Looked up by name: a class this app doesn't link, or one React Native renames, is skipped and
+    // that screen is tracked as native.
+    NSArray<NSString *> *hostClassNames = @[
+        @"RCTRootView",
+        @"RCTSurfaceHostingView",
+        @"RCTModalHostViewController",
+        @"RCTFabricModalHostViewController",
+        @"RNSScreen",
+    ];
     NSMutableArray<Class> *hosts = [NSMutableArray array];
-    for (NSString *className in @[@"RCTRootView", @"RCTSurfaceHostingView"]) {
+    for (NSString *className in hostClassNames) {
         Class hostClass = NSClassFromString(className);
         if (hostClass != nil) {
             [hosts addObject:hostClass];
