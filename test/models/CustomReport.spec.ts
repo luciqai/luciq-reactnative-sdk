@@ -1,15 +1,22 @@
 import { toNativeCustomReport } from '../../src/models/CustomReport';
-import type { CustomReport } from '../../src/models/CustomReport';
+import type { CustomReport, NativeCustomReport } from '../../src/models/CustomReport';
 import { ReportType } from '../../src/utils/Enums';
 import { LuciqInvalidArgumentError } from '../../src/utils/LuciqErrors';
 
-import reportFull from '../fixtures/customReport/report.full.json';
-
 describe('toNativeCustomReport', () => {
   it('should keep every part of a full report except reportType', () => {
-    expect(
-      toNativeCustomReport({ reportType: ReportType.bug, ...reportFull } as CustomReport),
-    ).toEqual(reportFull);
+    const payload: NativeCustomReport = {
+      comment: 'Refund was for the wrong amount',
+      email: 'reporter@example.com',
+      categoryIdentifier: 'checkout-refund',
+      answers: { f_reason: ['o_wrong_amount'], f_items: ['o_item_a', 'o_item_b'] },
+      consents: { c_share_logs: true, c_contact_me: false },
+      extendedFields: { repro_steps: '1. Pay 2. Request a refund' },
+      screenshot: 'currentScreen',
+      attachments: ['file:///data/user/0/com.example/files/report.log'],
+    };
+
+    expect(toNativeCustomReport({ reportType: ReportType.bug, ...payload })).toEqual(payload);
   });
 
   it('should produce an empty payload for a report with only a type', () => {

@@ -225,8 +225,6 @@
 /*
  +------------------------------------------------------------------------+
  |                            Custom reports                              |
- |  Mirrors the JSON files in test/fixtures/customReport (the test bundle |
- |  carries no resources, so the expected values are written by hand).    |
  +------------------------------------------------------------------------+
  */
 
@@ -244,7 +242,6 @@
 }
 
 - (void)testgivenFullDictionary$lcq_reportWithType_thenShouldBuildReport {
-  // report.full.json
   NSDictionary *dictionary = @{
     @"comment": @"Refund was for the wrong amount",
     @"email": @"reporter@example.com",
@@ -300,21 +297,18 @@
 }
 
 - (void)testgivenQueuedResult$lcq_dictionaryRepresentation_thenShouldMatchFixture {
-  // result.queued.json
   LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusQueued reason:LCQCustomReportNotSentReasonNone errors:@[]];
   NSDictionary *expected = @{@"status": @"queued", @"errors": @[]};
   XCTAssertEqualObjects([result lcq_dictionaryRepresentation], expected);
 }
 
 - (void)testgivenNotSentResult$lcq_dictionaryRepresentation_thenShouldMatchFixture {
-  // result.notSent.tryLater.json
   LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusNotSent reason:LCQCustomReportNotSentReasonTryLater errors:@[]];
   NSDictionary *expected = @{@"status": @"notSent", @"notSentReason": @"tryLater", @"errors": @[]};
   XCTAssertEqualObjects([result lcq_dictionaryRepresentation], expected);
 }
 
 - (void)testgivenInvalidResult$lcq_dictionaryRepresentation_thenShouldMatchFixture {
-  // result.invalid.json
   NSArray *errors = @[
     [self fieldErrorWithField:LCQCustomReportFieldCategory key:nil problem:LCQCustomReportProblemMissing],
     [self fieldErrorWithField:LCQCustomReportFieldAnswer key:@"f_reason" problem:LCQCustomReportProblemUnknown],
@@ -372,7 +366,6 @@
 }
 
 - (void)testgivenFullConfiguration$lcq_dictionaryRepresentation_thenShouldMatchFixture {
-  // configuration.full.json
   LCQReportConfigurationCategory *refund = [self categoryWithIdentifier:@"checkout-refund" title:@"Refund" description:@"Refund issues" children:@[] fields:@[
     [self fieldWithKey:@"f_reason" type:LCQReportConfigurationFieldTypeDropdown label:@"Reason" placeholder:@"Pick one" required:YES options:@[
       [self optionWithKey:@"o_wrong_amount" label:@"Wrong amount"], [self optionWithKey:@"o_not_received" label:@"Not received"]]],
@@ -466,7 +459,7 @@
 }
 
 - (void)testgivenScopedConfiguration$lcq_dictionaryRepresentation_thenShouldIncludePreselectedParent {
-  // configuration.scoped.json (categories narrowed to "checkout", parent "report-a-problem" preselected)
+  // Categories narrowed to "checkout", parent "report-a-problem" preselected.
   LCQReportConfigurationCategory *refund = [self categoryWithIdentifier:@"checkout-refund" title:@"Refund" description:nil children:@[] fields:@[]];
   LCQReportConfigurationCategory *checkout = [self categoryWithIdentifier:@"checkout" title:@"Checkout" description:nil children:@[refund] fields:@[]];
   LCQReportConfigurationCategory *parent = [self categoryWithIdentifier:@"report-a-problem" title:@"Report a problem" description:@"Something is broken" children:@[checkout] fields:@[]];

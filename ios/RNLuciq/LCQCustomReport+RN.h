@@ -3,8 +3,8 @@
 //  RNLuciq
 //
 //  Maps custom reports, their results and report configurations between the SDK types and
-//  the JS shapes (src/models/CustomReport.ts, CustomReportResult.ts, ReportConfiguration.ts;
-//  samples in test/fixtures/customReport). Enums cross the bridge by lower-camel name, as on Android.
+//  the JS shapes (src/models/CustomReport.ts, CustomReportResult.ts, ReportConfiguration.ts).
+//  Enums cross the bridge by lower-camel name, as on Android.
 //
 
 #import <Foundation/Foundation.h>
