@@ -35,7 +35,7 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception;
 
  @discussion Declares React Native's root views (`RCTRootView`, `RCTSurfaceHostingView`) and its modals
  (`<Modal>`'s `RCTModalHostViewController` and `RCTFabricModalHostViewController`, and react-native-screens'
- `RNSScreen`) as the screens React Native renders, so the native SDK resolves the platform per screen:
+ `RNSModalScreen`, the root view of a screen it presents) as the screens React Native renders, so the native SDK resolves the platform per screen:
  React Native screens keep the JavaScript route names and every other view controller is reported as a
  native screen. A class the app doesn't link is skipped. Call it before the SDK starts. On a native SDK
  without hybrid app support it logs a warning and does nothing.

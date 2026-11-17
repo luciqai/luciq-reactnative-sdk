@@ -82,7 +82,7 @@
     @"RCTSurfaceHostingView",
     @"RCTModalHostViewController",
     @"RCTFabricModalHostViewController",
-    @"RNSScreen",
+    @"RNSModalScreen",
   ];
   NSMutableSet<Class> *linkedHosts = [NSMutableSet set];
   for (NSString *className in hostClassNames) {
@@ -93,12 +93,22 @@
   }
   // The example app runs the new architecture with react-native-screens, so both modal kinds are linked.
   XCTAssertTrue([linkedHosts containsObject:NSClassFromString(@"RCTFabricModalHostViewController")]);
-  XCTAssertTrue([linkedHosts containsObject:NSClassFromString(@"RNSScreen")]);
+  XCTAssertTrue([linkedHosts containsObject:NSClassFromString(@"RNSModalScreen")]);
 
   [RNLuciq trackNativeScreens];
 
   OCMVerify([self.mLuciq registerCrossPlatformHosts:[OCMArg checkWithBlock:^BOOL(NSArray<Class> *hosts) {
     return [[NSSet setWithArray:hosts] isEqualToSet:linkedHosts];
+  }] platform:LCQPlatformReactNative]);
+}
+
+- (void)testWhenTrackingNativeScreensShouldNotRegisterRNSScreenSoPushedScreensStayInTheirStackHost {
+  XCTAssertNotNil(NSClassFromString(@"RNSScreen"));
+
+  [RNLuciq trackNativeScreens];
+
+  OCMVerify([self.mLuciq registerCrossPlatformHosts:[OCMArg checkWithBlock:^BOOL(NSArray<Class> *hosts) {
+    return ![hosts containsObject:NSClassFromString(@"RNSScreen")];
   }] platform:LCQPlatformReactNative]);
 }
 
