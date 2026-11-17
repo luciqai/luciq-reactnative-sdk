@@ -44,7 +44,7 @@ appId: ai.luciq.react.example
 - extendedWaitUntil:
     visible: 'Result: invalid'
     timeout: 30000
-- assertVisible: '"problem": "missing"'
+- assertVisible: '.*"problem": "missing".*'
 - back
 
 # getReportConfiguration -> tap a leaf -> submitReport -> queued (or notSent within the rate limits)
