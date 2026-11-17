@@ -13,6 +13,8 @@
 #import "LCQConstants.h"
 #import "RNLuciq.h"
 #import <RNLuciq/LCQNetworkLogger+CP.h>
+#import <RNLuciq/Luciq+CP.h>
+#import <RNLuciq/LCQAPM+PrivateAPIs.h>
 
 @protocol LuciqCPTestProtocol <NSObject>
 /**
@@ -273,6 +275,28 @@
   OCMStub([mock logUserEventWithName:name]);
   [self.luciqBridge logUserEvent:name parameters:@[]];
   OCMVerify([mock logUserEventWithName:name]);
+}
+
+- (void)testWhenAScreenIsReportedShouldRecordItAsACrossPlatformScreenAndStartItsUITraceAtTheReport {
+  id mLuciq = OCMClassMock([Luciq class]);
+  id mAPM = OCMClassMock([LCQAPM class]);
+  NSString *screenName = @"Home";
+  __block double startMUS = 0;
+  OCMStub([[mAPM ignoringNonObjectArgs] startUITraceCPWithName:screenName startTimestampMUS:0])
+    .andDo(^(NSInvocation *invocation) {
+      [invocation getArgument:&startMUS atIndex:3];
+    });
+  double beforeMUS = [[NSDate date] timeIntervalSince1970] * 1e6;
+
+  [self.luciqBridge reportScreenChange:screenName spanId:nil];
+
+  double afterMUS = [[NSDate date] timeIntervalSince1970] * 1e6;
+  OCMVerify([mLuciq logCrossPlatformViewDidAppearEvent:screenName]);
+  OCMVerify([[mAPM ignoringNonObjectArgs] startUITraceCPWithName:screenName startTimestampMUS:0]);
+  XCTAssertGreaterThanOrEqual(startMUS, beforeMUS);
+  XCTAssertLessThanOrEqual(startMUS, afterMUS);
+  [mLuciq stopMocking];
+  [mAPM stopMocking];
 }
 
 - (void)testLogUserEventWithParameters {

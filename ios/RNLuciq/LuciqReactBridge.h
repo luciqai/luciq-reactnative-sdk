@@ -63,6 +63,8 @@
 
 - (void)logUserEvent:(NSString *)name parameters:(NSArray *)parameters;
 
+- (void)reportScreenChange:(NSString *)screenName spanId:(nullable NSString *)spanId;
+
 - (void)logVerbose:(NSString *)log;
 
 - (void)setReproStepsConfig:(LCQUserStepsMode)bugMode:(LCQUserStepsMode)crashMode:(LCQUserStepsMode)sessionReplayMode;

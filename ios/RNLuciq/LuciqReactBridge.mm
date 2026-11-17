@@ -15,6 +15,8 @@
 #import <React/RCTUIManager.h>
 #import "RNLuciq.h"
 #import "Util/LCQNetworkLogger+CP.h"
+#import "Util/Luciq+CP.h"
+#import "Util/LCQAPM+PrivateAPIs.h"
 #import "Util/LuciqRNLogger.h"
 #import "Util/LuciqRNDebugTags.h"
 
@@ -657,6 +659,16 @@ RCT_EXPORT_METHOD(show) {
 
 RCT_EXPORT_METHOD(reportScreenChange:(NSString *)screenName spanId:(NSString * _Nullable)spanId) {
     [LuciqRNLogger d:[LuciqRNDebugTags screenTracking] format:@"[reportScreenChange] called screenNameLength=%lu present=%@ spanIdLength=%lu spanIdPresent=%@", (unsigned long)screenName.length, (screenName != nil ? @"YES" : @"NO"), (unsigned long)spanId.length, (spanId != nil ? @"YES" : @"NO")];
+    // In a hybrid app a route reported while a native screen is on top must not rename that screen, which only
+    // the cross-platform call knows to hold back. It records no APM UI trace, so one is started here at the
+    // time of the report, as `logViewDidAppearEvent:` does.
+    if ([Luciq respondsToSelector:@selector(logCrossPlatformViewDidAppearEvent:)]) {
+        [Luciq logCrossPlatformViewDidAppearEvent:screenName];
+        double nowMUS = [[NSDate date] timeIntervalSince1970] * 1e6;
+        [LCQAPM startUITraceCPWithName:screenName startTimestampMUS:nowMUS];
+        return;
+    }
+
     SEL setPrivateApiSEL = NSSelectorFromString(@"logViewDidAppearEvent:");
     if ([[Luciq class] respondsToSelector:setPrivateApiSEL]) {
         NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[[Luciq class] methodSignatureForSelector:setPrivateApiSEL]];

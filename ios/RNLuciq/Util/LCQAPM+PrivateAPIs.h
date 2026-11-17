@@ -17,6 +17,7 @@ typedef void (^LCQDisplayLinkObservationCallback)(NSTimeInterval currentTimestam
 + (BOOL)customSpansEnabled;
 
 + (void)endScreenLoadingCPWithEndTimestampMUS:(double)endTimestampMUS;
++ (void)startUITraceCPWithName:(NSString *_Nonnull)name startTimestampMUS:(double)startTimestampMUS;
 + (void)reportScreenLoadingCPWithStartTimestampMUS:(double)startTimestampMUS
                                        durationMUS:(double)durationMUS
                                     stages:(nullable NSDictionary<NSString *, NSNumber *> *)stages;;
