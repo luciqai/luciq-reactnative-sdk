@@ -11,6 +11,15 @@ def luciq_spm_enabled?
   ENV['LUCIQ_USE_SPM'] == '1'
 end
 
+# Link an unreleased native SDK build from a custom podspec instead of the
+# pinned CocoaPods version, e.g. a snapshot of a feature branch:
+#   LUCIQ_IOS_PODSPEC=https://ios-releases.luciq.ai/custom/<branch>/<version>/Luciq.podspec pod install
+# A local path to a .podspec file works too. Ignored when SwiftPM is in use.
+def luciq_custom_podspec
+  value = ENV['LUCIQ_IOS_PODSPEC'].to_s.strip
+  value.empty? ? nil : value
+end
+
 # Registers the SwiftPM dependency via React Native's `spm_dependency` global
 # helper (defined in react_native_pods.rb, which the Podfile requires; available
 # on React Native >= 0.75). It is a top-level method, so it lands on `main` and
@@ -45,6 +54,15 @@ def use_luciq! (spec = nil)
   # CocoaPods by default; SwiftPM only when opted in and supported.
   if spm_requested && add_luciq_spm_dependency!(spec)
     Pod::UI.puts "[Luciq] Linking native SDK #{version} via SwiftPM".green
+  elsif (custom_podspec = luciq_custom_podspec)
+    # The app's Podfile resolves the pod from the custom podspec; the library's
+    # podspec keeps a version-less dependency so CocoaPods accepts that build.
+    Pod::UI.puts "[Luciq] Linking native SDK from custom podspec #{custom_podspec}".yellow
+    if (!spec)
+      pod 'Luciq', :podspec => custom_podspec
+    else
+      spec.dependency 'Luciq'
+    end
   else
     Pod::UI.puts "[Luciq] Linking native SDK #{version} via CocoaPods".green
     if (!spec)

@@ -40,6 +40,10 @@ end
 
 target 'LuciqExample' do
   config = use_native_modules!
+
+  # Unreleased native SDK build from a custom podspec (see ios/native.rb):
+  #   LUCIQ_IOS_PODSPEC=https://ios-releases.luciq.ai/custom/<branch>/<version>/Luciq.podspec pod install
+  use_luciq! if luciq_custom_podspec
   rn_maps_path = '../node_modules/react-native-maps'
   pod 'react-native-google-maps', :path => rn_maps_path
   # XCFramework from local extracted folder

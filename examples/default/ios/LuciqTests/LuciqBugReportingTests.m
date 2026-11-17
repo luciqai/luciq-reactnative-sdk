@@ -325,15 +325,15 @@
 }
 
 - (LCQCustomReportFieldError *)fieldErrorWithField:(LCQCustomReportField)field key:(NSString *)key problem:(LCQCustomReportProblem)problem {
-  id error = OCMClassMock([LCQCustomReportFieldError class]);
+  LCQCustomReportFieldError *error = OCMClassMock([LCQCustomReportFieldError class]);
   OCMStub([error field]).andReturn(field);
   OCMStub([error key]).andReturn(key);
   OCMStub([error problem]).andReturn(problem);
   return error;
 }
 
-- (id)resultWithStatus:(LCQCustomReportStatus)status reason:(LCQCustomReportNotSentReason)reason errors:(NSArray *)errors {
-  id result = OCMClassMock([LCQCustomReportResult class]);
+- (LCQCustomReportResult *)resultWithStatus:(LCQCustomReportStatus)status reason:(LCQCustomReportNotSentReason)reason errors:(NSArray *)errors {
+  LCQCustomReportResult *result = OCMClassMock([LCQCustomReportResult class]);
   OCMStub([result status]).andReturn(status);
   OCMStub([result notSentReason]).andReturn(reason);
   OCMStub([result errors]).andReturn(errors);
@@ -342,14 +342,14 @@
 
 - (void)testgivenQueuedResult$lcq_dictionaryRepresentation_thenShouldMatchFixture {
   // result.queued.json
-  id result = [self resultWithStatus:LCQCustomReportStatusQueued reason:LCQCustomReportNotSentReasonNone errors:@[]];
+  LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusQueued reason:LCQCustomReportNotSentReasonNone errors:@[]];
   NSDictionary *expected = @{@"status": @"queued", @"errors": @[]};
   XCTAssertEqualObjects([result lcq_dictionaryRepresentation], expected);
 }
 
 - (void)testgivenNotSentResult$lcq_dictionaryRepresentation_thenShouldMatchFixture {
   // result.notSent.tryLater.json
-  id result = [self resultWithStatus:LCQCustomReportStatusNotSent reason:LCQCustomReportNotSentReasonTryLater errors:@[]];
+  LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusNotSent reason:LCQCustomReportNotSentReasonTryLater errors:@[]];
   NSDictionary *expected = @{@"status": @"notSent", @"notSentReason": @"tryLater", @"errors": @[]};
   XCTAssertEqualObjects([result lcq_dictionaryRepresentation], expected);
 }
@@ -366,7 +366,7 @@
     [self fieldErrorWithField:LCQCustomReportFieldScreenshot key:nil problem:LCQCustomReportProblemInvalid],
     [self fieldErrorWithField:LCQCustomReportFieldAttachment key:@"0" problem:LCQCustomReportProblemTooLong],
   ];
-  id result = [self resultWithStatus:LCQCustomReportStatusInvalid reason:LCQCustomReportNotSentReasonNone errors:errors];
+  LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusInvalid reason:LCQCustomReportNotSentReasonNone errors:errors];
   NSDictionary *expected = @{
     @"status": @"invalid",
     @"errors": @[
@@ -383,15 +383,15 @@
   XCTAssertEqualObjects([result lcq_dictionaryRepresentation], expected);
 }
 
-- (id)optionWithKey:(NSString *)key label:(NSString *)label {
-  id option = OCMClassMock([LCQReportConfigurationFieldOption class]);
+- (LCQReportConfigurationFieldOption *)optionWithKey:(NSString *)key label:(NSString *)label {
+  LCQReportConfigurationFieldOption *option = OCMClassMock([LCQReportConfigurationFieldOption class]);
   OCMStub([option key]).andReturn(key);
   OCMStub([option label]).andReturn(label);
   return option;
 }
 
-- (id)fieldWithKey:(NSString *)key type:(LCQReportConfigurationFieldType)type label:(NSString *)label placeholder:(NSString *)placeholder required:(BOOL)required options:(NSArray *)options {
-  id field = OCMClassMock([LCQReportConfigurationField class]);
+- (LCQReportConfigurationField *)fieldWithKey:(NSString *)key type:(LCQReportConfigurationFieldType)type label:(NSString *)label placeholder:(NSString *)placeholder required:(BOOL)required options:(NSArray *)options {
+  LCQReportConfigurationField *field = OCMClassMock([LCQReportConfigurationField class]);
   OCMStub([field key]).andReturn(key);
   OCMStub([field type]).andReturn(type);
   OCMStub([field label]).andReturn(label);
@@ -401,8 +401,8 @@
   return field;
 }
 
-- (id)categoryWithIdentifier:(NSString *)identifier title:(NSString *)title description:(NSString *)description children:(NSArray *)children fields:(NSArray *)fields {
-  id category = OCMClassMock([LCQReportConfigurationCategory class]);
+- (LCQReportConfigurationCategory *)categoryWithIdentifier:(NSString *)identifier title:(NSString *)title description:(NSString *)description children:(NSArray *)children fields:(NSArray *)fields {
+  LCQReportConfigurationCategory *category = OCMClassMock([LCQReportConfigurationCategory class]);
   OCMStub([category identifier]).andReturn(identifier);
   OCMStub([category title]).andReturn(title);
   OCMStub([category categoryDescription]).andReturn(description);
@@ -414,7 +414,7 @@
 
 - (void)testgivenFullConfiguration$lcq_dictionaryRepresentation_thenShouldMatchFixture {
   // configuration.full.json
-  id refund = [self categoryWithIdentifier:@"checkout-refund" title:@"Refund" description:@"Refund issues" children:@[] fields:@[
+  LCQReportConfigurationCategory *refund = [self categoryWithIdentifier:@"checkout-refund" title:@"Refund" description:@"Refund issues" children:@[] fields:@[
     [self fieldWithKey:@"f_reason" type:LCQReportConfigurationFieldTypeDropdown label:@"Reason" placeholder:@"Pick one" required:YES options:@[
       [self optionWithKey:@"o_wrong_amount" label:@"Wrong amount"], [self optionWithKey:@"o_not_received" label:@"Not received"]]],
     [self fieldWithKey:@"f_items" type:LCQReportConfigurationFieldTypeCheckbox label:@"Items" placeholder:nil required:NO options:@[
@@ -423,16 +423,16 @@
       [self optionWithKey:@"o_store_1" label:@"Store 1"]]],
     [self fieldWithKey:@"f_details" type:LCQReportConfigurationFieldTypeText label:nil placeholder:@"Tell us more" required:NO options:@[]],
   ]];
-  id checkout = [self categoryWithIdentifier:@"checkout" title:@"Checkout" description:nil children:@[refund] fields:@[]];
-  id reportAProblem = [self categoryWithIdentifier:@"report-a-problem" title:@"Report a problem" description:@"Something is broken" children:@[checkout] fields:@[]];
-  id other = [self categoryWithIdentifier:@"other" title:@"Other" description:nil children:@[] fields:@[]];
+  LCQReportConfigurationCategory *checkout = [self categoryWithIdentifier:@"checkout" title:@"Checkout" description:nil children:@[refund] fields:@[]];
+  LCQReportConfigurationCategory *reportAProblem = [self categoryWithIdentifier:@"report-a-problem" title:@"Report a problem" description:@"Something is broken" children:@[checkout] fields:@[]];
+  LCQReportConfigurationCategory *other = [self categoryWithIdentifier:@"other" title:@"Other" description:nil children:@[] fields:@[]];
 
-  id shareLogs = OCMClassMock([LCQReportConsent class]);
+  LCQReportConsent *shareLogs = OCMClassMock([LCQReportConsent class]);
   OCMStub([shareLogs key]).andReturn(@"c_share_logs");
   OCMStub([shareLogs consentDescription]).andReturn(@"Share logs");
   OCMStub([shareLogs isMandatory]).andReturn(YES);
   OCMStub([shareLogs isCheckedByDefault]).andReturn(NO);
-  id contactMe = OCMClassMock([LCQReportConsent class]);
+  LCQReportConsent *contactMe = OCMClassMock([LCQReportConsent class]);
   OCMStub([contactMe key]).andReturn(@"c_contact_me");
   OCMStub([contactMe consentDescription]).andReturn(nil);
   OCMStub([contactMe isMandatory]).andReturn(NO);
@@ -441,27 +441,27 @@
   NSMutableArray *extendedFields = [NSMutableArray array];
   NSArray *extendedSpecs = @[@[@"repro_steps", @"Steps to reproduce", @YES], @[@"actual_result", @"Actual result", @NO], @[@"expected_result", @"Expected result", @NO]];
   for (NSArray *spec in extendedSpecs) {
-    id field = OCMClassMock([LCQReportExtendedField class]);
+    LCQReportExtendedField *field = OCMClassMock([LCQReportExtendedField class]);
     OCMStub([field identifier]).andReturn(spec[0]);
     OCMStub([field title]).andReturn(spec[1]);
     OCMStub([field isRequired]).andReturn([spec[2] boolValue]);
     [extendedFields addObject:field];
   }
 
-  id requirements = OCMClassMock([LCQReportRequirements class]);
+  LCQReportRequirements *requirements = OCMClassMock([LCQReportRequirements class]);
   OCMStub([requirements email]).andReturn(LCQReportEmailRequirementOptional);
   OCMStub([requirements identifiedEmail]).andReturn(@"identified@example.com");
   OCMStub([requirements commentMinLength]).andReturn(2);
   OCMStub([requirements commentMaxLength]).andReturn(4000);
-  OCMStub([requirements consents]).andReturn(@[shareLogs, contactMe]);
+  OCMStub([requirements consents]).andReturn((@[shareLogs, contactMe]));
   OCMStub([requirements extendedFields]).andReturn(extendedFields);
   OCMStub([requirements isScreenshotRequired]).andReturn(NO);
   OCMStub([requirements maxAttachments]).andReturn(3);
   OCMStub([requirements maxAttachmentBytes]).andReturn(5242880LL);
 
-  id configuration = OCMClassMock([LCQReportConfiguration class]);
+  LCQReportConfiguration *configuration = OCMClassMock([LCQReportConfiguration class]);
   OCMStub([configuration reportType]).andReturn(LCQBugReportingReportTypeBug);
-  OCMStub([configuration categories]).andReturn(@[reportAProblem, other]);
+  OCMStub([configuration categories]).andReturn((@[reportAProblem, other]));
   OCMStub([configuration preselectedCategory]).andReturn(nil);
   OCMStub([configuration requirements]).andReturn(requirements);
 
@@ -510,10 +510,10 @@
 
 - (void)testgivenScopedConfiguration$lcq_dictionaryRepresentation_thenShouldIncludePreselectedParent {
   // configuration.scoped.json (categories narrowed to "checkout", parent "report-a-problem" preselected)
-  id refund = [self categoryWithIdentifier:@"checkout-refund" title:@"Refund" description:nil children:@[] fields:@[]];
-  id checkout = [self categoryWithIdentifier:@"checkout" title:@"Checkout" description:nil children:@[refund] fields:@[]];
-  id parent = [self categoryWithIdentifier:@"report-a-problem" title:@"Report a problem" description:@"Something is broken" children:@[checkout] fields:@[]];
-  id requirements = OCMClassMock([LCQReportRequirements class]);
+  LCQReportConfigurationCategory *refund = [self categoryWithIdentifier:@"checkout-refund" title:@"Refund" description:nil children:@[] fields:@[]];
+  LCQReportConfigurationCategory *checkout = [self categoryWithIdentifier:@"checkout" title:@"Checkout" description:nil children:@[refund] fields:@[]];
+  LCQReportConfigurationCategory *parent = [self categoryWithIdentifier:@"report-a-problem" title:@"Report a problem" description:@"Something is broken" children:@[checkout] fields:@[]];
+  LCQReportRequirements *requirements = OCMClassMock([LCQReportRequirements class]);
   OCMStub([requirements email]).andReturn(LCQReportEmailRequirementHidden);
   OCMStub([requirements identifiedEmail]).andReturn(nil);
   OCMStub([requirements commentMinLength]).andReturn(0);
@@ -523,7 +523,7 @@
   OCMStub([requirements isScreenshotRequired]).andReturn(YES);
   OCMStub([requirements maxAttachments]).andReturn(3);
   OCMStub([requirements maxAttachmentBytes]).andReturn(5242880LL);
-  id configuration = OCMClassMock([LCQReportConfiguration class]);
+  LCQReportConfiguration *configuration = OCMClassMock([LCQReportConfiguration class]);
   OCMStub([configuration reportType]).andReturn(LCQBugReportingReportTypeFeedback);
   OCMStub([configuration categories]).andReturn(@[checkout]);
   OCMStub([configuration preselectedCategory]).andReturn(parent);
@@ -543,17 +543,17 @@
 
 - (void)testgivenConfiguration$getReportConfiguration_whenReady_thenShouldResolveDictionary {
   id mock = OCMClassMock([LCQBugReporting class]);
-  id requirements = OCMClassMock([LCQReportRequirements class]);
+  LCQReportRequirements *requirements = OCMClassMock([LCQReportRequirements class]);
   OCMStub([requirements email]).andReturn(LCQReportEmailRequirementOptional);
   OCMStub([requirements consents]).andReturn(@[]);
   OCMStub([requirements extendedFields]).andReturn(@[]);
   OCMStub([requirements maxAttachments]).andReturn(3);
   OCMStub([requirements maxAttachmentBytes]).andReturn(5242880LL);
-  id configuration = OCMClassMock([LCQReportConfiguration class]);
+  LCQReportConfiguration *configuration = OCMClassMock([LCQReportConfiguration class]);
   OCMStub([configuration reportType]).andReturn(LCQBugReportingReportTypeBug);
   OCMStub([configuration categories]).andReturn(@[]);
   OCMStub([configuration requirements]).andReturn(requirements);
-  OCMStub([mock getReportConfigurationForType:LCQBugReportingReportTypeBug completion:[OCMArg invokeBlockWithArgs:configuration, nil]]);
+  OCMStub(ClassMethod([mock getReportConfigurationForType:LCQBugReportingReportTypeBug completion:([OCMArg invokeBlockWithArgs:configuration, nil])]));
   XCTestExpectation *expectation = [self expectationWithDescription:@"resolved"];
 
   [self.luciqBridge getReportConfiguration:LCQBugReportingReportTypeBug resolve:^(id result) {
@@ -569,7 +569,7 @@
 
 - (void)testgivenNilConfiguration$getReportConfiguration_whenReady_thenShouldResolveNull {
   id mock = OCMClassMock([LCQBugReporting class]);
-  OCMStub([mock getReportConfigurationForType:LCQBugReportingReportTypeFeedback completion:[OCMArg invokeBlockWithArgs:[NSNull null], nil]]);
+  OCMStub(ClassMethod([mock getReportConfigurationForType:LCQBugReportingReportTypeFeedback completion:([OCMArg invokeBlockWithArgs:[NSNull null], nil])]));
   XCTestExpectation *expectation = [self expectationWithDescription:@"resolved"];
 
   [self.luciqBridge getReportConfiguration:LCQBugReportingReportTypeFeedback resolve:^(id result) {
@@ -584,10 +584,10 @@
 
 - (void)testgivenQueued$submitReport_whenResult_thenShouldResolveQueued {
   id mock = OCMClassMock([LCQBugReporting class]);
-  id result = [self resultWithStatus:LCQCustomReportStatusQueued reason:LCQCustomReportNotSentReasonNone errors:@[]];
-  OCMStub([mock submitReport:[OCMArg checkWithBlock:^BOOL(LCQCustomReport *report) {
+  LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusQueued reason:LCQCustomReportNotSentReasonNone errors:@[]];
+  OCMStub(ClassMethod([mock submitReport:[OCMArg checkWithBlock:^BOOL(LCQCustomReport *report) {
     return [report.comment isEqualToString:@"Refund was wrong"] && [report.categoryIdentifier isEqualToString:@"checkout-refund"];
-  }] completion:[OCMArg invokeBlockWithArgs:result, nil]]);
+  }] completion:([OCMArg invokeBlockWithArgs:result, nil])]));
   XCTestExpectation *expectation = [self expectationWithDescription:@"resolved"];
 
   [self.luciqBridge submitReport:LCQBugReportingReportTypeBug
@@ -604,7 +604,7 @@
 
 - (void)testgivenMalformedReport$submitReport_whenQuery_thenShouldRejectWithInvalidArgument {
   id mock = OCMClassMock([LCQBugReporting class]);
-  OCMReject([mock submitReport:[OCMArg any] completion:[OCMArg any]]);
+  OCMReject(ClassMethod([mock submitReport:[OCMArg any] completion:[OCMArg any]]));
   XCTestExpectation *expectation = [self expectationWithDescription:@"rejected"];
 
   [self.luciqBridge submitReport:LCQBugReportingReportTypeBug

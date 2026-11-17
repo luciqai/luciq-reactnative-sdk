@@ -1,0 +1,84 @@
+appId: ai.luciq.react.example
+---
+# Custom report APIs: categories scope, report configuration and headless submit.
+# Needs a dashboard with at least one leaf category for the bug report type
+# (the flow below uses the "my-overall-experience" leaf of the example app's token).
+
+- launchApp
+- tapOn: 'Bug Reporting'
+
+# setReportCategoriesScope
+- scrollUntilVisible:
+    element:
+      text: 'Report Categories Scope'
+    direction: DOWN
+- tapOn: 'Report Categories Scope'
+- tapOn:
+    id: id_scope_input
+- inputText: 'checkout, checkout-refund'
+- hideKeyboard
+- tapOn:
+    id: id_scope_apply
+- assertVisible: 'Current scope: checkout, checkout-refund'
+- tapOn:
+    id: id_scope_clear
+- assertVisible: 'Current scope: all categories'
+- back
+
+# submitReport without a category -> invalid / category / missing
+- scrollUntilVisible:
+    element:
+      text: 'Submit Custom Report'
+    direction: DOWN
+- tapOn: 'Submit Custom Report'
+- tapOn:
+    id: id_custom_report_comment
+- inputText: 'Maestro headless report without a category'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: id_custom_report_submit
+    direction: DOWN
+- tapOn:
+    id: id_custom_report_submit
+- extendedWaitUntil:
+    visible: 'Result: invalid'
+    timeout: 30000
+- assertVisible: '"problem": "missing"'
+- back
+
+# getReportConfiguration -> tap a leaf -> submitReport -> queued (or notSent within the rate limits)
+- scrollUntilVisible:
+    element:
+      text: 'Report Configuration'
+    direction: DOWN
+- tapOn: 'Report Configuration'
+- tapOn:
+    id: id_config_fetch
+- extendedWaitUntil:
+    visible: 'Categories \(tap a leaf to submit a report\)'
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: id_category_my-overall-experience
+    direction: DOWN
+- tapOn:
+    id: id_category_my-overall-experience
+- assertVisible: 'my-overall-experience'
+- tapOn:
+    id: id_custom_report_comment
+- inputText: 'Maestro headless report through a leaf category'
+- hideKeyboard
+- tapOn:
+    id: id_custom_report_email
+- inputText: 'rn_e2e@luciq.ai'
+- hideKeyboard
+- scrollUntilVisible:
+    element:
+      id: id_custom_report_submit
+    direction: DOWN
+- tapOn:
+    id: id_custom_report_submit
+- extendedWaitUntil:
+    visible: 'Result: (queued|notSent)'
+    timeout: 30000
