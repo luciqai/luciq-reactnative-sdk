@@ -10,10 +10,13 @@ import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.UiThread;
+import androidx.annotation.VisibleForTesting;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.Promise;
@@ -40,10 +43,12 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -190,6 +195,10 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                     builder.ignoreFlagSecure(map.getBoolean("ignoreAndroidSecureFlag"));
                 }
 
+                if (map != null && map.hasKey("trackNativeScreens")) {
+                    builder.trackNativeScreens(map.getBoolean("trackNativeScreens"));
+                }
+
                 if (codePushVersion != null) {
                     if (Luciq.isBuilt()) {
                         Luciq.setCodePushVersion(codePushVersion);
@@ -212,6 +221,44 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
                 builder.build();
                 LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[init] SDK build complete");
+            }
+        });
+    }
+
+    /**
+     * Connects React Native to the SDK the native app already started (hybrid apps).
+     *
+     * Unlike {@link #init}, it never builds the SDK, so it leaves the native app's configuration
+     * alone: no second {@code Luciq.Builder}, and no change to the native log level, secure flag or
+     * APM hot launches. It only installs what React Native screens need from the native side: the
+     * touched-view extractor that labels RN taps.
+     *
+     * It never sets the React Native platform, and {@code RNLuciqReactnativePackage} skips it too when
+     * the native app already started Luciq, so the native app's screens keep their native platform.
+     * Native apps on a recent SDK declare their React Native screens with
+     * {@code Luciq.Builder.registerCrossPlatformHosts}.
+     *
+     * @param logLevel the React Native SDK's own log level. It does not change the native SDK's.
+     */
+    @ReactMethod
+    public void attachToNativeApp(final String logLevel) {
+        final int parsedLogLevel = ArgsRegistry.sdkLogLevels.getOrDefault(logLevel, LogLevel.ERROR);
+        LuciqRNLogger.setLevel(parsedLogLevel);
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (!Luciq.isBuilt()) {
+                        LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[attachToNativeApp] Luciq isn't running in the "
+                                + "native app. Start it with Luciq.Builder in Application.onCreate, before React "
+                                + "Native starts.");
+                        return;
+                    }
+                    InstabugCore.setTouchedViewExtractorExtension(new RNTouchedViewExtractor());
+                    LuciqRNLogger.d(LuciqRNDebugTags.CORE, "[attachToNativeApp] attached to the SDK started by the native app");
+                } catch (Exception e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.CORE, "[attachToNativeApp] failed", e);
+                }
             }
         });
     }
@@ -1118,7 +1165,8 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
 
     @UiThread
     @Nullable
-    private View resolveReactView(final int reactTag) {
+    @VisibleForTesting
+    View resolveReactView(final int reactTag) {
         try {
             final ReactApplicationContext reactContext = getReactApplicationContext();
             final UIManagerModule uiManagerModule = reactContext.getNativeModule(UIManagerModule.class);
@@ -1138,6 +1186,24 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
     }
 
 
+    /**
+     * How long addPrivateView waits for a view to be mounted: PRIVATE_VIEW_MAX_ATTEMPTS lookups,
+     * PRIVATE_VIEW_RETRY_INTERVAL_MS apart (about one second).
+     */
+    @VisibleForTesting
+    static final int PRIVATE_VIEW_MAX_ATTEMPTS = 60;
+    @VisibleForTesting
+    static final long PRIVATE_VIEW_RETRY_INTERVAL_MS = 16;
+
+    /**
+     * React tags whose addPrivateView is waiting for the native view to be mounted. A ref callback
+     * runs when JavaScript commits a render, and with the new architecture the native view is mounted
+     * afterwards on the main thread, so the first lookup often finds nothing. removePrivateView drops
+     * a pending tag, so a view unmounted before it was found is never made private.
+     * Only touched on the main thread.
+     */
+    private final Set<Integer> pendingPrivateViewTags = new HashSet<>();
+
     @ReactMethod
     public void addPrivateView(@Nullable final Double reactTag) {
         if (reactTag == null) {
@@ -1148,17 +1214,48 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
             @Override
             public void run() {
                 LuciqRNLogger.d(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] called reactTag=" + reactTag);
-                try {
-                    final View view = resolveReactView(tag);
-
-                    if (view != null) {
-                        Luciq.addPrivateViews(view);
-                    }
-                } catch (Exception e) {
-                    LuciqRNLogger.e(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] failed", e);
-                }
+                markPrivateView(tag, 0);
             }
         });
+    }
+
+    /** Main thread only. Retries until the view for {@code tag} is mounted, removed, or the wait ends. */
+    @VisibleForTesting
+    void markPrivateView(final int tag, final int attempt) {
+        if (attempt > 0 && !pendingPrivateViewTags.contains(tag)) {
+            // removePrivateView ran while the view was not mounted yet.
+            return;
+        }
+        try {
+            final View view = resolveReactView(tag);
+            if (view != null) {
+                pendingPrivateViewTags.remove(tag);
+                Luciq.addPrivateViews(view);
+                if (attempt > 0) {
+                    LuciqRNLogger.d(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] view for reactTag=" + tag + " found after " + attempt + " retries");
+                }
+                return;
+            }
+        } catch (Exception e) {
+            LuciqRNLogger.e(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] failed", e);
+        }
+        if (attempt + 1 >= PRIVATE_VIEW_MAX_ATTEMPTS) {
+            pendingPrivateViewTags.remove(tag);
+            LuciqRNLogger.e(LuciqRNDebugTags.PRIVATE_VIEW, "[addPrivateView] view not found for reactTag=" + tag + " (will NOT be masked)");
+            return;
+        }
+        pendingPrivateViewTags.add(tag);
+        privateViewRetryHandler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                markPrivateView(tag, attempt + 1);
+            }
+        }, PRIVATE_VIEW_RETRY_INTERVAL_MS);
+    }
+
+    @VisibleForTesting
+    Handler privateViewRetryHandler() {
+        return new Handler(Looper.getMainLooper());
     }
 
     @ReactMethod
@@ -1171,6 +1268,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
             @Override
             public void run() {
                 LuciqRNLogger.d(LuciqRNDebugTags.PRIVATE_VIEW, "[removePrivateView] called reactTag=" + reactTag);
+                pendingPrivateViewTags.remove(tag);
                 try {
                     final View view = resolveReactView(tag);
                     if (view != null) {

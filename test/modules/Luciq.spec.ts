@@ -329,6 +329,44 @@ describe('Luciq Module', () => {
     );
   });
 
+  it('should pass trackNativeScreens to the native init when enabled', () => {
+    Luciq.init({
+      token: 'some-token',
+      invocationEvents: [InvocationEvent.none],
+      trackNativeScreens: true,
+    });
+
+    expect(NativeLuciq.init).toBeCalledWith(
+      'some-token',
+      [InvocationEvent.none],
+      LogLevel.error,
+      false,
+      undefined,
+      undefined,
+      { trackNativeScreens: true },
+      undefined,
+    );
+  });
+
+  it('should not pass any native init option when trackNativeScreens is false', () => {
+    Luciq.init({
+      token: 'some-token',
+      invocationEvents: [InvocationEvent.none],
+      trackNativeScreens: false,
+    });
+
+    expect(NativeLuciq.init).toBeCalledWith(
+      'some-token',
+      [InvocationEvent.none],
+      LogLevel.error,
+      false,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+    );
+  });
+
   it('setCodePushVersion should call native method setCodePushVersion', () => {
     const codePushVersion = '123';
 

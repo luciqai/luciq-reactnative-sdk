@@ -9,6 +9,8 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.module.model.ReactModuleInfo;
 import com.facebook.react.module.model.ReactModuleInfoProvider;
 
+import ai.luciq.library.Luciq;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +21,13 @@ public class RNLuciqReactnativePackage extends TurboReactPackage {
     @Nullable
     @Override
     public NativeModule getModule(@NonNull String name, @NonNull ReactApplicationContext reactContext) {
-        RNLuciq.getInstance().setCurrentPlatform();
+        // Set the React Native platform only when React Native will start the SDK. If Luciq is already
+        // running when the module loads, the native app started it: either a hybrid app, whose native
+        // screens must not be labelled React Native for the whole process, or RNLuciq.init, which set
+        // the platform itself. Luciq.init sets it again on its own path in every case.
+        if (!Luciq.isBuilt()) {
+            RNLuciq.getInstance().setCurrentPlatform();
+        }
 
         switch (name) {
             case "Luciq":

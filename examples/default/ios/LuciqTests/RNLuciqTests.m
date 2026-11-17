@@ -66,6 +66,52 @@
   OCMVerify([self.mLCQNetworkLogger setEnabled:YES]);
 }
 
+- (void)testAttachToNativeAppSetsThePlatformWithoutStartingOrReconfiguringTheSDK {
+  [RNLuciq attachToNativeApp];
+
+  OCMVerify([self.mLuciq setCurrentPlatform:LCQPlatformReactNative]);
+  OCMVerify(never(), [[self.mLuciq ignoringNonObjectArgs] startWithToken:OCMOCK_ANY invocationEvents:0]);
+  OCMVerify(never(), [self.mLuciq setAppVariant:OCMOCK_ANY]);
+  OCMVerify(never(), [self.mLCQNetworkLogger disableAutomaticCapturingOfNetworkLogs]);
+  OCMVerify(never(), [self.mLCQNetworkLogger setEnabled:YES]);
+}
+
+- (void)testWhenTrackingNativeScreensShouldRegisterTheRootViewsAndModalsThisAppLinks {
+  NSArray<NSString *> *hostClassNames = @[
+    @"RCTRootView",
+    @"RCTSurfaceHostingView",
+    @"RCTModalHostViewController",
+    @"RCTFabricModalHostViewController",
+    @"RNSModalScreen",
+  ];
+  NSMutableSet<Class> *linkedHosts = [NSMutableSet set];
+  for (NSString *className in hostClassNames) {
+    Class hostClass = NSClassFromString(className);
+    if (hostClass != nil) {
+      [linkedHosts addObject:hostClass];
+    }
+  }
+  // The example app runs the new architecture with react-native-screens, so both modal kinds are linked.
+  XCTAssertTrue([linkedHosts containsObject:NSClassFromString(@"RCTFabricModalHostViewController")]);
+  XCTAssertTrue([linkedHosts containsObject:NSClassFromString(@"RNSModalScreen")]);
+
+  [RNLuciq trackNativeScreens];
+
+  OCMVerify([self.mLuciq registerCrossPlatformHosts:[OCMArg checkWithBlock:^BOOL(NSArray<Class> *hosts) {
+    return [[NSSet setWithArray:hosts] isEqualToSet:linkedHosts];
+  }] platform:LCQPlatformReactNative]);
+}
+
+- (void)testWhenTrackingNativeScreensShouldNotRegisterRNSScreenSoPushedScreensStayInTheirStackHost {
+  XCTAssertNotNil(NSClassFromString(@"RNSScreen"));
+
+  [RNLuciq trackNativeScreens];
+
+  OCMVerify([self.mLuciq registerCrossPlatformHosts:[OCMArg checkWithBlock:^BOOL(NSArray<Class> *hosts) {
+    return ![hosts containsObject:NSClassFromString(@"RNSScreen")];
+  }] platform:LCQPlatformReactNative]);
+}
+
 - (void) testSetCodePushVersion {
   NSString *codePushVersion = @"1.0.0(1)";
   [RNLuciq setCodePushVersion:codePushVersion];

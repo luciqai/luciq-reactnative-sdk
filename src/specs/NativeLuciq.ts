@@ -19,6 +19,7 @@ export interface Spec extends TurboModule {
     options: UnsafeObject | null,
     overAirVersion: UnsafeObject | null,
   ): void;
+  attachToNativeApp(debugLogsLevel: string): void;
   show(): void;
 
   // Misc APIs //

@@ -45,6 +45,53 @@ useNativeNetworkInterception:(BOOL)useNativeNetworkInterception {
     LCQAPM.hotAppLaunchEnabled = NO;
 }
 
++ (void)attachToNativeApp {
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[attachToNativeApp] called"];
+
+    [Luciq setCurrentPlatform:LCQPlatformReactNative];
+
+    RCTAddLogFunction(LuciqReactLogFunction);
+    RCTSetLogThreshold(RCTLogLevelInfo);
+}
+
++ (void)trackNativeScreens {
+    if (![Luciq respondsToSelector:@selector(registerCrossPlatformHosts:platform:)]) {
+        [LuciqRNLogger w:[LuciqRNDebugTags core] format:@"[trackNativeScreens] needs a newer native Luciq SDK; ignored"];
+        return;
+    }
+
+    // React Native's root view controller is a plain UIViewController, so its root view identifies it:
+    // RCTRootView on the old architecture, RCTSurfaceHostingView (and its proxy subclass) on the new one.
+    // Modals are presented rather than contained, so they never resolve to that root's host and are
+    // declared on their own: <Modal> by its view controller on each architecture, and a
+    // react-native-screens modal by RNSModalScreen, the root view it gives every presented screen.
+    // Not RNSScreen: it also backs every pushed screen, and each of those would become a host of its
+    // own instead of a screen inside its stack's host.
+    // Looked up by name: a class this app doesn't link, or one React Native renames, is skipped and
+    // that screen is tracked as native.
+    NSArray<NSString *> *hostClassNames = @[
+        @"RCTRootView",
+        @"RCTSurfaceHostingView",
+        @"RCTModalHostViewController",
+        @"RCTFabricModalHostViewController",
+        @"RNSModalScreen",
+    ];
+    NSMutableArray<Class> *hosts = [NSMutableArray array];
+    for (NSString *className in hostClassNames) {
+        Class hostClass = NSClassFromString(className);
+        if (hostClass != nil) {
+            [hosts addObject:hostClass];
+        }
+    }
+    if (hosts.count == 0) {
+        [LuciqRNLogger w:[LuciqRNDebugTags core] format:@"[trackNativeScreens] no React Native root view class found; ignored"];
+        return;
+    }
+
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[trackNativeScreens] tracking native screens, hosts=%@", hosts];
+    [Luciq registerCrossPlatformHosts:hosts platform:LCQPlatformReactNative];
+}
+
 + (void)initWithToken:(NSString *)token invocationEvents:(LCQInvocationEvent)invocationEvents {
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[initWithToken:invocationEvents] called tokenPresent=%@, tokenLength=%lu, invocationEvents=%lu", (token.length > 0 ? @"YES" : @"NO"), (unsigned long)token.length, (unsigned long)invocationEvents];
     [self initWithToken:token invocationEvents:invocationEvents useNativeNetworkInterception:NO];

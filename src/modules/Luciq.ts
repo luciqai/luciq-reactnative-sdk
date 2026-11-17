@@ -7,6 +7,7 @@ import type {
 import type { ComponentDidAppearEvent } from 'react-native-navigation';
 import type { NavigationAction, NavigationState as NavigationStateV4 } from 'react-navigation';
 
+import type { AttachToNativeAppConfig } from '../models/AttachToNativeAppConfig';
 import type { LuciqConfig } from '../models/LuciqConfig';
 import Report from '../models/Report';
 import { emitter, NativeEvents, NativeLuciq } from '../native/NativeLuciq';
@@ -43,6 +44,12 @@ import type { OverAirUpdate } from '../models/OverAirUpdate';
 import type { ThemeConfig } from '../models/ThemeConfig';
 import type { UserEventParam } from '../models/UserEventParam';
 
+/** The part of the start configuration the shared network and feature-flag setup reads. */
+type NetworkSetupConfig = Pick<LuciqConfig, 'networkInterceptionMode'>;
+
+/** Which JavaScript entry point started the SDK, so init and attachToNativeApp never both apply. */
+let _startMode: 'init' | 'attachToNativeApp' | null = null;
+
 let _currentScreen: string | null = null;
 let _lastScreen: string | null = null;
 let _isFirstScreen = false;
@@ -53,9 +60,28 @@ let hasAPMNetworkPlugin = false; // Android only: checks if the APM plugin is in
 let shouldEnableNativeInterception = false; // For Android: used to disable APM logging inside reportNetworkLog() -> NativeAPM.networkLogAndroid(), For iOS: used to control native interception (true == enabled , false == disabled)
 
 // Screen Loading tracking variables
-let _navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList> | null = null;
-let _currentRoute: string | null = null;
+
+/**
+ * A NavigationContainer registered through `setNavigationListener`, with the route it showed last.
+ * Most apps have one. Hybrid apps that embed several React Native surfaces, each with its own
+ * container, register one per surface; each keeps its own route so that a navigation in one
+ * surface is never named after another surface's route.
+ */
+type TrackedNavigationContainer = {
+  ref: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>;
+  /** The container instance the listener was added to, to detect a remounted container. */
+  container: NonNullable<
+    NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>['current']
+  >;
+  currentRoute: string | null;
+  unsubscribe?: () => void;
+};
+
+/** Registered containers, oldest first. */
+let _navigationContainers: TrackedNavigationContainer[] = [];
 let _activeNavigationSpanId: string | null = null;
+/** The container whose navigation action started [_activeNavigationSpanId]. */
+let _activeNavigationSpanContainer: TrackedNavigationContainer | null = null;
 let _stateChangeTimeout: ReturnType<typeof setTimeout> | undefined;
 const STATE_CHANGE_TIMEOUT_MS = 2000; // Safety timeout if state never changes
 
@@ -101,12 +127,131 @@ export const init = (config: LuciqConfig) => {
     appVariant: config.appVariant,
     overAirVersionPresent: !!config.overAirVersion,
   });
+  if (!claimStartMode('init')) {
+    return;
+  }
+
+  setUpNetworkInterception(config);
+
+  // call Luciq native init method
+  initializeNativeLuciq(config);
+
+  setUpErrorCapturing();
+
+  _isFirstScreen = true;
+  _currentScreen = firstScreen;
+
+  LuciqRNConfig.debugLogsLevel = config.debugLogsLevel ?? LogLevel.error;
+
+  reportCurrentViewForAndroid(firstScreen);
+  setTimeout(() => {
+    if (_currentScreen === firstScreen) {
+      NativeLuciq.reportScreenChange(firstScreen, null);
+      _currentScreen = null;
+    }
+  }, 1000);
+
+  Logger.debug(LuciqDebugTags.CORE, 'init completed (JS-side setup)', {
+    debugLogsLevel: LuciqRNConfig.debugLogsLevel,
+  });
+};
+
+/**
+ * Connects React Native to the Luciq SDK that the native app already started.
+ *
+ * Use this instead of {@link init} in a hybrid app: a native Android or iOS app that starts Luciq
+ * itself (for example in `Application.onCreate` or `AppDelegate`) and embeds a React Native module.
+ * It sets up JavaScript error capturing, network interception and screen tracking, and leaves the
+ * native app's Luciq configuration untouched: no token, no second SDK start, and no change to its
+ * invocation events, app variant, log level or APM settings.
+ *
+ * Call it once, as early as possible in the React Native entry file, before the root component
+ * renders. The native app must have started Luciq before React Native starts. On Android, a call
+ * made before that logs an error and does nothing on the native side.
+ *
+ * Declare the native screens that host React Native with `registerCrossPlatformHosts` in the native
+ * app (`Luciq.Builder` on Android, `Luciq` on iOS), so those screens are named by their React
+ * Native routes and every other screen stays native.
+ *
+ * On iOS, prefer `NetworkInterceptionMode.native`: the native app's automatic network capture
+ * stays on, so the JavaScript mode logs React Native requests a second time.
+ *
+ * Do not call both {@link init} and `attachToNativeApp` in the same app: the second call is ignored.
+ *
+ * @param config Optional React Native-side configuration. See {@link AttachToNativeAppConfig}.
+ */
+export const attachToNativeApp = (config: AttachToNativeAppConfig = {}) => {
+  LuciqRNConfig.debugLogsLevel = config.debugLogsLevel ?? LogLevel.error;
+  Logger.debug(LuciqDebugTags.CORE, 'attachToNativeApp invoked', {
+    debugLogsLevel: config.debugLogsLevel,
+    networkInterceptionMode: config.networkInterceptionMode,
+  });
+  if (!claimStartMode('attachToNativeApp')) {
+    return;
+  }
+
+  setUpNetworkInterception(config);
+  NativeLuciq.attachToNativeApp(LuciqRNConfig.debugLogsLevel);
+  setUpErrorCapturing();
+
+  // Unlike init, no placeholder first screen is reported: the first real route comes from the
+  // navigation listener, so the first React Native screen is never named "Initial Screen".
+  _isFirstScreen = true;
+  _currentScreen = null;
+
+  Logger.debug(LuciqDebugTags.CORE, 'attachToNativeApp completed (JS-side setup)');
+};
+
+/**
+ * Records how the SDK was started from JavaScript. Returns false, after logging an error, when the
+ * other entry point already ran, so init and attachToNativeApp can never both apply. Repeating the
+ * same entry point is allowed, as init always was.
+ */
+function claimStartMode(mode: 'init' | 'attachToNativeApp'): boolean {
+  if (_startMode != null && _startMode !== mode) {
+    Logger.error(
+      `[Luciq] ${mode}() ignored: Luciq was already started from JavaScript with ${_startMode}(). ` +
+        'Use init() in React Native apps and attachToNativeApp() in native apps that embed React Native.',
+    );
+    return false;
+  }
+  _startMode = mode;
+  return true;
+}
+
+/** JavaScript error and unhandled-rejection capturing, shared by init and attachToNativeApp. */
+function setUpErrorCapturing() {
+  LuciqUtils.captureJsErrors();
+  captureUnhandledRejections();
+}
+
+/**
+ * Feature flags and network interception setup, shared by init and attachToNativeApp. Runs before
+ * the native call so cold-start requests are captured.
+ */
+function setUpNetworkInterception(config: NetworkSetupConfig) {
   initFeatureFlagsCache();
 
   if (Platform.OS === 'android') {
     // Add android feature flags listener for android
     registerFeatureFlagsListener();
     addOnFeatureUpdatedListener(config);
+
+    if (_startMode === 'attachToNativeApp') {
+      // The native app started the SDK, so LCQ_ON_FEATURES_UPDATED_CALLBACK has usually fired
+      // already and will not fire again until the next features update. Keep the JS interceptor
+      // on for cold-start requests, and read the flags from native instead of waiting for it.
+      // Deciding the mode now, with the default (false) flags, would wrongly report native
+      // interception as disabled by Luciq.
+      NetworkLogger.setEnabled(true);
+      setApmNetworkFlagsIfChanged({
+        isNativeInterceptionFeatureEnabled: isNativeInterceptionFeatureEnabled,
+        hasAPMNetworkPlugin: hasAPMNetworkPlugin,
+        shouldEnableNativeInterception: shouldEnableNativeInterception,
+      });
+      readAndroidFeaturesFromNative(config);
+      return;
+    }
 
     // Enable the JS XHR interceptor synchronously so cold-start requests
     // (fired before LCQ_ON_FEATURES_UPDATED_CALLBACK arrives) are captured.
@@ -132,31 +277,7 @@ export const init = (config: LuciqConfig) => {
       shouldEnableNativeInterception: shouldEnableNativeInterception,
     });
   }
-
-  // call Luciq native init method
-  initializeNativeLuciq(config);
-
-  // Set up error capturing and rejection handling
-  LuciqUtils.captureJsErrors();
-  captureUnhandledRejections();
-
-  _isFirstScreen = true;
-  _currentScreen = firstScreen;
-
-  LuciqRNConfig.debugLogsLevel = config.debugLogsLevel ?? LogLevel.error;
-
-  reportCurrentViewForAndroid(firstScreen);
-  setTimeout(() => {
-    if (_currentScreen === firstScreen) {
-      NativeLuciq.reportScreenChange(firstScreen, null);
-      _currentScreen = null;
-    }
-  }, 1000);
-
-  Logger.debug(LuciqDebugTags.CORE, 'init completed (JS-side setup)', {
-    debugLogsLevel: LuciqRNConfig.debugLogsLevel,
-  });
-};
+}
 
 /**
  * Changes the JS-side debug log verbosity at runtime.
@@ -216,7 +337,7 @@ export const setWebViewUserInteractionsTrackingEnabled = (isEnabled: boolean) =>
 /**
  * Handles app state changes and updates APM network flags if necessary.
  */
-const handleAppStateChange = async (nextAppState: AppStateStatus, config: LuciqConfig) => {
+const handleAppStateChange = async (nextAppState: AppStateStatus, config: NetworkSetupConfig) => {
   // Checks if the app has come to the foreground
   if (['inactive', 'background'].includes(_currentAppState) && nextAppState === 'active') {
     const isUpdated = await fetchApmNetworkFlags();
@@ -253,7 +374,7 @@ const fetchApmNetworkFlags = async () => {
 /**
  * Handles platform-specific checks and updates the network interception mode.
  */
-const handleNetworkInterceptionMode = (config: LuciqConfig) => {
+const handleNetworkInterceptionMode = (config: NetworkSetupConfig) => {
   // Default networkInterceptionMode to JavaScript if not set
   if (config.networkInterceptionMode == null) {
     config.networkInterceptionMode = NetworkInterceptionMode.javascript;
@@ -303,7 +424,7 @@ function handleAndroidNativeInterception() {
 /**
  * Control either to enable or disable the native interception for iOS after the init method is called.
  */
-function handleIOSNativeInterception(config: LuciqConfig) {
+function handleIOSNativeInterception(config: NetworkSetupConfig) {
   if (
     shouldEnableNativeInterception &&
     config.networkInterceptionMode === NetworkInterceptionMode.native
@@ -318,7 +439,7 @@ function handleIOSNativeInterception(config: LuciqConfig) {
  * Handles the network interception mode logic for Android.
  * By deciding which interception mode should be enabled (Native or JavaScript).
  */
-const handleInterceptionModeForAndroid = (config: LuciqConfig) => {
+const handleInterceptionModeForAndroid = (config: NetworkSetupConfig) => {
   const { networkInterceptionMode } = config;
 
   if (networkInterceptionMode === NetworkInterceptionMode.javascript) {
@@ -332,7 +453,7 @@ const handleInterceptionModeForAndroid = (config: LuciqConfig) => {
  * Handles the interception mode logic for iOS.
  * By deciding which interception mode should be enabled (Native or JavaScript).
  */
-const handleInterceptionModeForIOS = (config: LuciqConfig) => {
+const handleInterceptionModeForIOS = (config: NetworkSetupConfig) => {
   if (config.networkInterceptionMode === NetworkInterceptionMode.native) {
     if (isNativeInterceptionFeatureEnabled) {
       shouldEnableNativeInterception = true;
@@ -343,6 +464,20 @@ const handleInterceptionModeForIOS = (config: LuciqConfig) => {
       Logger.error(LuciqDebugTags.APM_NETWORK, LuciqConstants.NATIVE_INTERCEPTION_DISABLED_MESSAGE);
     }
   }
+};
+
+/**
+ * The platform-specific options passed to the native `init`, or `undefined` when none is set.
+ */
+const buildInitOptions = (config: LuciqConfig) => {
+  const options: { ignoreAndroidSecureFlag?: boolean; trackNativeScreens?: boolean } = {};
+  if (config.ignoreAndroidSecureFlag != null) {
+    options.ignoreAndroidSecureFlag = config.ignoreAndroidSecureFlag;
+  }
+  if (config.trackNativeScreens) {
+    options.trackNativeScreens = true;
+  }
+  return Object.keys(options).length > 0 ? options : undefined;
 };
 
 /**
@@ -357,11 +492,7 @@ const initializeNativeLuciq = (config: LuciqConfig) => {
       config.networkInterceptionMode === NetworkInterceptionMode.native,
     config.codePushVersion,
     config.appVariant,
-    config.ignoreAndroidSecureFlag != null
-      ? {
-          ignoreAndroidSecureFlag: config.ignoreAndroidSecureFlag,
-        }
-      : undefined,
+    buildInitOptions(config),
     config.overAirVersion,
   );
   Logger.debug(LuciqDebugTags.CORE, 'native init dispatched', {
@@ -374,7 +505,7 @@ const initializeNativeLuciq = (config: LuciqConfig) => {
 /**
  * Refresh the APM network configurations.
  */
-function refreshAPMNetworkConfigs(config: LuciqConfig, forceRefreshIOS: boolean = true) {
+function refreshAPMNetworkConfigs(config: NetworkSetupConfig, forceRefreshIOS: boolean = true) {
   handleNetworkInterceptionMode(config);
   if (Platform.OS === 'ios' && forceRefreshIOS) {
     handleIOSNativeInterception(config);
@@ -395,16 +526,50 @@ function refreshAPMNetworkConfigs(config: LuciqConfig, forceRefreshIOS: boolean 
 /**
  * Add Android Listener for native feature flags changes.
  */
-function addOnFeatureUpdatedListener(config: LuciqConfig) {
+function addOnFeatureUpdatedListener(config: NetworkSetupConfig) {
   emitter.addListener(NativeEvents.LCQ_ON_FEATURES_UPDATED_CALLBACK, (flags) => {
     const { cpNativeInterceptionEnabled, hasAPMPlugin } = flags;
-    isNativeInterceptionFeatureEnabled = cpNativeInterceptionEnabled;
-    hasAPMNetworkPlugin = hasAPMPlugin;
-    shouldEnableNativeInterception =
-      config.networkInterceptionMode === NetworkInterceptionMode.native;
-    refreshAPMNetworkConfigs(config);
+    applyAndroidFeatures(config, cpNativeInterceptionEnabled, hasAPMPlugin);
   });
   NativeLuciq.setOnFeaturesUpdatedListener();
+}
+
+/**
+ * Applies the Android APM network flags, from the features-updated event or from a native read.
+ */
+function applyAndroidFeatures(
+  config: NetworkSetupConfig,
+  cpNativeInterceptionEnabled: boolean,
+  hasAPMPlugin: boolean,
+) {
+  isNativeInterceptionFeatureEnabled = cpNativeInterceptionEnabled;
+  hasAPMNetworkPlugin = hasAPMPlugin;
+  shouldEnableNativeInterception =
+    config.networkInterceptionMode === NetworkInterceptionMode.native;
+  refreshAPMNetworkConfigs(config);
+}
+
+/**
+ * Android, attachToNativeApp only: reads the APM network flags the native SDK already has, because
+ * the features-updated event they arrive with fired before React Native attached.
+ * On failure, the JS interceptor stays on and the next features-updated event still applies.
+ */
+async function readAndroidFeaturesFromNative(config: NetworkSetupConfig) {
+  try {
+    const cpNativeInterceptionEnabled = NativeNetworkLogger.isNativeInterceptionEnabled();
+    const hasAPMPlugin = await NativeNetworkLogger.hasAPMNetworkPlugin();
+    Logger.debug(LuciqDebugTags.APM_NETWORK, 'attachToNativeApp read native network flags', {
+      cpNativeInterceptionEnabled,
+      hasAPMPlugin,
+    });
+    applyAndroidFeatures(config, !!cpNativeInterceptionEnabled, !!hasAPMPlugin);
+  } catch (e) {
+    Logger.error(
+      LuciqDebugTags.APM_NETWORK,
+      'attachToNativeApp could not read native network flags; keeping JavaScript interception',
+      e,
+    );
+  }
 }
 
 /**
@@ -924,7 +1089,7 @@ const _clearStateChangeTimeout = (): void => {
  * Handles React Navigation's __unsafe_action__ event
  * This fires WHEN a navigation action is dispatched (the start of navigation)
  */
-const _onNavigationAction = (event?: any): void => {
+const _onNavigationAction = (event?: any, tracked?: TrackedNavigationContainer): void => {
   // Check for noop actions that shouldn't create spans
   if (event?.data?.noop) {
     Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'navigation noop, no span');
@@ -964,6 +1129,7 @@ const _onNavigationAction = (event?: any): void => {
     const span = ScreenLoadingManager.createSpan('NavigationPending', false);
     if (span) {
       _activeNavigationSpanId = span.spanId;
+      _activeNavigationSpanContainer = tracked ?? null;
       Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'span started on navigation dispatch', {
         spanId: span.spanId,
       });
@@ -978,6 +1144,7 @@ const _onNavigationAction = (event?: any): void => {
           });
           ScreenLoadingManager.endSpan(span.spanId);
           _activeNavigationSpanId = null;
+          _activeNavigationSpanContainer = null;
         }
       }, STATE_CHANGE_TIMEOUT_MS);
     }
@@ -988,53 +1155,70 @@ const _onNavigationAction = (event?: any): void => {
  * Handles React Navigation's state event
  * This fires AFTER the navigation state has changed (the screen is mounted)
  */
-const _onNavigationStateChange = (): void => {
-  if (!_navigationRef?.current) {
+const _onNavigationStateChange = (state?: NavigationStateV5): void => {
+  const tracked = _containerOf(state);
+  if (!tracked) {
     return;
   }
 
-  const previousRouteName = _currentRoute;
-  const currentRoute = _navigationRef.current.getCurrentRoute();
+  // A span started by another container's navigation is left to that container (or its timeout),
+  // so this container's route never names it.
+  const spanOfOtherContainer =
+    _activeNavigationSpanContainer !== null && _activeNavigationSpanContainer !== tracked;
+  _reportRouteChange(tracked, spanOfOtherContainer ? null : _activeNavigationSpanId);
+};
+
+/**
+ * Reports [tracked]'s current route when it differs from the route that container showed last,
+ * completing [spanId] (the navigation span this change ends) when there is one.
+ */
+const _reportRouteChange = (tracked: TrackedNavigationContainer, spanId: string | null): void => {
+  const previousRouteName = tracked.currentRoute;
+  const currentRoute = tracked.ref.current?.getCurrentRoute();
   const currentRouteName = currentRoute?.name || null;
+  // The navigation span this change completes, if it is still the active one.
+  const activeSpanId = spanId !== null && spanId === _activeNavigationSpanId ? spanId : null;
 
   // If no route or same route, ignore
   if (!currentRouteName || previousRouteName === currentRouteName) {
     // Still need to clean up the span if one was created
-    if (_activeNavigationSpanId) {
+    if (activeSpanId) {
       Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'navigation resulted in same route', {
-        spanId: _activeNavigationSpanId,
+        spanId: activeSpanId,
         currentRouteName,
       });
-      ScreenLoadingManager.endSpan(_activeNavigationSpanId);
+      ScreenLoadingManager.endSpan(activeSpanId);
       _activeNavigationSpanId = null;
+      _activeNavigationSpanContainer = null;
       _clearStateChangeTimeout();
     }
     return;
   }
 
   // Capture the span ID BEFORE clearing it so we can pass it to reportScreenChange
-  let spanIdForReport: string | null = _activeNavigationSpanId;
+  let spanIdForReport: string | null = activeSpanId;
 
   // Complete the active navigation span if one exists
-  if (_activeNavigationSpanId) {
+  if (activeSpanId) {
     // Now that we know the actual route name, check if it's excluded
     if (ScreenLoadingManager.isRouteExcluded(currentRouteName)) {
       Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'route excluded, discarding span', {
-        spanId: _activeNavigationSpanId,
+        spanId: activeSpanId,
         currentRouteName,
       });
-      ScreenLoadingManager.discardSpan(_activeNavigationSpanId);
+      ScreenLoadingManager.discardSpan(activeSpanId);
       spanIdForReport = null;
       _activeNavigationSpanId = null;
+      _activeNavigationSpanContainer = null;
       _clearStateChangeTimeout();
     } else {
-      const span = ScreenLoadingManager.getActiveSpan(_activeNavigationSpanId);
+      const span = ScreenLoadingManager.getActiveSpan(activeSpanId);
       if (span) {
         // Update the span name from placeholder to actual screen name
         span.screenName = currentRouteName;
 
         // End the span - the native frame tracker will provide the actual render timestamp
-        ScreenLoadingManager.endSpan(_activeNavigationSpanId)
+        ScreenLoadingManager.endSpan(activeSpanId)
           .then(() => {
             Logger.debug(LuciqDebugTags.APM_SCREEN_LOADING, 'span completed for navigation', {
               currentRouteName,
@@ -1050,12 +1234,18 @@ const _onNavigationStateChange = (): void => {
 
       // Clear the active span and timeout
       _activeNavigationSpanId = null;
+      _activeNavigationSpanContainer = null;
       _clearStateChangeTimeout();
     }
   }
 
   // Update the current route for the rest of Luciq's tracking
-  _currentRoute = currentRouteName;
+  tracked.currentRoute = currentRouteName;
+
+  // Android keeps the current view (the screen name on crash and bug reports) separate from the
+  // repro-steps screen change. Without this call, apps using setNavigationListener kept the first
+  // route as their current view on Android.
+  reportCurrentViewForAndroid(currentRouteName);
 
   // Report to native
   NativeLuciq.reportScreenChange(currentRouteName, spanIdForReport);
@@ -1113,11 +1303,66 @@ export const onNavigationStateChange = (
   }
 };
 
+/**
+ * Drops containers that unmounted (their ref no longer points at the container the listener was
+ * added to) and removes their listener.
+ */
+const _pruneNavigationContainers = (): void => {
+  _navigationContainers = _navigationContainers.filter((tracked) => {
+    if (tracked.ref.current === tracked.container) {
+      return true;
+    }
+    try {
+      tracked.unsubscribe?.();
+    } catch {
+      // The container is gone; nothing left to unsubscribe from.
+    }
+    return false;
+  });
+};
+
+/**
+ * The registered container [state] belongs to. `onStateChange` is passed the container's root
+ * state but not the container, so it is matched by identity, then by the root state's key. When
+ * neither matches, the most recently registered container is used, which is what a single-container
+ * app always gets.
+ */
+const _containerOf = (state?: NavigationStateV5): TrackedNavigationContainer | null => {
+  _pruneNavigationContainers();
+  if (_navigationContainers.length === 0) {
+    return null;
+  }
+  if (_navigationContainers.length > 1 && state) {
+    const rootStateOf = (tracked: TrackedNavigationContainer) => {
+      try {
+        return tracked.ref.current?.getRootState?.();
+      } catch {
+        return undefined;
+      }
+    };
+    const byIdentity = _navigationContainers.find((tracked) => rootStateOf(tracked) === state);
+    if (byIdentity) {
+      return byIdentity;
+    }
+    const stateKey = (state as { key?: string }).key;
+    if (stateKey) {
+      const byKey = _navigationContainers.find((tracked) => {
+        const rootState = rootStateOf(tracked) as { key?: string } | undefined;
+        return rootState?.key === stateKey;
+      });
+      if (byKey) {
+        return byKey;
+      }
+    }
+  }
+  return _navigationContainers[_navigationContainers.length - 1];
+};
+
 export const onStateChange = (state?: NavigationStateV5) => {
   if (Logger.isDebugEnabled()) {
     Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'onStateChange (react-navigation v5/v6)', {
       hasState: !!state,
-      hasNavigationRef: !!_navigationRef?.current,
+      hasNavigationRef: _navigationContainers.length > 0,
     });
   }
   if (!state) {
@@ -1126,11 +1371,11 @@ export const onStateChange = (state?: NavigationStateV5) => {
 
   // Delegate to the new state change handler for Screen Loading
   // This handles reportScreenChange when setNavigationListener was called
-  _onNavigationStateChange();
+  _onNavigationStateChange(state);
 
   // When setNavigationListener is used, _onNavigationStateChange already handles
   // reportScreenChange properly - skip legacy logic to avoid duplicate calls
-  if (_navigationRef?.current) {
+  if (_navigationContainers.length > 0) {
     return;
   }
 
@@ -1153,15 +1398,21 @@ export const onStateChange = (state?: NavigationStateV5) => {
 
 /**
  * Sets a listener for screen change
+ *
+ * Call it once per NavigationContainer. Apps that embed several React Native surfaces, each with
+ * its own container, can call it for each one: every container keeps its own route. Calling it
+ * again for a container that is already registered does nothing.
+ *
+ * After {@link attachToNativeApp}, it also reports the container's current route, which
+ * `onStateChange` never reports. The container must be ready by then, so call it from the
+ * NavigationContainer `onReady` prop, or in an effect after the container has mounted.
+ *
  *  @param navigationRef a refrence of a navigation container
  *
  */
 export const setNavigationListener = (
   navigationRef: NavigationContainerRefWithCurrent<ReactNavigation.RootParamList>,
 ) => {
-  // Store the navigationRef for Screen Loading tracking
-  _navigationRef = navigationRef;
-
   if (Logger.isDebugEnabled()) {
     Logger.debug(LuciqDebugTags.SCREEN_TRACKING, 'setNavigationListener called', {
       hasNavigationRef: !!navigationRef,
@@ -1177,9 +1428,32 @@ export const setNavigationListener = (
     return;
   }
 
+  _pruneNavigationContainers();
+  const container = navigationRef.current;
+  if (
+    _navigationContainers.some(
+      (tracked) => tracked.ref === navigationRef || tracked.container === container,
+    )
+  ) {
+    Logger.debug(
+      LuciqDebugTags.SCREEN_TRACKING,
+      'setNavigationListener: container already registered',
+    );
+    return;
+  }
+
+  // Store the container for Screen Loading and screen tracking
+  const tracked: TrackedNavigationContainer = { ref: navigationRef, container, currentRoute: null };
+  _navigationContainers.push(tracked);
+
   // Register the __unsafe_action__ listener for span creation
   // This listener fires on navigation dispatch (start of navigation)
-  navigationRef.current.addListener('__unsafe_action__', _onNavigationAction);
+  const unsubscribe = container.addListener('__unsafe_action__', (event?: any) =>
+    _onNavigationAction(event, tracked),
+  );
+  if (typeof unsubscribe === 'function') {
+    tracked.unsubscribe = unsubscribe;
+  }
 
   // NOTE: We do NOT register a 'state' listener here because the user is expected
   // to pass Luciq.onStateChange to NavigationContainer's onStateChange prop.
@@ -1189,6 +1463,21 @@ export const setNavigationListener = (
     LuciqDebugTags.SCREEN_TRACKING,
     'screen loading listener registered (__unsafe_action__)',
   );
+
+  // onStateChange never fires for a container's initial state. init covers that with its
+  // "Initial Screen" placeholder; attachToNativeApp reports none, so the container's first route
+  // is reported here. Without it the native SDK never learns the route its host opened with and
+  // takes the next route for the first one.
+  if (_startMode === 'attachToNativeApp') {
+    if (container.isReady?.()) {
+      _reportRouteChange(tracked, null);
+    } else {
+      Logger.warn(
+        LuciqDebugTags.SCREEN_TRACKING,
+        'setNavigationListener: navigation container not ready, its first route is not reported; call it from the NavigationContainer onReady prop',
+      );
+    }
+  }
 
   // return stateListener;
 };
@@ -1295,9 +1584,23 @@ export const _registerFeatureFlagsChangeListener = (
 
 /**
  * Sets the auto mask screenshots types.
+ *
+ * Auto-masking is one setting for the whole app, native screens included. In a hybrid app (started
+ * with {@link attachToNativeApp}) the native app owns it, so this call is ignored with an error
+ * log: set it with the native SDK instead.
+ *
  * @param autoMaskingTypes The masking type to be applied.
  */
 export const enableAutoMasking = (autoMaskingTypes: AutoMaskingType[]) => {
+  if (_startMode === 'attachToNativeApp') {
+    Logger.error(
+      LuciqDebugTags.PRIVATE_VIEW,
+      '[Luciq] enableAutoMasking() ignored: in an app started with attachToNativeApp(), ' +
+        'auto-masking applies to native screens too and is set by the native app ' +
+        '(setAutoMaskScreenshotsTypes on Android, setAutoMaskScreenshots on iOS).',
+    );
+    return;
+  }
   NativeLuciq.enableAutoMasking(autoMaskingTypes);
 };
 

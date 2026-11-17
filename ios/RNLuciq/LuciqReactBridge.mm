@@ -15,6 +15,8 @@
 #import <React/RCTUIManager.h>
 #import "RNLuciq.h"
 #import "Util/LCQNetworkLogger+CP.h"
+#import "Util/Luciq+CP.h"
+#import "Util/LCQAPM+PrivateAPIs.h"
 #import "Util/LuciqRNLogger.h"
 #import "Util/LuciqRNDebugTags.h"
 
@@ -66,11 +68,23 @@ RCT_EXPORT_METHOD(init:(NSString *)token
 
     [Luciq setOverAirVersion:overAirVersion[@"version"] withType:(LCQOverAirType)[overAirVersion[@"service"] intValue]];
 
+    if ([options[@"trackNativeScreens"] boolValue]) {
+        [RNLuciq trackNativeScreens];
+    }
+
     [RNLuciq initWithToken:token
              invocationEvents:invocationEvents
                debugLogsLevel:sdkDebugLogsLevel
  useNativeNetworkInterception:useNativeNetworkInterception];
     [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[init] SDK build complete"];
+}
+
+// Hybrid apps: the native app already started Luciq. Unlike init, no app variant, code push or
+// over-the-air version is applied here, so the native app's own values stay in place.
+RCT_EXPORT_METHOD(attachToNativeApp:(LCQSDKDebugLogsLevel)sdkDebugLogsLevel) {
+    [LuciqRNLogger setLevel:sdkDebugLogsLevel];
+    [RNLuciq attachToNativeApp];
+    [LuciqRNLogger d:[LuciqRNDebugTags core] format:@"[attachToNativeApp] attached to the SDK started by the native app"];
 }
 
 RCT_EXPORT_METHOD(setCodePushVersion:(NSString *)version) {
@@ -556,19 +570,81 @@ RCT_EXPORT_METHOD(networkLogIOS:(NSString * _Nonnull)url
     [LuciqRNLogger d:[LuciqRNDebugTags network] format:@"[networkLogIOS] Forwarded to LCQNetworkLogger: %@ %@", method, [LuciqRNLogger redactURL:url]];
 }
 
-RCT_EXPORT_METHOD(addPrivateView: (nonnull NSNumber *)reactTag) {
-    [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[addPrivateView] called reactTag=%@", reactTag];
-    UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
-    if (view == nil) {
+/// The views made private through addPrivateView, by React tag (weak values).
+///
+/// removePrivateView usually runs from a component's unmount cleanup, after its native view has
+/// left the hierarchy, so viewForReactTag: no longer finds it. React Native then recycles that
+/// native view for another component, and a private flag left on it masks the wrong view. Keeping
+/// the view from addPrivateView lets removePrivateView clear the flag on the exact view it set.
+/// Process-wide, so a module instance recreated between mount and unmount still finds it.
+/// Only touched on the main queue (this module's methodQueue).
+static NSMapTable<NSNumber *, UIView *> *LuciqPrivateViewsByTag(void) {
+    static NSMapTable<NSNumber *, UIView *> *privateViews;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        privateViews = [NSMapTable strongToWeakObjectsMapTable];
+    });
+    return privateViews;
+}
+
+/// React tags whose addPrivateView is waiting for the native view to be mounted. A ref callback
+/// runs when JavaScript commits a render, and with the new architecture the native view is mounted
+/// afterwards on the main thread, so the first lookup often finds nothing. removePrivateView drops
+/// a pending tag, so a view unmounted before it was found is never flagged.
+/// Only touched on the main queue (this module's methodQueue).
+static NSMutableSet<NSNumber *> *LuciqPendingPrivateViewTags(void) {
+    static NSMutableSet<NSNumber *> *pendingTags;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        pendingTags = [NSMutableSet set];
+    });
+    return pendingTags;
+}
+
+/// How long addPrivateView waits for a view to be mounted: kLuciqPrivateViewMaxAttempts lookups,
+/// kLuciqPrivateViewRetryInterval apart (about one second).
+static const NSUInteger kLuciqPrivateViewMaxAttempts = 60;
+static const NSTimeInterval kLuciqPrivateViewRetryInterval = 1.0 / 60.0;
+
+- (void)markPrivateViewWithReactTag:(NSNumber *)reactTag attempt:(NSUInteger)attempt {
+    NSMutableSet<NSNumber *> *pendingTags = LuciqPendingPrivateViewTags();
+    if (attempt > 0 && ![pendingTags containsObject:reactTag]) {
+        // removePrivateView ran while the view was not mounted yet.
+        return;
+    }
+    UIView *view = [self.bridge.uiManager viewForReactTag:reactTag];
+    if (view != nil) {
+        [pendingTags removeObject:reactTag];
+        view.Luciq_privateView = true;
+        [LuciqPrivateViewsByTag() setObject:view forKey:reactTag];
+        if (attempt > 0) {
+            [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[addPrivateView] view for reactTag=%@ found after %lu retries", reactTag, (unsigned long)attempt];
+        }
+        return;
+    }
+    if (attempt + 1 >= kLuciqPrivateViewMaxAttempts) {
+        [pendingTags removeObject:reactTag];
         [LuciqRNLogger w:[LuciqRNDebugTags privateView] format:@"[addPrivateView] view not found for reactTag=%@ (will NOT be masked)", reactTag];
         return;
     }
-    view.Luciq_privateView = true;
+    [pendingTags addObject:reactTag];
+    __weak __typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kLuciqPrivateViewRetryInterval * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        [weakSelf markPrivateViewWithReactTag:reactTag attempt:attempt + 1];
+    });
+}
+
+RCT_EXPORT_METHOD(addPrivateView: (nonnull NSNumber *)reactTag) {
+    [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[addPrivateView] called reactTag=%@", reactTag];
+    [self markPrivateViewWithReactTag:reactTag attempt:0];
 }
 
 RCT_EXPORT_METHOD(removePrivateView: (nonnull NSNumber *)reactTag) {
     [LuciqRNLogger d:[LuciqRNDebugTags privateView] format:@"[removePrivateView] called reactTag=%@", reactTag];
-    UIView* view = [self.bridge.uiManager viewForReactTag:reactTag];
+    [LuciqPendingPrivateViewTags() removeObject:reactTag];
+    NSMapTable<NSNumber *, UIView *> *privateViews = LuciqPrivateViewsByTag();
+    UIView* view = [privateViews objectForKey:reactTag] ?: [self.bridge.uiManager viewForReactTag:reactTag];
+    [privateViews removeObjectForKey:reactTag];
     if (view == nil) {
         [LuciqRNLogger w:[LuciqRNDebugTags privateView] format:@"[removePrivateView] view not found for reactTag=%@ (no-op)", reactTag];
         return;
@@ -583,6 +659,16 @@ RCT_EXPORT_METHOD(show) {
 
 RCT_EXPORT_METHOD(reportScreenChange:(NSString *)screenName spanId:(NSString * _Nullable)spanId) {
     [LuciqRNLogger d:[LuciqRNDebugTags screenTracking] format:@"[reportScreenChange] called screenNameLength=%lu present=%@ spanIdLength=%lu spanIdPresent=%@", (unsigned long)screenName.length, (screenName != nil ? @"YES" : @"NO"), (unsigned long)spanId.length, (spanId != nil ? @"YES" : @"NO")];
+    // In a hybrid app a route reported while a native screen is on top must not rename that screen, which only
+    // the cross-platform call knows to hold back. It records no APM UI trace, so one is started here at the
+    // time of the report, as `logViewDidAppearEvent:` does.
+    if ([Luciq respondsToSelector:@selector(logCrossPlatformViewDidAppearEvent:)]) {
+        [Luciq logCrossPlatformViewDidAppearEvent:screenName];
+        double nowMUS = [[NSDate date] timeIntervalSince1970] * 1e6;
+        [LCQAPM startUITraceCPWithName:screenName startTimestampMUS:nowMUS];
+        return;
+    }
+
     SEL setPrivateApiSEL = NSSelectorFromString(@"logViewDidAppearEvent:");
     if ([[Luciq class] respondsToSelector:setPrivateApiSEL]) {
         NSInvocation *inv = [NSInvocation invocationWithMethodSignature:[[Luciq class] methodSignatureForSelector:setPrivateApiSEL]];

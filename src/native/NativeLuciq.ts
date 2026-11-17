@@ -37,9 +37,11 @@ export interface LuciqNativeModule extends NativeModule {
     appVariant?: string,
     options?: {
       ignoreAndroidSecureFlag?: boolean;
+      trackNativeScreens?: boolean;
     },
     overAirVersion?: OverAirUpdate,
   ): void;
+  attachToNativeApp(debugLogsLevel: LogLevel): void;
   show(): void;
 
   // Misc APIs //

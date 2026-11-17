@@ -144,6 +144,19 @@ If your token is defined as a constant or imported from elsewhere, override the 
 | `LUCIQ_APP_VERSION_CODE`          | Overrides the inferred `versionCode`  |
 | `LUCIQ_SOURCEMAPS_UPLOAD_DISABLE` | Set to `TRUE` to skip the upload step |
 
+### Hybrid apps
+
+In a native app that embeds React Native and calls `Luciq.attachToNativeApp()`, the token lives in native code. The uploader also looks for it in `Luciq.Builder(application, "TOKEN")` (Android), `Luciq.start(withToken:)` (Swift) and `startWithToken:` (Objective-C). Set `LUCIQ_APP_TOKEN` if it isn't written there as a literal.
+
+On Android, the upload runs after the React Native bundle task of any application module, whatever its name. If you build the bundle outside the app's Gradle build, or ship React Native as a prebuilt AAR or framework, upload the source map yourself with the host app's version:
+
+```sh
+npx luciq upload-sourcemaps --platform android --file path/to/index.android.bundle.map \
+  --token YOUR_APP_TOKEN --name 1.2.0 --code 120
+```
+
+Use `--platform ios` and your `main.jsbundle.map` for iOS.
+
 ## Network Logging
 
 Network logging is enabled by default. It intercepts `fetch` and `XMLHttpRequest` calls and attaches them to outgoing reports. Disable it with:

@@ -27,6 +27,7 @@
 - (void)setEnabled:(BOOL)isEnabled;
 
 - (void)init:(NSString *)token invocationEvents:(NSArray *)invocationEventsArray debugLogsLevel:(LCQSDKDebugLogsLevel)sdkDebugLogsLevel useNativeNetworkInterception:(BOOL)useNativeNetworkInterception codePushVersion:(NSString *)codePushVersion appVariant:(NSString *)appVariant options:(nullable NSDictionary *)options  overAirVersion:(NSDictionary *)overAirVersion;
+- (void)attachToNativeApp:(LCQSDKDebugLogsLevel)sdkDebugLogsLevel;
 
 - (void)setCodePushVersion:(NSString *)version;
 
@@ -61,6 +62,8 @@
 - (void)logOut;
 
 - (void)logUserEvent:(NSString *)name parameters:(NSArray *)parameters;
+
+- (void)reportScreenChange:(NSString *)screenName spanId:(nullable NSString *)spanId;
 
 - (void)logVerbose:(NSString *)log;
 

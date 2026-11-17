@@ -26,6 +26,22 @@ export interface LuciqConfig {
   ignoreAndroidSecureFlag?: boolean;
 
   /**
+   * An optional flag to report screens that aren't React Native under their own names.
+   *
+   * By default every screen in a React Native app is treated as a React Native screen, so a
+   * native screen (an Android Activity or iOS view controller written natively, or a
+   * third-party SDK screen such as a payment sheet) is labelled with the last JavaScript route
+   * and its native repro steps are dropped. When `true`, only React Native screens use the
+   * JavaScript routes; every native screen is reported with its own name, repro steps and user
+   * steps.
+   *
+   * Requires a native Luciq SDK that supports hybrid apps; older native SDKs ignore it.
+   *
+   * @default false
+   */
+  trackNativeScreens?: boolean;
+
+  /**
    * An optional current App variant to be used for filtering data.
    */
   appVariant?: string;
