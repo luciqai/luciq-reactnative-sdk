@@ -237,6 +237,62 @@ describe('Luciq.attachToNativeApp', () => {
     });
   });
 
+  describe('first route of a navigation container', () => {
+    /** A NavigationContainer ref on [routeName], ready or not. */
+    function navigationRefOn(routeName: string, isReady: boolean) {
+      return {
+        current: {
+          addListener: jest.fn(() => jest.fn()),
+          getCurrentRoute: jest.fn(() => ({ name: routeName })),
+          isReady: jest.fn(() => isReady),
+        },
+      } as any;
+    }
+
+    it('reports the route a ready container opened with', () => {
+      Platform.OS = 'ios';
+      const { Luciq, NativeLuciq } = loadFresh();
+      Luciq.attachToNativeApp();
+
+      Luciq.setNavigationListener(navigationRefOn('Movies', true));
+
+      expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
+      expect(NativeLuciq.reportScreenChange).toBeCalledWith('Movies', null);
+    });
+
+    it('does not report the first route again when onStateChange repeats it', () => {
+      Platform.OS = 'ios';
+      const { Luciq, NativeLuciq } = loadFresh();
+      Luciq.attachToNativeApp();
+      Luciq.setNavigationListener(navigationRefOn('Movies', true));
+
+      // @ts-ignore
+      Luciq.onStateChange({ index: 0, routes: [{ name: 'Movies' }] });
+
+      expect(NativeLuciq.reportScreenChange).toBeCalledTimes(1);
+    });
+
+    it('reports nothing for a container that is not ready yet', () => {
+      Platform.OS = 'ios';
+      const { Luciq, NativeLuciq } = loadFresh();
+      Luciq.attachToNativeApp();
+
+      Luciq.setNavigationListener(navigationRefOn('Movies', false));
+
+      expect(NativeLuciq.reportScreenChange).not.toBeCalled();
+    });
+
+    it('leaves the first route to the "Initial Screen" placeholder after init', () => {
+      Platform.OS = 'ios';
+      const { Luciq, NativeLuciq } = loadFresh();
+      Luciq.init(initConfig);
+
+      Luciq.setNavigationListener(navigationRefOn('Movies', true));
+
+      expect(NativeLuciq.reportScreenChange).not.toBeCalledWith('Movies', null);
+    });
+  });
+
   it('attaches on iOS too', () => {
     Platform.OS = 'ios';
     const { Luciq, NativeLuciq } = loadFresh();

@@ -1403,6 +1403,10 @@ export const onStateChange = (state?: NavigationStateV5) => {
  * its own container, can call it for each one: every container keeps its own route. Calling it
  * again for a container that is already registered does nothing.
  *
+ * After {@link attachToNativeApp}, it also reports the container's current route, which
+ * `onStateChange` never reports. The container must be ready by then, so call it from the
+ * NavigationContainer `onReady` prop, or in an effect after the container has mounted.
+ *
  *  @param navigationRef a refrence of a navigation container
  *
  */
@@ -1459,6 +1463,21 @@ export const setNavigationListener = (
     LuciqDebugTags.SCREEN_TRACKING,
     'screen loading listener registered (__unsafe_action__)',
   );
+
+  // onStateChange never fires for a container's initial state. init covers that with its
+  // "Initial Screen" placeholder; attachToNativeApp reports none, so the container's first route
+  // is reported here. Without it the native SDK never learns the route its host opened with and
+  // takes the next route for the first one.
+  if (_startMode === 'attachToNativeApp') {
+    if (container.isReady?.()) {
+      _reportRouteChange(tracked, null);
+    } else {
+      Logger.warn(
+        LuciqDebugTags.SCREEN_TRACKING,
+        'setNavigationListener: navigation container not ready, its first route is not reported; call it from the NavigationContainer onReady prop',
+      );
+    }
+  }
 
   // return stateListener;
 };

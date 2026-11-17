@@ -4,7 +4,7 @@
 
 ### Added
 
-- **Hybrid apps**: Add `Luciq.attachToNativeApp(config?)` for native Android and iOS apps that start Luciq themselves and embed a React Native module. It sets up JavaScript error capturing, network interception and screen tracking without starting the SDK a second time, so the native app's token, invocation events, app variant, log level and APM settings stay untouched, and no token is needed in JavaScript. Use it instead of `Luciq.init`; calling both is ignored with an error log.
+- **Hybrid apps**: Add `Luciq.attachToNativeApp(config?)` for native Android and iOS apps that start Luciq themselves and embed a React Native module. It sets up JavaScript error capturing, network interception and screen tracking without starting the SDK a second time, so the native app's token, invocation events, app variant, log level and APM settings stay untouched, and no token is needed in JavaScript. Use it instead of `Luciq.init`; calling both is ignored with an error log. After it, `Luciq.setNavigationListener` also reports the container's first route, so a React Native screen's first route is named and traced; call it from the `NavigationContainer` `onReady` prop.
 - **Native screens in React Native apps**: Add the `trackNativeScreens` option to `Luciq.init` (off by default). When on, screens that aren't React Native, such as native Android Activities, native iOS view controllers and third-party SDK screens, are reported under their own names with their own repro steps and user steps. React Native screens keep their JavaScript route names, including on iOS those shown in a `<Modal>` or a react-native-screens modal. Requires native SDKs with hybrid app support; older native SDKs ignore it with a warning.
 
 ### Changed
