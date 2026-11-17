@@ -238,6 +238,29 @@ export const BugReportingScreen: React.FC<
 
         <Divider my={5} />
 
+        <Section title="Custom reports">
+          <ListTile
+            title="Report Categories Scope"
+            subtitle="setReportCategoriesScope"
+            onPress={() => navigation.navigate('CategoriesScope')}
+            testID="id_categories_scope"
+          />
+          <ListTile
+            title="Report Configuration"
+            subtitle="getReportConfiguration"
+            onPress={() => navigation.navigate('ReportConfiguration')}
+            testID="id_report_configuration"
+          />
+          <ListTile
+            title="Submit Custom Report"
+            subtitle="submitReport"
+            onPress={() => navigation.navigate('CustomReport')}
+            testID="id_custom_report"
+          />
+        </Section>
+
+        <Divider my={5} />
+
         <ListTile title="Show" onPress={() => Luciq.show()} testID="id_show_button" />
         <ListTile
           title="Send Bug Report"
