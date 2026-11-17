@@ -82,7 +82,12 @@
     "commentMinLength": 2,
     "commentMaxLength": 4000,
     "consents": [
-      { "key": "c_share_logs", "description": "Share logs", "mandatory": true, "checkedByDefault": false },
+      {
+        "key": "c_share_logs",
+        "description": "Share logs",
+        "mandatory": true,
+        "checkedByDefault": false
+      },
       { "key": "c_contact_me", "description": null, "mandatory": false, "checkedByDefault": true }
     ],
     "extendedFields": [

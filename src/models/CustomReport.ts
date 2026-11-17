@@ -15,7 +15,7 @@ export type ReportScreenshot = 'none' | 'currentScreen';
  * The category identifier and the field and option keys must exist in your
  * dashboard; get them with `BugReporting.getReportConfiguration`. The comment,
  * email, consents, extended fields and attachments are free, within the limits
- * returned in {@link ReportRequirements}. Everything is sent as given: don't put
+ * returned by `BugReporting.getReportConfiguration`. Everything is sent as given: don't put
  * secrets or sensitive personal data in it.
  */
 export interface CustomReport {

@@ -14,13 +14,13 @@ export type EmailRequirement = 'hidden' | 'optional' | 'required';
 
 /** An option of a checkbox, search or dropdown field. */
 export interface FieldOption {
-  /** The key to pass in {@link CustomReport.answers}. */
+  /** The key to pass in `CustomReport.answers`. */
   key: string;
   label: string;
 }
 
 /**
- * A field of a leaf category. Answer it in {@link CustomReport.answers} by
+ * A field of a leaf category. Answer it in `CustomReport.answers` by
  * `type`: checkbox, one or more option keys; search and dropdown, exactly one;
  * text, exactly one value up to 500 characters.
  */
@@ -36,7 +36,7 @@ export interface ConfigurationField {
 
 /** A report category. Only a leaf (`leaf === true`) can be submitted, and only a leaf has fields. */
 export interface ConfigurationCategory {
-  /** What to pass as {@link CustomReport.categoryIdentifier}. */
+  /** What to pass as `CustomReport.categoryIdentifier`. */
   identifier: string;
   title: string;
   description: string | null;
@@ -157,7 +157,9 @@ export const fromNativeReportConfiguration = (
   return {
     reportType: REPORT_TYPES_BY_NAME[raw.reportType],
     categories: (raw.categories ?? []).map(fromNativeCategory),
-    preselectedCategory: raw.preselectedCategory ? fromNativeCategory(raw.preselectedCategory) : null,
+    preselectedCategory: raw.preselectedCategory
+      ? fromNativeCategory(raw.preselectedCategory)
+      : null,
     requirements: {
       email: requirements.email ?? 'optional',
       identifiedEmail: requirements.identifiedEmail ?? null,

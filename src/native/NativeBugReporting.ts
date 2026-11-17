@@ -74,7 +74,10 @@ export interface BugReportingNativeModule extends NativeModule {
   // Custom reports //
   setReportCategoriesScope(identifiers: string[] | null): void;
   getReportConfiguration(reportType: ReportType): Promise<NativeReportConfiguration | null>;
-  submitReport(reportType: ReportType, report: NativeCustomReport): Promise<NativeCustomReportResult>;
+  submitReport(
+    reportType: ReportType,
+    report: NativeCustomReport,
+  ): Promise<NativeCustomReportResult>;
 }
 
 export const NativeBugReporting = (BugReportingTurboSpec ??

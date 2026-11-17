@@ -72,7 +72,11 @@ export interface CustomReportResult {
 export interface NativeCustomReportResult {
   status: CustomReportStatus;
   notSentReason?: NotSentReason | null;
-  errors?: Array<{ field: FieldErrorField; key?: string | null; problem: FieldErrorProblem }> | null;
+  errors?: Array<{
+    field: FieldErrorField;
+    key?: string | null;
+    problem: FieldErrorProblem;
+  }> | null;
 }
 
 /**

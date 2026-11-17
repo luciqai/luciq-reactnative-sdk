@@ -80,7 +80,9 @@ describe('BugReporting custom report APIs', () => {
     });
 
     it('should reject with LCQ_INVALID_ARGUMENT for an unknown report type without calling native', async () => {
-      const promise = BugReporting.getReportConfiguration('not-a-report-type' as unknown as ReportType);
+      const promise = BugReporting.getReportConfiguration(
+        'not-a-report-type' as unknown as ReportType,
+      );
 
       await expect(promise).rejects.toBeInstanceOf(LuciqInvalidArgumentError);
       await expect(promise).rejects.toMatchObject({ code: LCQ_INVALID_ARGUMENT });
