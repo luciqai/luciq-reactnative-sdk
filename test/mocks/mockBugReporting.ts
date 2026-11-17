@@ -28,6 +28,9 @@ const mockBugReporting: BugReportingNativeModule = {
   setCommentMinimumCharacterCount: jest.fn(),
   addUserConsent: jest.fn(),
   setProactiveReportingConfigurations: jest.fn(),
+  setReportCategoriesScope: jest.fn(),
+  getReportConfiguration: jest.fn().mockResolvedValue(null),
+  submitReport: jest.fn().mockResolvedValue({ status: 'queued', errors: [] }),
 };
 
 export default mockBugReporting;

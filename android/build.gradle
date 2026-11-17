@@ -118,5 +118,13 @@ dependencies {
 rootProject.allprojects {
 	repositories {
 		google()
-        mavenCentral()	}
+		mavenCentral()
+		// Luciq Android SDK snapshot builds (-SNAPSHOT versions) published by the SDK's CI.
+		maven {
+			url "https://central.sonatype.com/repository/maven-snapshots/"
+			content {
+				includeGroup "ai.luciq.library"
+			}
+		}
+	}
 }

@@ -1,0 +1,97 @@
+{
+  "reportType": "bug",
+  "categories": [
+    {
+      "identifier": "report-a-problem",
+      "title": "Report a problem",
+      "description": "Something is broken",
+      "leaf": false,
+      "children": [
+        {
+          "identifier": "checkout",
+          "title": "Checkout",
+          "description": null,
+          "leaf": false,
+          "children": [
+            {
+              "identifier": "checkout-refund",
+              "title": "Refund",
+              "description": "Refund issues",
+              "leaf": true,
+              "children": [],
+              "fields": [
+                {
+                  "key": "f_reason",
+                  "type": "dropdown",
+                  "label": "Reason",
+                  "placeholder": "Pick one",
+                  "required": true,
+                  "options": [
+                    { "key": "o_wrong_amount", "label": "Wrong amount" },
+                    { "key": "o_not_received", "label": "Not received" }
+                  ]
+                },
+                {
+                  "key": "f_items",
+                  "type": "checkbox",
+                  "label": "Items",
+                  "placeholder": null,
+                  "required": false,
+                  "options": [
+                    { "key": "o_item_a", "label": "Item A" },
+                    { "key": "o_item_b", "label": "Item B" }
+                  ]
+                },
+                {
+                  "key": "f_store",
+                  "type": "search",
+                  "label": "Store",
+                  "placeholder": "Search stores",
+                  "required": false,
+                  "options": [{ "key": "o_store_1", "label": "Store 1" }]
+                },
+                {
+                  "key": "f_details",
+                  "type": "text",
+                  "label": null,
+                  "placeholder": "Tell us more",
+                  "required": false,
+                  "options": []
+                }
+              ]
+            }
+          ],
+          "fields": []
+        }
+      ],
+      "fields": []
+    },
+    {
+      "identifier": "other",
+      "title": "Other",
+      "description": null,
+      "leaf": true,
+      "children": [],
+      "fields": []
+    }
+  ],
+  "preselectedCategory": null,
+  "requirements": {
+    "email": "optional",
+    "identifiedEmail": "identified@example.com",
+    "commentMinLength": 2,
+    "commentMaxLength": 4000,
+    "consents": [
+      { "key": "c_share_logs", "description": "Share logs", "mandatory": true, "checkedByDefault": false },
+      { "key": "c_contact_me", "description": null, "mandatory": false, "checkedByDefault": true }
+    ],
+    "extendedFields": [
+      { "id": "repro_steps", "label": "Steps to reproduce", "required": true },
+      { "id": "actual_result", "label": "Actual result", "required": false },
+      { "id": "expected_result", "label": "Expected result", "required": false }
+    ],
+    "screenshotRequired": false,
+    "maxAttachments": 3,
+    "maxAttachmentBytes": 5242880
+  }
+}

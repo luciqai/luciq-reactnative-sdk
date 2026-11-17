@@ -1,0 +1,24 @@
+{
+  "comment": "Refund was for the wrong amount",
+  "email": "reporter@example.com",
+  "categoryIdentifier": "checkout-refund",
+  "answers": {
+    "f_reason": ["o_wrong_amount"],
+    "f_items": ["o_item_a", "o_item_b"],
+    "f_details": ["Charged twice on the same order"]
+  },
+  "consents": {
+    "c_share_logs": true,
+    "c_contact_me": false
+  },
+  "extendedFields": {
+    "repro_steps": "1. Pay 2. Request a refund",
+    "actual_result": "Refund of 0.00",
+    "expected_result": "Full refund"
+  },
+  "screenshot": "currentScreen",
+  "attachments": [
+    "file:///data/user/0/com.example/files/report.log",
+    "content://media/external/images/media/42"
+  ]
+}

@@ -14,6 +14,9 @@ import type {
   userConsentActionType,
 } from '../utils/Enums';
 import BugReportingTurboSpec from '../specs/NativeLuciqBugReporting';
+import type { NativeCustomReport } from '../models/CustomReport';
+import type { NativeCustomReportResult } from '../models/CustomReportResult';
+import type { NativeReportConfiguration } from '../models/ReportConfiguration';
 
 export interface BugReportingNativeModule extends NativeModule {
   // Essential APIs //
@@ -67,6 +70,11 @@ export interface BugReportingNativeModule extends NativeModule {
     gapBetweenModals: number,
     modalDelayAfterDetection: number,
   ): void;
+
+  // Custom reports //
+  setReportCategoriesScope(identifiers: string[] | null): void;
+  getReportConfiguration(reportType: ReportType): Promise<NativeReportConfiguration | null>;
+  submitReport(reportType: ReportType, report: NativeCustomReport): Promise<NativeCustomReportResult>;
 }
 
 export const NativeBugReporting = (BugReportingTurboSpec ??

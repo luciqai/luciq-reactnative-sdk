@@ -2,6 +2,12 @@ import { Platform } from 'react-native';
 
 import { NativeBugReporting, NativeEvents, emitter } from '../native/NativeBugReporting';
 import type { ProactiveReportingConfigOptions } from '../models/ProactiveReportingConfigs';
+import type { CustomReport } from '../models/CustomReport';
+import { toNativeCustomReport } from '../models/CustomReport';
+import type { CustomReportResult } from '../models/CustomReportResult';
+import { fromNativeCustomReportResult } from '../models/CustomReportResult';
+import type { ReportConfiguration } from '../models/ReportConfiguration';
+import { fromNativeReportConfiguration } from '../models/ReportConfiguration';
 import type {
   DismissType,
   ExtendedBugReportMode,
@@ -9,9 +15,10 @@ import type {
   InvocationEvent,
   InvocationOption,
   RecordingButtonPosition,
-  ReportType,
   userConsentActionType,
 } from '../utils/Enums';
+import { ReportType } from '../utils/Enums';
+import { LuciqInvalidArgumentError } from '../utils/LuciqErrors';
 import { Logger } from '../utils/logger';
 import { setNativeHandler } from '../utils/NativeHandler';
 import { LuciqDebugTags } from '../constants/DebugTags';
@@ -348,4 +355,110 @@ export const setProactiveReportingConfigurations = (config: ProactiveReportingCo
     config.gapBetweenModals,
     config.modalDelayAfterDetection,
   );
+};
+
+const isKnownReportType = (type: unknown): type is ReportType =>
+  Object.values(ReportType).includes(type as ReportType);
+
+/**
+ * Limits the report categories users see to the ones with these identifiers
+ * (dashboard › Report Categories). Per report type: one match is preselected and
+ * its next screen opens directly; no match shows all categories. Unknown
+ * identifiers are ignored. The scope is kept in memory for the process, applies
+ * to every way of opening the SDK and to `getReportConfiguration`, and can be
+ * set before `Luciq.init`.
+ *
+ * @param identifiers The category identifiers to show, or `null` / `[]` for all categories.
+ */
+export const setReportCategoriesScope = (identifiers: string[] | null) => {
+  // Identifiers name dashboard categories; log only how many were passed.
+  Logger.debug(TAG, 'setReportCategoriesScope', { count: identifiers?.length ?? 0 });
+  NativeBugReporting.setReportCategoriesScope(identifiers ?? null);
+};
+
+/**
+ * Gets the categories of a report type (narrowed by {@link setReportCategoriesScope}),
+ * with their identifiers, fields and options, and the requirements {@link submitReport}
+ * enforces (email, comment length, consents, extended fields, screenshot and attachment
+ * limits), to build your own report UI from.
+ *
+ * @param type `ReportType.bug`, `ReportType.feedback` or `ReportType.question`.
+ * @returns The configuration, or `null` when Bug Reporting or the report type
+ * isn't available (for example after `BugReporting.setEnabled(false)`).
+ * @throws {LuciqInvalidArgumentError} (rejects with code `LCQ_INVALID_ARGUMENT`)
+ * when `type` is not a known `ReportType`.
+ */
+export const getReportConfiguration = async (
+  type: ReportType,
+): Promise<ReportConfiguration | null> => {
+  Logger.debug(TAG, 'getReportConfiguration', { type });
+  if (!isKnownReportType(type)) {
+    throw new LuciqInvalidArgumentError(
+      `getReportConfiguration: unknown report type ${String(type)}; use a ReportType value.`,
+    );
+  }
+
+  const raw = await NativeBugReporting.getReportConfiguration(type);
+  const configuration = fromNativeReportConfiguration(raw);
+  Logger.debug(TAG, 'getReportConfiguration result', {
+    available: configuration != null,
+    categoriesCount: configuration?.categories.length ?? 0,
+  });
+  return configuration;
+};
+
+/**
+ * Submits a report collected by your own UI. The SDK captures the app state
+ * now (device info, logs, user steps, user data, tags and the current view),
+ * validates the report against your dashboard and SDK configuration, and
+ * queues it for upload. Nothing is captured or saved unless the result is `queued`.
+ *
+ * Only for reports a person writes: the app must be in the foreground, and
+ * accepted reports are limited to one every 60 seconds and 10 per hour per
+ * device, with the same report not sent twice within 24 hours. These limits
+ * don't apply to the SDK's own report screens. `Luciq.onReportSubmitHandler`
+ * runs for these reports; the invoke and dismiss handlers do not.
+ *
+ * @param report The report. Get the category identifier and field keys from
+ * {@link getReportConfiguration}.
+ * @returns The result: `queued`, `notSent` with a reason, or `invalid` with
+ * every problem at once. The Promise resolves for every outcome the SDK
+ * reports and rejects (code `LCQ_INVALID_ARGUMENT`) only for malformed input.
+ * @throws {LuciqInvalidArgumentError} when `report` is not an object or its
+ * `reportType` is not a known `ReportType`.
+ */
+export const submitReport = async (report: CustomReport): Promise<CustomReportResult> => {
+  if (report == null || typeof report !== 'object') {
+    Logger.warn(TAG, 'submitReport rejected: report is not an object');
+    throw new LuciqInvalidArgumentError('submitReport: report must be an object.');
+  }
+  if (!isKnownReportType(report.reportType)) {
+    Logger.warn(TAG, 'submitReport rejected: unknown report type', { type: report.reportType });
+    throw new LuciqInvalidArgumentError(
+      `submitReport: unknown report type ${String(report.reportType)}; use a ReportType value.`,
+    );
+  }
+
+  const native = toNativeCustomReport(report);
+  // The comment, email, answers and attachments are user content; log only shape.
+  Logger.debug(TAG, 'submitReport', {
+    reportType: report.reportType,
+    hasComment: native.comment != null,
+    hasEmail: native.email != null,
+    hasCategory: native.categoryIdentifier != null,
+    answersCount: Object.keys(native.answers ?? {}).length,
+    consentsCount: Object.keys(native.consents ?? {}).length,
+    extendedFieldsCount: Object.keys(native.extendedFields ?? {}).length,
+    screenshot: native.screenshot,
+    attachmentsCount: native.attachments?.length ?? 0,
+  });
+
+  const raw = await NativeBugReporting.submitReport(report.reportType, native);
+  const result = fromNativeCustomReportResult(raw);
+  Logger.debug(TAG, 'submitReport result', {
+    status: result.status,
+    notSentReason: result.notSentReason,
+    errorsCount: result.errors.length,
+  });
+  return result;
 };

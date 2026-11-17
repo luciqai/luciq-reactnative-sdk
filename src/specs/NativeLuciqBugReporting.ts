@@ -1,5 +1,6 @@
 import type { TurboModule } from 'react-native';
 import { TurboModuleRegistry } from 'react-native';
+import type { UnsafeObject } from 'react-native/Libraries/Types/CodegenTypes';
 
 export interface Spec extends TurboModule {
   setEnabled(isEnabled: boolean): void;
@@ -48,6 +49,11 @@ export interface Spec extends TurboModule {
     gapBetweenModals: number,
     modalDelayAfterDetection: number,
   ): void;
+
+  // Custom reports (categories scope, report configuration, headless submit) //
+  setReportCategoriesScope(identifiers: Array<string> | null): void;
+  getReportConfiguration(reportType: string): Promise<UnsafeObject | null>;
+  submitReport(reportType: string, report: UnsafeObject): Promise<UnsafeObject>;
 
   addListener(eventName: string): void;
   removeListeners(count: number): void;
