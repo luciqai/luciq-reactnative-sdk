@@ -17,6 +17,9 @@ final class Constants {
 
     final static String LCQ_SESSION_REPLAY_ON_SYNC_CALLBACK_INVOCATION = "LCQSessionReplayOnSyncCallback";
 
+    /** Promise rejection code for malformed input to a bridge method (never for an SDK outcome). */
+    public final static String LCQ_INVALID_ARGUMENT = "LCQ_INVALID_ARGUMENT";
+
     final static String NET_TAG = "LCQ-RN-NET";
     final static String Bridge_TAG = "LCQ-CP-Bridge";
 

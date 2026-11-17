@@ -2,9 +2,11 @@ package ai.luciq.reactlibrary;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
@@ -20,8 +22,16 @@ import ai.luciq.library.invocation.LuciqInvocationEvent;
 import ai.luciq.library.invocation.OnInvokeCallback;
 import ai.luciq.library.invocation.util.LuciqFloatingButtonEdge;
 import ai.luciq.library.invocation.util.LuciqVideoRecordingButtonPosition;
+import ai.luciq.bug.customreport.CustomReport;
+import ai.luciq.bug.customreport.CustomReportResult;
+import ai.luciq.bug.customreport.OnCustomReportResultCallback;
+import ai.luciq.bug.customreport.OnReportConfigurationReadyCallback;
+import ai.luciq.bug.customreport.ReportConfiguration;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
+import ai.luciq.reactlibrary.utils.CustomReportArgs;
+import ai.luciq.reactlibrary.utils.CustomReportResultMapper;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
+import ai.luciq.reactlibrary.utils.ReportConfigurationMapper;
 import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
 import ai.luciq.reactlibrary.utils.LuciqRNLogger;
 import ai.luciq.reactlibrary.utils.MainThreadHandler;
@@ -556,6 +566,135 @@ public class RNLuciqBugReportingModule extends NativeLuciqBugReportingSpec {
                 BugReporting.setProactiveReportingConfigurations(configs);
 
 
+            }
+        });
+    }
+
+    /**
+     * Limits the report categories users see to the ones with these identifiers
+     * (dashboard › Report Categories). Kept in memory for the process; applies to
+     * every way of opening the SDK and to {@link #getReportConfiguration}.
+     *
+     * @param identifiers the category identifiers, or null (or an empty array) for all categories.
+     */
+    @ReactMethod
+    public void setReportCategoriesScope(@Nullable final ReadableArray identifiers) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Identifiers name dashboard categories; log only the count.
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setReportCategoriesScope] called count=" + (identifiers == null ? "null" : String.valueOf(identifiers.size())));
+                    if (identifiers == null) {
+                        BugReporting.setReportCategoriesScope((String[]) null);
+                        return;
+                    }
+                    final ArrayList<String> parsed = ArrayUtil.parseReadableArrayOfStrings(identifiers);
+                    BugReporting.setReportCategoriesScope(parsed.toArray(new String[0]));
+                } catch (Exception e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setReportCategoriesScope] failed", e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Resolves the categories and requirements of a report type (see
+     * {@link ReportConfigurationMapper} for the shape), or null when Bug Reporting
+     * or the report type isn't available. Rejects with
+     * {@link Constants#LCQ_INVALID_ARGUMENT} only for an unknown report type.
+     *
+     * @param reportType a key of {@link ArgsRegistry#reportTypes}.
+     */
+    @ReactMethod
+    public void getReportConfiguration(final String reportType, final Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[getReportConfiguration] called reportType=" + reportType);
+                    final Integer parsedReportType = ArgsRegistry.reportTypes.get(reportType);
+                    if (parsedReportType == null) {
+                        LuciqRNLogger.w(LuciqRNDebugTags.BUG_REPORTING, "[getReportConfiguration] rejected: unknown reportType=" + reportType);
+                        promise.reject(Constants.LCQ_INVALID_ARGUMENT, "Unknown report type: " + reportType);
+                        return;
+                    }
+                    BugReporting.getReportConfiguration(parsedReportType, new OnReportConfigurationReadyCallback() {
+                        @Override
+                        public void onReady(@Nullable ReportConfiguration configuration) {
+                            try {
+                                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[getReportConfiguration] ready available=" + (configuration != null));
+                                if (configuration == null) {
+                                    promise.resolve(null);
+                                } else {
+                                    promise.resolve(ReportConfigurationMapper.toWritableMap(configuration));
+                                }
+                            } catch (Exception e) {
+                                LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[getReportConfiguration] mapping failed", e);
+                                promise.resolve(null);
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[getReportConfiguration] failed", e);
+                    promise.resolve(null);
+                }
+            }
+        });
+    }
+
+    /**
+     * Submits a report collected by the app's own UI and resolves the SDK's
+     * result (see {@link CustomReportResultMapper} for the shape). Every SDK
+     * outcome resolves; the Promise rejects with
+     * {@link Constants#LCQ_INVALID_ARGUMENT} only when the report map is
+     * malformed or the report type is unknown.
+     *
+     * @param reportType a key of {@link ArgsRegistry#reportTypes}.
+     * @param report     the report map built by the JS layer (see {@link CustomReportArgs}).
+     */
+    @ReactMethod
+    public void submitReport(final String reportType, @Nullable final ReadableMap report, final Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                // The map holds user content (comment, email, answers); log only its shape.
+                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] called reportType=" + reportType + " keysPresent=" + (report != null));
+
+                final CustomReport parsedReport;
+                try {
+                    final Integer parsedReportType = ArgsRegistry.reportTypes.get(reportType);
+                    if (parsedReportType == null) {
+                        throw new IllegalArgumentException("Unknown report type: " + reportType);
+                    }
+                    parsedReport = CustomReportArgs.build(parsedReportType, report);
+                } catch (IllegalArgumentException e) {
+                    LuciqRNLogger.w(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] rejected: " + e.getMessage());
+                    promise.reject(Constants.LCQ_INVALID_ARGUMENT, e.getMessage(), e);
+                    return;
+                } catch (Exception e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] building the report failed", e);
+                    promise.reject(Constants.LCQ_INVALID_ARGUMENT, "Could not build the report", e);
+                    return;
+                }
+
+                try {
+                    BugReporting.submitReport(parsedReport, new OnCustomReportResultCallback() {
+                        @Override
+                        public void onResult(@NonNull CustomReportResult result) {
+                            try {
+                                LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] result=" + result);
+                                promise.resolve(CustomReportResultMapper.toWritableMap(result));
+                            } catch (Exception e) {
+                                LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] mapping the result failed", e);
+                                promise.resolve(CustomReportResultMapper.unavailable());
+                            }
+                        }
+                    });
+                } catch (Exception e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] failed", e);
+                    promise.resolve(CustomReportResultMapper.unavailable());
+                }
             }
         });
     }

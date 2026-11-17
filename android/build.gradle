@@ -113,6 +113,9 @@ dependencies {
     testImplementation "org.mockito:mockito-inline:3.12.1"
     testImplementation "org.mockito:mockito-android:3.4.0"
     testImplementation 'junit:junit:4.13.2'
+    // JSON parsing for unit tests that compare bridge output with the fixtures under test/fixtures
+    // (org.json is shadowed by the mockable android.jar stubs in unit tests, so Gson is used instead).
+    testImplementation 'com.google.code.gson:gson:2.10.1'
 }
 
 rootProject.allprojects {
