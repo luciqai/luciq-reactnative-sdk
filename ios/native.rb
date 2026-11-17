@@ -1,4 +1,4 @@
-$luciq= { :version => '19.13.0' }
+$luciq= { :version => '19.14.0' }
 
 # SwiftPM source for the native Luciq SDK (product `Luciq`).
 $luciq_spm = {
