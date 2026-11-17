@@ -14,6 +14,7 @@
 #import <React/RCTUIManager.h>
 #import "Util/LuciqRNDebugTags.h"
 #import "Util/LuciqRNLogger.h"
+#import "LCQCustomReport+RN.h"
 
 @implementation LuciqBugReportingBridge
 
@@ -267,6 +268,38 @@ RCT_EXPORT_METHOD(setProactiveReportingConfigurations:(BOOL)enabled gap:(nonnull
    [LCQBugReporting setProactiveReportingConfigurations:configurations];
 }
 
+/*
+ +------------------------------------------------------------------------+
+ |                            Custom reports                              |
+ +------------------------------------------------------------------------+
+ */
+
+RCT_EXPORT_METHOD(setReportCategoriesScope:(NSArray *)identifiers) {
+    // Identifiers name dashboard categories; log only the count.
+    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[setReportCategoriesScope] called count=%lu", (unsigned long)identifiers.count];
+    LCQBugReporting.reportCategoriesScope = identifiers;
+}
+
+RCT_EXPORT_METHOD(getReportConfiguration:(LCQBugReportingReportType)type
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[getReportConfiguration] called type=%ld", (long)type];
+    [LCQBugReporting getReportConfigurationForType:type completion:^(LCQReportConfiguration *configuration) {
+        resolve([configuration lcq_dictionaryRepresentation]);
+    }];
+}
+
+RCT_EXPORT_METHOD(submitReport:(LCQBugReportingReportType)type
+                  report:(NSDictionary *)report
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+    // The report is user content; log only its type.
+    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[submitReport] called type=%ld", (long)type];
+    [LCQBugReporting submitReport:[LCQCustomReport lcq_reportWithType:type dictionary:report]
+                       completion:^(LCQCustomReportResult *result) {
+        resolve([result lcq_dictionaryRepresentation]);
+    }];
+}
 
 @synthesize description;
 

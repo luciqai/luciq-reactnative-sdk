@@ -7,6 +7,14 @@ appId: ai.luciq.react.example
     id: instabug_floating_button
 - assertVisible: 'Report a bug'
 - tapOn: 'Report a bug'
+# When the dashboard has report categories, the SDK lists them before the form.
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: 'Others'
+    commands:
+      - tapOn: 'Others'
+      - tapOn: 'My overall experience'
 - tapOn:
     id: instabug_edit_text_email
 - inputText: 'rn_e2e@luciq.ai'

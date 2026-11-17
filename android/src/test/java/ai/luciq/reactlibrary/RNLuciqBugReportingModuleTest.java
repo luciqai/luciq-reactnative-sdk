@@ -6,10 +6,19 @@ import android.util.Log;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.JavaOnlyArray;
 import com.facebook.react.bridge.JavaOnlyMap;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 
 import ai.luciq.bug.BugReporting;
+import ai.luciq.bug.customreport.CustomReportResult;
+import ai.luciq.bug.customreport.EmailRequirement;
+import ai.luciq.bug.customreport.NotSentReason;
+import ai.luciq.bug.customreport.OnCustomReportResultCallback;
+import ai.luciq.bug.customreport.OnReportConfigurationReadyCallback;
+import ai.luciq.bug.customreport.ReportConfiguration;
+import ai.luciq.bug.customreport.ReportRequirements;
 import ai.luciq.library.Feature;
 import ai.luciq.library.OnSdkDismissCallback;
 import ai.luciq.library.extendedbugreport.ExtendedBugReport;
@@ -28,12 +37,16 @@ import org.mockito.internal.verification.VerificationModeFactory;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.spy;
@@ -408,4 +421,166 @@ public class RNLuciqBugReportingModuleTest {
 
 
         }
+
+    /******** Custom reports *********/
+
+    private static final String BUG_KEY = "bugReportingReportTypeBug";
+
+    @Test
+    public void givenArray$setReportCategoriesScope_whenQuery_thenShouldCallNativeApiWithIdentifiers() {
+        // given
+        JavaOnlyArray identifiers = JavaOnlyArray.of("checkout", "refund");
+
+        // when
+        bugReportingModule.setReportCategoriesScope(identifiers);
+
+        // then
+        mockBugReporting.verify(() -> BugReporting.setReportCategoriesScope("checkout", "refund"));
+    }
+
+    @Test
+    public void givenEmptyArray$setReportCategoriesScope_whenQuery_thenShouldCallNativeApiWithNoIdentifiers() {
+        // when
+        bugReportingModule.setReportCategoriesScope(new JavaOnlyArray());
+
+        // then
+        mockBugReporting.verify(() -> BugReporting.setReportCategoriesScope(new String[0]));
+    }
+
+    @Test
+    public void givenNull$setReportCategoriesScope_whenQuery_thenShouldClearTheScope() {
+        // when
+        bugReportingModule.setReportCategoriesScope(null);
+
+        // then
+        mockBugReporting.verify(() -> BugReporting.setReportCategoriesScope((String[]) null));
+    }
+
+    @Test
+    public void givenConfiguration$getReportConfiguration_whenReady_thenShouldResolveMappedMap() {
+        // given
+        MockedStatic<Arguments> mockArguments = mockStatic(Arguments.class);
+        mockArguments.when(Arguments::createMap).thenAnswer(invocation -> new JavaOnlyMap());
+        mockArguments.when(Arguments::createArray).thenAnswer(invocation -> new JavaOnlyArray());
+        Promise promise = mock(Promise.class);
+        ReportConfiguration configuration = new ReportConfiguration(BugReporting.ReportType.BUG, Collections.emptyList(), null,
+                new ReportRequirements(EmailRequirement.OPTIONAL, null, 0, 4000, Collections.emptyList(),
+                        Collections.emptyList(), false, 3, 5242880L));
+        mockBugReporting.when(() -> BugReporting.getReportConfiguration(eq(BugReporting.ReportType.BUG), any()))
+                .thenAnswer(invocation -> {
+                    invocation.getArgument(1, OnReportConfigurationReadyCallback.class).onReady(configuration);
+                    return null;
+                });
+
+        // when
+        bugReportingModule.getReportConfiguration(BUG_KEY, promise);
+
+        // then
+        verify(promise).resolve(argThat(value -> {
+            ReadableMap map = (ReadableMap) value;
+            return map.getArray("categories").size() == 0
+                    && map.isNull("preselectedCategory")
+                    && "optional".equals(map.getMap("requirements").getString("email"));
+        }));
+        mockArguments.close();
+    }
+
+    @Test
+    public void givenNullConfiguration$getReportConfiguration_whenReady_thenShouldResolveNull() {
+        // given
+        Promise promise = mock(Promise.class);
+        mockBugReporting.when(() -> BugReporting.getReportConfiguration(eq(BugReporting.ReportType.BUG), any()))
+                .thenAnswer(invocation -> {
+                    invocation.getArgument(1, OnReportConfigurationReadyCallback.class).onReady(null);
+                    return null;
+                });
+
+        // when
+        bugReportingModule.getReportConfiguration(BUG_KEY, promise);
+
+        // then
+        verify(promise).resolve(isNull());
+    }
+
+    @Test
+    public void givenUnknownType$getReportConfiguration_whenQuery_thenShouldResolveNull() {
+        // given
+        Promise promise = mock(Promise.class);
+
+        // when
+        bugReportingModule.getReportConfiguration("notAReportType", promise);
+
+        // then
+        verify(promise).resolve(isNull());
+        mockBugReporting.verify(() -> BugReporting.getReportConfiguration(any(Integer.class), any()), never());
+    }
+
+    @Test
+    public void givenQueued$submitReport_whenResult_thenShouldResolveQueued() {
+        // given
+        MockedStatic<Arguments> mockArguments = mockStatic(Arguments.class);
+        mockArguments.when(Arguments::createMap).thenAnswer(invocation -> new JavaOnlyMap());
+        mockArguments.when(Arguments::createArray).thenAnswer(invocation -> new JavaOnlyArray());
+        Promise promise = mock(Promise.class);
+        mockBugReporting.when(() -> BugReporting.submitReport(any(), any())).thenAnswer(invocation -> {
+            invocation.getArgument(1, OnCustomReportResultCallback.class).onResult(CustomReportResult.Queued.INSTANCE);
+            return null;
+        });
+        JavaOnlyMap report = JavaOnlyMap.of("comment", "Refund was wrong", "categoryIdentifier", "checkout-refund",
+                "screenshot", "currentScreen");
+
+        // when
+        bugReportingModule.submitReport(BUG_KEY, report, promise);
+
+        // then
+        verify(promise).resolve(argThat(value -> {
+            ReadableMap map = (ReadableMap) value;
+            return "queued".equals(map.getString("status")) && map.getArray("errors").size() == 0;
+        }));
+        mockArguments.close();
+    }
+
+    @Test
+    public void givenNotSent$submitReport_whenResult_thenShouldResolveReason() {
+        // given
+        MockedStatic<Arguments> mockArguments = mockStatic(Arguments.class);
+        mockArguments.when(Arguments::createMap).thenAnswer(invocation -> new JavaOnlyMap());
+        mockArguments.when(Arguments::createArray).thenAnswer(invocation -> new JavaOnlyArray());
+        Promise promise = mock(Promise.class);
+        mockBugReporting.when(() -> BugReporting.submitReport(any(), any())).thenAnswer(invocation -> {
+            invocation.getArgument(1, OnCustomReportResultCallback.class)
+                    .onResult(new CustomReportResult.NotSent(NotSentReason.DUPLICATE));
+            return null;
+        });
+
+        // when
+        bugReportingModule.submitReport(BUG_KEY, new JavaOnlyMap(), promise);
+
+        // then
+        verify(promise).resolve(argThat(value -> {
+            ReadableMap map = (ReadableMap) value;
+            return "notSent".equals(map.getString("status")) && "duplicate".equals(map.getString("notSentReason"));
+        }));
+        mockArguments.close();
+    }
+
+    @Test
+    public void givenUnknownType$submitReport_whenQuery_thenShouldResolveUnavailable() {
+        // given
+        MockedStatic<Arguments> mockArguments = mockStatic(Arguments.class);
+        mockArguments.when(Arguments::createMap).thenAnswer(invocation -> new JavaOnlyMap());
+        mockArguments.when(Arguments::createArray).thenAnswer(invocation -> new JavaOnlyArray());
+        Promise promise = mock(Promise.class);
+
+        // when
+        bugReportingModule.submitReport("notAReportType", new JavaOnlyMap(), promise);
+
+        // then
+        verify(promise).resolve(argThat(value -> {
+            ReadableMap map = (ReadableMap) value;
+            return "notSent".equals(map.getString("status")) && "unavailable".equals(map.getString("notSentReason"));
+        }));
+        mockBugReporting.verify(() -> BugReporting.submitReport(any(), any()), never());
+        mockArguments.close();
+    }
 }

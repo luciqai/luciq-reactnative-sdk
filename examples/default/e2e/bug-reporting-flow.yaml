@@ -6,6 +6,14 @@ appId: ai.luciq.react.example
 - tapOn:
     id: IBGFloatingButtonAccessibilityIdentifier
 - tapOn: 'Report a bug'
+# When the dashboard has report categories, the SDK lists them before the form.
+- waitForAnimationToEnd
+- runFlow:
+    when:
+      visible: 'Others'
+    commands:
+      - tapOn: 'Others'
+      - tapOn: 'My overall experience'
 - tapOn:
     id: IBGBugInputViewEmailFieldAccessibilityIdentifier
 - eraseText

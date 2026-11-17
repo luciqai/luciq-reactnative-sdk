@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.13.0...dev)
+
+### Added
+
+- **Custom reports**: Add `BugReporting.submitReport(report)` to submit a bug, feedback or question collected by your own UI without showing the SDK's form. It resolves with a `CustomReportResult` (`queued`, `notSent` with a `NotSentReason`, or `invalid` with every `FieldError` at once) and rejects, with code `LCQ_INVALID_ARGUMENT`, only for malformed input. `Luciq.onReportSubmitHandler` still runs for these reports; the invoke and dismiss handlers do not. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
+
+- **Report configuration**: Add `BugReporting.getReportConfiguration(type)`, which resolves the categories of a report type (identifiers, titles, fields with their keys and options, and whether a category is a leaf) and the requirements `submitReport` enforces (email, comment length, consents, extended fields, screenshot and attachment limits), or `null` when Bug Reporting or the report type isn't available. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
+
+- **Report categories scope**: Add `BugReporting.setReportCategoriesScope(identifiers)` to limit the report categories users see to the given dashboard identifiers; pass `null` or `[]` to show all categories again. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
+
+### Changed
+
+- Bump Luciq Android SDK to the `19.15.1.9238031-SNAPSHOT` build carrying the custom report APIs (to be replaced by the GA release before this version ships).
+
 ## [19.13.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.13.0)
 
 ### Changed
