@@ -1,4 +1,5 @@
 import type { ReportType } from '../utils/Enums';
+import { LuciqInvalidArgumentError } from '../utils/LuciqErrors';
 
 /**
  * The screenshot attached to a {@link CustomReport}.
@@ -40,66 +41,69 @@ export interface CustomReport {
   /** Defaults to `'none'`. */
   screenshot?: ReportScreenshot;
   /**
-   * File URIs to attach (at most 3, up to 5 MiB each). iOS accepts `file://`
-   * URLs inside the app container; Android accepts `content://` URIs and
-   * `file://` URIs inside the app's own storage. Validated natively.
+   * Files to attach (at most 3, up to 5 MiB each), as file paths or URIs inside
+   * the app's own storage: `file://` on both platforms, `content://` on Android.
+   * Validated natively.
    */
   attachments?: string[];
 }
 
+/** @internal The report as it crosses the bridge: checked, without `reportType` or null entries. */
+export type NativeCustomReport = Omit<CustomReport, 'reportType'>;
+
+type Check = (value: unknown) => boolean;
+
+const isString: Check = (value) => typeof value === 'string';
+const isBoolean: Check = (value) => typeof value === 'boolean';
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+const arrayOf =
+  (isValid: Check): Check =>
+  (value) =>
+    Array.isArray(value) && value.every(isValid);
+const recordOf =
+  (isValid: Check): Check =>
+  (value) =>
+    isRecord(value) && Object.values(value).every(isValid);
+
+/** What each part of a report must be, and how to word it when it isn't. */
+const SHAPE: Record<keyof NativeCustomReport, [Check, string]> = {
+  comment: [isString, 'a string'],
+  email: [isString, 'a string'],
+  categoryIdentifier: [isString, 'a string'],
+  answers: [recordOf(arrayOf(isString)), 'an object of string arrays'],
+  consents: [recordOf(isBoolean), 'an object of booleans'],
+  extendedFields: [recordOf(isString), 'an object of strings'],
+  screenshot: [
+    (value) => value === 'none' || value === 'currentScreen',
+    "'none' or 'currentScreen'",
+  ],
+  attachments: [arrayOf(isString), 'an array of strings'],
+};
+
 /**
  * @internal
- * The report as it crosses the bridge: the same keys as {@link CustomReport}
- * minus `reportType` (passed separately), with `undefined` values dropped and
- * `screenshot` always set.
- */
-export interface NativeCustomReport {
-  comment?: string | null;
-  email?: string | null;
-  categoryIdentifier?: string | null;
-  answers?: Record<string, string[]>;
-  consents?: Record<string, boolean>;
-  extendedFields?: Record<string, string | null>;
-  screenshot: ReportScreenshot;
-  attachments?: string[];
-}
-
-const SCREENSHOTS: ReportScreenshot[] = ['none', 'currentScreen'];
-
-/**
- * @internal
- * Builds the bridge payload for a {@link CustomReport}: drops `undefined`
- * entries, defaults `screenshot` to `'none'` and coerces an unknown screenshot
- * value to `'none'`. No limits are checked here; the native SDK validates the
- * report and reports every problem in the result.
+ * Builds the bridge payload for a {@link CustomReport}: drops `reportType`
+ * (sent separately) and null entries, and checks the type of every other part,
+ * so the native bridges only have to map it. Limits and dashboard keys are
+ * checked by the native SDK and reported in the result.
+ * @throws {LuciqInvalidArgumentError} when a part of the report has the wrong type.
  */
 export const toNativeCustomReport = (report: CustomReport): NativeCustomReport => {
-  const native: NativeCustomReport = {
-    screenshot: SCREENSHOTS.includes(report.screenshot as ReportScreenshot)
-      ? (report.screenshot as ReportScreenshot)
-      : 'none',
-  };
+  const native: Record<string, unknown> = {};
 
-  if (report.comment !== undefined) {
-    native.comment = report.comment;
-  }
-  if (report.email !== undefined) {
-    native.email = report.email;
-  }
-  if (report.categoryIdentifier !== undefined) {
-    native.categoryIdentifier = report.categoryIdentifier;
-  }
-  if (report.answers !== undefined) {
-    native.answers = report.answers;
-  }
-  if (report.consents !== undefined) {
-    native.consents = report.consents;
-  }
-  if (report.extendedFields !== undefined) {
-    native.extendedFields = report.extendedFields;
-  }
-  if (report.attachments !== undefined) {
-    native.attachments = report.attachments;
+  for (const [key, [isValid, expected]] of Object.entries(SHAPE)) {
+    let value: unknown = report[key as keyof NativeCustomReport];
+    if (isRecord(value)) {
+      value = Object.fromEntries(Object.entries(value).filter(([, entry]) => entry != null));
+    }
+    if (value == null) {
+      continue;
+    }
+    if (!isValid(value)) {
+      throw new LuciqInvalidArgumentError(`submitReport: ${key} must be ${expected}.`);
+    }
+    native[key] = value;
   }
 
   return native;

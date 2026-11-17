@@ -5,9 +5,7 @@ import type { ProactiveReportingConfigOptions } from '../models/ProactiveReporti
 import type { CustomReport } from '../models/CustomReport';
 import { toNativeCustomReport } from '../models/CustomReport';
 import type { CustomReportResult } from '../models/CustomReportResult';
-import { fromNativeCustomReportResult } from '../models/CustomReportResult';
 import type { ReportConfiguration } from '../models/ReportConfiguration';
-import { fromNativeReportConfiguration } from '../models/ReportConfiguration';
 import type {
   DismissType,
   ExtendedBugReportMode,
@@ -398,13 +396,8 @@ export const getReportConfiguration = async (
     );
   }
 
-  const raw = await NativeBugReporting.getReportConfiguration(type);
-  const configuration = fromNativeReportConfiguration(raw);
-  Logger.debug(TAG, 'getReportConfiguration result', {
-    available: configuration != null,
-    categoriesCount: configuration?.categories.length ?? 0,
-  });
-  return configuration;
+  const configuration = await NativeBugReporting.getReportConfiguration(type);
+  return configuration ? { ...configuration, reportType: type } : null;
 };
 
 /**
@@ -424,41 +417,18 @@ export const getReportConfiguration = async (
  * @returns The result: `queued`, `notSent` with a reason, or `invalid` with
  * every problem at once. The Promise resolves for every outcome the SDK
  * reports and rejects (code `LCQ_INVALID_ARGUMENT`) only for malformed input.
- * @throws {LuciqInvalidArgumentError} when `report` is not an object or its
- * `reportType` is not a known `ReportType`.
+ * @throws {LuciqInvalidArgumentError} when `report` is not an object, its
+ * `reportType` is not a known `ReportType`, or a part of it has the wrong type.
  */
 export const submitReport = async (report: CustomReport): Promise<CustomReportResult> => {
-  if (report == null || typeof report !== 'object') {
-    Logger.warn(TAG, 'submitReport rejected: report is not an object');
-    throw new LuciqInvalidArgumentError('submitReport: report must be an object.');
-  }
-  if (!isKnownReportType(report.reportType)) {
-    Logger.warn(TAG, 'submitReport rejected: unknown report type', { type: report.reportType });
+  if (report == null || typeof report !== 'object' || !isKnownReportType(report.reportType)) {
     throw new LuciqInvalidArgumentError(
-      `submitReport: unknown report type ${String(report.reportType)}; use a ReportType value.`,
+      'submitReport: report must be an object with a known ReportType.',
     );
   }
 
   const native = toNativeCustomReport(report);
-  // The comment, email, answers and attachments are user content; log only shape.
-  Logger.debug(TAG, 'submitReport', {
-    reportType: report.reportType,
-    hasComment: native.comment != null,
-    hasEmail: native.email != null,
-    hasCategory: native.categoryIdentifier != null,
-    answersCount: Object.keys(native.answers ?? {}).length,
-    consentsCount: Object.keys(native.consents ?? {}).length,
-    extendedFieldsCount: Object.keys(native.extendedFields ?? {}).length,
-    screenshot: native.screenshot,
-    attachmentsCount: native.attachments?.length ?? 0,
-  });
-
-  const raw = await NativeBugReporting.submitReport(report.reportType, native);
-  const result = fromNativeCustomReportResult(raw);
-  Logger.debug(TAG, 'submitReport result', {
-    status: result.status,
-    notSentReason: result.notSentReason,
-    errorsCount: result.errors.length,
-  });
-  return result;
+  // The report is user content; log only which parts are set.
+  Logger.debug(TAG, 'submitReport', { reportType: report.reportType, parts: Object.keys(native) });
+  return NativeBugReporting.submitReport(report.reportType, native);
 };

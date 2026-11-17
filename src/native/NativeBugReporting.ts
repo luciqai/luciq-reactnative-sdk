@@ -15,8 +15,8 @@ import type {
 } from '../utils/Enums';
 import BugReportingTurboSpec from '../specs/NativeLuciqBugReporting';
 import type { NativeCustomReport } from '../models/CustomReport';
-import type { NativeCustomReportResult } from '../models/CustomReportResult';
-import type { NativeReportConfiguration } from '../models/ReportConfiguration';
+import type { CustomReportResult } from '../models/CustomReportResult';
+import type { ReportConfiguration } from '../models/ReportConfiguration';
 
 export interface BugReportingNativeModule extends NativeModule {
   // Essential APIs //
@@ -73,11 +73,10 @@ export interface BugReportingNativeModule extends NativeModule {
 
   // Custom reports //
   setReportCategoriesScope(identifiers: string[] | null): void;
-  getReportConfiguration(reportType: ReportType): Promise<NativeReportConfiguration | null>;
-  submitReport(
+  getReportConfiguration(
     reportType: ReportType,
-    report: NativeCustomReport,
-  ): Promise<NativeCustomReportResult>;
+  ): Promise<Omit<ReportConfiguration, 'reportType'> | null>;
+  submitReport(reportType: ReportType, report: NativeCustomReport): Promise<CustomReportResult>;
 }
 
 export const NativeBugReporting = (BugReportingTurboSpec ??

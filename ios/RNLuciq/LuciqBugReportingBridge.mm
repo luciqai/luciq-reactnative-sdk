@@ -15,10 +15,6 @@
 #import "Util/LuciqRNDebugTags.h"
 #import "Util/LuciqRNLogger.h"
 #import "LCQCustomReport+RN.h"
-#import "LCQReportConfiguration+RN.h"
-
-/// Promise rejection code for malformed input to a bridge method (never for an SDK outcome).
-static NSString *const LCQRNInvalidArgumentCode = @"LCQ_INVALID_ARGUMENT";
 
 @implementation LuciqBugReportingBridge
 
@@ -280,71 +276,29 @@ RCT_EXPORT_METHOD(setProactiveReportingConfigurations:(BOOL)enabled gap:(nonnull
 
 RCT_EXPORT_METHOD(setReportCategoriesScope:(NSArray *)identifiers) {
     // Identifiers name dashboard categories; log only the count.
-    NSArray *scope = [identifiers isKindOfClass:[NSArray class]] ? identifiers : nil;
-    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[setReportCategoriesScope] called count=%@", scope ? @(scope.count) : @"nil"];
-    LCQBugReporting.reportCategoriesScope = scope;
+    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[setReportCategoriesScope] called count=%lu", (unsigned long)identifiers.count];
+    LCQBugReporting.reportCategoriesScope = identifiers;
 }
 
 RCT_EXPORT_METHOD(getReportConfiguration:(LCQBugReportingReportType)type
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
     [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[getReportConfiguration] called type=%ld", (long)type];
-    if (LCQRNReportTypeName(type) == nil) {
-        [LuciqRNLogger w:[LuciqRNDebugTags bugReporting] format:@"[getReportConfiguration] rejected: unknown type=%ld", (long)type];
-        reject(LCQRNInvalidArgumentCode, [NSString stringWithFormat:@"Unknown report type: %ld", (long)type], nil);
-        return;
-    }
-    @try {
-        [LCQBugReporting getReportConfigurationForType:type completion:^(LCQReportConfiguration *_Nullable configuration) {
-            @try {
-                [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[getReportConfiguration] ready available=%@", (configuration != nil ? @"YES" : @"NO")];
-                resolve(configuration ? [configuration lcq_dictionaryRepresentation] : [NSNull null]);
-            } @catch (NSException *exception) {
-                [LuciqRNLogger e:[LuciqRNDebugTags bugReporting] format:@"[getReportConfiguration] mapping failed: %@", exception];
-                resolve([NSNull null]);
-            }
-        }];
-    } @catch (NSException *exception) {
-        [LuciqRNLogger e:[LuciqRNDebugTags bugReporting] format:@"[getReportConfiguration] failed: %@", exception];
-        resolve([NSNull null]);
-    }
+    [LCQBugReporting getReportConfigurationForType:type completion:^(LCQReportConfiguration *configuration) {
+        resolve([configuration lcq_dictionaryRepresentation]);
+    }];
 }
 
 RCT_EXPORT_METHOD(submitReport:(LCQBugReportingReportType)type
                   report:(NSDictionary *)report
                   resolve:(RCTPromiseResolveBlock)resolve
                   reject:(RCTPromiseRejectBlock)reject) {
-    // The dictionary holds user content (comment, email, answers); log only its shape.
-    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[submitReport] called type=%ld keysCount=%lu", (long)type, (unsigned long)([report isKindOfClass:[NSDictionary class]] ? report.count : 0)];
-
-    if (LCQRNReportTypeName(type) == nil) {
-        [LuciqRNLogger w:[LuciqRNDebugTags bugReporting] format:@"[submitReport] rejected: unknown type=%ld", (long)type];
-        reject(LCQRNInvalidArgumentCode, [NSString stringWithFormat:@"Unknown report type: %ld", (long)type], nil);
-        return;
-    }
-
-    NSError *error = nil;
-    LCQCustomReport *customReport = [LCQCustomReport lcq_reportWithType:type dictionary:report error:&error];
-    if (customReport == nil) {
-        [LuciqRNLogger w:[LuciqRNDebugTags bugReporting] format:@"[submitReport] rejected: %@", error.localizedDescription];
-        reject(LCQRNInvalidArgumentCode, error.localizedDescription ?: @"Malformed report", error);
-        return;
-    }
-
-    @try {
-        [LCQBugReporting submitReport:customReport completion:^(LCQCustomReportResult *result) {
-            @try {
-                [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[submitReport] result status=%ld reason=%ld errors=%lu", (long)result.status, (long)result.notSentReason, (unsigned long)result.errors.count];
-                resolve(result ? [result lcq_dictionaryRepresentation] : [LCQCustomReportResult lcq_unavailableDictionary]);
-            } @catch (NSException *exception) {
-                [LuciqRNLogger e:[LuciqRNDebugTags bugReporting] format:@"[submitReport] mapping the result failed: %@", exception];
-                resolve([LCQCustomReportResult lcq_unavailableDictionary]);
-            }
-        }];
-    } @catch (NSException *exception) {
-        [LuciqRNLogger e:[LuciqRNDebugTags bugReporting] format:@"[submitReport] failed: %@", exception];
-        resolve([LCQCustomReportResult lcq_unavailableDictionary]);
-    }
+    // The report is user content; log only its type.
+    [LuciqRNLogger d:[LuciqRNDebugTags bugReporting] format:@"[submitReport] called type=%ld", (long)type];
+    [LCQBugReporting submitReport:[LCQCustomReport lcq_reportWithType:type dictionary:report]
+                       completion:^(LCQCustomReportResult *result) {
+        resolve([result lcq_dictionaryRepresentation]);
+    }];
 }
 
 @synthesize description;

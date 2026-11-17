@@ -10,7 +10,6 @@
 #import "OCMock/OCMock.h"
 #import "LuciqBugReportingBridge.h"
 #import "LCQCustomReport+RN.h"
-#import "LCQReportConfiguration+RN.h"
 #import <LuciqSDK/LCQTypes.h>
 #import "LuciqSDK/LuciqSDK.h"
 #import "LCQConstants.h"
@@ -226,8 +225,8 @@
 /*
  +------------------------------------------------------------------------+
  |                            Custom reports                              |
- |  Mirrors test/fixtures/customReport/*.json (the test bundle carries    |
- |  no resources, so the expected values are written out by hand).        |
+ |  Mirrors the JSON files in test/fixtures/customReport (the test bundle |
+ |  carries no resources, so the expected values are written by hand).    |
  +------------------------------------------------------------------------+
  */
 
@@ -241,12 +240,6 @@
 - (void)testgivenNil$setReportCategoriesScope_whenQuery_thenShouldClearNativeProperty {
   id mock = OCMClassMock([LCQBugReporting class]);
   [self.luciqBridge setReportCategoriesScope:nil];
-  OCMVerify([mock setReportCategoriesScope:nil]);
-}
-
-- (void)testgivenNSNull$setReportCategoriesScope_whenQuery_thenShouldClearNativeProperty {
-  id mock = OCMClassMock([LCQBugReporting class]);
-  [self.luciqBridge setReportCategoriesScope:(NSArray *)[NSNull null]];
   OCMVerify([mock setReportCategoriesScope:nil]);
 }
 
@@ -270,58 +263,24 @@
     @"screenshot": @"currentScreen",
     @"attachments": @[@"file:///data/user/0/com.example/files/report.log", @"content://media/external/images/media/42"],
   };
-  NSError *error = nil;
 
-  LCQCustomReport *report = [LCQCustomReport lcq_reportWithType:LCQBugReportingReportTypeBug dictionary:dictionary error:&error];
+  LCQCustomReport *report = [LCQCustomReport lcq_reportWithType:LCQBugReportingReportTypeBug dictionary:dictionary];
 
-  XCTAssertNil(error);
-  XCTAssertNotNil(report);
+  // Answers, consents, extended fields and attachments have no public getters.
   XCTAssertEqual(report.reportType, LCQBugReportingReportTypeBug);
   XCTAssertEqualObjects(report.comment, @"Refund was for the wrong amount");
   XCTAssertEqualObjects(report.email, @"reporter@example.com");
   XCTAssertEqualObjects(report.categoryIdentifier, @"checkout-refund");
   XCTAssertNotNil(report.screenshot);
-  // Answers, consents, extended fields and attachments have no public getters; they are covered by
-  // testgivenMalformedDictionary... (shape errors) and by the native SDK's own validation.
 }
 
-- (void)testgivenMinimalDictionary$lcq_reportWithType_thenShouldBuildReportWithDefaults {
-  // report.minimal.json
-  NSError *error = nil;
+- (void)testgivenEmptyDictionary$lcq_reportWithType_thenShouldBuildReportWithDefaults {
+  LCQCustomReport *report = [LCQCustomReport lcq_reportWithType:LCQBugReportingReportTypeFeedback dictionary:@{}];
 
-  LCQCustomReport *report = [LCQCustomReport lcq_reportWithType:LCQBugReportingReportTypeFeedback dictionary:@{@"screenshot": @"none"} error:&error];
-
-  XCTAssertNil(error);
   XCTAssertEqual(report.reportType, LCQBugReportingReportTypeFeedback);
   XCTAssertNil(report.comment);
   XCTAssertNil(report.email);
   XCTAssertNil(report.categoryIdentifier);
-}
-
-- (void)testgivenNilDictionary$lcq_reportWithType_thenShouldBuildEmptyReport {
-  NSError *error = nil;
-  LCQCustomReport *report = [LCQCustomReport lcq_reportWithType:LCQBugReportingReportTypeQuestion dictionary:nil error:&error];
-  XCTAssertNil(error);
-  XCTAssertNotNil(report);
-}
-
-- (void)testgivenMalformedDictionary$lcq_reportWithType_thenShouldReturnError {
-  NSArray<NSDictionary *> *malformed = @[
-    @{@"screenshot": @"fromGallery"},
-    @{@"comment": @42},
-    @{@"answers": @"o_wrong_amount"},
-    @{@"answers": @{@"f_reason": @"o_wrong_amount"}},
-    @{@"answers": @{@"f_reason": @[@1]}},
-    @{@"consents": @{@"c_share_logs": @"yes"}},
-    @{@"extendedFields": @{@"repro_steps": @YES}},
-    @{@"attachments": @[@1]},
-  ];
-  for (NSDictionary *dictionary in malformed) {
-    NSError *error = nil;
-    LCQCustomReport *report = [LCQCustomReport lcq_reportWithType:LCQBugReportingReportTypeBug dictionary:dictionary error:&error];
-    XCTAssertNil(report, @"%@ should be rejected", dictionary);
-    XCTAssertEqualObjects(error.domain, LCQRNCustomReportErrorDomain);
-  }
 }
 
 - (LCQCustomReportFieldError *)fieldErrorWithField:(LCQCustomReportField)field key:(NSString *)key problem:(LCQCustomReportProblem)problem {
@@ -460,7 +419,6 @@
   OCMStub([requirements maxAttachmentBytes]).andReturn(5242880LL);
 
   LCQReportConfiguration *configuration = OCMClassMock([LCQReportConfiguration class]);
-  OCMStub([configuration reportType]).andReturn(LCQBugReportingReportTypeBug);
   OCMStub([configuration categories]).andReturn((@[reportAProblem, other]));
   OCMStub([configuration preselectedCategory]).andReturn(nil);
   OCMStub([configuration requirements]).andReturn(requirements);
@@ -479,7 +437,6 @@
   };
   NSDictionary *expectedCheckout = @{@"identifier": @"checkout", @"title": @"Checkout", @"description": [NSNull null], @"leaf": @NO, @"children": @[expectedRefund], @"fields": @[]};
   NSDictionary *expected = @{
-    @"reportType": @"bug",
     @"categories": @[
       @{@"identifier": @"report-a-problem", @"title": @"Report a problem", @"description": @"Something is broken", @"leaf": @NO, @"children": @[expectedCheckout], @"fields": @[]},
       @{@"identifier": @"other", @"title": @"Other", @"description": [NSNull null], @"leaf": @YES, @"children": @[], @"fields": @[]},
@@ -524,14 +481,12 @@
   OCMStub([requirements maxAttachments]).andReturn(3);
   OCMStub([requirements maxAttachmentBytes]).andReturn(5242880LL);
   LCQReportConfiguration *configuration = OCMClassMock([LCQReportConfiguration class]);
-  OCMStub([configuration reportType]).andReturn(LCQBugReportingReportTypeFeedback);
   OCMStub([configuration categories]).andReturn(@[checkout]);
   OCMStub([configuration preselectedCategory]).andReturn(parent);
   OCMStub([configuration requirements]).andReturn(requirements);
 
   NSDictionary *dictionary = [configuration lcq_dictionaryRepresentation];
 
-  XCTAssertEqualObjects(dictionary[@"reportType"], @"feedback");
   XCTAssertEqual([dictionary[@"categories"] count], 1);
   XCTAssertEqualObjects(dictionary[@"preselectedCategory"][@"identifier"], @"report-a-problem");
   XCTAssertEqualObjects(dictionary[@"preselectedCategory"][@"leaf"], @NO);
@@ -550,14 +505,13 @@
   OCMStub([requirements maxAttachments]).andReturn(3);
   OCMStub([requirements maxAttachmentBytes]).andReturn(5242880LL);
   LCQReportConfiguration *configuration = OCMClassMock([LCQReportConfiguration class]);
-  OCMStub([configuration reportType]).andReturn(LCQBugReportingReportTypeBug);
   OCMStub([configuration categories]).andReturn(@[]);
   OCMStub([configuration requirements]).andReturn(requirements);
   OCMStub(ClassMethod([mock getReportConfigurationForType:LCQBugReportingReportTypeBug completion:([OCMArg invokeBlockWithArgs:configuration, nil])]));
   XCTestExpectation *expectation = [self expectationWithDescription:@"resolved"];
 
   [self.luciqBridge getReportConfiguration:LCQBugReportingReportTypeBug resolve:^(id result) {
-    XCTAssertEqualObjects(result[@"reportType"], @"bug");
+    XCTAssertEqualObjects(result[@"requirements"][@"email"], @"optional");
     XCTAssertEqualObjects(result[@"preselectedCategory"], [NSNull null]);
     [expectation fulfill];
   } reject:^(NSString *code, NSString *message, NSError *error) {
@@ -573,7 +527,7 @@
   XCTestExpectation *expectation = [self expectationWithDescription:@"resolved"];
 
   [self.luciqBridge getReportConfiguration:LCQBugReportingReportTypeFeedback resolve:^(id result) {
-    XCTAssertEqualObjects(result, [NSNull null]);
+    XCTAssertNil(result);
     [expectation fulfill];
   } reject:^(NSString *code, NSString *message, NSError *error) {
     XCTFail(@"should not reject: %@", code);
@@ -597,38 +551,6 @@
     [expectation fulfill];
   } reject:^(NSString *code, NSString *message, NSError *error) {
     XCTFail(@"should not reject: %@", code);
-  }];
-
-  [self waitForExpectationsWithTimeout:1 handler:nil];
-}
-
-- (void)testgivenMalformedReport$submitReport_whenQuery_thenShouldRejectWithInvalidArgument {
-  id mock = OCMClassMock([LCQBugReporting class]);
-  OCMReject(ClassMethod([mock submitReport:[OCMArg any] completion:[OCMArg any]]));
-  XCTestExpectation *expectation = [self expectationWithDescription:@"rejected"];
-
-  [self.luciqBridge submitReport:LCQBugReportingReportTypeBug
-                          report:@{@"screenshot": @"fromGallery"}
-                         resolve:^(id value) {
-    XCTFail(@"should not resolve");
-  } reject:^(NSString *code, NSString *message, NSError *error) {
-    XCTAssertEqualObjects(code, @"LCQ_INVALID_ARGUMENT");
-    [expectation fulfill];
-  }];
-
-  [self waitForExpectationsWithTimeout:1 handler:nil];
-}
-
-- (void)testgivenUnknownType$submitReport_whenQuery_thenShouldRejectWithInvalidArgument {
-  XCTestExpectation *expectation = [self expectationWithDescription:@"rejected"];
-
-  [self.luciqBridge submitReport:(LCQBugReportingReportType)(LCQBugReportingReportTypeBug | LCQBugReportingReportTypeFeedback)
-                          report:@{}
-                         resolve:^(id value) {
-    XCTFail(@"should not resolve");
-  } reject:^(NSString *code, NSString *message, NSError *error) {
-    XCTAssertEqualObjects(code, @"LCQ_INVALID_ARGUMENT");
-    [expectation fulfill];
   }];
 
   [self waitForExpectationsWithTimeout:1 handler:nil];

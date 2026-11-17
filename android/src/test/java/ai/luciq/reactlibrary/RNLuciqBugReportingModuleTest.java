@@ -43,7 +43,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
@@ -427,12 +426,6 @@ public class RNLuciqBugReportingModuleTest {
 
     private static final String BUG_KEY = "bugReportingReportTypeBug";
 
-    private static ReportConfiguration emptyConfiguration(int reportType) {
-        return new ReportConfiguration(reportType, Collections.emptyList(), null,
-                new ReportRequirements(EmailRequirement.OPTIONAL, null, 0, 4000, Collections.emptyList(),
-                        Collections.emptyList(), false, 3, 5242880L));
-    }
-
     @Test
     public void givenArray$setReportCategoriesScope_whenQuery_thenShouldCallNativeApiWithIdentifiers() {
         // given
@@ -470,7 +463,9 @@ public class RNLuciqBugReportingModuleTest {
         mockArguments.when(Arguments::createMap).thenAnswer(invocation -> new JavaOnlyMap());
         mockArguments.when(Arguments::createArray).thenAnswer(invocation -> new JavaOnlyArray());
         Promise promise = mock(Promise.class);
-        ReportConfiguration configuration = emptyConfiguration(BugReporting.ReportType.BUG);
+        ReportConfiguration configuration = new ReportConfiguration(BugReporting.ReportType.BUG, Collections.emptyList(), null,
+                new ReportRequirements(EmailRequirement.OPTIONAL, null, 0, 4000, Collections.emptyList(),
+                        Collections.emptyList(), false, 3, 5242880L));
         mockBugReporting.when(() -> BugReporting.getReportConfiguration(eq(BugReporting.ReportType.BUG), any()))
                 .thenAnswer(invocation -> {
                     invocation.getArgument(1, OnReportConfigurationReadyCallback.class).onReady(configuration);
@@ -483,8 +478,7 @@ public class RNLuciqBugReportingModuleTest {
         // then
         verify(promise).resolve(argThat(value -> {
             ReadableMap map = (ReadableMap) value;
-            return "bug".equals(map.getString("reportType"))
-                    && map.getArray("categories").size() == 0
+            return map.getArray("categories").size() == 0
                     && map.isNull("preselectedCategory")
                     && "optional".equals(map.getMap("requirements").getString("email"));
         }));
@@ -509,7 +503,7 @@ public class RNLuciqBugReportingModuleTest {
     }
 
     @Test
-    public void givenUnknownType$getReportConfiguration_whenQuery_thenShouldRejectWithInvalidArgument() {
+    public void givenUnknownType$getReportConfiguration_whenQuery_thenShouldResolveNull() {
         // given
         Promise promise = mock(Promise.class);
 
@@ -517,7 +511,7 @@ public class RNLuciqBugReportingModuleTest {
         bugReportingModule.getReportConfiguration("notAReportType", promise);
 
         // then
-        verify(promise).reject(eq(Constants.LCQ_INVALID_ARGUMENT), anyString());
+        verify(promise).resolve(isNull());
         mockBugReporting.verify(() -> BugReporting.getReportConfiguration(any(Integer.class), any()), never());
     }
 
@@ -543,7 +537,6 @@ public class RNLuciqBugReportingModuleTest {
             ReadableMap map = (ReadableMap) value;
             return "queued".equals(map.getString("status")) && map.getArray("errors").size() == 0;
         }));
-        verify(promise, never()).reject(anyString(), anyString());
         mockArguments.close();
     }
 
@@ -572,28 +565,22 @@ public class RNLuciqBugReportingModuleTest {
     }
 
     @Test
-    public void givenMalformedReport$submitReport_whenQuery_thenShouldRejectWithInvalidArgument() {
+    public void givenUnknownType$submitReport_whenQuery_thenShouldResolveUnavailable() {
         // given
-        Promise promise = mock(Promise.class);
-
-        // when
-        bugReportingModule.submitReport(BUG_KEY, JavaOnlyMap.of("screenshot", "fromGallery"), promise);
-
-        // then
-        verify(promise).reject(eq(Constants.LCQ_INVALID_ARGUMENT), anyString(), any(Throwable.class));
-        mockBugReporting.verify(() -> BugReporting.submitReport(any(), any()), never());
-    }
-
-    @Test
-    public void givenUnknownType$submitReport_whenQuery_thenShouldRejectWithInvalidArgument() {
-        // given
+        MockedStatic<Arguments> mockArguments = mockStatic(Arguments.class);
+        mockArguments.when(Arguments::createMap).thenAnswer(invocation -> new JavaOnlyMap());
+        mockArguments.when(Arguments::createArray).thenAnswer(invocation -> new JavaOnlyArray());
         Promise promise = mock(Promise.class);
 
         // when
         bugReportingModule.submitReport("notAReportType", new JavaOnlyMap(), promise);
 
         // then
-        verify(promise).reject(eq(Constants.LCQ_INVALID_ARGUMENT), anyString(), any(Throwable.class));
+        verify(promise).resolve(argThat(value -> {
+            ReadableMap map = (ReadableMap) value;
+            return "notSent".equals(map.getString("status")) && "unavailable".equals(map.getString("notSentReason"));
+        }));
         mockBugReporting.verify(() -> BugReporting.submitReport(any(), any()), never());
+        mockArguments.close();
     }
 }
