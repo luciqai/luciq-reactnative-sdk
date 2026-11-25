@@ -25,8 +25,6 @@ import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.UIManager;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.bridge.WritableNativeArray;
-import com.facebook.react.bridge.WritableNativeMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.UIManagerModule;
@@ -779,14 +777,14 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
                 Luciq.onReportSubmitHandler(new Report.OnReportCreatedListener() {
                     @Override
                     public void onReportCreated(Report report) {
-                        LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[LuciqpreSendingHandler] emitted");
+                        LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[" + Constants.LCQ_PRE_SENDING_HANDLER + "] emitted");
                         WritableMap reportParam = Arguments.createMap();
                         reportParam.putArray("tagsArray", convertArrayListToWritableArray(report.getTags()));
                         reportParam.putArray("consoleLogs", convertArrayListToWritableArray(report.getConsoleLog()));
                         reportParam.putString("userData", report.getUserData());
                         reportParam.putMap("userAttributes", convertFromHashMapToWriteableMap(report.getUserAttributes()));
                         reportParam.putMap("fileAttachments", convertFromHashMapToWriteableMap(report.getFileAttachments()));
-                        sendEvent("LuciqpreSendingHandler", reportParam);
+                        sendEvent(Constants.LCQ_PRE_SENDING_HANDLER, reportParam);
                         currentReport = report;
                     }
                 });
@@ -908,11 +906,12 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
     }
 
     private WritableMap convertFromHashMapToWriteableMap(HashMap hashMap) {
-        WritableMap writableMap = new WritableNativeMap();
+        WritableMap writableMap = Arguments.createMap();
         for (int i = 0; i < hashMap.size(); i++) {
             Object key = hashMap.keySet().toArray()[i];
             Object value = hashMap.get(key);
-            writableMap.putString((String) key, (String) value);
+            // A key is a String (user attributes) or a Uri (file attachments).
+            writableMap.putString(String.valueOf(key), (String) value);
         }
         return writableMap;
     }
@@ -934,7 +933,7 @@ public class RNLuciqReactnativeModule extends NativeLuciqSpec {
     }
 
     private WritableArray convertArrayListToWritableArray(List arrayList) {
-        WritableArray writableArray = new WritableNativeArray();
+        WritableArray writableArray = Arguments.createArray();
 
         for (int i = 0; i < arrayList.size(); i++) {
             Object object = arrayList.get(i);

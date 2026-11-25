@@ -2,6 +2,7 @@ package ai.luciq.reactlibrary;
 
 import static ai.luciq.reactlibrary.utils.LuciqUtil.getMethod;
 
+import android.net.Uri;
 import android.graphics.Bitmap;
 import android.os.Looper;
 import android.util.Log;
@@ -24,6 +25,7 @@ import ai.luciq.library.internal.crossplatform.InternalCore;
 import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
 import ai.luciq.library.featuresflags.model.LuciqFeatureFlag;
 import ai.luciq.library.internal.module.LuciqLocale;
+import ai.luciq.library.model.Report;
 import ai.luciq.library.ui.onboarding.WelcomeMessage;
 import ai.luciq.library.user.UserEventParam;
 import ai.luciq.library.util.overairversion.OverAirVersionType;
@@ -45,6 +47,7 @@ import org.mockito.stubbing.Answer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -55,8 +58,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
@@ -422,6 +429,38 @@ public class RNLuciqReactnativeModuleTest {
         verify(Luciq.class,times(1));
         String [] expectedArray = {"tag1", "tag2"};
         Luciq.addTags(expectedArray);
+    }
+
+    @Test
+    public void givenReportWithFileAttachment$setPreSendingHandler_whenReportCreated_thenShouldSendTheEventJsListensTo() {
+        // given
+        MockedStatic<Arguments> mockArguments = mockStatic(Arguments.class);
+        mockArguments.when(Arguments::createMap).thenAnswer(invocation -> new JavaOnlyMap());
+        mockArguments.when(Arguments::createArray).thenAnswer(invocation -> new JavaOnlyArray());
+        Uri attachment = mock(Uri.class);
+        when(attachment.toString()).thenReturn("file:///data/user/0/com.example/files/report.log");
+        HashMap<Uri, String> attachments = new HashMap<>();
+        attachments.put(attachment, "report.log");
+        Report report = mock(Report.class);
+        when(report.getTags()).thenReturn(Collections.singletonList("vip"));
+        when(report.getFileAttachments()).thenReturn(attachments);
+        RNLuciqReactnativeModule module = spy(rnModule);
+        doNothing().when(module).sendEvent(any(), any());
+        mockLuciq.when(() -> Luciq.onReportSubmitHandler(any(Report.OnReportCreatedListener.class)))
+                .thenAnswer(invocation -> {
+                    invocation.getArgument(0, Report.OnReportCreatedListener.class).onReportCreated(report);
+                    return null;
+                });
+
+        // when
+        module.setPreSendingHandler();
+
+        // then: the name is NativeEvents.PRESENDING_HANDLER in src/native/NativeLuciq.ts, as on iOS
+        verify(module).sendEvent(eq("LCQpreSendingHandler"), argThat(payload ->
+                "vip".equals(payload.getArray("tagsArray").getString(0))
+                        && "report.log".equals(payload.getMap("fileAttachments")
+                        .getString("file:///data/user/0/com.example/files/report.log"))));
+        mockArguments.close();
     }
 
     @Test
