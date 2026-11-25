@@ -1,6 +1,11 @@
 package ai.luciq.reactlibrary.utils;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.util.Log;
 
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.JavaOnlyArray;
@@ -12,7 +17,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockedStatic;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,17 +48,22 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class CustomReportUtilTest {
 
-    private static final String LOG_PATH = "/data/user/0/com.example/files/report.log";
     private static final String IMAGE_URI = "content://media/external/images/media/42";
+    private static final String IMAGE_PATH = "/data/user/0/com.example/cache/shot.png";
 
     private final CustomReport.Builder builder = mock(CustomReport.Builder.class);
+    private final Context context = mock(Context.class);
+    private final ContentResolver resolver = mock(ContentResolver.class);
     private MockedStatic<Arguments> mockArguments;
     private MockedStatic<Uri> mockUri;
+    private MockedStatic<BitmapFactory> mockBitmapFactory;
+    private MockedStatic<Log> mockLog;
 
     @Before
     public void setUp() {
@@ -61,12 +74,17 @@ public class CustomReportUtilTest {
         mockUri.when(() -> Uri.parse(anyString())).thenAnswer(invocation -> uri(invocation.getArgument(0)));
         mockUri.when(() -> Uri.fromFile(any(File.class)))
                 .thenAnswer(invocation -> uri("file://" + invocation.<File>getArgument(0).getPath()));
+        mockBitmapFactory = mockStatic(BitmapFactory.class);
+        mockLog = mockStatic(Log.class);
+        when(context.getContentResolver()).thenReturn(resolver);
     }
 
     @After
     public void tearDown() {
         mockArguments.close();
         mockUri.close();
+        mockBitmapFactory.close();
+        mockLog.close();
     }
 
     /******** Report *********/
@@ -82,10 +100,9 @@ public class CustomReportUtilTest {
                         "f_items", JavaOnlyArray.of("o_item_a", "o_item_b")),
                 "consents", JavaOnlyMap.of("c_share_logs", true, "c_contact_me", false),
                 "extendedFields", JavaOnlyMap.of("repro_steps", "1. Pay 2. Request a refund"),
-                "screenshot", "currentScreen",
-                "attachments", JavaOnlyArray.of("file://" + LOG_PATH, IMAGE_URI));
+                "screenshot", "currentScreen");
 
-        CustomReportUtil.populate(builder, report);
+        CustomReportUtil.populate(builder, report, context);
 
         verify(builder).setComment("Refund was for the wrong amount");
         verify(builder).setEmail("reporter@example.com");
@@ -96,14 +113,13 @@ public class CustomReportUtilTest {
         verify(builder).setConsent("c_share_logs", true);
         verify(builder).setConsent("c_contact_me", false);
         verify(builder).setExtendedField("repro_steps", "1. Pay 2. Request a refund");
-        verify(builder).addAttachment(argThat(uri -> ("file://" + LOG_PATH).equals(uri.toString())));
-        verify(builder).addAttachment(argThat(uri -> IMAGE_URI.equals(uri.toString())));
         verifyNoMoreInteractions(builder);
+        verifyNoInteractions(resolver);
     }
 
     @Test
     public void givenEmptyReport$populate_thenShouldSetNothing() {
-        CustomReportUtil.populate(builder, new JavaOnlyMap());
+        CustomReportUtil.populate(builder, new JavaOnlyMap(), context);
 
         verify(builder).setComment(null);
         verify(builder).setEmail(null);
@@ -112,10 +128,34 @@ public class CustomReportUtilTest {
     }
 
     @Test
-    public void givenAttachmentPathWithoutScheme$populate_thenShouldAddItAsFileUri() {
-        CustomReportUtil.populate(builder, JavaOnlyMap.of("attachments", JavaOnlyArray.of(LOG_PATH)));
+    public void givenImageUri$populate_thenShouldSetTheDecodedImage() throws Exception {
+        final Bitmap image = givenImageAt(IMAGE_URI);
 
-        verify(builder).addAttachment(argThat(uri -> ("file://" + LOG_PATH).equals(uri.toString())));
+        CustomReportUtil.populate(builder, imageScreenshot(IMAGE_URI), context);
+
+        verify(builder).setScreenshot(argThat(screenshot -> screenshot instanceof ReportScreenshot.FromBitmap
+                && ((ReportScreenshot.FromBitmap) screenshot).getBitmap() == image));
+    }
+
+    @Test
+    public void givenImagePathWithoutScheme$populate_thenShouldReadItAsFile() throws Exception {
+        final Bitmap image = givenImageAt("file://" + IMAGE_PATH);
+
+        CustomReportUtil.populate(builder, imageScreenshot(IMAGE_PATH), context);
+
+        verify(builder).setScreenshot(argThat(screenshot -> screenshot instanceof ReportScreenshot.FromBitmap
+                && ((ReportScreenshot.FromBitmap) screenshot).getBitmap() == image));
+    }
+
+    @Test
+    public void givenUnreadableImage$populate_thenShouldPassNullForTheSdkToReject() throws Exception {
+        when(resolver.openInputStream(any())).thenThrow(new FileNotFoundException());
+
+        try (MockedStatic<ReportScreenshot> mockScreenshot = mockStatic(ReportScreenshot.class)) {
+            CustomReportUtil.populate(builder, imageScreenshot(IMAGE_URI), context);
+
+            mockScreenshot.verify(() -> ReportScreenshot.fromBitmap(null));
+        }
     }
 
     /******** Result *********/
@@ -138,15 +178,17 @@ public class CustomReportUtilTest {
 
     @Test
     public void givenEveryFieldAndProblem$toMap_thenShouldListTheErrorsByLowerCamelName() {
-        final String[] fields = {"category", "answer", "comment", "email", "consent", "extendedField", "screenshot", "attachment"};
+        final FieldError.Field[] fields = {FieldError.Field.CATEGORY, FieldError.Field.ANSWER, FieldError.Field.COMMENT,
+                FieldError.Field.EMAIL, FieldError.Field.CONSENT, FieldError.Field.EXTENDED_FIELD, FieldError.Field.SCREENSHOT};
+        final String[] fieldNames = {"category", "answer", "comment", "email", "consent", "extendedField", "screenshot"};
         final String[] problems = {"missing", "unknown", "invalid", "tooShort", "tooLong"};
         final List<FieldError> errors = new ArrayList<>();
         final JavaOnlyArray expected = new JavaOnlyArray();
-        for (FieldError.Field field : FieldError.Field.values()) {
+        for (int i = 0; i < fields.length; i++) {
             for (FieldError.Problem problem : FieldError.Problem.values()) {
-                final String key = field == FieldError.Field.ANSWER ? "f_reason" : null;
-                errors.add(new FieldError(field, key, problem));
-                expected.pushMap(JavaOnlyMap.of("field", fields[field.ordinal()], "key", key, "problem", problems[problem.ordinal()]));
+                final String key = fields[i] == FieldError.Field.ANSWER ? "f_reason" : null;
+                errors.add(new FieldError(fields[i], key, problem));
+                expected.pushMap(JavaOnlyMap.of("field", fieldNames[i], "key", key, "problem", problems[problem.ordinal()]));
             }
         }
 
@@ -187,12 +229,15 @@ public class CustomReportUtilTest {
                         Collections.emptyList())));
         final ReportConfigurationCategory checkout = new ReportConfigurationCategory(
                 "checkout", "Checkout", null, Collections.singletonList(refund), Collections.emptyList());
-        final ReportRequirements requirements = new ReportRequirements(
-                EmailRequirement.OPTIONAL, "identified@example.com", 2, 4000,
-                Arrays.asList(new ReportConsent("c_share_logs", "Share logs", true, false),
-                        new ReportConsent("c_contact_me", null, false, true)),
-                Collections.singletonList(new ReportExtendedField("repro_steps", "Steps to reproduce", true)),
-                true, 3, 5242880L);
+        final ReportRequirements requirements = requirements(EmailRequirement.OPTIONAL);
+        when(requirements.getIdentifiedEmail()).thenReturn("identified@example.com");
+        when(requirements.getCommentMinLength()).thenReturn(2);
+        when(requirements.getConsents()).thenReturn(Arrays.asList(
+                new ReportConsent("c_share_logs", "Share logs", true, false),
+                new ReportConsent("c_contact_me", null, false, true)));
+        when(requirements.getExtendedFields()).thenReturn(
+                Collections.singletonList(new ReportExtendedField("repro_steps", "Steps to reproduce", true)));
+        when(requirements.getScreenshotRequired()).thenReturn(true);
 
         final ReadableMap map = CustomReportUtil.toMap(new ReportConfiguration(
                 BugReporting.ReportType.BUG, Collections.singletonList(checkout), null, requirements));
@@ -222,7 +267,7 @@ public class CustomReportUtilTest {
                         JavaOnlyMap.of("key", "c_contact_me", "description", null, "mandatory", false, "checkedByDefault", true)),
                 "extendedFields", JavaOnlyArray.of(
                         JavaOnlyMap.of("id", "repro_steps", "label", "Steps to reproduce", "required", true)),
-                "screenshotRequired", true, "maxAttachments", 3, "maxAttachmentBytes", 5242880);
+                "screenshotRequired", true);
         assertEquals(JavaOnlyMap.of("categories", JavaOnlyArray.of(expectedCheckout), "preselectedCategory", null,
                 "requirements", expectedRequirements), map);
     }
@@ -253,6 +298,19 @@ public class CustomReportUtilTest {
 
     /******** Helpers *********/
 
+    /** Makes the content resolver serve an image at this URI. */
+    private Bitmap givenImageAt(String uri) throws Exception {
+        final Bitmap image = mock(Bitmap.class);
+        final InputStream stream = new ByteArrayInputStream(new byte[0]);
+        when(resolver.openInputStream(argThat(opened -> uri.equals(opened.toString())))).thenReturn(stream);
+        mockBitmapFactory.when(() -> BitmapFactory.decodeStream(stream)).thenReturn(image);
+        return image;
+    }
+
+    private static JavaOnlyMap imageScreenshot(String imageUri) {
+        return JavaOnlyMap.of("screenshot", JavaOnlyMap.of("imageUri", imageUri));
+    }
+
     private static Uri uri(String value) {
         final Uri uri = mock(Uri.class);
         when(uri.toString()).thenReturn(value);
@@ -260,7 +318,11 @@ public class CustomReportUtilTest {
         return uri;
     }
 
+    // A mock, not the constructor: it is internal to the SDK and its parameters change between versions.
     private static ReportRequirements requirements(EmailRequirement email) {
-        return new ReportRequirements(email, null, 0, 4000, Collections.emptyList(), Collections.emptyList(), false, 3, 5242880L);
+        final ReportRequirements requirements = mock(ReportRequirements.class);
+        when(requirements.getEmail()).thenReturn(email);
+        when(requirements.getCommentMaxLength()).thenReturn(4000);
+        return requirements;
     }
 }

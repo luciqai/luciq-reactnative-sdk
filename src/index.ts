@@ -23,7 +23,8 @@ import type { Survey } from './modules/Surveys';
 import * as Surveys from './modules/Surveys';
 import * as SessionReplay from './modules/SessionReplay';
 import type { SessionMetadata } from './models/SessionMetadata';
-import type { CustomReport, ReportScreenshot } from './models/CustomReport';
+import { ReportScreenshot } from './models/CustomReport';
+import type { CustomReport } from './models/CustomReport';
 import type {
   CustomReportResult,
   CustomReportStatus,
@@ -63,6 +64,7 @@ export {
   createLuciqReduxMiddleware,
   LCQ_INVALID_ARGUMENT,
   LuciqInvalidArgumentError,
+  ReportScreenshot,
 };
 export type {
   LuciqConfig,
@@ -74,7 +76,6 @@ export type {
   LuciqReduxMiddlewareOptions,
   // Custom reports
   CustomReport,
-  ReportScreenshot,
   CustomReportResult,
   CustomReportStatus,
   NotSentReason,

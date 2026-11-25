@@ -21,6 +21,7 @@ import ai.luciq.library.invocation.LuciqInvocationEvent;
 import ai.luciq.library.invocation.OnInvokeCallback;
 import ai.luciq.library.invocation.util.LuciqFloatingButtonEdge;
 import ai.luciq.library.invocation.util.LuciqVideoRecordingButtonPosition;
+import ai.luciq.bug.customreport.CustomReport;
 import ai.luciq.bug.customreport.CustomReportResult;
 import ai.luciq.bug.customreport.NotSentReason;
 import ai.luciq.bug.customreport.OnCustomReportResultCallback;
@@ -623,23 +624,34 @@ public class RNLuciqBugReportingModule extends NativeLuciqBugReportingSpec {
      */
     @ReactMethod
     public void submitReport(final String reportType, final ReadableMap report, final Promise promise) {
-        MainThreadHandler.runOnMainThread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // The report is user content; log only its type.
-                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] called reportType=" + reportType);
-                    BugReporting.submitReport(CustomReportUtil.toReport(ArgsRegistry.reportTypes.get(reportType), report), new OnCustomReportResultCallback() {
-                        @Override
-                        public void onResult(CustomReportResult result) {
-                            promise.resolve(CustomReportUtil.toMap(result));
-                        }
-                    });
-                } catch (Exception e) {
-                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] failed", e);
-                    promise.resolve(CustomReportUtil.toMap(new CustomReportResult.NotSent(NotSentReason.UNAVAILABLE)));
+        try {
+            // The report is user content; log only its type.
+            LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] called reportType=" + reportType);
+            // Built here, on the native modules thread: an image screenshot is read from storage and copied.
+            final CustomReport customReport = CustomReportUtil.toReport(
+                    getReactApplicationContext(), ArgsRegistry.reportTypes.get(reportType), report);
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        BugReporting.submitReport(customReport, new OnCustomReportResultCallback() {
+                            @Override
+                            public void onResult(CustomReportResult result) {
+                                promise.resolve(CustomReportUtil.toMap(result));
+                            }
+                        });
+                    } catch (Exception e) {
+                        resolveSubmitFailure(promise, e);
+                    }
                 }
-            }
-        });
+            });
+        } catch (Exception e) {
+            resolveSubmitFailure(promise, e);
+        }
+    }
+
+    private static void resolveSubmitFailure(Promise promise, Exception e) {
+        LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] failed", e);
+        promise.resolve(CustomReportUtil.toMap(new CustomReportResult.NotSent(NotSentReason.UNAVAILABLE)));
     }
 }

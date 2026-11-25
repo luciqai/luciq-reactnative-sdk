@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import {
   BugReporting,
@@ -6,7 +6,8 @@ import {
   type ConfigurationField,
   type CustomReport,
   type CustomReportResult,
-  type ReportScreenshot,
+  type ReportConfiguration,
+  ReportScreenshot,
 } from '@luciq/react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Button, Input, ScrollView, Switch, Text, VStack, HStack, useToast } from 'native-base';
@@ -59,6 +60,7 @@ const fieldsHint = (fields: ConfigurationField[]) =>
 
 /**
  * A minimal headless report form over `BugReporting.submitReport`. Shows the
+ * report type's consents, whether custom reports are available, and the
  * resolved result (queued / notSent / invalid with every error) or the
  * rejection code for malformed input.
  */
@@ -74,26 +76,47 @@ export const CustomReportScreen: React.FC<
   const [answersText, setAnswersText] = useState('');
   const [reproSteps, setReproSteps] = useState('');
   const [captureScreenshot, setCaptureScreenshot] = useState(false);
-  const [attachmentsText, setAttachmentsText] = useState('');
+  const [imageUri, setImageUri] = useState('');
+  const [configuration, setConfiguration] = useState<ReportConfiguration | null | undefined>(
+    undefined,
+  );
+  const [consentAnswers, setConsentAnswers] = useState<Record<string, boolean>>({});
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<CustomReportResult | null>(null);
   const [rejection, setRejection] = useState<string | null>(null);
 
+  // The consents to show, and whether custom reports are available for this report type.
+  useEffect(() => {
+    let active = true;
+    BugReporting.getReportConfiguration(reportType)
+      .then((fetched) => {
+        if (active) {
+          setConfiguration(fetched);
+          setConsentAnswers({});
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [reportType]);
+  const unavailable = configuration === null;
+  const consents = configuration?.requirements.consents ?? [];
+
   const submit = async () => {
-    const screenshot: ReportScreenshot = captureScreenshot ? 'currentScreen' : 'none';
-    const attachments = attachmentsText
-      .split('\n')
-      .map((uri) => uri.trim())
-      .filter((uri) => uri.length > 0);
+    const currentScreen: ReportScreenshot = captureScreenshot ? 'currentScreen' : 'none';
     const report: CustomReport = {
       reportType,
       comment: comment || null,
       email: email || null,
       categoryIdentifier: categoryIdentifier || null,
       answers: parseAnswers(answersText),
+      // The user's answer for every consent: one that isn't sent counts as not accepted.
+      consents: Object.fromEntries(
+        consents.map((consent) => [consent.key, consentAnswers[consent.key] ?? false]),
+      ),
       extendedFields: reproSteps ? { repro_steps: reproSteps } : undefined,
-      screenshot,
-      attachments: attachments.length > 0 ? attachments : undefined,
+      screenshot: imageUri ? ReportScreenshot.fromImage(imageUri) : currentScreen,
     };
 
     setSubmitting(true);
@@ -123,6 +146,12 @@ export const CustomReportScreen: React.FC<
     <ScrollView flex={1} bg="gray.100">
       <Screen>
         <VStack space={3} p={2}>
+          {unavailable && (
+            <Text testID="id_custom_report_unavailable" fontSize="xs" color="warning.700">
+              Custom reports are unavailable: they aren't turned on for this app by the server, or
+              Bug Reporting or this report type is off. Submitting resolves notSent / unavailable.
+            </Text>
+          )}
           <Select
             label="Report type"
             testID="id_custom_report_type"
@@ -191,15 +220,30 @@ export const CustomReportScreen: React.FC<
             testID="id_custom_report_repro_steps"
             accessibilityLabel="id_custom_report_repro_steps"
           />
+          {consents.map((consent) => (
+            <HStack key={consent.key} alignItems="center" justifyContent="space-between">
+              <Text flex={1}>
+                {consent.description ?? consent.key}
+                {consent.mandatory ? ' (mandatory)' : ''}
+              </Text>
+              <Switch
+                isChecked={consentAnswers[consent.key] ?? false}
+                onToggle={(accepted: boolean) =>
+                  setConsentAnswers((answers) => ({ ...answers, [consent.key]: accepted }))
+                }
+                testID={`id_custom_report_consent_${consent.key}`}
+                accessibilityLabel={`id_custom_report_consent_${consent.key}`}
+              />
+            </HStack>
+          ))}
           <Input
-            placeholder={'Attachment file URIs, one per line (optional)'}
-            value={attachmentsText}
-            onChangeText={setAttachmentsText}
-            multiline={true}
+            placeholder="Image screenshot file URI (optional, not masked)"
+            value={imageUri}
+            onChangeText={setImageUri}
             autoCapitalize="none"
             autoCorrect={false}
-            testID="id_custom_report_attachments"
-            accessibilityLabel="id_custom_report_attachments"
+            testID="id_custom_report_image_uri"
+            accessibilityLabel="id_custom_report_image_uri"
           />
           <HStack alignItems="center" justifyContent="space-between">
             <Text>Capture the current screen</Text>

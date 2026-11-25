@@ -58,7 +58,7 @@ export const CategoriesScopeScreen: React.FC = () => {
           accessibilityLabel="id_scope_clear">
           Clear scope (all categories)
         </Button>
-        <Text testID="id_scope_current" accessibilityLabel="id_scope_current">
+        <Text testID="id_scope_current">
           Current scope: {applied == null ? 'all categories' : applied.join(', ') || '(empty)'}
         </Text>
       </VStack>

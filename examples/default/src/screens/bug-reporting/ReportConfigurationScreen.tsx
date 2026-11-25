@@ -97,12 +97,13 @@ export const ReportConfigurationScreen: React.FC<
             isLoading={loading}
             testID="id_config_fetch"
             accessibilityLabel="id_config_fetch">
-            Get report configuration ({reportTypeLabel(reportType)})
+            {`Get report configuration (${reportTypeLabel(reportType)})`}
           </Button>
 
           {configuration === null && (
             <Text testID="id_config_unavailable">
-              Unavailable: Bug Reporting or this report type is not available.
+              Unavailable: custom reports aren't turned on for this app by the server, or Bug
+              Reporting or this report type is not available.
             </Text>
           )}
 
@@ -125,7 +126,9 @@ export const ReportConfigurationScreen: React.FC<
 
               <Section title="Categories (tap a leaf to submit a report)">
                 {configuration.categories.length === 0 ? (
-                  <Text fontSize="xs">This report type has no categories.</Text>
+                  <Text fontSize="xs">
+                    No categories: this report type has none, or they aren't downloaded yet.
+                  </Text>
                 ) : (
                   configuration.categories.map((category) => renderCategory(category, 0))
                 )}

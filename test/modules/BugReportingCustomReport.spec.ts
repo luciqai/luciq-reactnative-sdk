@@ -3,6 +3,7 @@ import { NativeBugReporting } from '../../src/native/NativeBugReporting';
 import { ReportType } from '../../src/utils/Enums';
 import { LCQ_INVALID_ARGUMENT, LuciqInvalidArgumentError } from '../../src/utils/LuciqErrors';
 import { Logger } from '../../src/utils/logger';
+import { ReportScreenshot } from '../../src/models/CustomReport';
 import type { CustomReport, NativeCustomReport } from '../../src/models/CustomReport';
 import type { CustomReportResult } from '../../src/models/CustomReportResult';
 import type { ReportConfiguration } from '../../src/models/ReportConfiguration';
@@ -18,7 +19,6 @@ const payload: NativeCustomReport = {
   consents: { c_share_logs: true, c_contact_me: false },
   extendedFields: { repro_steps: '1. Pay 2. Request a refund' },
   screenshot: 'currentScreen',
-  attachments: ['file:///data/user/0/com.example/files/report.log'],
 };
 const report: CustomReport = { reportType: ReportType.bug, ...payload };
 
@@ -52,8 +52,6 @@ const nativeConfiguration: Omit<ReportConfiguration, 'reportType'> = {
     consents: [],
     extendedFields: [],
     screenshotRequired: false,
-    maxAttachments: 3,
-    maxAttachmentBytes: 5242880,
   },
 };
 
@@ -168,17 +166,21 @@ describe('BugReporting custom report APIs', () => {
       expect(NativeBugReporting.submitReport).not.toBeCalled();
     });
 
-    it('should never log the comment, email, answers or attachment paths', async () => {
+    it('should never log the comment, email, answers, extended fields or image URI', async () => {
       const debugSpy = jest.spyOn(Logger, 'debug').mockImplementation(() => {});
       mockSubmitReport.mockResolvedValueOnce(queued);
 
-      await BugReporting.submitReport(report);
+      await BugReporting.submitReport({
+        ...report,
+        screenshot: ReportScreenshot.fromImage('file:///cache/shot.png'),
+      });
 
       const logged = JSON.stringify(debugSpy.mock.calls);
       expect(logged).not.toContain(payload.comment);
       expect(logged).not.toContain(payload.email);
       expect(logged).not.toContain('o_wrong_amount');
-      expect(logged).not.toContain('report.log');
+      expect(logged).not.toContain('Request a refund');
+      expect(logged).not.toContain('shot.png');
       debugSpy.mockRestore();
     });
   });

@@ -5,8 +5,9 @@ export type CustomReportStatus = 'queued' | 'notSent' | 'invalid';
  * Why a report was not sent.
  *
  * - `'unavailable'`: the SDK isn't started or is disabled, Bug Reporting is
- *   disabled, the report type isn't enabled, the plan's usage is exceeded, or
- *   this SDK mode doesn't support it. Retrying doesn't help.
+ *   disabled, custom reports aren't turned on for your app by the server, the
+ *   report type isn't enabled, the plan's usage is exceeded, or this SDK mode
+ *   doesn't support it. Retrying doesn't help.
  * - `'tryLater'`: the SDK's own report UI is open, the app isn't in the
  *   foreground, or a limit is reached (one report every 60 seconds, 10 per
  *   hour, or the server asked to slow down).
@@ -23,17 +24,19 @@ export type FieldErrorField =
   | 'email'
   | 'consent'
   | 'extendedField'
-  | 'screenshot'
-  | 'attachment';
+  | 'screenshot';
 
 /**
  * What is wrong with a part of a report.
  *
  * - `'missing'`: required and not set.
- * - `'unknown'`: not on your dashboard or in your configuration.
+ * - `'unknown'`: not on your dashboard or in your configuration (a category,
+ *   field, option or consent key, or an extended field id while extended bug
+ *   reports are on).
  * - `'invalid'`: set but not usable (a category that isn't a leaf, the wrong
- *   number of values, a bad email, a bad image or attachment).
- * - `'tooShort'` / `'tooLong'`: the comment's minimum or 4,000 characters, a text answer's 500.
+ *   number of values, a bad email, an image that can't be read).
+ * - `'tooShort'` / `'tooLong'`: the comment's minimum or 4,000 characters, a
+ *   text answer's 500, an extended field's 4,000.
  */
 export type FieldErrorProblem = 'missing' | 'unknown' | 'invalid' | 'tooShort' | 'tooLong';
 
@@ -41,9 +44,8 @@ export type FieldErrorProblem = 'missing' | 'unknown' | 'invalid' | 'tooShort' |
 export interface FieldError {
   field: FieldErrorField;
   /**
-   * The field key (`'answer'`), consent key (`'consent'`), extended field id
-   * (`'extendedField'`) or the 0-based attachment index as a string
-   * (`'attachment'`); `null` for the category, comment, email and screenshot.
+   * The field key (`'answer'`), consent key (`'consent'`) or extended field id
+   * (`'extendedField'`); `null` for the category, comment, email and screenshot.
    */
   key: string | null;
   problem: FieldErrorProblem;

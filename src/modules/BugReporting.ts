@@ -361,10 +361,16 @@ const isKnownReportType = (type: unknown): type is ReportType =>
 /**
  * Limits the report categories users see to the ones with these identifiers
  * (dashboard › Report Categories). Per report type: one match is preselected and
- * its next screen opens directly; no match shows all categories. Unknown
- * identifiers are ignored. The scope is kept in memory for the process, applies
- * to every way of opening the SDK and to `getReportConfiguration`, and can be
- * set before `Luciq.init`.
+ * its next screen opens directly; two or more matches show only those
+ * categories; no match shows all categories. If you pass a category and one of
+ * its subcategories, only the category counts. Identifiers that match no
+ * category, or more than one, are ignored. Until your categories have
+ * identifiers, a category's slug is matched instead.
+ *
+ * The scope applies to every way of opening the SDK and to
+ * `getReportConfiguration`. It is kept in memory only: set it again after the
+ * app restarts. Call it after `Luciq.init`; calls made before that, or while
+ * the SDK is disabled, are ignored.
  *
  * @param identifiers The category identifiers to show, or `null` / `[]` for all categories.
  */
@@ -377,12 +383,13 @@ export const setReportCategoriesScope = (identifiers: string[] | null) => {
 /**
  * Gets the categories of a report type (narrowed by {@link setReportCategoriesScope}),
  * with their identifiers, fields and options, and the requirements {@link submitReport}
- * enforces (email, comment length, consents, extended fields, screenshot and attachment
- * limits), to build your own report UI from.
+ * enforces (email, comment length, consents, extended fields and screenshot), to build
+ * your own report UI from.
  *
  * @param type `ReportType.bug`, `ReportType.feedback` or `ReportType.question`.
- * @returns The configuration, or `null` when Bug Reporting or the report type
- * isn't available (for example after `BugReporting.setEnabled(false)`).
+ * @returns The configuration, or `null` when custom reports aren't turned on
+ * for your app, Bug Reporting or the report type isn't available (for example
+ * after `BugReporting.setEnabled(false)`), or the plan's usage is exceeded.
  * @throws {LuciqInvalidArgumentError} (rejects with code `LCQ_INVALID_ARGUMENT`)
  * when `type` is not a known `ReportType`.
  */
@@ -405,6 +412,13 @@ export const getReportConfiguration = async (
  * now (device info, logs, user steps, user data, tags and the current view),
  * validates the report against your dashboard and SDK configuration, and
  * queues it for upload. Nothing is captured or saved unless the result is `queued`.
+ * Files added with `Luciq.addFileAttachment` are sent with the report, and
+ * every report gets the `custom-api` tag.
+ *
+ * Custom reports are turned on for your app by the server. Until then every
+ * report resolves `notSent` with `unavailable`, even one that would be
+ * `invalid`, and {@link getReportConfiguration} resolves `null`. Malformed
+ * input still rejects first.
  *
  * Only for reports a person writes: the app must be in the foreground, and
  * accepted reports are limited to one every 60 seconds and 10 per hour per

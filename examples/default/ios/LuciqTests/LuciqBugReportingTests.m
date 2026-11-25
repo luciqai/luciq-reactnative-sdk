@@ -258,17 +258,42 @@
       @"expected_result": @"Full refund",
     },
     @"screenshot": @"currentScreen",
-    @"attachments": @[@"file:///data/user/0/com.example/files/report.log", @"content://media/external/images/media/42"],
   };
 
   LCQCustomReport *report = [LCQCustomReport lcq_reportWithType:LCQBugReportingReportTypeBug dictionary:dictionary];
 
-  // Answers, consents, extended fields and attachments have no public getters.
+  // Answers, consents and extended fields have no public getters.
   XCTAssertEqual(report.reportType, LCQBugReportingReportTypeBug);
   XCTAssertEqualObjects(report.comment, @"Refund was for the wrong amount");
   XCTAssertEqualObjects(report.email, @"reporter@example.com");
   XCTAssertEqualObjects(report.categoryIdentifier, @"checkout-refund");
   XCTAssertNotNil(report.screenshot);
+}
+
+- (void)testgivenImageScreenshot$lcq_reportWithType_thenShouldSetScreenshotFromTheImage {
+  UIGraphicsImageRenderer *renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(2, 3)];
+  NSString *path = [NSTemporaryDirectory() stringByAppendingPathComponent:@"lcq custom report shot.png"];
+  [[renderer PNGDataWithActions:^(UIGraphicsImageRendererContext *context) {}] writeToFile:path atomically:YES];
+  id mock = OCMClassMock([LCQReportScreenshot class]);
+
+  // A file:// URI, encoded or not, and a path without a scheme are all read as a file.
+  for (NSString *imageUri in @[[NSURL fileURLWithPath:path].absoluteString, [@"file://" stringByAppendingString:path], path]) {
+    [LCQCustomReport lcq_reportWithType:LCQBugReportingReportTypeBug dictionary:@{@"screenshot": @{@"imageUri": imageUri}}];
+  }
+
+  OCMVerify(times(3), [mock fromImage:[OCMArg checkWithBlock:^BOOL(UIImage *image) {
+    return image.CGImage != nil && CGImageGetWidth(image.CGImage) > 0;
+  }]]);
+}
+
+- (void)testgivenUnreadableImageScreenshot$lcq_reportWithType_thenShouldSetAnEmptyImage {
+  id mock = OCMClassMock([LCQReportScreenshot class]);
+
+  [LCQCustomReport lcq_reportWithType:LCQBugReportingReportTypeBug dictionary:@{@"screenshot": @{@"imageUri": @"/no/such/image.png"}}];
+
+  OCMVerify([mock fromImage:[OCMArg checkWithBlock:^BOOL(UIImage *image) {
+    return image != nil && image.CGImage == nil;
+  }]]);
 }
 
 - (void)testgivenEmptyDictionary$lcq_reportWithType_thenShouldBuildReportWithDefaults {
@@ -306,7 +331,7 @@ static NSDictionary *LCQRealDictionaryRepresentation(Class cls, id mock) {
 }
 
 - (void)testgivenQueuedResult$lcq_dictionaryRepresentation_thenShouldMatchFixture {
-  LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusQueued reason:LCQCustomReportNotSentReasonNone errors:@[]];
+  LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusQueued reason:LCQCustomReportNotSentReasonNotApplicable errors:@[]];
   NSDictionary *expected = @{@"status": @"queued", @"errors": @[]};
   XCTAssertEqualObjects([result lcq_dictionaryRepresentation], expected);
 }
@@ -326,9 +351,8 @@ static NSDictionary *LCQRealDictionaryRepresentation(Class cls, id mock) {
     [self fieldErrorWithField:LCQCustomReportFieldConsent key:@"c_share_logs" problem:LCQCustomReportProblemMissing],
     [self fieldErrorWithField:LCQCustomReportFieldExtendedField key:@"repro_steps" problem:LCQCustomReportProblemMissing],
     [self fieldErrorWithField:LCQCustomReportFieldScreenshot key:nil problem:LCQCustomReportProblemInvalid],
-    [self fieldErrorWithField:LCQCustomReportFieldAttachment key:@"0" problem:LCQCustomReportProblemTooLong],
   ];
-  LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusInvalid reason:LCQCustomReportNotSentReasonNone errors:errors];
+  LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusInvalid reason:LCQCustomReportNotSentReasonNotApplicable errors:errors];
   NSDictionary *expected = @{
     @"status": @"invalid",
     @"errors": @[
@@ -339,7 +363,6 @@ static NSDictionary *LCQRealDictionaryRepresentation(Class cls, id mock) {
       @{@"field": @"consent", @"key": @"c_share_logs", @"problem": @"missing"},
       @{@"field": @"extendedField", @"key": @"repro_steps", @"problem": @"missing"},
       @{@"field": @"screenshot", @"key": [NSNull null], @"problem": @"invalid"},
-      @{@"field": @"attachment", @"key": @"0", @"problem": @"tooLong"},
     ],
   };
   XCTAssertEqualObjects([result lcq_dictionaryRepresentation], expected);
@@ -417,8 +440,6 @@ static NSDictionary *LCQRealDictionaryRepresentation(Class cls, id mock) {
   OCMStub([requirements consents]).andReturn((@[shareLogs, contactMe]));
   OCMStub([requirements extendedFields]).andReturn(extendedFields);
   OCMStub([requirements isScreenshotRequired]).andReturn(NO);
-  OCMStub([requirements maxAttachments]).andReturn(3);
-  OCMStub([requirements maxAttachmentBytes]).andReturn(5242880LL);
 
   LCQReportConfiguration *configuration = OCMClassMock([LCQReportConfiguration class]);
   OCMStub([configuration categories]).andReturn((@[reportAProblem, other]));
@@ -460,8 +481,6 @@ static NSDictionary *LCQRealDictionaryRepresentation(Class cls, id mock) {
         @{@"id": @"expected_result", @"label": @"Expected result", @"required": @NO},
       ],
       @"screenshotRequired": @NO,
-      @"maxAttachments": @3,
-      @"maxAttachmentBytes": @5242880,
     },
   };
 
@@ -481,8 +500,6 @@ static NSDictionary *LCQRealDictionaryRepresentation(Class cls, id mock) {
   OCMStub([requirements consents]).andReturn(@[]);
   OCMStub([requirements extendedFields]).andReturn(@[]);
   OCMStub([requirements isScreenshotRequired]).andReturn(YES);
-  OCMStub([requirements maxAttachments]).andReturn(3);
-  OCMStub([requirements maxAttachmentBytes]).andReturn(5242880LL);
   LCQReportConfiguration *configuration = OCMClassMock([LCQReportConfiguration class]);
   OCMStub([configuration categories]).andReturn(@[checkout]);
   OCMStub([configuration preselectedCategory]).andReturn(parent);
@@ -505,8 +522,6 @@ static NSDictionary *LCQRealDictionaryRepresentation(Class cls, id mock) {
   OCMStub([requirements email]).andReturn(LCQReportEmailRequirementOptional);
   OCMStub([requirements consents]).andReturn(@[]);
   OCMStub([requirements extendedFields]).andReturn(@[]);
-  OCMStub([requirements maxAttachments]).andReturn(3);
-  OCMStub([requirements maxAttachmentBytes]).andReturn(5242880LL);
   LCQReportConfiguration *configuration = OCMClassMock([LCQReportConfiguration class]);
   OCMStub([configuration categories]).andReturn(@[]);
   OCMStub([configuration requirements]).andReturn(requirements);
@@ -542,7 +557,7 @@ static NSDictionary *LCQRealDictionaryRepresentation(Class cls, id mock) {
 
 - (void)testgivenQueued$submitReport_whenResult_thenShouldResolveQueued {
   id mock = OCMClassMock([LCQBugReporting class]);
-  LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusQueued reason:LCQCustomReportNotSentReasonNone errors:@[]];
+  LCQCustomReportResult *result = [self resultWithStatus:LCQCustomReportStatusQueued reason:LCQCustomReportNotSentReasonNotApplicable errors:@[]];
   OCMStub(ClassMethod([mock submitReport:[OCMArg checkWithBlock:^BOOL(LCQCustomReport *report) {
     return [report.comment isEqualToString:@"Refund was wrong"] && [report.categoryIdentifier isEqualToString:@"checkout-refund"];
   }] completion:([OCMArg invokeBlockWithArgs:result, nil])]));

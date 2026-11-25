@@ -1,4 +1,4 @@
-import { toNativeCustomReport } from '../../src/models/CustomReport';
+import { ReportScreenshot, toNativeCustomReport } from '../../src/models/CustomReport';
 import type { CustomReport, NativeCustomReport } from '../../src/models/CustomReport';
 import { ReportType } from '../../src/utils/Enums';
 import { LuciqInvalidArgumentError } from '../../src/utils/LuciqErrors';
@@ -13,10 +13,17 @@ describe('toNativeCustomReport', () => {
       consents: { c_share_logs: true, c_contact_me: false },
       extendedFields: { repro_steps: '1. Pay 2. Request a refund' },
       screenshot: 'currentScreen',
-      attachments: ['file:///data/user/0/com.example/files/report.log'],
     };
 
     expect(toNativeCustomReport({ reportType: ReportType.bug, ...payload })).toEqual(payload);
+  });
+
+  it('should keep an image screenshot as its URI', () => {
+    const screenshot = ReportScreenshot.fromImage('file:///data/user/0/com.example/cache/shot.png');
+
+    expect(toNativeCustomReport({ reportType: ReportType.bug, screenshot })).toEqual({
+      screenshot: { imageUri: 'file:///data/user/0/com.example/cache/shot.png' },
+    });
   });
 
   it('should produce an empty payload for a report with only a type', () => {
@@ -50,8 +57,8 @@ describe('toNativeCustomReport', () => {
     ['consents', { consents: { c_share_logs: 'yes' } }],
     ['extendedFields', { extendedFields: { repro_steps: true } }],
     ['screenshot', { screenshot: 'fromGallery' }],
-    ['attachments', { attachments: [1] }],
-    ['attachments', { attachments: 'file:///report.log' }],
+    ['screenshot', { screenshot: { imageUri: 42 } }],
+    ['screenshot', { screenshot: {} }],
   ])('should reject a malformed %s', (part, malformed) => {
     const report = { reportType: ReportType.bug, ...malformed } as unknown as CustomReport;
 

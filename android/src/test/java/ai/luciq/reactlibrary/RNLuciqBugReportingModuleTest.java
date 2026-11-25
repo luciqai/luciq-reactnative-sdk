@@ -463,9 +463,11 @@ public class RNLuciqBugReportingModuleTest {
         mockArguments.when(Arguments::createMap).thenAnswer(invocation -> new JavaOnlyMap());
         mockArguments.when(Arguments::createArray).thenAnswer(invocation -> new JavaOnlyArray());
         Promise promise = mock(Promise.class);
-        ReportConfiguration configuration = new ReportConfiguration(BugReporting.ReportType.BUG, Collections.emptyList(), null,
-                new ReportRequirements(EmailRequirement.OPTIONAL, null, 0, 4000, Collections.emptyList(),
-                        Collections.emptyList(), false, 3, 5242880L));
+        // A mock, not the constructor: it is internal to the SDK and its parameters change between versions.
+        ReportRequirements requirements = mock(ReportRequirements.class);
+        when(requirements.getEmail()).thenReturn(EmailRequirement.OPTIONAL);
+        ReportConfiguration configuration = new ReportConfiguration(
+                BugReporting.ReportType.BUG, Collections.emptyList(), null, requirements);
         mockBugReporting.when(() -> BugReporting.getReportConfiguration(eq(BugReporting.ReportType.BUG), any()))
                 .thenAnswer(invocation -> {
                     invocation.getArgument(1, OnReportConfigurationReadyCallback.class).onReady(configuration);

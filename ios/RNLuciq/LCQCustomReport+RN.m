@@ -18,7 +18,7 @@ static NSString *LCQRNNotSentReasonName(LCQCustomReportNotSentReason reason) {
     switch (reason) {
         case LCQCustomReportNotSentReasonTryLater: return @"tryLater";
         case LCQCustomReportNotSentReasonDuplicate: return @"duplicate";
-        case LCQCustomReportNotSentReasonNone:
+        case LCQCustomReportNotSentReasonNotApplicable:
         case LCQCustomReportNotSentReasonUnavailable: return @"unavailable";
     }
     return @"unavailable";
@@ -33,7 +33,6 @@ static NSString *LCQRNFieldName(LCQCustomReportField field) {
         case LCQCustomReportFieldConsent: return @"consent";
         case LCQCustomReportFieldExtendedField: return @"extendedField";
         case LCQCustomReportFieldScreenshot: return @"screenshot";
-        case LCQCustomReportFieldAttachment: return @"attachment";
     }
     return @"category";
 }
@@ -111,7 +110,18 @@ static NSDictionary *LCQRNCategoryDictionary(LCQReportConfigurationCategory *cat
     report.comment = dictionary[@"comment"];
     report.email = dictionary[@"email"];
     report.categoryIdentifier = dictionary[@"categoryIdentifier"];
-    if ([dictionary[@"screenshot"] isEqual:@"currentScreen"]) {
+    id screenshot = dictionary[@"screenshot"];
+    if ([screenshot isKindOfClass:[NSDictionary class]]) {
+        // { imageUri }: a file path or file:// URI. A path without a scheme is a file path, as on Android.
+        NSString *path = screenshot[@"imageUri"];
+        if ([path hasPrefix:@"file://"]) {
+            // URLWithString: is nil for a URI that isn't percent-encoded (a space in it) before iOS 17.
+            path = [NSURL URLWithString:path].path ?: [path substringFromIndex:@"file://".length];
+        }
+        UIImage *image = [UIImage imageWithContentsOfFile:path];
+        // An image that can't be read becomes an empty one, which the SDK answers invalid for.
+        report.screenshot = [LCQReportScreenshot fromImage:image ?: [[UIImage alloc] init]];
+    } else if ([screenshot isEqual:@"currentScreen"]) {
         report.screenshot = [LCQReportScreenshot currentScreen];
     }
     [dictionary[@"answers"] enumerateKeysAndObjectsUsingBlock:^(NSString *key, NSArray<NSString *> *values, BOOL *stop) {
@@ -123,11 +133,6 @@ static NSDictionary *LCQRNCategoryDictionary(LCQReportConfigurationCategory *cat
     [dictionary[@"extendedFields"] enumerateKeysAndObjectsUsingBlock:^(NSString *fieldID, NSString *value, BOOL *stop) {
         [report setExtendedFieldValue:value forID:fieldID];
     }];
-    for (NSString *attachment in dictionary[@"attachments"]) {
-        // A path without a scheme is a file path, as on Android.
-        NSURL *url = [NSURL URLWithString:attachment];
-        [report addAttachmentWithURL:url.scheme.length > 0 ? url : [NSURL fileURLWithPath:attachment]];
-    }
     return report;
 }
 
@@ -181,8 +186,6 @@ static NSDictionary *LCQRNCategoryDictionary(LCQReportConfigurationCategory *cat
             @"consents": consents,
             @"extendedFields": extendedFields,
             @"screenshotRequired": @(requirements.isScreenshotRequired),
-            @"maxAttachments": @(requirements.maxAttachments),
-            @"maxAttachmentBytes": @(requirements.maxAttachmentBytes),
         },
     };
 }

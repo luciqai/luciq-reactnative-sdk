@@ -43,14 +43,16 @@ export interface ConfigurationCategory {
   /** `true` when the category has no children. */
   leaf: boolean;
   children: ConfigurationCategory[];
+  /** Empty until category fields are turned on for your app by the server (off by default). */
   fields: ConfigurationField[];
 }
 
-/** A consent added with `BugReporting.addUserConsent`. */
+/** A consent added with `BugReporting.addUserConsent`. Answer it in `CustomReport.consents`. */
 export interface ReportConsent {
   key: string;
   description: string | null;
   mandatory: boolean;
+  /** Whether Luciq's own form shows the consent checked at first; a custom report doesn't use it. */
   checkedByDefault: boolean;
 }
 
@@ -74,9 +76,6 @@ export interface ReportRequirements {
   extendedFields: ReportExtendedField[];
   /** Always `false` on iOS. */
   screenshotRequired: boolean;
-  maxAttachments: number;
-  /** Per attachment. */
-  maxAttachmentBytes: number;
 }
 
 /**
@@ -86,7 +85,11 @@ export interface ReportRequirements {
  */
 export interface ReportConfiguration {
   reportType: ReportType;
-  /** The first level of categories to show, in dashboard order; empty when the report type has none. */
+  /**
+   * The first level of categories to show, in dashboard order. Empty when the
+   * report type has none, or when the categories aren't downloaded yet (first
+   * launch); an empty list doesn't tell the two apart.
+   */
   categories: ConfigurationCategory[];
   /** The category the scope matched when it matched exactly one, else `null`. */
   preselectedCategory: ConfigurationCategory | null;

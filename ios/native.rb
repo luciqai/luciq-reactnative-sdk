@@ -1,8 +1,8 @@
-# :podspec pins an unreleased native SDK build: the custom report APIs of iOS PR 8225.
-# Remove it once those APIs are in a release.
+# :podspec pins an unreleased native SDK build: iOS master with the custom report APIs
+# (custom build PR 8523). Remove it once those APIs are in a release.
 $luciq= {
   :version => '19.14.0',
-  :podspec => 'https://ios-releases.luciq.ai/custom/pr-8225/19.14.0/Luciq.podspec',
+  :podspec => 'https://ios-releases.luciq.ai/custom/pr-8523/19.14.0/Luciq.podspec',
 }
 
 # SwiftPM source for the native Luciq SDK (product `Luciq`).

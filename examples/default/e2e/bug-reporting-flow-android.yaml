@@ -17,6 +17,8 @@ appId: ai.luciq.react.example
       - tapOn: 'My overall experience'
 - tapOn:
     id: instabug_edit_text_email
+# The SDK remembers the last email, so clear it before typing.
+- eraseText
 - inputText: 'rn_e2e@luciq.ai'
 - pressKey: Back
 - tapOn:

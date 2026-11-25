@@ -1,15 +1,21 @@
 package ai.luciq.reactlibrary.utils;
 
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 
+import androidx.annotation.Nullable;
+
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.ReadableMapKeySetIterator;
+import com.facebook.react.bridge.ReadableType;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Locale;
 
@@ -35,20 +41,26 @@ public final class CustomReportUtil {
     }
 
     /**
+     * Builds the report. An image screenshot is read from storage and copied, so call it off the main thread.
+     *
      * @param report the payload JS builds with toNativeCustomReport: types already checked, no null entries.
      */
-    public static CustomReport toReport(int reportType, ReadableMap report) {
+    public static CustomReport toReport(Context context, int reportType, ReadableMap report) {
         final CustomReport.Builder builder = new CustomReport.Builder(reportType);
-        populate(builder, report);
+        populate(builder, report, context);
         return builder.build();
     }
 
     // Apart from toReport so tests can observe the builder; CustomReport exposes no getters.
-    static void populate(CustomReport.Builder builder, ReadableMap report) {
+    static void populate(CustomReport.Builder builder, ReadableMap report, Context context) {
         builder.setComment(report.getString("comment"));
         builder.setEmail(report.getString("email"));
         builder.setCategory(report.getString("categoryIdentifier"));
-        if ("currentScreen".equals(report.getString("screenshot"))) {
+        if (report.hasKey("screenshot") && report.getType("screenshot") == ReadableType.Map) {
+            // { imageUri }. A null image (it couldn't be read) is passed on: the SDK then answers invalid.
+            builder.setScreenshot(ReportScreenshot.fromBitmap(
+                    readImage(context, report.getMap("screenshot").getString("imageUri"))));
+        } else if ("currentScreen".equals(report.getString("screenshot"))) {
             builder.setScreenshot(ReportScreenshot.CURRENT_SCREEN);
         }
 
@@ -78,13 +90,24 @@ public final class CustomReportUtil {
                 builder.setExtendedField(key, extendedFields.getString(key));
             }
         }
+    }
 
-        final ReadableArray attachments = report.getArray("attachments");
-        for (int i = 0; attachments != null && i < attachments.size(); i++) {
-            final String attachment = attachments.getString(i);
-            final Uri uri = Uri.parse(attachment);
-            // A path without a scheme is a file path, as on iOS; the SDK only takes file:// and content://.
-            builder.addAttachment(uri.getScheme() == null ? Uri.fromFile(new File(attachment)) : uri);
+    /**
+     * @return the image at a file path, or a file:// or content:// URI; null when it can't be read
+     */
+    @Nullable
+    private static Bitmap readImage(Context context, String image) {
+        try {
+            final Uri uri = Uri.parse(image);
+            // A path without a scheme is a file path, as on iOS.
+            try (InputStream stream = context.getContentResolver()
+                    .openInputStream(uri.getScheme() == null ? Uri.fromFile(new File(image)) : uri)) {
+                return BitmapFactory.decodeStream(stream);
+            }
+        } catch (Exception | OutOfMemoryError e) {
+            // No detail: the message would carry the image's path.
+            LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] couldn't read the screenshot image");
+            return null;
         }
     }
 
@@ -151,8 +174,6 @@ public final class CustomReportUtil {
         requirementsMap.putArray("consents", consents);
         requirementsMap.putArray("extendedFields", extendedFields);
         requirementsMap.putBoolean("screenshotRequired", requirements.getScreenshotRequired());
-        requirementsMap.putInt("maxAttachments", requirements.getMaxAttachments());
-        requirementsMap.putDouble("maxAttachmentBytes", requirements.getMaxAttachmentBytes());
 
         final WritableMap map = Arguments.createMap();
         map.putArray("categories", toArray(configuration.getCategories()));

@@ -1,8 +1,10 @@
 appId: ai.luciq.react.example
 ---
 # Custom report APIs: categories scope, report configuration and headless submit.
-# Needs a dashboard with at least one leaf category for the bug report type
-# (the flow below uses the "my-overall-experience" leaf of the example app's token).
+# Needs custom reports turned on for the app by the server, and a dashboard with at
+# least one leaf category for the bug report type (the flow below uses the
+# "my-overall-experience" leaf of the example app's token).
+# Android only: it uses `back` and `hideKeyboard`, and matches the list tiles by their text.
 
 - launchApp
 - tapOn: 'Bug Reporting'
