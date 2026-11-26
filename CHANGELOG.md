@@ -10,10 +10,6 @@
 
 - **Report categories scope**: Add `BugReporting.setReportCategoriesScope(identifiers)` to limit the report categories users see to the given dashboard identifiers; pass `null` or `[]` to show all categories again. Call it after `Luciq.init`: calls made before that, or while the SDK is disabled, are ignored. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
 
-### Changed
-
-- Bump Luciq Android SDK to the `19.15.1.9238031-SNAPSHOT` build carrying the custom report APIs (to be replaced by the GA release before this version ships).
-
 ### Fixed
 
 - Fix `Luciq.onReportSubmitHandler` never being called on Android: the native module sent the event under a different name than the one the JS handler listens to. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
