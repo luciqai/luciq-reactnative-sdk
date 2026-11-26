@@ -12,7 +12,7 @@
 
 ### Changed
 
-- Bump Luciq Android SDK to the `19.15.1.9238031-SNAPSHOT` build carrying the custom report APIs (to be replaced by the GA release before this version ships).
+- Bump Luciq Android SDK to the internal `19.16.0.9477003-SNAPSHOT` build carrying the custom report APIs (to be replaced by the GA release before this version ships).
 
 ### Fixed
 
