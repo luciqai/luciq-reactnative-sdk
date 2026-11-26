@@ -86,16 +86,12 @@ export interface ReportRequirements {
 export interface ReportConfiguration {
   reportType: ReportType;
   /**
-   * The categories to show, each with its children, in dashboard order: all of
-   * the report type's categories, or only the ones the scope matches. Empty
-   * when the report type has none, or when the categories aren't downloaded
-   * yet (first launch); an empty list doesn't tell the two apart.
+   * The first level of categories to show, in dashboard order. Empty when the
+   * report type has none, or when the categories aren't downloaded yet (first
+   * launch); an empty list doesn't tell the two apart.
    */
   categories: ConfigurationCategory[];
-  /**
-   * The category the scope matched when it matched exactly one, else `null`.
-   * It is also the only entry of `categories`, so don't list both.
-   */
+  /** The category the scope matched when it matched exactly one, else `null`. */
   preselectedCategory: ConfigurationCategory | null;
   requirements: ReportRequirements;
 }
