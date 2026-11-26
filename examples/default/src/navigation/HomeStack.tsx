@@ -32,6 +32,12 @@ import {
   type RepliesStateScreenProp,
 } from '../screens/bug-reporting/RepliesStateScreen';
 import { UserConsentScreen } from '../screens/bug-reporting/UserConsentScreen';
+import { CategoriesScopeScreen } from '../screens/bug-reporting/CategoriesScopeScreen';
+import { ReportConfigurationScreen } from '../screens/bug-reporting/ReportConfigurationScreen';
+import {
+  CustomReportScreen,
+  type CustomReportScreenProp,
+} from '../screens/bug-reporting/CustomReportScreen';
 import { CrashReportingScreen } from '../screens/CrashReportingScreen';
 import {
   CrashReportingStateScreen,
@@ -113,6 +119,9 @@ export type HomeStackParamList = {
   ViewHierarchy: ViewHierarchyScreenProp;
   RepliesState: RepliesStateScreenProp;
   UserConsent: undefined;
+  CategoriesScope: undefined;
+  ReportConfiguration: undefined;
+  CustomReport: CustomReportScreenProp | undefined;
 
   // Crash Reporting //
   CrashReporting: undefined;
@@ -222,6 +231,21 @@ export const HomeStackNavigator: React.FC = () => {
         name="UserConsent"
         component={UserConsentScreen}
         options={{ title: 'User Consent' }}
+      />
+      <HomeStack.Screen
+        name="CategoriesScope"
+        component={CategoriesScopeScreen}
+        options={{ title: 'Report Categories Scope' }}
+      />
+      <HomeStack.Screen
+        name="ReportConfiguration"
+        component={ReportConfigurationScreen}
+        options={{ title: 'Report Configuration' }}
+      />
+      <HomeStack.Screen
+        name="CustomReport"
+        component={CustomReportScreen}
+        options={{ title: 'Submit Custom Report' }}
       />
 
       {/* Crash Reporting */}

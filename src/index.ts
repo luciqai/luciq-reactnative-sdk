@@ -23,6 +23,28 @@ import type { Survey } from './modules/Surveys';
 import * as Surveys from './modules/Surveys';
 import * as SessionReplay from './modules/SessionReplay';
 import type { SessionMetadata } from './models/SessionMetadata';
+import { ReportScreenshot } from './models/CustomReport';
+import type { CustomReport } from './models/CustomReport';
+import type {
+  CustomReportResult,
+  CustomReportStatus,
+  FieldError,
+  FieldErrorField,
+  FieldErrorProblem,
+  NotSentReason,
+} from './models/CustomReportResult';
+import type {
+  ConfigurationCategory,
+  ConfigurationField,
+  EmailRequirement,
+  FieldOption,
+  FieldType,
+  ReportConfiguration,
+  ReportConsent,
+  ReportExtendedField,
+  ReportRequirements,
+} from './models/ReportConfiguration';
+import { LCQ_INVALID_ARGUMENT, LuciqInvalidArgumentError } from './utils/LuciqErrors';
 
 export * from './utils/Enums';
 export {
@@ -40,6 +62,9 @@ export {
   ProactiveReportingConfigOptions,
   createProactiveReportingConfig,
   createLuciqReduxMiddleware,
+  LCQ_INVALID_ARGUMENT,
+  LuciqInvalidArgumentError,
+  ReportScreenshot,
 };
 export type {
   LuciqConfig,
@@ -49,6 +74,23 @@ export type {
   SessionMetadata,
   ThemeConfig,
   LuciqReduxMiddlewareOptions,
+  // Custom reports
+  CustomReport,
+  CustomReportResult,
+  CustomReportStatus,
+  NotSentReason,
+  FieldError,
+  FieldErrorField,
+  FieldErrorProblem,
+  ReportConfiguration,
+  ConfigurationCategory,
+  ConfigurationField,
+  FieldOption,
+  FieldType,
+  EmailRequirement,
+  ReportConsent,
+  ReportExtendedField,
+  ReportRequirements,
 };
 
 // Screen Loading Component

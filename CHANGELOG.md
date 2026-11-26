@@ -1,5 +1,19 @@
 # Changelog
 
+## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.13.0...dev)
+
+### Added
+
+- **Custom reports**: Add `BugReporting.submitReport(report)` to submit a bug, feedback or question collected by your own UI without showing the SDK's form. It resolves with a `CustomReportResult` (`queued`, `notSent` with a `NotSentReason`, or `invalid` with every `FieldError` at once) and rejects, with code `LCQ_INVALID_ARGUMENT`, only for malformed input. Custom reports are turned on for your app by the server: until then every report resolves `notSent` with `unavailable` and `getReportConfiguration` resolves `null`. A report's `screenshot` can be the current screen (`'currentScreen'`) or an image of your own (`ReportScreenshot.fromImage(uri)`, not masked). Files added with `Luciq.addFileAttachment` are sent with these reports. `Luciq.onReportSubmitHandler` still runs for these reports; the invoke and dismiss handlers do not. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
+
+- **Report configuration**: Add `BugReporting.getReportConfiguration(type)`, which resolves the categories of a report type (identifiers, titles, fields with their keys and options, and whether a category is a leaf) and the requirements `submitReport` enforces (email, comment length, consents, extended fields and screenshot), or `null` when custom reports aren't turned on for your app, or Bug Reporting or the report type isn't available. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
+
+- **Report categories scope**: Add `BugReporting.setReportCategoriesScope(identifiers)` to limit the report categories users see to the given dashboard identifiers; pass `null` or `[]` to show all categories again. Call it after `Luciq.init`: calls made before that, or while the SDK is disabled, are ignored. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
+
+### Fixed
+
+- Fix `Luciq.onReportSubmitHandler` never being called on Android: the native module sent the event under a different name than the one the JS handler listens to. ([#78](https://github.com/luciqai/luciq-reactnative-sdk/pull/78))
+
 ## [19.13.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.13.0)
 
 ### Changed

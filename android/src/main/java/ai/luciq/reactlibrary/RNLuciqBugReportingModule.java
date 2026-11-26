@@ -5,6 +5,7 @@ import android.annotation.TargetApi;
 import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
@@ -20,7 +21,14 @@ import ai.luciq.library.invocation.LuciqInvocationEvent;
 import ai.luciq.library.invocation.OnInvokeCallback;
 import ai.luciq.library.invocation.util.LuciqFloatingButtonEdge;
 import ai.luciq.library.invocation.util.LuciqVideoRecordingButtonPosition;
+import ai.luciq.bug.customreport.CustomReport;
+import ai.luciq.bug.customreport.CustomReportResult;
+import ai.luciq.bug.customreport.NotSentReason;
+import ai.luciq.bug.customreport.OnCustomReportResultCallback;
+import ai.luciq.bug.customreport.OnReportConfigurationReadyCallback;
+import ai.luciq.bug.customreport.ReportConfiguration;
 import ai.luciq.reactlibrary.utils.ArrayUtil;
+import ai.luciq.reactlibrary.utils.CustomReportUtil;
 import ai.luciq.reactlibrary.utils.EventEmitterModule;
 import ai.luciq.reactlibrary.utils.LuciqRNDebugTags;
 import ai.luciq.reactlibrary.utils.LuciqRNLogger;
@@ -558,5 +566,92 @@ public class RNLuciqBugReportingModule extends NativeLuciqBugReportingSpec {
 
             }
         });
+    }
+
+    /**
+     * Limits the report categories users see to the ones with these dashboard identifiers.
+     *
+     * @param identifiers the category identifiers, or null for all categories.
+     */
+    @ReactMethod
+    public void setReportCategoriesScope(@Nullable final ReadableArray identifiers) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    // Identifiers name dashboard categories; log only the count.
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[setReportCategoriesScope] called count=" + (identifiers == null ? 0 : identifiers.size()));
+                    BugReporting.setReportCategoriesScope(identifiers == null ? null
+                            : ArrayUtil.parseReadableArrayOfStrings(identifiers).toArray(new String[0]));
+                } catch (Exception e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[setReportCategoriesScope] failed", e);
+                }
+            }
+        });
+    }
+
+    /**
+     * Resolves the categories and requirements of a report type, or null when they aren't available.
+     *
+     * @param reportType a key of {@link ArgsRegistry#reportTypes}.
+     */
+    @ReactMethod
+    public void getReportConfiguration(final String reportType, final Promise promise) {
+        MainThreadHandler.runOnMainThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[getReportConfiguration] called reportType=" + reportType);
+                    BugReporting.getReportConfiguration(ArgsRegistry.reportTypes.get(reportType), new OnReportConfigurationReadyCallback() {
+                        @Override
+                        public void onReady(@Nullable ReportConfiguration configuration) {
+                            promise.resolve(configuration == null ? null : CustomReportUtil.toMap(configuration));
+                        }
+                    });
+                } catch (Exception e) {
+                    LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[getReportConfiguration] failed", e);
+                    promise.resolve(null);
+                }
+            }
+        });
+    }
+
+    /**
+     * Submits a report collected by the app's own UI and resolves the SDK's result.
+     *
+     * @param reportType a key of {@link ArgsRegistry#reportTypes}.
+     * @param report     the payload JS builds with toNativeCustomReport (src/models/CustomReport.ts).
+     */
+    @ReactMethod
+    public void submitReport(final String reportType, final ReadableMap report, final Promise promise) {
+        try {
+            // The report is user content; log only its type.
+            LuciqRNLogger.d(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] called reportType=" + reportType);
+            // Built here, on the native modules thread: an image screenshot is read from storage and copied.
+            final CustomReport customReport = CustomReportUtil.toReport(
+                    getReactApplicationContext(), ArgsRegistry.reportTypes.get(reportType), report);
+            MainThreadHandler.runOnMainThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        BugReporting.submitReport(customReport, new OnCustomReportResultCallback() {
+                            @Override
+                            public void onResult(CustomReportResult result) {
+                                promise.resolve(CustomReportUtil.toMap(result));
+                            }
+                        });
+                    } catch (Exception e) {
+                        resolveSubmitFailure(promise, e);
+                    }
+                }
+            });
+        } catch (Exception e) {
+            resolveSubmitFailure(promise, e);
+        }
+    }
+
+    private static void resolveSubmitFailure(Promise promise, Exception e) {
+        LuciqRNLogger.e(LuciqRNDebugTags.BUG_REPORTING, "[submitReport] failed", e);
+        promise.resolve(CustomReportUtil.toMap(new CustomReportResult.NotSent(NotSentReason.UNAVAILABLE)));
     }
 }

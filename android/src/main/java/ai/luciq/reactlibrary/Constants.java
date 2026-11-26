@@ -3,6 +3,7 @@ package ai.luciq.reactlibrary;
 final class Constants {
     final static String LCQ_PRE_INVOCATION_HANDLER = "LCQpreInvocationHandler";
     final static String LCQ_POST_INVOCATION_HANDLER = "LCQpostInvocationHandler";
+    final static String LCQ_PRE_SENDING_HANDLER = "LCQpreSendingHandler";
 
     final static String LCQ_ON_SHOW_SURVEY_HANDLER = "LCQWillShowSurvey";
     final static String LCQ_ON_DISMISS_SURVEY_HANDLER = "LCQDidDismissSurvey";
