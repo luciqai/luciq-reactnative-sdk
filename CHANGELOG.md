@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.13.0...dev)
+
+### Fixed
+
+- Fix Android source map upload failing on Gradle 9
+
 ## [19.13.0](https://github.com/luciqai/luciq-reactnative-sdk/compare/v19.10.1...v19.13.0)
 
 ### Changed

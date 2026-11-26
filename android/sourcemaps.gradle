@@ -93,18 +93,26 @@ Task createUploadSourcemapsTask(String flavor, String defaultVersionName, String
 
                 println "📦 Uploading with versionName=${versionName}, versionCode=${versionCode}, appToken=${appToken.take(5)}..."
 
-                exec {
-                    def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c'] : []
-                    def args = [
-                            'npx', 'luciq', 'upload-sourcemaps',
-                            '--platform', 'android',
-                            '--file', sourceMapFile.absolutePath,
-                            '--token', appToken,
-                            '--name', versionName,
-                            '--code', versionCode
-                    ]
+                // Project.exec() was removed in Gradle 9, so spawn the process directly
+                def osCompatibility = Os.isFamily(Os.FAMILY_WINDOWS) ? ['cmd', '/c'] : []
+                def command = [
+                        *osCompatibility,
+                        'npx', 'luciq', 'upload-sourcemaps',
+                        '--platform', 'android',
+                        '--file', sourceMapFile.absolutePath,
+                        '--token', appToken,
+                        '--name', versionName,
+                        '--code', versionCode
+                ]
 
-                    commandLine(*osCompatibility, *args)
+                def process = new ProcessBuilder(command.collect { it.toString() })
+                        .directory(rootDir)
+                        .redirectErrorStream(true)
+                        .start()
+                process.inputStream.eachLine { println it }
+                def exitCode = process.waitFor()
+                if (exitCode != 0) {
+                    throw new GradleException("luciq upload-sourcemaps exited with code ${exitCode}")
                 }
             } catch (exception) {
                 project.logger.warn "⚠️  Failed to upload source map file. Reason: ${exception.message}. Build will continue."
