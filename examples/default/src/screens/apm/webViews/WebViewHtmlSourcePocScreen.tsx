@@ -229,7 +229,11 @@ const MULTIMEDIA_HTML = `
 const CUSTOM_HEADERS_URL = 'https://httpbin.org/headers';
 
 type SourceMode =
-  'simple_html' | 'form_html' | 'multimedia_html' | 'custom_headers' | 'custom_html';
+  | 'simple_html'
+  | 'form_html'
+  | 'multimedia_html'
+  | 'custom_headers'
+  | 'custom_html';
 
 export const WebViewHtmlSourcePocScreen: React.FC = () => {
   const webViewRef = useRef<WebView>(null);
